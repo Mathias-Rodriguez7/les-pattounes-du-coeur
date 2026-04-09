@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profil {
+  id        String @id @default(uuid()) @db.Uuid
+  firstName String @map("first_name") @db.VarChar(60)
+  lastName  String @map("last_name") @db.VarChar(60)
+  age       Float? @db.Numeric
+  email     String @db.VarChar(255)
+  address   String @map(" address") @db.VarChar(255)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  volunteer  Volunteer?
+  host       Host?
+  blacklists BlacklistHistoric[]
+  cats       Cat[]
+  adoptions  Adoption[]
+}
+
+model Volunteer {
+  id         String         @id @default(uuid()) @db.Uuid
+  password   String         @db.VarChar(255)
+  role       String?        @db.VarChar(255)
+  actif      String         @db.VarChar(255)
+  profilId   String?        @db.Uuid
+  profil     Profil?        @relation(fields: [profilId], references: [id])
+  created_at DateTime       @default(now())
+  updated_at DateTime       @default(now()) @updatedAt
+  cats       CatVolunteer[]
+}
+
+model Host {
+  id                 String      @id @default(uuid()) @db.Uuid
+  profilId           String?     @db.Uuid
+  profil             Profil?     @relation(fields: [profilId], references: [id])
+  type               HostType
+  isActif            Boolean     @map("is_actif") @db.Boolean
+  job                String?     @db.VarChar(255)
+  status             HostStatus
+  isAvailable        Boolean     @default(true) @db.Boolean
+  receptionCapacity  Float       @map("reception_capacity") @db.Numeric
+  description        String      @db.Text
+  isAnimalsAtHome    Boolean     @map("is_animals-at-home") @db.Boolean
+  space              Space
+  presence           String      @db.VarChar(255)
+  outside            Boolean     @db.Boolean
+  outsideDescription String?     @map("outside_desciption") @db.Text
+  isStockFeed        Boolean     @db.Boolean
+  role               Role
+  heal               Heal
+  socialize          Socialize
+  car                Boolean     @db.Boolean
+  babyFeeding        BabyFeeding @map("baby_feeding")
+  stopActivity       String?     @db.Text
+  homeDescription    String      @map("home_description") @db.Text
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @default(now()) @updatedAt
+  placements         Placement[]
+}
+
+model BlacklistHistoric {
+  id            String   @id @default(uuid()) @db.Uuid
+  profilId      String?  @db.Uuid
+  profil        Profil?  @relation(fields: [profilId], references: [id])
+  email         String   @db.VarChar(255)
+  description   String   @db.Text
+  isBlacklisted Boolean  @default(false) @db.Boolean
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+}
+
+model Cat {
+  id                  String      @id @default(uuid()) @db.Uuid
+  name                String?     @db.VarChar(255)
+  sex                 Boolean?    @db.Boolean
+  age                 Float?      @db.Numeric
+  isVisible           Boolean     @db.Boolean
+  status              CatStatus
+  hairLength          HairLength?
+  color               String      @db.VarChar(255)
+  origin              String?     @db.VarChar(255)
+  isSterilize         Boolean     @default(false) @db.Boolean
+  isAlreadySterilized Boolean     @default(false) @db.Boolean
+  sickness            String?     @db.Text
+  treatment           String?     @db.Text
+  vaccinate           Vaccinate?
+  isFivTest           Boolean     @default(false) @db.Boolean
+  isDeworming         Boolean     @default(false) @db.Boolean
+  description         String?     @db.Text
+  isOkCat             Boolean     @default(false) @db.Boolean
+  isOkDog             Boolean     @default(false) @db.Boolean
+  isOkChild           Boolean     @default(false) @db.Boolean
+  isOutside           Boolean     @default(false) @db.Boolean
+  isIdentify          Boolean     @default(false) @db.Boolean
+  chipId              String?     @db.VarChar(255)
+
+  created_at DateTime       @default(now())
+  updated_at DateTime       @default(now()) @updatedAt
+  media      MediaCat[]
+  volunteers CatVolunteer[]
+  placements Placement[]
+  cares      Care[]
+  news       NewsCat[]
+  adoptions  Adoption[]
+  profil     Profil?        @relation(fields: [profilId], references: [id])
+  profilId   String?        @db.Uuid
+}
+
+model MediaCat {
+  id         String   @id @default(uuid()) @db.Uuid
+  catId      String?  @db.Uuid
+  cat        Cat?     @relation(fields: [catId], references: [id])
+  picture    String?  @db.VarChar(255)
+  fille      String?  @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model News {
+  id         String    @id @default(uuid()) @db.Uuid
+  title      String?   @db.VarChar(255)
+  type       NewsType
+  content    String?   @db.Text
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  cats       NewsCat[]
+}
+
+model NewsCat {
+  newsId     String
+  news       News     @relation(fields: [newsId], references: [id])
+  catId      String
+  cat        Cat      @relation(fields: [catId], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@id([newsId, catId])
+}
+
+model CatVolunteer {
+  catId       String
+  cat         Cat       @relation(fields: [catId], references: [id])
+  volunteerId String    @map("volunteer")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+
+  @@id([catId, volunteerId])
+}
+
+model Placement {
+  id         String    @id @default(uuid()) @db.Uuid
+  catId      String
+  cat        Cat       @relation(fields: [catId], references: [id])
+  hostId     String
+  host       Host      @relation(fields: [hostId], references: [id])
+  started    DateTime? @db.Date
+  ended      DateTime? @db.Date
+  isPrimary  Boolean   @default(true) @db.Boolean
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+}
+
+model Adoption {
+  id    String @id @default(uuid())
+  catId String
+  cat   Cat    @relation(fields: [catId], references: [id])
+
+  profilId String
+  profil   Profil @relation(fields: [profilId], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model Form {
+  id         String     @id @default(uuid()) @db.Uuid
+  type       FormType
+  status     FormStatus
+  email      String     @db.VarChar(255)
+  data       Json
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now()) @updatedAt
+}
+
+model Care {
+  id          String   @id @default(uuid()) @db.Uuid
+  catId       String
+  cat         Cat      @relation(fields: [catId], references: [id])
+  type        CareType
+  veterinary  String   @db.VarChar(255)
+  description String?  @db.Text
+  reason      String   @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+}
+
+//////////////////////////
+// Enums
+//////////////////////////
+
+// HOST
+enum Role {
+  OWNER
+  VOLUNTEER
+  OTHER
+}
+
+enum Space {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum Heal {
+  NO
+  LIGHT
+  HEAVY
+  HEAVY_STING
+}
+
+enum HostType {
+  CLASSIC
+  RELAY
+}
+
+enum HostStatus {
+  FREE
+  CAT_PLACE
+  WAITING
+  WATING_VALIDATION
+}
+
+enum Socialize {
+  NO
+  FEARFUL
+  WITHOUT_EX
+  EXPERIENCED
+}
+
+enum BabyFeeding {
+  NO
+  WITHOUT_EX
+  EXPERIENCED
+  RELAY
+}
+
+// CAT
+enum CatStatus {
+  AVAILABLE
+  SOCIALIZE
+  ADOPTED
+}
+
+enum HairLength {
+  SHORT
+  MEDIUM
+  LONG
+}
+
+enum Vaccinate {
+  YES
+  NO
+  PARTIAL
+}
+
+// CARE 
+enum CareType {
+  VACCINE
+  TREATMENT
+  SURGERY
+  OTHER
+}
+
+// NEWS
+enum NewsType {
+  NEWS
+  NEWSLETTER
+  HISTORY
+  NEWSCATS
+  EVENT
+}
+
+// FORM
+enum FormType {
+  ADOPTION
+  FOSTER
+  OTHER
+}
+
+enum FormStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
