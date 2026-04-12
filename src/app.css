@@ -2,6 +2,20 @@
 @import "shadcn-svelte/tailwind.css";
 @import "@fontsource-variable/inter";
 
+:root {
+  --primary: 340 75% 65%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 150 30% 38%;
+  --secondary-foreground: 0 0% 100%;
+
+  --background: 320 70% 96%;
+  --foreground: 222 15% 15%;
+
+  --border: 320 30% 85%;
+  --ring: 340 75% 65%;
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
