@@ -66,18 +66,15 @@
 </script>
 
 <section class="relative h-[50vh] w-full overflow-hidden">
-	<iframe
-		title="vidéo pattounes du coeur"
-		class="pointer-events-none absolute top-1/2
-           left-1/2 h-[56.25vw]
-           min-h-full w-screen
-           min-w-full -translate-x-1/2
-           -translate-y-1/2"
-		src="https://www.youtube.com/embed/f_szOVnCJ6A?autoplay=1&mute=1&loop=1&playlist=f_szOVnCJ6A&controls=0&modestbranding=1&rel=0"
-		frameborder="0"
-		allow="autoplay; fullscreen"
-		allowfullscreen
-	></iframe>
+	<video
+		autoplay
+		muted
+		loop
+		playsinline
+		class="absolute top-1/2 left-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+	>
+		<source src="/videos/cat.mp4" type="video/mp4" />
+	</video>
 	<div class="relative z-10 flex h-full max-w-sm items-center px-10">
 		<Card.Root class="bg-accent relative z-10">
 			<Card.Header>
