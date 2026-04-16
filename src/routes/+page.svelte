@@ -41,24 +41,28 @@
 		{
 			id: 1,
 			title: 'News 1',
+			image: '/img/news/news.png',
 			content:
 				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
 		},
 		{
 			id: 2,
 			title: 'News 2',
+			image: '/img/news/news.letter.png',
 			content:
 				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
 		},
 		{
 			id: 3,
 			title: 'News 3',
+			image: '/img/news/historic.png',
 			content:
 				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
 		},
 		{
 			id: 4,
 			title: 'News 4',
+			image: '/img/news/cat.news.png',
 			content:
 				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
 		}
@@ -75,7 +79,7 @@
 	>
 		<source src="/videos/cat.mp4" type="video/mp4" />
 	</video>
-	<div class="relative z-10 flex h-full max-w-sm items-center px-10">
+	<div class="relative z-10 hidden h-full max-w-sm items-center px-10 md:flex">
 		<Card.Root class="bg-accent relative z-10">
 			<Card.Header>
 				<Card.Title>Les Pattounes du coeur</Card.Title>
@@ -145,11 +149,11 @@
 	</div>
 </section>
 
-<section class=" flex flex-col gap-8 px-20 py-10">
+<section class="flex flex-col gap-8 px-4 py-10 md:px-10 lg:px-20">
 	<h2 class="mb-10 text-center text-3xl font-bold">News</h2>
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each newsArray as news (news.id)}
-			<NewsCard title={news.title} content={news.content} />
+			<NewsCard title={news.title} image={news.image} content={news.content} />
 		{/each}
 	</div>
 	<div class="mt-4 flex justify-center">
