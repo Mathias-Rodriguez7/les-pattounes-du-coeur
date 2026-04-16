@@ -7,7 +7,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 </script>
 
-<header class="bg-accent sticky top-0 z-50 w-full overflow-x-hidden">
+<header class="bg-accent sticky top-0 z-50 w-full">
 	<!-- ================= MOBILE ================= -->
 	<div class="flex items-center justify-between px-4 md:hidden">
 		<!-- Burger -->
@@ -62,7 +62,7 @@
 	<!-- ================= DESKTOP ================= -->
 	<div class="hidden w-full items-center px-5 md:flex">
 		<!-- Logo -->
-		<img src="/img/logo.png" alt="logo" class="h-16 w-16" />
+		<img src="/img/logo.png" alt="logo" class="h-20 w-20" />
 
 		<!-- NAV CENTER -->
 		<div class="flex min-w-0 flex-1 justify-center">
@@ -84,7 +84,7 @@
 
 					<NavigationMenu.Item>
 						<NavigationMenu.Link href="#">
-							<img src="/img/logo.png" alt="logo" class="h-12 w-12" />
+							<img src="/img/logo.png" alt="logo" class="h-16 w-16" />
 						</NavigationMenu.Link>
 					</NavigationMenu.Item>
 
@@ -117,7 +117,7 @@
 		<!-- LOGIN DESKTOP -->
 		<Sheet.Root>
 			<Sheet.Trigger class={buttonVariants}>
-				<img src="/img/cat-sleeping.png" alt="login" class="h-12 w-12" />
+				<img src="/img/cat-sleeping.png" alt="login" class="h-20 w-20" />
 			</Sheet.Trigger>
 
 			<Sheet.Content side="right" class="w-96">

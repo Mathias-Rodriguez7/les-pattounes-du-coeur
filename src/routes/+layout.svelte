@@ -12,8 +12,6 @@
 
 <Navbar />
 
-<main class="min-h-screen w-full">
-	{@render children()}
-</main>
+{@render children()}
 
 <Footer />
