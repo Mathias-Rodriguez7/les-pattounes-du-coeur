@@ -44,11 +44,19 @@
 
 			<!-- SOCIAL -->
 			<div class="flex justify-center gap-3">
-				<a href="#" class="flex h-10 w-10 items-center justify-center">
+				<a
+					href="https://www.youtube.com/@lespattounesducoeur"
+					target="_blank"
+					class="flex h-10 w-10 items-center justify-center"
+				>
 					<img src="/img/youtube.png" alt="youtube" class="max-h-full max-w-full object-contain" />
 				</a>
 
-				<a href="#" class="flex h-10 w-10 items-center justify-center">
+				<a
+					href="https://www.instagram.com/les_pattounes_du_coeur"
+					target="_blank"
+					class="flex h-10 w-10 items-center justify-center"
+				>
 					<img
 						src="/img/instagram.png"
 						alt="instagram"
@@ -56,7 +64,11 @@
 					/>
 				</a>
 
-				<a href="#" class="flex h-10 w-10 items-center justify-center">
+				<a
+					href="https://www.facebook.com/lespattounesducoeur"
+					target="_blank"
+					class="flex h-10 w-10 items-center justify-center"
+				>
 					<img
 						src="/img/facebook.png"
 						alt="facebook"
