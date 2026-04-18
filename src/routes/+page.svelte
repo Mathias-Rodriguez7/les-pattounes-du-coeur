@@ -1,41 +1,13 @@
-<script>
+<script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import CatCard from '$lib/components/CatCard.svelte';
 	import AreaChart from '$lib/components/AreaChart.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Plus } from 'lucide-svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
+	import type { PageData } from './$types';
 
-	const cats = [
-		{
-			id: 1,
-			name: 'Milo',
-			image: '/img/cats/cat1.jpg',
-			description:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 2,
-			name: 'Luna',
-			image: '/img/cats/cat2.jpg',
-			description:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 3,
-			name: 'Simba',
-			image: '/img/cats/cat3.jpg',
-			description:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 4,
-			name: 'Potichat',
-			image: '/img/cats/cat4.jpg',
-			description:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		}
-	];
+	let { data }: { data: PageData } = $props();
 
 	const newsArray = [
 		{
@@ -101,8 +73,8 @@
 	<h2 class="mb-10 text-center text-3xl font-bold">Nouveaux chats à adopter</h2>
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each cats as cat (cat.id)}
-			<CatCard name={cat.name} image={cat.image} description={cat.description} />
+		{#each data.cats as cat (cat.id)}
+			<CatCard {cat} />
 		{/each}
 	</div>
 
