@@ -3,6 +3,10 @@ export type Cat = {
 	name: string | null;
 	description: string | null;
 	media: CatMedia[];
+
+	isOkDog: boolean;
+	isOkCat: boolean;
+	isOkChild: boolean;
 };
 
 export type CatMedia = {

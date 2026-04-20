@@ -10,7 +10,8 @@ export async function load() {
 		},
 		orderBy: {
 			created_at: 'desc'
-		}
+		},
+		take: 4
 	});
 
 	return {

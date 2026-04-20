@@ -13,12 +13,19 @@ export const load: PageServerLoad = async () => {
 		id: cat.id,
 		name: cat.name,
 		description: cat.description,
+
 		media: cat.media
 			.filter((m) => m.picture !== null)
 			.map((m) => ({
 				picture: m.picture!
-			}))
+			})),
+
+		isOkDog: cat.isOkDog,
+		isOkCat: cat.isOkCat,
+		isOkChild: cat.isOkChild
 	}));
 
-	return { cats: formatted };
+	return {
+		cats: formatted
+	} satisfies { cats: Cat[] };
 };

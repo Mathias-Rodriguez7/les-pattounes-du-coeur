@@ -7,12 +7,24 @@
 		name: string | null;
 		description: string | null;
 		media?: { picture: string }[];
+
+		isOkCat: boolean;
+		isOkDog: boolean;
+		isOkChild: boolean;
 	};
+
+	const badges = [
+		{ key: 'isOkCat', label: 'OK chat' },
+		{ key: 'isOkDog', label: 'OK chien' },
+		{ key: 'isOkChild', label: 'OK enfant' }
+	];
 
 	const { cat } = $props<{ cat: Cat }>();
 </script>
 
-<Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
+<Card.Root
+	class="flex h-full cursor-pointer flex-col overflow-hidden transition duration-300 hover:scale-105"
+>
 	<img
 		src={cat.media?.[0]?.picture ?? '/img/placeholder.jpg'}
 		alt={cat.name ?? 'cat'}
@@ -23,8 +35,14 @@
 		<Card.Title>{cat.name}</Card.Title>
 	</Card.Header>
 
-	<Card.Content>
-		<Badge variant="outline">Chat</Badge>
+	<Card.Content class="flex flex-col gap-4">
+		<div class="flex flex-wrap gap-2">
+			{#each badges as badge (badge.key)}
+				{#if cat[badge.key]}
+					<Badge variant="outline" class="bg-accent">{badge.label}</Badge>
+				{/if}
+			{/each}
+		</div>
 
 		<p class="text-muted-foreground line-clamp-3 text-sm">
 			{cat.description}
