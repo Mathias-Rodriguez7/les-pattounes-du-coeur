@@ -72,7 +72,7 @@
 						<NavigationMenu.Trigger>Adoptions</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
 							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="#">Chats</NavigationMenu.Link></li>
+								<li><NavigationMenu.Link href="/chat">Chats</NavigationMenu.Link></li>
 								<li><NavigationMenu.Link href="#">Formulaire</NavigationMenu.Link></li>
 							</ul>
 						</NavigationMenu.Content>
@@ -83,8 +83,8 @@
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Link href="#">
-							<img src="/img/logo.png" alt="logo" class="h-16 w-16" />
+						<NavigationMenu.Link href="/">
+							<img src="/img/logo.png" alt="logo" class="h-20 w-20" />
 						</NavigationMenu.Link>
 					</NavigationMenu.Item>
 

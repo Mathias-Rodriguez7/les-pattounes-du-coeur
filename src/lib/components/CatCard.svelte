@@ -1,24 +1,54 @@
-<script>
+<script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 
-	const { name, image, description } = $props();
+	type Cat = {
+		name: string | null;
+		description: string | null;
+		media?: { picture: string }[];
+
+		isOkCat: boolean;
+		isOkDog: boolean;
+		isOkChild: boolean;
+	};
+
+	const badges = [
+		{ key: 'isOkCat', label: 'OK chat' },
+		{ key: 'isOkDog', label: 'OK chien' },
+		{ key: 'isOkChild', label: 'OK enfant' }
+	];
+
+	const { cat } = $props<{ cat: Cat }>();
 </script>
 
-<Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
-	<img src={image} alt={name} class="h-85 w-full shrink-0 object-cover" />
+<Card.Root
+	class="flex h-full cursor-pointer flex-col overflow-hidden transition duration-300 hover:scale-105"
+>
+	<img
+		src={cat.media?.[0]?.picture ?? '/img/placeholder.jpg'}
+		alt={cat.name ?? 'cat'}
+		class="h-85 w-full object-cover"
+	/>
+
 	<Card.Header>
-		<Card.Title>{name}</Card.Title>
+		<Card.Title>{cat.name}</Card.Title>
 	</Card.Header>
-	<Card.Content class="flex-1">
-		<div class="grid auto-rows-fr gap-6 md:grid-cols-2 lg:grid-cols-3">
-			<Badge variant="outline">Badge</Badge>
+
+	<Card.Content class="flex flex-col gap-4">
+		<div class="flex flex-wrap gap-2">
+			{#each badges as badge (badge.key)}
+				{#if cat[badge.key]}
+					<Badge variant="outline" class="bg-accent">{badge.label}</Badge>
+				{/if}
+			{/each}
 		</div>
+
 		<p class="text-muted-foreground line-clamp-3 text-sm">
-			{description}
+			{cat.description}
 		</p>
 	</Card.Content>
+
 	<Card.Footer class="flex justify-end">
 		<Button>Offrir un foyer</Button>
 	</Card.Footer>

@@ -1,9 +1,15 @@
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y \
+  openssl \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
-RUN npm install
+
+RUN npm install --include=optional
 
 COPY . .
 
@@ -11,4 +17,4 @@ RUN npx prisma generate
 
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host"]
