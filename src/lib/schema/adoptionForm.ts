@@ -47,12 +47,15 @@ export const step3Schema = z.object({
 		.max(1000, 'Valeur trop élevée'),
 
 	hasGarden: z.boolean(),
+	gardenSize: numberField('La taille du jardin').min(0).max(1000).optional(),
 
-	gardenSize: z.string().optional(),
+	hasPets: z.boolean(),
 
-	numberOfPets: numberField("Le nombre d'animaux").min(0, 'Valeur invalide'),
+	numberOfCats: numberField('Nombre de chats').min(0).default(0),
+	numberOfDogs: numberField('Nombre de chiens').min(0).default(0),
+	otherPets: z.string().optional(),
 
-	numberOfChildren: numberField("Le nombre d'enfants").min(0, 'Valeur invalide')
+	numberOfChildren: numberField("Nombre d'enfants").min(0)
 });
 
 // 🔗 GLOBAL SCHEMA

@@ -49,7 +49,8 @@
 	const catAge = [
 		{ value: 'kitten', label: 'Chaton' },
 		{ value: 'adult', label: 'Adult' },
-		{ value: 'senior', label: 'Senior' }
+		{ value: 'senior', label: 'Senior' },
+		{ value: 'free', label: 'Sans préférence' }
 	];
 
 	const catSex = [
@@ -61,14 +62,17 @@
 	const furLength = [
 		{ value: 'short', label: 'Courts' },
 		{ value: 'medium', label: 'Moyen' },
-		{ value: 'long', label: 'Longs' }
+		{ value: 'long', label: 'Longs' },
+		{ value: 'free', label: 'Sans préférence' }
 	];
 
 	const fieldClass =
-		'h-11 w-full rounded-xl border bg-background px-4 text-left shadow-sm transition hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary/40';
+		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40';
 
 	const selectTrigger =
-		'h-11 w-full rounded-xl border bg-background px-4 text-left shadow-sm transition hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary/40';
+		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10  focus-visible:ring-2 focus-visible:ring-primary/40';
+
+	const textarea = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl px-4 py-3;';
 </script>
 
 <div class="p-8">
@@ -83,6 +87,7 @@
 				<!-- 👤 STEP 1 -->
 				{#if step === 1}
 					<div class="space-y-6">
+						<h2>Profil</h2>
 						<div class="grid grid-cols-2 gap-4">
 							<Form.Field {form} name="firstName">
 								<Form.Control>
@@ -145,7 +150,8 @@
 
 				<!-- 🐱 STEP 2 -->
 				{#if step === 2}
-					<div class="space-y-4">
+					<div class="space-y-6">
+						<h2>Critere</h2>
 						<div class="grid grid-cols-2 gap-4">
 							<Form.Field {form} name="catAge">
 								<Form.Control>
@@ -167,7 +173,7 @@
 													{#each catAge as age (age.value)}
 														<Select.Item
 															value={age.value}
-															class="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
+															class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
 														>
 															{age.label}
 														</Select.Item>
@@ -199,7 +205,7 @@
 													{#each catSex as sex (sex.value)}
 														<Select.Item
 															value={sex.value}
-															class="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
+															class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
 														>
 															{sex.label}
 														</Select.Item>
@@ -232,7 +238,7 @@
 												{#each furLength as length (length.value)}
 													<Select.Item
 														value={length.value}
-														class="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
+														class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-3 py-2"
 													>
 														{length.label}
 													</Select.Item>
@@ -258,11 +264,7 @@
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label>Caractère</Form.Label>
-									<Textarea
-										{...props}
-										bind:value={$formData.temperament}
-										class="bg-background focus-visible:ring-primary/40 min-h-28 w-full rounded-xl border px-4 py-3 shadow-sm focus-visible:ring-2"
-									/>
+									<Textarea {...props} bind:value={$formData.temperament} class={textarea} />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -272,62 +274,116 @@
 
 				<!-- 🏠 STEP 3 -->
 				{#if step === 3}
-					<div class="space-y-4">
-						<Form.Field {form} name="housingSize">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label>Logement (m²)</Form.Label>
-									<Input type="number" {...props} bind:value={$formData.housingSize} />
-								{/snippet}
-							</Form.Control>
-							<Form.FieldErrors />
-						</Form.Field>
-
-						<Form.Field {form} name="hasGarden">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label>Jardin</Form.Label>
-
-									<Checkbox
-										{...props}
-										checked={$formData.hasGarden}
-										onCheckedChange={(v) => ($formData.hasGarden = Boolean(v))}
-									/>
-								{/snippet}
-							</Form.Control>
-						</Form.Field>
-
-						{#if $formData.hasGarden}
-							<Form.Field {form} name="gardenSize">
+					<div class="space-y-6">
+						<h2>Votre foyer</h2>
+						<!-- LOGEMENT -->
+						<div class="space-y-4">
+							<Form.Field {form} name="housingSize">
 								<Form.Control>
 									{#snippet children({ props })}
-										<Form.Label>Taille jardin</Form.Label>
-										<Input {...props} bind:value={$formData.gardenSize} />
+										<Form.Label>Logement (m²)</Form.Label>
+										<Input type="number" {...props} bind:value={$formData.housingSize} />
 									{/snippet}
 								</Form.Control>
 								<Form.FieldErrors />
 							</Form.Field>
-						{/if}
 
-						<Form.Field {form} name="numberOfPets">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label>Animaux</Form.Label>
-									<Input type="number" {...props} bind:value={$formData.numberOfPets} />
-								{/snippet}
-							</Form.Control>
-							<Form.FieldErrors />
-						</Form.Field>
+							<Form.Field {form} name="hasGarden">
+								<Form.Control>
+									{#snippet children({ props })}
+										<Form.Label>Jardin</Form.Label>
 
-						<Form.Field {form} name="numberOfChildren">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label>Enfants</Form.Label>
-									<Input type="number" {...props} bind:value={$formData.numberOfChildren} />
-								{/snippet}
-							</Form.Control>
-							<Form.FieldErrors />
-						</Form.Field>
+										<Checkbox
+											{...props}
+											checked={$formData.hasGarden}
+											onCheckedChange={(v) => ($formData.hasGarden = Boolean(v))}
+										/>
+									{/snippet}
+								</Form.Control>
+							</Form.Field>
+
+							{#if $formData.hasGarden}
+								<Form.Field {form} name="gardenSize">
+									<Form.Control>
+										{#snippet children({ props })}
+											<Form.Label>Taille jardin (m²)</Form.Label>
+											<Input type="number" {...props} bind:value={$formData.gardenSize} />
+										{/snippet}
+									</Form.Control>
+									<Form.FieldErrors />
+								</Form.Field>
+							{/if}
+						</div>
+
+						<!-- ANIMAUX -->
+						<div class="space-y-4">
+							<Form.Field {form} name="hasPets">
+								<Form.Control>
+									{#snippet children({ props })}
+										<Form.Label>Vous avez des animaux ?</Form.Label>
+										<Checkbox
+											{...props}
+											checked={$formData.hasPets}
+											onCheckedChange={(v) => ($formData.hasPets = Boolean(v))}
+										/>
+									{/snippet}
+								</Form.Control>
+								<Form.FieldErrors />
+							</Form.Field>
+
+							{#if $formData.hasPets}
+								<div class="space-y-4">
+									<div class="grid grid-cols-2 gap-4">
+										<Form.Field {form} name="numberOfCats">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Chat</Form.Label>
+													<Input type="number" {...props} bind:value={$formData.numberOfCats} />
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+
+										<Form.Field {form} name="numberOfDogs">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Chien</Form.Label>
+													<Input type="number" {...props} bind:value={$formData.numberOfDogs} />
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+									</div>
+									<Form.Field {form} name="otherPets">
+										<Form.Control>
+											{#snippet children({ props })}
+												<Form.Label>Autres animaux</Form.Label>
+												<Textarea
+													{...props}
+													bind:value={$formData.otherPets}
+													placeholder="Ex: lapin, hamster, perroquet..."
+													class={textarea}
+												/>
+											{/snippet}
+										</Form.Control>
+										<Form.FieldErrors />
+									</Form.Field>
+								</div>
+							{/if}
+						</div>
+
+						<!-- FOYER -->
+						<div class="space-y-4">
+							<Form.Field {form} name="numberOfChildren">
+								<Form.Control>
+									{#snippet children({ props })}
+										<Form.Label>Enfants</Form.Label>
+										<Input type="number" {...props} bind:value={$formData.numberOfChildren} />
+									{/snippet}
+								</Form.Control>
+								<Form.FieldErrors />
+							</Form.Field>
+						</div>
 					</div>
 				{/if}
 
