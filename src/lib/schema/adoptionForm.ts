@@ -23,7 +23,7 @@ export const step1Schema = z.object({
 
 // 🐱 STEP 2
 export const step2Schema = z.object({
-	catAge: z.enum(['kitten', 'adult', 'senior'], {
+	catAge: z.enum(['kitten', 'adult', 'senior', 'free'], {
 		message: 'Veuillez sélectionner l’âge du chat'
 	}),
 
@@ -33,7 +33,7 @@ export const step2Schema = z.object({
 
 	color: z.string().min(2, 'Veuillez indiquer une couleur'),
 
-	furLength: z.enum(['short', 'medium', 'long'], {
+	furLength: z.enum(['short', 'medium', 'long', 'free'], {
 		message: 'Veuillez sélectionner la longueur du poil'
 	}),
 
@@ -63,7 +63,7 @@ export const adoptionFormSchema = step1Schema
 	.extend(step2Schema.shape)
 	.extend(step3Schema.shape)
 	.superRefine((data, ctx) => {
-		if (data.hasGarden && (!data.gardenSize || data.gardenSize.trim().length === 0)) {
+		if (data.hasGarden && (data.gardenSize === undefined || data.gardenSize === null)) {
 			ctx.addIssue({
 				path: ['gardenSize'],
 				code: 'custom',

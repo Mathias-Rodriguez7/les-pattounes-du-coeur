@@ -5,6 +5,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronRight, ChevronLeft } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	import {
 		adoptionFormSchema,
@@ -18,19 +19,41 @@
 	import { get } from 'svelte/store';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 
-	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
+	let {
+		data
+	}: {
+		data: {
+			form: SuperValidated<Infer<typeof adoptionFormSchema>>;
+		};
+	} = $props();
 
+	// ✅ FORM CONFIG
 	const form = superForm(data.form, {
-		validators: zod4Client(adoptionFormSchema)
+		validators: zod4Client(adoptionFormSchema),
+
+		onResult({ result }) {
+			if (result.type === 'success') {
+				toast.success('Demande envoyée avec succès 🎉');
+				form.reset();
+				step = 1;
+			}
+
+			if (result.type === 'failure') {
+				toast.error("Une erreur s'est produite ❌");
+			}
+		}
 	});
 
+	// ⚠️ IMPORTANT
 	const { form: formData, enhance } = form;
 
+	// ✅ STATE
 	let step = $state(1);
 	const totalSteps = 3;
 
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
+	// ✅ VALIDATION STEP
 	function validateCurrentStep() {
 		let schema = step === 1 ? step1Schema : step === 2 ? step2Schema : step3Schema;
 
@@ -46,16 +69,17 @@
 		if (step > 1) step--;
 	}
 
+	// ✅ DATA
 	const catAge = [
 		{ value: 'kitten', label: 'Chaton' },
-		{ value: 'adult', label: 'Adult' },
+		{ value: 'adult', label: 'Adulte' },
 		{ value: 'senior', label: 'Senior' },
 		{ value: 'free', label: 'Sans préférence' }
 	];
 
 	const catSex = [
-		{ value: 'male', label: 'Male' },
-		{ value: 'female', label: 'Female' },
+		{ value: 'male', label: 'Mâle' },
+		{ value: 'female', label: 'Femelle' },
 		{ value: 'free', label: 'Sans préférence' }
 	];
 
@@ -66,26 +90,27 @@
 		{ value: 'free', label: 'Sans préférence' }
 	];
 
+	// ✅ STYLES
 	const fieldClass =
 		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40';
 
 	const selectTrigger =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10  focus-visible:ring-2 focus-visible:ring-primary/40';
+		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40';
 
-	const textarea = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl px-4 py-3;';
+	const textarea = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl px-4 py-3';
 </script>
 
 <div class="p-8">
 	<Card.Root class="mx-auto w-full max-w-xl">
 		<Card.Header class="text-center">
-			<Card.Title>Trouvez votre futur compagnon 🐱</Card.Title>
+			<Card.Title>Trouvez votre futur compagnon</Card.Title>
 			<Card.Description>Complétez le formulaire pour trouver le chat idéal</Card.Description>
 		</Card.Header>
 
 		<Card.Content>
 			<form method="POST" use:enhance class="space-y-6">
 				<!-- 👤 STEP 1 -->
-				{#if step === 1}
+				<div class:hidden={step !== 1}>
 					<div class="space-y-6">
 						<h2>Profil</h2>
 						<div class="grid grid-cols-2 gap-4">
@@ -146,10 +171,10 @@
 							</Form.Field>
 						</div>
 					</div>
-				{/if}
+				</div>
 
 				<!-- 🐱 STEP 2 -->
-				{#if step === 2}
+				<div class:hidden={step !== 2}>
 					<div class="space-y-6">
 						<h2>Critere</h2>
 						<div class="grid grid-cols-2 gap-4">
@@ -264,16 +289,21 @@
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label>Caractère</Form.Label>
-									<Textarea {...props} bind:value={$formData.temperament} class={textarea} />
+									<Textarea
+										placeholder="Ex: calme, calin, joueur, pas craintif..."
+										{...props}
+										bind:value={$formData.temperament}
+										class={textarea}
+									/>
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
 					</div>
-				{/if}
+				</div>
 
 				<!-- 🏠 STEP 3 -->
-				{#if step === 3}
+				<div class:hidden={step !== 3}>
 					<div class="space-y-6">
 						<h2>Votre foyer</h2>
 						<!-- LOGEMENT -->
@@ -385,7 +415,7 @@
 							</Form.Field>
 						</div>
 					</div>
-				{/if}
+				</div>
 
 				<!-- NAVIGATION -->
 				<div class="flex justify-between pt-4">
