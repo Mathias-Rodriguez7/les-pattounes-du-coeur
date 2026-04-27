@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import { Toaster } from 'svelte-sonner';
 	import '../app.css';
 </script>
 
@@ -11,5 +12,7 @@
 <Navbar />
 
 <slot />
+
+<Toaster />
 
 <Footer />

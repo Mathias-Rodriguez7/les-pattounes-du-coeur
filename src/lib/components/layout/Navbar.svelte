@@ -69,17 +69,25 @@
 			<NavigationMenu.Root viewport={false}>
 				<NavigationMenu.List class="flex items-center gap-6">
 					<NavigationMenu.Item>
-						<NavigationMenu.Trigger>Adoptions</NavigationMenu.Trigger>
+						<NavigationMenu.Trigger class="text-2xl">Adoptions</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
 							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="/chat">Chats</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">Formulaire</NavigationMenu.Link></li>
+								<li>
+									<NavigationMenu.Link href="/adoptions/chat" class="text-2xl"
+										>Chats</NavigationMenu.Link
+									>
+								</li>
+								<li>
+									<NavigationMenu.Link href="/adoptions/formChat" class="text-2xl"
+										>Formulaire</NavigationMenu.Link
+									>
+								</li>
 							</ul>
 						</NavigationMenu.Content>
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Link href="#">Donation</NavigationMenu.Link>
+						<NavigationMenu.Link href="#" class="text-2xl">Donation</NavigationMenu.Link>
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
@@ -89,24 +97,32 @@
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Trigger>Association</NavigationMenu.Trigger>
+						<NavigationMenu.Trigger class="text-2xl">Association</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
 							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="#">Info</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">News</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">Conseils</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">Boutique</NavigationMenu.Link></li>
+								<li><NavigationMenu.Link href="#" class="text-2xl">Info</NavigationMenu.Link></li>
+								<li><NavigationMenu.Link href="#" class="text-2xl">News</NavigationMenu.Link></li>
+								<li>
+									<NavigationMenu.Link href="#" class="text-2xl">Conseils</NavigationMenu.Link>
+								</li>
+								<li>
+									<NavigationMenu.Link href="#" class="text-2xl">Boutique</NavigationMenu.Link>
+								</li>
 							</ul>
 						</NavigationMenu.Content>
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Trigger>Contact</NavigationMenu.Trigger>
+						<NavigationMenu.Trigger class="text-2xl">Contact</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
 							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="#">SOS</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">Famille</NavigationMenu.Link></li>
-								<li><NavigationMenu.Link href="#">Bénévole</NavigationMenu.Link></li>
+								<li><NavigationMenu.Link href="#" class="text-2xl">SOS</NavigationMenu.Link></li>
+								<li>
+									<NavigationMenu.Link href="#" class="text-2xl">Famille</NavigationMenu.Link>
+								</li>
+								<li>
+									<NavigationMenu.Link href="#" class="text-2xl">Bénévole</NavigationMenu.Link>
+								</li>
 							</ul>
 						</NavigationMenu.Content>
 					</NavigationMenu.Item>
