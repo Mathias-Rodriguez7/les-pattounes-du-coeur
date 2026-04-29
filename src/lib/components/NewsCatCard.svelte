@@ -2,7 +2,11 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 
-	const { title, image, content, date } = $props();
+	const { title, image, cats, date } = $props();
+
+	const content = `${cats.length} chat${cats.length > 1 ? 's' : ''} disponible${
+		cats.length > 1 ? 's' : ''
+	} à l’adoption`;
 </script>
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
