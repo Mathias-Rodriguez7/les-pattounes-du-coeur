@@ -107,7 +107,9 @@
 									>
 								</li>
 								<li>
-									<NavigationMenu.Link href="#" class="text-2xl">Conseils</NavigationMenu.Link>
+									<NavigationMenu.Link href="/association/conseils" class="text-2xl"
+										>Conseils</NavigationMenu.Link
+									>
 								</li>
 								<li>
 									<NavigationMenu.Link href="#" class="text-2xl">Boutique</NavigationMenu.Link>
