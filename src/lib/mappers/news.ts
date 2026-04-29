@@ -1,6 +1,7 @@
 import type { PrismaNewsWithCats } from '$lib/types/news';
 import type { News } from '$lib/types/news';
 import type { NewsType } from '@prisma/client';
+import { formatDate } from '$lib/utils/date';
 
 const newsImages: Record<NewsType, string> = {
 	NEWS: '/img/news/news.png',
@@ -11,22 +12,22 @@ const newsImages: Record<NewsType, string> = {
 };
 
 export function mapNews(news: PrismaNewsWithCats): News {
-	const { id, title, content, type, created_at, cats } = news;
-
 	return {
-		id,
-		title,
-		content,
-		type,
-		createdAt: created_at,
+		id: news.id,
+		title: news.title,
+		content: news.content,
+		type: news.type,
 
-		image: newsImages[type] ?? '/img/news/default.png',
+		createdAt: news.created_at,
+		formattedDate: formatDate(news.created_at),
+
+		image: newsImages[news.type] ?? '/img/news/default.png',
 
 		cats:
-			cats?.map((nc) => ({
+			news.cats?.map((nc) => ({
 				id: nc.cat.id,
 				name: nc.cat.name,
-				picture: nc.cat.media?.[0]?.picture ?? null
+				media: nc.cat.media
 			})) ?? []
 	};
 }

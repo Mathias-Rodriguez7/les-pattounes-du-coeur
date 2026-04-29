@@ -1,7 +1,9 @@
 <script lang="ts">
 	import NewsBigCard from '$lib/components/NewsBigCard.svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
+	import NewsBigCatCard from '$lib/components/NewsBigCatCard.svelte';
 	import type { News } from '$lib/types/news';
+	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
 
 	const newsImages = {
 		NEWS: '/img/news/news.png',
@@ -17,15 +19,26 @@
 
 	let { data } = $props();
 
-	const allNews = $derived(data.news);
+	const allNews = $derived(data.news ?? []);
 
 	let selectedNews = $state<News | null>(null);
 
-	const latestNews = $derived(allNews[0]);
+	const latestNews = $derived(allNews?.[0] ?? null);
 
 	const featuredNews = $derived(selectedNews ?? latestNews);
 
-	const listNews = $derived(allNews.filter((n) => n.id !== featuredNews?.id));
+	const listNews = $derived(
+		allNews?.filter((n) => {
+			if (n.id === featuredNews?.id) return false;
+
+			// 💥 filtre les NEWSCATS sans chats
+			if (n.type === 'NEWSCATS' && (!n.cats || n.cats.length === 0)) {
+				return false;
+			}
+
+			return true;
+		}) ?? []
+	);
 
 	function selectNews(news: News) {
 		selectedNews = news;
@@ -40,19 +53,41 @@
 		<section class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 			<!-- 🟦 FEATURED -->
 			<div class="h-full lg:col-span-3 lg:row-span-1">
-				<NewsBigCard
-					title={featuredNews.title}
-					image={getNewsImage(featuredNews)}
-					content={featuredNews.content}
-					date={featuredNews.date}
-				/>
+				{#if featuredNews.type === 'NEWSCATS'}
+					<NewsBigCatCard
+						title={featuredNews.title}
+						date={featuredNews.formattedDate}
+						cats={featuredNews.cats}
+					/>
+				{:else}
+					<NewsBigCard
+						title={featuredNews.title}
+						image={getNewsImage(featuredNews)}
+						content={featuredNews.content}
+						date={featuredNews.formattedDate}
+					/>
+				{/if}
 			</div>
 
 			<!-- 🟨 LIST -->
 
 			{#each listNews as news (news.id)}
 				<button class="cursor-pointer" onclick={() => selectNews(news)}>
-					<NewsCard title={news.title} image={getNewsImage(news)} content={news.content} />
+					{#if news.type === 'NEWSCATS'}
+						<NewsCatCard
+							title={news.title}
+							image={news.image}
+							date={news.formattedDate}
+							cats={news.cats}
+						/>
+					{:else}
+						<NewsCard
+							title={news.title}
+							image={news.image}
+							content={news.content}
+							date={news.formattedDate}
+						/>
+					{/if}
 				</button>
 			{/each}
 		</section>

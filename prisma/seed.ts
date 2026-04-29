@@ -114,7 +114,7 @@ async function main() {
 		// 0 à 3 chats liés
 		const relatedCats = faker.helpers.arrayElements(
 			createdCats,
-			faker.number.int({ min: 0, max: 3 })
+			faker.number.int({ min: 1, max: 5 })
 		);
 
 		await prisma.news.create({

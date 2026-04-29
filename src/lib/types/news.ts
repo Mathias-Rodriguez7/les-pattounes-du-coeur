@@ -19,13 +19,16 @@ export type News = {
 	title: string;
 	content: string | null;
 	type: NewsType;
+	formattedDate: string;
 	createdAt: Date;
 	image: string;
 
 	cats: {
 		id: string;
 		name: string | null;
-		picture: string | null;
+		media: {
+			picture: string | null;
+		}[];
 	}[];
 };
 
