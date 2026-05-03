@@ -2,10 +2,10 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 </script>
 
-<main class="flex flex-col gap-6 p-16">
+<main class="flex flex-col gap-6 p-4 sm:p-8 lg:p-16">
 	<h1 class="text-2xl font-bold">L'Association</h1>
 	<section>
-		<div class="flex gap-6">
+		<div class="flex flex-col gap-6 lg:flex-row">
 			<div class="flex-1">
 				<Card.Root>
 					<Card.Header>
@@ -19,7 +19,7 @@
 						</Card.Description>
 					</Card.Header>
 
-					<Card.Content class="flex flex-col items-center gap-4">
+					<Card.Content class="flex flex-col  gap-4">
 						<p class="text-muted-foreground leading-relaxed">
 							Au fil des années, l’association s’est développée autour d’une mission simple : agir
 							concrètement pour améliorer la vie des chats tout en sensibilisant à leur protection.
@@ -47,7 +47,7 @@
 						</Card.Description>
 					</Card.Header>
 
-					<Card.Content class="flex flex-col items-center gap-4">
+					<Card.Content class="flex flex-col gap-4">
 						<p class="text-muted-foreground leading-relaxed">
 							En parallèle, les chats sociables et les chatons sont pris en charge, accueillis en
 							famille d’accueil, puis proposés à l’adoption. Ce passage en foyer temporaire leur
@@ -67,7 +67,7 @@
 	</section>
 
 	<section>
-		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 			<div class="aspect-3/2 overflow-hidden rounded-2xl">
 				<img src="/img/association/asso.1.jpg" alt="asso" class="h-full w-full object-cover" />
 			</div>
@@ -141,7 +141,7 @@
 	</section>
 
 	<section>
-		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 			<div class="aspect-3/2 overflow-hidden rounded-2xl">
 				<img src="/img/association/asso.2.jpg" alt="asso" class="h-full w-full object-cover" />
 			</div>
