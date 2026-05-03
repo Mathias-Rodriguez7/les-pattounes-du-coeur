@@ -100,7 +100,11 @@
 						<NavigationMenu.Trigger class="text-2xl">Association</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
 							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="#" class="text-2xl">Info</NavigationMenu.Link></li>
+								<li>
+									<NavigationMenu.Link href="/association/info" class="text-2xl"
+										>Info</NavigationMenu.Link
+									>
+								</li>
 								<li>
 									<NavigationMenu.Link href="/association/news" class="text-2xl"
 										>News</NavigationMenu.Link
