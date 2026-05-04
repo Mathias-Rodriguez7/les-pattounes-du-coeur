@@ -1,4 +1,4 @@
-import type { PrismaNewsWithCats } from '$lib/types/news';
+import type { PrismaNewsWithCats } from '$lib/types/prisma/news';
 import type { News } from '$lib/types/news';
 import type { NewsType } from '@prisma/client';
 import { formatDate } from '$lib/utils/date';
@@ -18,16 +18,17 @@ export function mapNews(news: PrismaNewsWithCats): News {
 		content: news.content,
 		type: news.type,
 
+		mediaUrl: news.mediaUrl ?? null,
+
 		createdAt: news.created_at,
 		formattedDate: formatDate(news.created_at),
 
-		image: newsImages[news.type] ?? '/img/news/default.png',
+		image: newsImages[news.type],
 
-		cats:
-			news.cats?.map((nc) => ({
-				id: nc.cat.id,
-				name: nc.cat.name,
-				media: nc.cat.media
-			})) ?? []
+		cats: news.cats.map((nc) => ({
+			id: nc.cat.id,
+			name: nc.cat.name,
+			media: nc.cat.media ?? []
+		}))
 	};
 }

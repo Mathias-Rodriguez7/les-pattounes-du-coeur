@@ -1,78 +1,160 @@
 <script lang="ts">
-	import NewsBigCard from '$lib/components/NewsBigCard.svelte';
+	import NewsDialog from '$lib/components/NewsDialog.svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
-	import NewsBigCatCard from '$lib/components/NewsBigCatCard.svelte';
-	import type { News } from '$lib/types/news';
 	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
+	import type { News, NewsType } from '$lib/types/news';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Search } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
 
-	const newsImages = {
+	type PageData = {
+		news: News[];
+	};
+
+	let { data }: { data: PageData } = $props();
+
+	let selectedNews = $state<News | null>(null);
+	let isOpen = $state(false);
+
+	function openNews(news: News) {
+		selectedNews = news;
+		isOpen = true;
+	}
+
+	const newsImages: Record<NewsType, string> = {
 		NEWS: '/img/news/news.png',
 		EVENT: '/img/news/event.png',
 		HISTORY: '/img/news/historic.png',
-		NEWSCATS: '/img/news/cat.news.png',
-		NEWSLETTER: '/img/news/news.letter.png'
+		NEWSLETTER: '/img/news/news.letter.png',
+		NEWSCATS: '/img/news/cat.news.png'
 	};
 
 	function getNewsImage(news: News) {
 		return newsImages[news.type] ?? '/img/news/default.png';
 	}
 
-	let { data } = $props();
+	let filters = $state({
+		search: '',
+		toggles: {
+			news: false,
+			event: false,
+			history: false,
+			newsCat: false,
+			newsLetter: false
+		}
+	});
 
-	const allNews = $derived(data.news ?? []);
-
-	let selectedNews = $state<News | null>(null);
-
-	const latestNews = $derived(allNews?.[0] ?? null);
-
-	const featuredNews = $derived(selectedNews ?? latestNews);
-
-	const listNews = $derived(
-		allNews?.filter((n) => {
-			if (n.id === featuredNews?.id) return false;
-
-			// 💥 filtre les NEWSCATS sans chats
-			if (n.type === 'NEWSCATS' && (!n.cats || n.cats.length === 0)) {
-				return false;
-			}
-
-			return true;
-		}) ?? []
-	);
-
-	function selectNews(news: News) {
-		selectedNews = news;
+	function toggleFilter(key: keyof typeof filters.toggles) {
+		filters.toggles[key] = !filters.toggles[key];
 	}
+
+	function resetFilters() {
+		filters.search = '';
+		Object.keys(filters.toggles).forEach((key) => {
+			filters.toggles[key as keyof typeof filters.toggles] = false;
+		});
+	}
+
+	const filterToTypeMap = {
+		news: 'NEWS',
+		event: 'EVENT',
+		history: 'HISTORY',
+		newsCat: 'NEWSCATS',
+		newsLetter: 'NEWSLETTER'
+	} as const;
+
+	let filteredNews = $derived(
+		data.news.filter((news: News) => {
+			const matchSearch =
+				!filters.search || news.title?.toLowerCase().includes(filters.search.toLowerCase());
+
+			const matchToggles =
+				(Object.entries(filters.toggles) as Array<[keyof typeof filters.toggles, boolean]>).some(
+					([key, value]) => {
+						if (!value) return false;
+						return news.type === filterToTypeMap[key];
+					}
+				) || Object.values(filters.toggles).every((v) => !v);
+
+			return matchSearch && matchToggles;
+		})
+	);
 </script>
 
-<main class="bg-background min-h-screen p-6">
-	<div class="mx-auto max-w-7xl space-y-6">
+<main class="flex justify-center p-4">
+	<div class="max-w-10xl flex w-full flex-col gap-6 p-8">
 		<h1 class="text-3xl font-bold">News</h1>
 
-		<!-- GRID MAGAZINE -->
-		<section class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-			<!-- 🟦 FEATURED -->
-			<div class="h-full lg:col-span-3 lg:row-span-1">
-				{#if featuredNews.type === 'NEWSCATS'}
-					<NewsBigCatCard
-						title={featuredNews.title}
-						date={featuredNews.formattedDate}
-						cats={featuredNews.cats}
-					/>
-				{:else}
-					<NewsBigCard
-						title={featuredNews.title}
-						image={getNewsImage(featuredNews)}
-						content={featuredNews.content}
-						date={featuredNews.formattedDate}
-					/>
-				{/if}
+		<!-- FILTERS -->
+		<div
+			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
+		>
+			<div class="flex flex-wrap gap-2">
+				<button
+					class={`rounded-full px-4 py-2 text-sm ${
+						filters.toggles.news ? 'bg-secondary text-white' : 'bg-background'
+					}`}
+					onclick={() => toggleFilter('news')}
+				>
+					News
+				</button>
+
+				<button
+					class={`rounded-full px-4 py-2 text-sm ${
+						filters.toggles.newsLetter ? 'bg-secondary text-white' : 'bg-background'
+					}`}
+					onclick={() => toggleFilter('newsLetter')}
+				>
+					News Letter
+				</button>
+
+				<button
+					class={`rounded-full px-4 py-2 text-sm ${
+						filters.toggles.newsCat ? 'bg-secondary text-white' : 'bg-background'
+					}`}
+					onclick={() => toggleFilter('newsCat')}
+				>
+					Nouveaux Chats
+				</button>
+
+				<button
+					class={`rounded-full px-4 py-2 text-sm ${
+						filters.toggles.event ? 'bg-secondary text-white' : 'bg-background'
+					}`}
+					onclick={() => toggleFilter('event')}
+				>
+					Événement
+				</button>
+
+				<button
+					class={`rounded-full px-4 py-2 text-sm ${
+						filters.toggles.history ? 'bg-secondary text-white' : 'bg-background'
+					}`}
+					onclick={() => toggleFilter('history')}
+				>
+					Histoire
+				</button>
+
+				<button class="bg-primary rounded-full px-4 py-2 text-sm text-white" onclick={resetFilters}>
+					Reset
+				</button>
 			</div>
 
-			<!-- 🟨 LIST -->
+			<div class="flex items-center gap-2">
+				<Search />
+				<Input
+					type="text"
+					placeholder="Rechercher..."
+					bind:value={filters.search}
+					class="bg-background!"
+				/>
+			</div>
+		</div>
 
-			{#each listNews as news (news.id)}
-				<button class="cursor-pointer" onclick={() => selectNews(news)}>
+		<!-- GRID -->
+		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			{#each filteredNews as news (news.id)}
+				<button class="w-full text-left" onclick={() => openNews(news)}>
 					{#if news.type === 'NEWSCATS'}
 						<NewsCatCard
 							title={news.title}
@@ -83,7 +165,7 @@
 					{:else}
 						<NewsCard
 							title={news.title}
-							image={news.image}
+							image={getNewsImage(news)}
 							content={news.content}
 							date={news.formattedDate}
 						/>
@@ -91,5 +173,12 @@
 				</button>
 			{/each}
 		</section>
+
+		<!-- DIALOG (clean, unique source of truth) -->
+		<Dialog.Root bind:open={isOpen}>
+			{#if selectedNews}
+				<NewsDialog {selectedNews} />
+			{/if}
+		</Dialog.Root>
 	</div>
 </main>

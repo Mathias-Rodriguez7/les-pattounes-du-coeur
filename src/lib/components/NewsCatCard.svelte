@@ -10,7 +10,9 @@
 </script>
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
-	<img src={image} alt={title} class="w-full shrink-0 object-cover" />
+	<div class="flex justify-center">
+		<img src={image} alt={title} class="object-fit size-60" />
+	</div>
 	<Card.Header class="flex items-center justify-between">
 		<Card.Title class="text-lg">{title}</Card.Title>
 		<Card.Description class="text-xs">{date}</Card.Description>
