@@ -1,9 +1,10 @@
 <script lang="ts">
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import { fade, fly } from 'svelte/transition';
 </script>
 
-<main class="flex flex-col gap-4 p-16">
-	<section class="bg-card rounded-2xl p-4">
+<main in:fade={{ duration: 200 }} class="flex flex-col gap-4 p-16">
+	<section in:fly={{ y: 20, duration: 300 }} class="bg-card rounded-2xl p-4">
 		<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="item-1">
 			<Accordion.Item value="item-1">
 				<Accordion.Trigger>Product Information</Accordion.Trigger>

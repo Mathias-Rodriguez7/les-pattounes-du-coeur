@@ -5,9 +5,11 @@
 	import CatCard from '$lib/components/CatCard.svelte';
 	import CatDialog from '$lib/components/CatDialog.svelte';
 	import type { Cat } from '$lib/types/cat';
+	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
 		cats: Cat[];
+		selectedCatId?: string | null;
 	};
 
 	let { data }: { data: PageData } = $props();
@@ -54,10 +56,21 @@
 			return matchSearch && matchToggles;
 		})
 	);
+
+	$effect(() => {
+		if (!data.selectedCatId) return;
+
+		const cat = data.cats.find((c) => c.id === data.selectedCatId);
+
+		if (cat) {
+			selectedCat = cat;
+			isOpen = true;
+		}
+	});
 </script>
 
-<main class="flex justify-center p-4">
-	<div class="max-w-10xl flex w-full flex-col gap-6 p-8">
+<main in:fade={{ duration: 200 }} class="flex justify-center p-4">
+	<div in:fly={{ y: 20, duration: 300 }} class="max-w-10xl flex w-full flex-col gap-6 p-8">
 		<h1 class="text-2xl font-bold">Ils attendent leur famille</h1>
 
 		<!-- FILTER BAR -->
@@ -118,7 +131,15 @@
 				</button>
 			{/each}
 		</section>
-		<Dialog.Root bind:open={isOpen}>
+		<Dialog.Root
+			bind:open={isOpen}
+			onOpenChange={(v) => {
+				if (!v) {
+					selectedCat = null;
+					history.replaceState({}, '', '/adoptions/chat');
+				}
+			}}
+		>
 			<CatDialog {selectedCat} />
 		</Dialog.Root>
 	</div>

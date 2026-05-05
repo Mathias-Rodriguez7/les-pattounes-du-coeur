@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
 		news: News[];
@@ -81,8 +82,8 @@
 	);
 </script>
 
-<main class="flex justify-center p-4">
-	<div class="max-w-10xl flex w-full flex-col gap-6 p-8">
+<main in:fade={{ duration: 200 }} class="flex justify-center p-4">
+	<div in:fly={{ y: 20, duration: 300 }} class="max-w-10xl flex w-full flex-col gap-6 p-8">
 		<h1 class="text-3xl font-bold">News</h1>
 
 		<!-- FILTERS -->

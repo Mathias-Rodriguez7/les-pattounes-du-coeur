@@ -51,4 +51,4 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="w-full border"></canvas>
+<canvas bind:this={canvas} class="w-full border" />
