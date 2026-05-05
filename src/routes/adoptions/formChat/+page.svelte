@@ -6,7 +6,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronRight, ChevronLeft } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-
+	import { resolve } from '$app/paths';
 	import {
 		adoptionFormSchema,
 		step1Schema,
@@ -104,9 +104,33 @@
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="p-8">
 		<Card.Root class="mx-auto w-full max-w-xl">
-			<Card.Header class="text-center">
+			<Card.Header class="gap-4 text-center">
 				<Card.Title>Trouvez votre futur compagnon</Card.Title>
-				<Card.Description>Complétez le formulaire pour trouver le chat idéal</Card.Description>
+
+				<Card.Description class="space-y-3 text-left leading-relaxed">
+					<p>
+						Vous souhaitez adopter un minou, mais vous ne savez plus où donner de la tête avec tous
+						ces chats à l’adoption ?
+					</p>
+
+					<p>
+						Nous pouvons vous aider à trouver un compagnon qui correspond à votre profil et vos
+						envies.
+					</p>
+
+					<p>
+						En remplissant ce formulaire, nous vous proposerons des chats adaptés à votre situation.
+					</p>
+
+					<div class="pt-2">
+						<a
+							href={resolve('/adoptions/chat')}
+							class="text-primary hover:text-primary/80 inline-flex items-center font-medium underline underline-offset-4 transition"
+						>
+							→ Voir les chats disponibles
+						</a>
+					</div>
+				</Card.Description>
 			</Card.Header>
 
 			<Card.Content>
