@@ -14,7 +14,7 @@
 		"format": "prettier --write .",
 		"db:migrate": "docker compose exec app npx prisma migrate dev",
 		"db:reset": "docker compose exec app npx prisma migrate reset",
-		"db:seed": "docker compose exec app npx prisma db seed",
+		"db:seed": "docker compose exec app npx tsx prisma/seed.ts",
 		"db:full-reset": "docker compose down -v && docker compose up --build -d && docker compose exec app npx prisma migrate reset && npm run db:seed"
 	},
 	"prisma": {

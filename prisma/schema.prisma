@@ -78,7 +78,7 @@ model BlacklistHistoric {
 model Cat {
   id                  String      @id @default(uuid()) @db.Uuid
   name                String?     @db.VarChar(255)
-  sex                 Boolean?    @db.Boolean
+  sex                 SexCat
   age                 Int?
   isVisible           Boolean     @db.Boolean
   status              CatStatus
@@ -208,7 +208,7 @@ model Care {
 
 // VOLUNTEER
 enum VolunteerRole {
-  ADMINI
+  ADMIN
   MANAGER
   COMMUNICATION
 }
@@ -254,6 +254,11 @@ enum BabyFeeding {
 }
 
 // CAT
+enum SexCat {
+  MALE
+  FEMALE
+  UNKNOWN
+}
 enum CatStatus {
   AVAILABLE
   SOCIALIZE

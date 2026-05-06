@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input/index.js';
+	import { Input } from '$lib/components/ui/input';
 	import { Search } from 'lucide-svelte';
+	import { Button } from '$lib/components/ui/button';
+	import * as Sheet from '$lib/components/ui/sheet';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CatCard from '$lib/components/CatCard.svelte';
 	import CatDialog from '$lib/components/CatDialog.svelte';
+	import { goto, replaceState } from '$app/navigation';
+	import { page } from '$app/stores';
 	import type { Cat } from '$lib/types/cat';
 	import { fade, fly } from 'svelte/transition';
 
@@ -13,50 +17,92 @@
 	};
 
 	let { data }: { data: PageData } = $props();
+
+	// -----------------------------
+	// STATE
+	// -----------------------------
 	let selectedCat = $state<Cat | null>(null);
 	let isOpen = $state(false);
 
+	type AgeFilter = 'ALL' | 'LT1' | '2_5' | 'GT5';
+	type SexFilter = 'ALL' | 'MALE' | 'FEMALE';
+
+	type CatFilters = {
+		search: string;
+
+		okDog: boolean | null;
+		okCat: boolean | null;
+		okChild: boolean | null;
+
+		age: AgeFilter;
+		sex: SexFilter;
+
+		garden: boolean | null;
+	};
+
+	let filters = $state<CatFilters>({
+		search: '',
+
+		okDog: null,
+		okCat: null,
+		okChild: null,
+
+		age: 'ALL',
+		sex: 'ALL',
+
+		garden: null
+	});
+
+	// -----------------------------
+	// SYNC URL → STATE
+	// -----------------------------
+	$effect(() => {
+		const params = $page.url.searchParams;
+
+		filters.search = params.get('search') ?? '';
+
+		filters.okDog = params.get('okDog') === null ? null : params.get('okDog') === 'true';
+		filters.okCat = params.get('okCat') === null ? null : params.get('okCat') === 'true';
+		filters.okChild = params.get('okChild') === null ? null : params.get('okChild') === 'true';
+
+		filters.sex = (params.get('sex') as SexFilter) ?? 'ALL';
+		filters.age = (params.get('age') as AgeFilter) ?? 'ALL';
+
+		filters.garden = params.get('garden') === null ? null : params.get('garden') === 'true';
+	});
+
+	// -----------------------------
+	// ACTIONS
+	// -----------------------------
 	function openCat(cat: Cat) {
 		selectedCat = cat;
 		isOpen = true;
 	}
 
-	let filters = $state({
-		search: '',
-		toggles: {
-			isOkDog: false,
-			isOkCat: false,
-			isOkChild: false
-		}
-	});
+	function applyFilters() {
+		const params = new URLSearchParams();
 
-	function toggleFilter(key: keyof typeof filters.toggles) {
-		filters.toggles[key] = !filters.toggles[key];
+		if (filters.search) params.set('search', filters.search);
+
+		if (filters.okDog !== null) params.set('okDog', String(filters.okDog));
+		if (filters.okCat !== null) params.set('okCat', String(filters.okCat));
+		if (filters.okChild !== null) params.set('okChild', String(filters.okChild));
+
+		if (filters.sex !== 'ALL') params.set('sex', filters.sex);
+		if (filters.age !== 'ALL') params.set('age', filters.age);
+
+		if (filters.garden !== null) params.set('garden', String(filters.garden));
+
+		goto(`/adoptions/chat?${params.toString()}`);
 	}
 
 	function resetFilters() {
-		filters.search = '';
-		Object.keys(filters.toggles).forEach((key) => {
-			filters.toggles[key as keyof typeof filters.toggles] = false;
-		});
+		goto('/adoptions/chat');
 	}
 
-	let filteredCats = $derived(
-		data.cats.filter((cat: Cat) => {
-			const matchSearch =
-				!filters.search || cat.name?.toLowerCase().includes(filters.search.toLowerCase());
-
-			const matchToggles = (
-				Object.entries(filters.toggles) as Array<[keyof typeof filters.toggles, boolean]>
-			).every(([key, value]) => {
-				if (!value) return true;
-				return cat[key] === true;
-			});
-
-			return matchSearch && matchToggles;
-		})
-	);
-
+	// -----------------------------
+	// DEEP LINK (dialog)
+	// -----------------------------
 	$effect(() => {
 		if (!data.selectedCatId) return;
 
@@ -75,68 +121,84 @@
 
 		<!-- FILTER BAR -->
 		<div
-			class="bg-primary-foreground flex w-full flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
+			class="bg-primary-foreground flex items-center justify-between gap-4 rounded-4xl px-6 py-4"
 		>
-			<!-- FILTER BUTTONS -->
-			<div class="flex flex-wrap gap-2">
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkDog ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkDog')}
-				>
-					OK chien
-				</button>
+			<Sheet.Root>
+				<Sheet.Trigger>
+					<Button>Filtres</Button>
+				</Sheet.Trigger>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkCat ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkCat')}
-				>
-					OK chat
-				</button>
+				<Sheet.Content side="left" class="w-96 space-y-6">
+					<h2 class="text-xl font-bold">Filtres</h2>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkChild ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkChild')}
-				>
-					OK enfant
-				</button>
+					<label class="flex justify-between">
+						OK chien
+						<input type="checkbox" bind:checked={filters.okDog} />
+					</label>
 
-				<button class="bg-primary rounded-full px-4 py-2 text-sm text-white" onclick={resetFilters}>
-					Reset
-				</button>
-			</div>
+					<label class="flex justify-between">
+						OK chat
+						<input type="checkbox" bind:checked={filters.okCat} />
+					</label>
 
-			<!-- SEARCH -->
+					<label class="flex justify-between">
+						OK enfant
+						<input type="checkbox" bind:checked={filters.okChild} />
+					</label>
+
+					<div>
+						<p>Sexe</p>
+						<select bind:value={filters.sex} class="w-full">
+							<option value="ALL">Tous</option>
+							<option value="MALE">Mâle</option>
+							<option value="FEMALE">Femelle</option>
+						</select>
+					</div>
+
+					<div>
+						<p>Âge</p>
+						<select bind:value={filters.age} class="w-full">
+							<option value="ALL">Tous</option>
+							<option value="LT1">- 1 an</option>
+							<option value="2_5">2 - 5 ans</option>
+							<option value="GT5">+ 5 ans</option>
+						</select>
+					</div>
+
+					<label class="flex justify-between">
+						Besoin jardin
+						<input type="checkbox" bind:checked={filters.garden} />
+					</label>
+
+					<Button onclick={applyFilters}>Appliquer</Button>
+					<Button variant="outline" onclick={resetFilters}>Reset</Button>
+				</Sheet.Content>
+			</Sheet.Root>
+
 			<div class="flex items-center gap-2">
 				<Search />
-				<Input
-					type="text"
-					placeholder="Rechercher..."
-					bind:value={filters.search}
-					class="bg-background!"
-				/>
+				<Input bind:value={filters.search} placeholder="Rechercher..." />
 			</div>
 		</div>
 
 		<!-- GRID -->
 		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-			{#each filteredCats as cat (cat.id)}
-				<button type="button" class="w-full text-left" onclick={() => openCat(cat)}>
+			{#each data.cats as cat (cat.id)}
+				<button class="text-left" onclick={() => openCat(cat)}>
 					<CatCard {cat} />
 				</button>
 			{/each}
 		</section>
+
+		<!-- DIALOG -->
 		<Dialog.Root
 			bind:open={isOpen}
 			onOpenChange={(v) => {
+				isOpen = v;
+
 				if (!v) {
 					selectedCat = null;
-					history.replaceState({}, '', '/adoptions/chat');
+					replaceState('/adoptions/chat', {});
 				}
 			}}
 		>

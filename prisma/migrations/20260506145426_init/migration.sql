@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "VolunteerRole" AS ENUM ('ADMINI', 'MANAGER', 'COMMUNICATION');
+CREATE TYPE "VolunteerRole" AS ENUM ('ADMIN', 'MANAGER', 'COMMUNICATION');
 
 -- CreateEnum
 CREATE TYPE "HostType" AS ENUM ('CLASSIC', 'RELAY');
@@ -18,6 +18,9 @@ CREATE TYPE "Socialize" AS ENUM ('NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED');
 
 -- CreateEnum
 CREATE TYPE "BabyFeeding" AS ENUM ('NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY');
+
+-- CreateEnum
+CREATE TYPE "SexCat" AS ENUM ('MALE', 'FEMALE', 'UNKNOWN');
 
 -- CreateEnum
 CREATE TYPE "CatStatus" AS ENUM ('AVAILABLE', 'SOCIALIZE', 'ADOPTED', 'FREE');
@@ -45,6 +48,7 @@ CREATE TABLE "Profil" (
     "id" UUID NOT NULL,
     "first_name" VARCHAR(60) NOT NULL,
     "last_name" VARCHAR(60) NOT NULL,
+    "phone" VARCHAR(20) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "address" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -113,7 +117,7 @@ CREATE TABLE "BlacklistHistoric" (
 CREATE TABLE "Cat" (
     "id" UUID NOT NULL,
     "name" VARCHAR(255),
-    "sex" BOOLEAN,
+    "sex" "SexCat" NOT NULL,
     "age" INTEGER,
     "isVisible" BOOLEAN NOT NULL,
     "status" "CatStatus" NOT NULL,
@@ -158,6 +162,7 @@ CREATE TABLE "News" (
     "title" VARCHAR(255) NOT NULL,
     "type" "NewsType" NOT NULL,
     "content" TEXT,
+    "mediaUrl" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -235,6 +240,12 @@ CREATE TABLE "Care" (
 
     CONSTRAINT "Care_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Profil_phone_key" ON "Profil"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Profil_email_key" ON "Profil"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Volunteer_profilId_key" ON "Volunteer"("profilId");

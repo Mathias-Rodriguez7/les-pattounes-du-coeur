@@ -2,18 +2,11 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import type { Cat } from '$lib/types/cat';
 
-	type Cat = {
-		name: string | null;
-		description: string | null;
-		media?: { picture: string }[];
+	type BadgeKey = 'isOkCat' | 'isOkDog' | 'isOkChild';
 
-		isOkCat: boolean;
-		isOkDog: boolean;
-		isOkChild: boolean;
-	};
-
-	const badges = [
+	const badges: { key: BadgeKey; label: string }[] = [
 		{ key: 'isOkCat', label: 'OK chat' },
 		{ key: 'isOkDog', label: 'OK chien' },
 		{ key: 'isOkChild', label: 'OK enfant' }
@@ -27,7 +20,7 @@
 >
 	<img
 		src={cat.media?.[0]?.picture ?? '/img/placeholder.jpg'}
-		alt={cat.name ?? 'cat'}
+		alt={cat.name}
 		class="h-85 w-full object-cover"
 	/>
 
@@ -39,7 +32,9 @@
 		<div class="flex flex-wrap gap-2">
 			{#each badges as badge (badge.key)}
 				{#if cat[badge.key]}
-					<Badge variant="outline" class="bg-accent">{badge.label}</Badge>
+					<Badge variant="outline" class="bg-accent">
+						{badge.label}
+					</Badge>
 				{/if}
 			{/each}
 		</div>

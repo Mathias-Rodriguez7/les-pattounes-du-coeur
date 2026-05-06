@@ -2,7 +2,7 @@
 	import NewsDialog from '$lib/components/NewsDialog.svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
-	import type { News, NewsType } from '$lib/types/news';
+	import type { News } from '$lib/types/news';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -21,18 +21,6 @@
 	function openNews(news: News) {
 		selectedNews = news;
 		isOpen = true;
-	}
-
-	const newsImages: Record<NewsType, string> = {
-		NEWS: '/img/news/news.png',
-		EVENT: '/img/news/event.png',
-		HISTORY: '/img/news/historic.png',
-		NEWSLETTER: '/img/news/news.letter.png',
-		NEWSCATS: '/img/news/cat.news.png'
-	};
-
-	function getNewsImage(news: News) {
-		return newsImages[news.type] ?? '/img/news/default.png';
 	}
 
 	let filters = $state({
