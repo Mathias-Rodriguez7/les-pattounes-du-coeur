@@ -10,6 +10,7 @@
 
 	type PageData = {
 		news: News[];
+		selectedNews?: string | null;
 	};
 
 	let { data }: { data: PageData } = $props();
@@ -80,6 +81,17 @@
 			return matchSearch && matchToggles;
 		})
 	);
+
+	$effect(() => {
+		if (!data.selectedNews) return;
+
+		const news = data.news.find((n) => n.id === data.selectedNews);
+
+		if (news) {
+			selectedNews = news;
+			isOpen = true;
+		}
+	});
 </script>
 
 <main in:fade={{ duration: 200 }} class="flex justify-center p-4">
@@ -164,12 +176,7 @@
 							cats={news.cats}
 						/>
 					{:else}
-						<NewsCard
-							title={news.title}
-							image={getNewsImage(news)}
-							content={news.content}
-							date={news.formattedDate}
-						/>
+						<NewsCard {news} />
 					{/if}
 				</button>
 			{/each}

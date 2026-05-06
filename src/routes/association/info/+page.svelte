@@ -3,8 +3,8 @@
 	import { fade, fly } from 'svelte/transition';
 </script>
 
-<main in:fade={{ duration: 200 }} class="flex flex-col gap-6 p-4 sm:p-8 lg:p-16">
-	<div in:fly={{ y: 20, duration: 300 }}>
+<main in:fade={{ duration: 200 }}>
+	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-4 sm:p-8 lg:p-16">
 		<h1 class="text-2xl font-bold">L'Association</h1>
 		<section>
 			<div class="flex flex-col gap-6 lg:flex-row">

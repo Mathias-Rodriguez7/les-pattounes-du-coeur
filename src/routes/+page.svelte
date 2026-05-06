@@ -6,40 +6,24 @@
 	import { Plus } from 'lucide-svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import type { PageData } from './$types';
+	import type { News, NewsType } from '$lib/types/news';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
 
-	const newsArray = [
-		{
-			id: 1,
-			title: 'News 1',
-			image: '/img/news/news.png',
-			content:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 2,
-			title: 'News 2',
-			image: '/img/news/news.letter.png',
-			content:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 3,
-			title: 'News 3',
-			image: '/img/news/historic.png',
-			content:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		},
-		{
-			id: 4,
-			title: 'News 4',
-			image: '/img/news/cat.news.png',
-			content:
-				'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt tempore quas sint commodi nihil consequuntur.'
-		}
-	];
+	const newsImages: Record<NewsType, string> = {
+		NEWS: '/img/news/news.png',
+		EVENT: '/img/news/event.png',
+		HISTORY: '/img/news/historic.png',
+		NEWSLETTER: '/img/news/news.letter.png',
+		NEWSCATS: '/img/news/cat.news.png'
+	};
+
+	function getNewsImage(news: News) {
+		return newsImages[news.type] ?? '/img/news/default.png';
+	}
+
+	console.log(data.news);
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -77,7 +61,9 @@
 
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each data.cats as cat (cat.id)}
-					<CatCard {cat} />
+					<a href={`/adoptions/chat?cat=${cat.id}`} class="block w-full">
+						<CatCard {cat} />
+					</a>
 				{/each}
 			</div>
 
@@ -127,8 +113,10 @@
 		<section class="flex flex-col gap-8 px-4 py-10 md:px-10 lg:px-20">
 			<h2 class="mb-10 text-center text-3xl font-bold">News</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-				{#each newsArray as news (news.id)}
-					<NewsCard title={news.title} image={news.image} content={news.content} />
+				{#each data.news as news (news.id)}
+					<a href={`/association/news?news=${news.id}`} class="block w-full">
+						<NewsCard {news} />
+					</a>
 				{/each}
 			</div>
 			<div class="mt-4 flex justify-center">
