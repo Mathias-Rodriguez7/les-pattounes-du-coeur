@@ -3,9 +3,15 @@
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
 	import type { News } from '$lib/types/news';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Search } from 'lucide-svelte';
+
 	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Label } from '$lib/components/ui/label';
+	import { Search } from 'lucide-svelte';
+
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
@@ -23,6 +29,9 @@
 		isOpen = true;
 	}
 
+	// -----------------------------
+	// FILTER STATE
+	// -----------------------------
 	let filters = $state({
 		search: '',
 		toggles: {
@@ -33,10 +42,6 @@
 			newsLetter: false
 		}
 	});
-
-	function toggleFilter(key: keyof typeof filters.toggles) {
-		filters.toggles[key] = !filters.toggles[key];
-	}
 
 	function resetFilters() {
 		filters.search = '';
@@ -54,17 +59,15 @@
 	} as const;
 
 	let filteredNews = $derived(
-		data.news.filter((news: News) => {
+		data.news.filter((news) => {
 			const matchSearch =
 				!filters.search || news.title?.toLowerCase().includes(filters.search.toLowerCase());
 
+			const active = Object.entries(filters.toggles).filter(([, v]) => v);
+
 			const matchToggles =
-				(Object.entries(filters.toggles) as Array<[keyof typeof filters.toggles, boolean]>).some(
-					([key, value]) => {
-						if (!value) return false;
-						return news.type === filterToTypeMap[key];
-					}
-				) || Object.values(filters.toggles).every((v) => !v);
+				active.length === 0 ||
+				active.some(([key]) => news.type === filterToTypeMap[key as keyof typeof filterToTypeMap]);
 
 			return matchSearch && matchToggles;
 		})
@@ -83,79 +86,66 @@
 </script>
 
 <main in:fade={{ duration: 200 }} class="flex justify-center p-4">
-	<div in:fly={{ y: 20, duration: 300 }} class="max-w-10xl flex w-full flex-col gap-6 p-8">
+	<div in:fly={{ y: 20, duration: 300 }} class="flex w-full flex-col gap-6 p-8">
 		<h1 class="text-3xl font-bold">News</h1>
 
-		<!-- FILTERS -->
+		<!-- ===================== -->
+		<!-- TOP BAR -->
+		<!-- ===================== -->
 		<div
 			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
 		>
-			<div class="flex flex-wrap gap-2">
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.news ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('news')}
-				>
-					News
-				</button>
+			<!-- FILTER SHEET -->
+			<Sheet.Root>
+				<Sheet.Trigger>
+					<Button class="rounded-2xl">Filtres</Button>
+				</Sheet.Trigger>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.newsLetter ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('newsLetter')}
-				>
-					News Letter
-				</button>
+				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
+					<!-- HEADER -->
+					<div class="space-y-1">
+						<h2 class="text-2xl font-bold">Filtres</h2>
+						<p class="text-muted-foreground text-sm">Affinez votre recherche</p>
+					</div>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.newsCat ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('newsCat')}
-				>
-					Nouveaux Chats
-				</button>
+					<!-- TYPES -->
+					<div class="space-y-4">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Types</h3>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.event ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('event')}
-				>
-					Événement
-				</button>
+						{#each Object.entries(filters.toggles) as [key] (key)}
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles[key as keyof typeof filters.toggles]}
+									onCheckedChange={(v) => {
+										filters.toggles[key as keyof typeof filters.toggles] = Boolean(v);
+									}}
+								/>
+								<span class="text-sm">{key}</span>
+							</Label>
+						{/each}
+					</div>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.history ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('history')}
-				>
-					Histoire
-				</button>
+					<Button variant="outline" class="w-full" onclick={resetFilters}>
+						Réinitialiser les filtres
+					</Button>
+				</Sheet.Content>
+			</Sheet.Root>
 
-				<button class="bg-primary rounded-full px-4 py-2 text-sm text-white" onclick={resetFilters}>
-					Reset
-				</button>
-			</div>
-
+			<!-- SEARCH -->
 			<div class="flex items-center gap-2">
-				<Search />
-				<Input
-					type="text"
-					placeholder="Rechercher..."
-					bind:value={filters.search}
-					class="bg-background!"
-				/>
+				<Search class="size-4 opacity-60" />
+				<Input bind:value={filters.search} placeholder="Rechercher..." />
 			</div>
 		</div>
 
+		<!-- ===================== -->
 		<!-- GRID -->
+		<!-- ===================== -->
 		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each filteredNews as news (news.id)}
-				<button class="w-full text-left" onclick={() => openNews(news)}>
+				<button class="text-left" onclick={() => openNews(news)}>
 					{#if news.type === 'NEWSCATS'}
 						<NewsCatCard {news} />
 					{:else}
@@ -165,7 +155,9 @@
 			{/each}
 		</section>
 
-		<!-- DIALOG (clean, unique source of truth) -->
+		<!-- ===================== -->
+		<!-- DIALOG -->
+		<!-- ===================== -->
 		<Dialog.Root bind:open={isOpen}>
 			{#if selectedNews}
 				<NewsDialog {selectedNews} />

@@ -2,6 +2,9 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CatCard from '$lib/components/CatCard.svelte';
@@ -107,6 +110,19 @@
 
 	let filteredCats = $derived(data.cats.filter(matches));
 
+	const sexOptions = [
+		{ value: 'ALL', label: 'Tous' },
+		{ value: 'MALE', label: 'Mâle' },
+		{ value: 'FEMALE', label: 'Femelle' }
+	];
+
+	const ageOptions = [
+		{ value: 'ALL', label: 'Tous' },
+		{ value: 'CHATON', label: 'Chaton' },
+		{ value: 'ADULT', label: 'Adulte' },
+		{ value: 'SENIOR', label: 'Senior' },
+		{ value: 'SUPER SENIOR', label: 'Super Senior' }
+	];
 	// -----------------------------
 	// EFFECT (deep link)
 	// -----------------------------
@@ -133,53 +149,125 @@
 			<!-- FILTER BUTTON -->
 			<Sheet.Root>
 				<Sheet.Trigger>
-					<Button>Filtres</Button>
+					<Button class="rounded-2xl">Filtres</Button>
 				</Sheet.Trigger>
 
-				<Sheet.Content side="left" class="w-96 space-y-6">
-					<h2 class="text-xl font-bold">Filtres</h2>
-
-					<label class="flex items-center justify-between">
-						<span>OK chien</span>
-						<input type="checkbox" bind:checked={filters.okDog} />
-					</label>
-
-					<label class="flex items-center justify-between">
-						<span>OK chat</span>
-						<input type="checkbox" bind:checked={filters.okCat} />
-					</label>
-
-					<label class="flex items-center justify-between">
-						<span>OK enfant</span>
-						<input type="checkbox" bind:checked={filters.okChild} />
-					</label>
-
-					<div>
-						<p>Sexe</p>
-						<select bind:value={filters.sex} class="w-full">
-							<option value="ALL">Tous</option>
-							<option value="MALE">Mâle</option>
-							<option value="FEMALE">Femelle</option>
-						</select>
+				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
+					<!-- HEADER -->
+					<div class="space-y-1">
+						<h2 class="text-2xl font-bold">Filtres</h2>
+						<p class="text-muted-foreground text-sm">Affinez votre recherche</p>
 					</div>
 
-					<div>
-						<p>Âge</p>
-						<select bind:value={filters.age} class="w-full">
-							<option value="ALL">Tous</option>
-							<option value="CHATON">Chaton</option>
-							<option value="ADULT">Adulte</option>
-							<option value="SENIOR">Senior</option>
-							<option value="SUPER SENIOR">Super Senior</option>
-						</select>
+					<!-- COMPATIBILITÉS -->
+					<div class="space-y-4">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Compatibilités</h3>
+
+						<div class="space-y-3">
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okDog ?? false}
+									onCheckedChange={(checked) => {
+										filters.okDog = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK chien</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les chiens</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okCat ?? false}
+									onCheckedChange={(checked) => {
+										filters.okCat = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK chat</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les chats</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okChild ?? false}
+									onCheckedChange={(checked) => {
+										filters.okChild = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK enfant</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les enfants</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.garden ?? false}
+									onCheckedChange={(checked) => {
+										filters.garden = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">Besoin d’un jardin</p>
+									<p class="text-muted-foreground text-xs">Accès extérieur recommandé</p>
+								</div>
+							</Label>
+						</div>
 					</div>
 
-					<label class="flex items-center justify-between">
-						<span>Besoin jardin</span>
-						<input type="checkbox" bind:checked={filters.garden} />
-					</label>
+					<!-- SEXE -->
+					<div class="space-y-2">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Sexe</h3>
 
-					<Button variant="outline" onclick={resetFilters}>Réinitialiser</Button>
+						<Select.Root type="single" bind:value={filters.sex}>
+							<Select.Trigger class="w-full">
+								{sexOptions.find((s) => s.value === filters.sex)?.label}
+							</Select.Trigger>
+
+							<Select.Content>
+								{#each sexOptions as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+
+					<!-- ÂGE -->
+					<div class="space-y-2">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Âge</h3>
+
+						<Select.Root type="single" bind:value={filters.age}>
+							<Select.Trigger class="w-full">
+								{ageOptions.find((a) => a.value === filters.age)?.label}
+							</Select.Trigger>
+
+							<Select.Content>
+								{#each ageOptions as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+
+					<!-- ACTION -->
+					<Button variant="outline" class="w-full" onclick={resetFilters}>
+						Réinitialiser les filtres
+					</Button>
 				</Sheet.Content>
 			</Sheet.Root>
 

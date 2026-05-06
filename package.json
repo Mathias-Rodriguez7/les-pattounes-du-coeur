@@ -72,6 +72,7 @@
 		"lucide-svelte": "^1.0.1",
 		"mode-watcher": "^1.1.0",
 		"pdfjs-dist": "^5.7.284",
-		"pg": "^8.20.0"
+		"pg": "^8.20.0",
+		"tailwindcss-animate": "^1.0.7"
 	}
 }
