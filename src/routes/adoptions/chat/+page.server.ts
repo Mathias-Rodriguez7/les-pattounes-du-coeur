@@ -2,7 +2,9 @@ import type { PageServerLoad } from './$types';
 import type { Cat } from '$lib/types/cat';
 import { prisma } from '$lib/server/prisma';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url }) => {
+	const catId = url.searchParams.get('cat');
+
 	const cats = await prisma.cat.findMany({
 		where: { isVisible: true },
 		include: { media: true },
@@ -26,6 +28,7 @@ export const load: PageServerLoad = async () => {
 	}));
 
 	return {
-		cats: formatted
-	} satisfies { cats: Cat[] };
+		cats: formatted,
+		selectedCatId: catId // 👈 AJOUT IMPORTANT
+	};
 };

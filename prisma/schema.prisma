@@ -125,6 +125,7 @@ model News {
   title      String    @db.VarChar(255)
   type       NewsType
   content    String?   @db.Text
+  mediaUrl   String?   @db.Text
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now()) @updatedAt
   cats       NewsCat[]

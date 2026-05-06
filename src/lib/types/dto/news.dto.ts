@@ -1,22 +1,17 @@
 import type { NewsType } from '@prisma/client';
 
-export type News = {
+export type NewsDTO = {
 	id: string;
 	title: string;
 	content: string | null;
 	type: NewsType;
-
 	mediaUrl: string | null;
-
-	formattedDate: string;
 	createdAt: Date;
-
-	image: string;
 
 	cats: {
 		id: string;
 		name: string | null;
-		media?: {
+		media: {
 			picture: string | null;
 		}[];
 	}[];

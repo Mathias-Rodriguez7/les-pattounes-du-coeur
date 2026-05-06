@@ -47,6 +47,10 @@ function generateContent(type: (typeof NEWS_TYPES)[number]) {
 	}
 }
 
+function getFakePdf(type: (typeof NEWS_TYPES)[number]) {
+	return `/pdf/${type.toLowerCase()}.pdf`;
+}
+
 async function main() {
 	console.log('🌱 Seeding...');
 
@@ -117,24 +121,32 @@ async function main() {
 			faker.number.int({ min: 1, max: 5 })
 		);
 
+		const isNewsCats = type === 'NEWSCATS';
+
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
 				type,
-				content: generateContent(type),
+
+				// 🧠 logique métier claire
+				content: isNewsCats ? generateContent(type) : null,
+				mediaUrl: !isNewsCats ? getFakePdf(type) : null,
 
 				created_at: faker.date.between({
 					from: new Date('2025-01-01'),
 					to: new Date()
 				}),
 
-				cats: {
-					create: relatedCats.map((cat) => ({
-						cat: {
-							connect: { id: cat.id }
+				// 🐱 uniquement pour NEWSCATS
+				cats: isNewsCats
+					? {
+							create: relatedCats.map((cat) => ({
+								cat: {
+									connect: { id: cat.id }
+								}
+							}))
 						}
-					}))
-				}
+					: undefined
 			}
 		});
 	}

@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/prisma';
+import { mapNews } from '$lib/mappers/news';
 
 export async function load() {
 	const cats = await prisma.cat.findMany({
@@ -14,7 +15,22 @@ export async function load() {
 		take: 4
 	});
 
+	const news = await prisma.news.findMany({
+		orderBy: { created_at: 'desc' },
+		take: 4,
+		include: {
+			cats: {
+				include: {
+					cat: {
+						include: { media: true }
+					}
+				}
+			}
+		}
+	});
+
 	return {
-		cats
+		cats,
+		news: news.map(mapNews)
 	};
 }
