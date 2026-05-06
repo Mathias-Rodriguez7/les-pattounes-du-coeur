@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search } from 'lucide-svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as Sheet from '$lib/components/ui/sheet';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CatCard from '$lib/components/CatCard.svelte';
 	import CatDialog from '$lib/components/CatDialog.svelte';
-	import { goto, replaceState } from '$app/navigation';
-	import { page } from '$app/stores';
 	import type { Cat } from '$lib/types/cat';
 	import { fade, fly } from 'svelte/transition';
 
@@ -24,7 +22,7 @@
 	let selectedCat = $state<Cat | null>(null);
 	let isOpen = $state(false);
 
-	type AgeFilter = 'ALL' | 'LT1' | '2_5' | 'GT5';
+	type AgeFilter = 'ALL' | 'CHATON' | 'ADULT' | 'SENIOR' | 'SUPER SENIOR';
 	type SexFilter = 'ALL' | 'MALE' | 'FEMALE';
 
 	type CatFilters = {
@@ -54,24 +52,6 @@
 	});
 
 	// -----------------------------
-	// SYNC URL → STATE
-	// -----------------------------
-	$effect(() => {
-		const params = $page.url.searchParams;
-
-		filters.search = params.get('search') ?? '';
-
-		filters.okDog = params.get('okDog') === null ? null : params.get('okDog') === 'true';
-		filters.okCat = params.get('okCat') === null ? null : params.get('okCat') === 'true';
-		filters.okChild = params.get('okChild') === null ? null : params.get('okChild') === 'true';
-
-		filters.sex = (params.get('sex') as SexFilter) ?? 'ALL';
-		filters.age = (params.get('age') as AgeFilter) ?? 'ALL';
-
-		filters.garden = params.get('garden') === null ? null : params.get('garden') === 'true';
-	});
-
-	// -----------------------------
 	// ACTIONS
 	// -----------------------------
 	function openCat(cat: Cat) {
@@ -79,29 +59,56 @@
 		isOpen = true;
 	}
 
-	function applyFilters() {
-		const params = new URLSearchParams();
-
-		if (filters.search) params.set('search', filters.search);
-
-		if (filters.okDog !== null) params.set('okDog', String(filters.okDog));
-		if (filters.okCat !== null) params.set('okCat', String(filters.okCat));
-		if (filters.okChild !== null) params.set('okChild', String(filters.okChild));
-
-		if (filters.sex !== 'ALL') params.set('sex', filters.sex);
-		if (filters.age !== 'ALL') params.set('age', filters.age);
-
-		if (filters.garden !== null) params.set('garden', String(filters.garden));
-
-		goto(`/adoptions/chat?${params.toString()}`);
-	}
-
 	function resetFilters() {
-		goto('/adoptions/chat');
+		filters = {
+			search: '',
+
+			okDog: null,
+			okCat: null,
+			okChild: null,
+
+			age: 'ALL',
+			sex: 'ALL',
+
+			garden: null
+		};
 	}
 
 	// -----------------------------
-	// DEEP LINK (dialog)
+	// FILTER LOGIC
+	// -----------------------------
+	function matches(cat: Cat) {
+		// SEARCH
+		if (filters.search && !cat.name?.toLowerCase().includes(filters.search.toLowerCase())) {
+			return false;
+		}
+
+		// COMPATIBILITÉS
+		if (filters.okDog !== null && cat.isOkDog !== filters.okDog) return false;
+		if (filters.okCat !== null && cat.isOkCat !== filters.okCat) return false;
+		if (filters.okChild !== null && cat.isOkChild !== filters.okChild) return false;
+
+		// SEXE
+		if (filters.sex !== 'ALL' && cat.sex !== filters.sex) return false;
+
+		// JARDIN
+		if (filters.garden !== null && cat.isOutside !== filters.garden) return false;
+
+		// AGE
+		if (filters.age !== 'ALL') {
+			if (filters.age === 'CHATON' && cat.age >= 1) return false;
+			if (filters.age === 'ADULT' && (cat.age <= 1 || cat.age > 7)) return false;
+			if (filters.age === 'SENIOR' && (cat.age <= 7 || cat.age > 10)) return false;
+			if (filters.age === 'SUPER SENIOR' && cat.age <= 10) return false;
+		}
+
+		return true;
+	}
+
+	let filteredCats = $derived(data.cats.filter(matches));
+
+	// -----------------------------
+	// EFFECT (deep link)
 	// -----------------------------
 	$effect(() => {
 		if (!data.selectedCatId) return;
@@ -121,8 +128,9 @@
 
 		<!-- FILTER BAR -->
 		<div
-			class="bg-primary-foreground flex items-center justify-between gap-4 rounded-4xl px-6 py-4"
+			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
 		>
+			<!-- FILTER BUTTON -->
 			<Sheet.Root>
 				<Sheet.Trigger>
 					<Button>Filtres</Button>
@@ -131,18 +139,18 @@
 				<Sheet.Content side="left" class="w-96 space-y-6">
 					<h2 class="text-xl font-bold">Filtres</h2>
 
-					<label class="flex justify-between">
-						OK chien
+					<label class="flex items-center justify-between">
+						<span>OK chien</span>
 						<input type="checkbox" bind:checked={filters.okDog} />
 					</label>
 
-					<label class="flex justify-between">
-						OK chat
+					<label class="flex items-center justify-between">
+						<span>OK chat</span>
 						<input type="checkbox" bind:checked={filters.okCat} />
 					</label>
 
-					<label class="flex justify-between">
-						OK enfant
+					<label class="flex items-center justify-between">
+						<span>OK enfant</span>
 						<input type="checkbox" bind:checked={filters.okChild} />
 					</label>
 
@@ -159,32 +167,33 @@
 						<p>Âge</p>
 						<select bind:value={filters.age} class="w-full">
 							<option value="ALL">Tous</option>
-							<option value="LT1">- 1 an</option>
-							<option value="2_5">2 - 5 ans</option>
-							<option value="GT5">+ 5 ans</option>
+							<option value="CHATON">Chaton</option>
+							<option value="ADULT">Adulte</option>
+							<option value="SENIOR">Senior</option>
+							<option value="SUPER SENIOR">Super Senior</option>
 						</select>
 					</div>
 
-					<label class="flex justify-between">
-						Besoin jardin
+					<label class="flex items-center justify-between">
+						<span>Besoin jardin</span>
 						<input type="checkbox" bind:checked={filters.garden} />
 					</label>
 
-					<Button onclick={applyFilters}>Appliquer</Button>
-					<Button variant="outline" onclick={resetFilters}>Reset</Button>
+					<Button variant="outline" onclick={resetFilters}>Réinitialiser</Button>
 				</Sheet.Content>
 			</Sheet.Root>
 
+			<!-- SEARCH -->
 			<div class="flex items-center gap-2">
 				<Search />
-				<Input bind:value={filters.search} placeholder="Rechercher..." />
+				<Input type="text" placeholder="Rechercher..." bind:value={filters.search} />
 			</div>
 		</div>
 
 		<!-- GRID -->
 		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-			{#each data.cats as cat (cat.id)}
-				<button class="text-left" onclick={() => openCat(cat)}>
+			{#each filteredCats as cat (cat.id)}
+				<button type="button" class="w-full text-left" onclick={() => openCat(cat)}>
 					<CatCard {cat} />
 				</button>
 			{/each}
@@ -198,7 +207,7 @@
 
 				if (!v) {
 					selectedCat = null;
-					replaceState('/adoptions/chat', {});
+					history.replaceState({}, '', '/adoptions/chat');
 				}
 			}}
 		>

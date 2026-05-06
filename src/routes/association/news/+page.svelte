@@ -157,12 +157,7 @@
 			{#each filteredNews as news (news.id)}
 				<button class="w-full text-left" onclick={() => openNews(news)}>
 					{#if news.type === 'NEWSCATS'}
-						<NewsCatCard
-							title={news.title}
-							image={news.image}
-							date={news.formattedDate}
-							cats={news.cats}
-						/>
+						<NewsCatCard {news} />
 					{:else}
 						<NewsCard {news} />
 					{/if}

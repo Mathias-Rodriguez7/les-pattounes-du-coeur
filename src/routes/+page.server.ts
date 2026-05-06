@@ -1,5 +1,5 @@
 import { prisma } from '$lib/server/prisma';
-import { mapCat } from '$lib/mappers/cat';
+import { mapCat } from '$lib/mappers/cats';
 import { mapNews } from '$lib/mappers/news';
 
 export async function load() {

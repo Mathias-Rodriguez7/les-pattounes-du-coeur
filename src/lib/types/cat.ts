@@ -3,6 +3,8 @@ export type Cat = {
 	name: string | null;
 	sex: string | null;
 	age: number;
+	formattedAge: string;
+	ageBadge: string;
 	description: string | null;
 	media: CatMedia[];
 

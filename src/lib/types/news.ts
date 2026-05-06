@@ -1,3 +1,4 @@
+import type { Cat } from '$lib/types/cat';
 import type { NewsType } from '@prisma/client';
 
 export type News = {
@@ -13,11 +14,5 @@ export type News = {
 
 	image: string;
 
-	cats: {
-		id: string;
-		name: string | null;
-		media?: {
-			picture: string | null;
-		}[];
-	}[];
+	cats: Cat[];
 };
