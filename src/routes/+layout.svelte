@@ -11,8 +11,8 @@
 
 <Navbar />
 
-<slot />
-
 <Toaster />
+
+<slot />
 
 <Footer />
