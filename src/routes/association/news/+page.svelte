@@ -3,7 +3,6 @@
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
 	import type { News } from '$lib/types/news';
-
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Checkbox } from '$lib/components/ui/checkbox';
@@ -11,7 +10,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { Search } from 'lucide-svelte';
-
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
@@ -111,20 +109,88 @@
 					<!-- TYPES -->
 					<div class="space-y-4">
 						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Types</h3>
-
-						{#each Object.entries(filters.toggles) as [key] (key)}
+						<div class="space-y-3">
 							<Label
 								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
 							>
 								<Checkbox
-									checked={filters.toggles[key as keyof typeof filters.toggles]}
-									onCheckedChange={(v) => {
-										filters.toggles[key as keyof typeof filters.toggles] = Boolean(v);
+									checked={filters.toggles.news}
+									onCheckedChange={(checked) => {
+										filters.toggles.news = !!checked;
 									}}
 								/>
-								<span class="text-sm">{key}</span>
+								<div>
+									<p class="text-sm font-medium">News</p>
+									<p class="text-muted-foreground text-xs">Toutes les news de l'association.</p>
+								</div>
 							</Label>
-						{/each}
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.newsCat}
+									onCheckedChange={(checked) => {
+										filters.toggles.newsCat = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">News Chat</p>
+									<p class="text-muted-foreground text-xs">
+										Les nouveaux chats qui cherche une famille.
+									</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.newsLetter}
+									onCheckedChange={(checked) => {
+										filters.toggles.newsLetter = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">News Letter</p>
+									<p class="text-muted-foreground text-xs">
+										Toutes les news letter de l'association
+									</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.history}
+									onCheckedChange={(checked) => {
+										filters.toggles.history = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">Histoire</p>
+									<p class="text-muted-foreground text-xs">Toutes les histoires de l'association</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.event}
+									onCheckedChange={(checked) => {
+										filters.toggles.event = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">Evènement</p>
+									<p class="text-muted-foreground text-xs">
+										Toutes les évènements organiser par l'association
+									</p>
+								</div>
+							</Label>
+						</div>
 					</div>
 
 					<Button variant="outline" class="w-full" onclick={resetFilters}>
