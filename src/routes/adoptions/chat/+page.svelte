@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search } from 'lucide-svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CatCard from '$lib/components/CatCard.svelte';
 	import CatDialog from '$lib/components/CatDialog.svelte';
@@ -13,50 +18,114 @@
 	};
 
 	let { data }: { data: PageData } = $props();
+
+	// -----------------------------
+	// STATE
+	// -----------------------------
 	let selectedCat = $state<Cat | null>(null);
 	let isOpen = $state(false);
 
+	type AgeFilter = 'ALL' | 'CHATON' | 'ADULT' | 'SENIOR' | 'SUPER SENIOR';
+	type SexFilter = 'ALL' | 'MALE' | 'FEMALE';
+
+	type CatFilters = {
+		search: string;
+
+		okDog: boolean | null;
+		okCat: boolean | null;
+		okChild: boolean | null;
+
+		age: AgeFilter;
+		sex: SexFilter;
+
+		garden: boolean | null;
+	};
+
+	let filters = $state<CatFilters>({
+		search: '',
+
+		okDog: null,
+		okCat: null,
+		okChild: null,
+
+		age: 'ALL',
+		sex: 'ALL',
+
+		garden: null
+	});
+
+	// -----------------------------
+	// ACTIONS
+	// -----------------------------
 	function openCat(cat: Cat) {
 		selectedCat = cat;
 		isOpen = true;
 	}
 
-	let filters = $state({
-		search: '',
-		toggles: {
-			isOkDog: false,
-			isOkCat: false,
-			isOkChild: false
-		}
-	});
-
-	function toggleFilter(key: keyof typeof filters.toggles) {
-		filters.toggles[key] = !filters.toggles[key];
-	}
-
 	function resetFilters() {
-		filters.search = '';
-		Object.keys(filters.toggles).forEach((key) => {
-			filters.toggles[key as keyof typeof filters.toggles] = false;
-		});
+		filters = {
+			search: '',
+
+			okDog: null,
+			okCat: null,
+			okChild: null,
+
+			age: 'ALL',
+			sex: 'ALL',
+
+			garden: null
+		};
 	}
 
-	let filteredCats = $derived(
-		data.cats.filter((cat: Cat) => {
-			const matchSearch =
-				!filters.search || cat.name?.toLowerCase().includes(filters.search.toLowerCase());
+	// -----------------------------
+	// FILTER LOGIC
+	// -----------------------------
+	function matches(cat: Cat) {
+		// SEARCH
+		if (filters.search && !cat.name?.toLowerCase().includes(filters.search.toLowerCase())) {
+			return false;
+		}
 
-			const matchToggles = (
-				Object.entries(filters.toggles) as Array<[keyof typeof filters.toggles, boolean]>
-			).every(([key, value]) => {
-				if (!value) return true;
-				return cat[key] === true;
-			});
+		// COMPATIBILITÉS
+		if (filters.okDog !== null && cat.isOkDog !== filters.okDog) return false;
+		if (filters.okCat !== null && cat.isOkCat !== filters.okCat) return false;
+		if (filters.okChild !== null && cat.isOkChild !== filters.okChild) return false;
 
-			return matchSearch && matchToggles;
-		})
-	);
+		// SEXE
+		if (filters.sex !== 'ALL' && cat.sex !== filters.sex) return false;
 
+		// JARDIN
+		if (filters.garden !== null && cat.isOutside !== filters.garden) return false;
+
+		// AGE
+		if (filters.age !== 'ALL') {
+			if (filters.age === 'CHATON' && cat.age >= 1) return false;
+			if (filters.age === 'ADULT' && (cat.age <= 1 || cat.age > 7)) return false;
+			if (filters.age === 'SENIOR' && (cat.age <= 7 || cat.age > 10)) return false;
+			if (filters.age === 'SUPER SENIOR' && cat.age <= 10) return false;
+		}
+
+		return true;
+	}
+
+	let filteredCats = $derived(data.cats.filter(matches));
+
+	const sexOptions = [
+		{ value: 'ALL', label: 'Tous' },
+		{ value: 'MALE', label: 'Mâle' },
+		{ value: 'FEMALE', label: 'Femelle' }
+	];
+
+	const ageOptions = [
+		{ value: 'ALL', label: 'Tous' },
+		{ value: 'CHATON', label: 'Chaton' },
+		{ value: 'ADULT', label: 'Adulte' },
+		{ value: 'SENIOR', label: 'Senior' },
+		{ value: 'SUPER SENIOR', label: 'Super Senior' }
+	];
+	// -----------------------------
+	// EFFECT (deep link)
+	// -----------------------------
 	$effect(() => {
 		if (!data.selectedCatId) return;
 
@@ -75,51 +144,137 @@
 
 		<!-- FILTER BAR -->
 		<div
-			class="bg-primary-foreground flex w-full flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
+			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
 		>
-			<!-- FILTER BUTTONS -->
-			<div class="flex flex-wrap gap-2">
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkDog ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkDog')}
-				>
-					OK chien
-				</button>
+			<!-- FILTER BUTTON -->
+			<Sheet.Root>
+				<Sheet.Trigger>
+					<Button class="rounded-2xl">Filtres</Button>
+				</Sheet.Trigger>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkCat ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkCat')}
-				>
-					OK chat
-				</button>
+				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
+					<!-- HEADER -->
+					<div class="space-y-1">
+						<h2 class="text-2xl font-bold">Filtres</h2>
+						<p class="text-muted-foreground text-sm">Affinez votre recherche</p>
+					</div>
 
-				<button
-					class={`rounded-full px-4 py-2 text-sm ${
-						filters.toggles.isOkChild ? 'bg-secondary text-white' : 'bg-background'
-					}`}
-					onclick={() => toggleFilter('isOkChild')}
-				>
-					OK enfant
-				</button>
+					<!-- COMPATIBILITÉS -->
+					<div class="space-y-4">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Compatibilités</h3>
 
-				<button class="bg-primary rounded-full px-4 py-2 text-sm text-white" onclick={resetFilters}>
-					Reset
-				</button>
-			</div>
+						<div class="space-y-3">
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okDog ?? false}
+									onCheckedChange={(checked) => {
+										filters.okDog = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK chien</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les chiens</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okCat ?? false}
+									onCheckedChange={(checked) => {
+										filters.okCat = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK chat</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les chats</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.okChild ?? false}
+									onCheckedChange={(checked) => {
+										filters.okChild = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">OK enfant</p>
+									<p class="text-muted-foreground text-xs">Compatible avec les enfants</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.garden ?? false}
+									onCheckedChange={(checked) => {
+										filters.garden = checked ? true : null;
+									}}
+								/>
+								<div>
+									<p class="text-sm font-medium">Besoin d’un jardin</p>
+									<p class="text-muted-foreground text-xs">Accès extérieur recommandé</p>
+								</div>
+							</Label>
+						</div>
+					</div>
+
+					<!-- SEXE -->
+					<div class="space-y-2">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Sexe</h3>
+
+						<Select.Root type="single" bind:value={filters.sex}>
+							<Select.Trigger class="w-full">
+								{sexOptions.find((s) => s.value === filters.sex)?.label}
+							</Select.Trigger>
+
+							<Select.Content>
+								{#each sexOptions as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+
+					<!-- ÂGE -->
+					<div class="space-y-2">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Âge</h3>
+
+						<Select.Root type="single" bind:value={filters.age}>
+							<Select.Trigger class="w-full">
+								{ageOptions.find((a) => a.value === filters.age)?.label}
+							</Select.Trigger>
+
+							<Select.Content>
+								{#each ageOptions as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+
+					<!-- ACTION -->
+					<Button variant="outline" class="w-full" onclick={resetFilters}>
+						Réinitialiser les filtres
+					</Button>
+				</Sheet.Content>
+			</Sheet.Root>
 
 			<!-- SEARCH -->
 			<div class="flex items-center gap-2">
 				<Search />
-				<Input
-					type="text"
-					placeholder="Rechercher..."
-					bind:value={filters.search}
-					class="bg-background!"
-				/>
+				<Input type="text" placeholder="Rechercher..." bind:value={filters.search} />
 			</div>
 		</div>
 
@@ -131,9 +286,13 @@
 				</button>
 			{/each}
 		</section>
+
+		<!-- DIALOG -->
 		<Dialog.Root
 			bind:open={isOpen}
 			onOpenChange={(v) => {
+				isOpen = v;
+
 				if (!v) {
 					selectedCat = null;
 					history.replaceState({}, '', '/adoptions/chat');

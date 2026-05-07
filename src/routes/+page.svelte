@@ -6,24 +6,10 @@
 	import { Plus } from 'lucide-svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import type { PageData } from './$types';
-	import type { News, NewsType } from '$lib/types/news';
+	import { resolve } from '$app/paths';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
-
-	const newsImages: Record<NewsType, string> = {
-		NEWS: '/img/news/news.png',
-		EVENT: '/img/news/event.png',
-		HISTORY: '/img/news/historic.png',
-		NEWSLETTER: '/img/news/news.letter.png',
-		NEWSCATS: '/img/news/cat.news.png'
-	};
-
-	function getNewsImage(news: News) {
-		return newsImages[news.type] ?? '/img/news/default.png';
-	}
-
-	console.log(data.news);
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -61,7 +47,7 @@
 
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each data.cats as cat (cat.id)}
-					<a href={`/adoptions/chat?cat=${cat.id}`} class="block w-full">
+					<a href={resolve(`/adoptions/chat?cat=${cat.id}`)} class="block w-full">
 						<CatCard {cat} />
 					</a>
 				{/each}
@@ -114,7 +100,7 @@
 			<h2 class="mb-10 text-center text-3xl font-bold">News</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each data.news as news (news.id)}
-					<a href={`/association/news?news=${news.id}`} class="block w-full">
+					<a href={resolve(`/association/news?news=${news.id}`)} class="block w-full">
 						<NewsCard {news} />
 					</a>
 				{/each}

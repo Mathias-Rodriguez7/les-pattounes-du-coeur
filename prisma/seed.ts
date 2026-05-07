@@ -6,80 +6,164 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
 
+// ---------------------
 // DB
+// ---------------------
 const pool = new Pool({
 	connectionString: process.env.DATABASE_URL
 });
 
-const adapter = new PrismaPg(pool);
-
 const prisma = new PrismaClient({
-	adapter
+	adapter: new PrismaPg(pool)
 });
 
-// ENUMS
+// ---------------------
+// ENUMS (safe)
+// ---------------------
+const SEX = ['MALE', 'FEMALE', 'UNKNOWN'] as const;
+const STATUS = ['AVAILABLE', 'SOCIALIZE', 'ADOPTED', 'FREE'] as const;
 const HAIR = ['SHORT', 'MEDIUM', 'LONG'] as const;
-const STATUS = ['AVAILABLE', 'ADOPTED', 'SOCIALIZE'] as const;
 const VACCINATE = ['YES', 'NO', 'PARTIAL'] as const;
+
+const VOLUNTEER_ROLE = ['ADMIN', 'MANAGER', 'COMMUNICATION'] as const;
+
+const HOST_STATUS = ['FREE', 'CAT_PLACE', 'WAITING', 'WAITING_VALIDATION'] as const;
+const HOST_TYPE = ['CLASSIC', 'RELAY'] as const;
+const SPACE = ['SMALL', 'MEDIUM', 'LARGE'] as const;
+const HEAL = ['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING'] as const;
+const SOCIALIZE = ['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED'] as const;
+const BABY = ['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY'] as const;
+
 const NEWS_TYPES = ['NEWS', 'NEWSLETTER', 'HISTORY', 'NEWSCATS', 'EVENT'] as const;
+const FORM_TYPES = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'] as const;
+const FORM_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
+// ---------------------
 // UTILS
-function randomBool(probability = 0.5) {
-	return Math.random() < probability;
+// ---------------------
+const randomBool = (p = 0.5) => Math.random() < p;
+
+function randomImage(i: number) {
+	return `/img/cats/cat${(i % 4) + 1}.jpg`;
 }
 
-function getRandomImage(index: number) {
-	return `/img/cats/cat${(index % 4) + 1}.jpg`;
+function getLocalPdf() {
+	return '/pdf/newsletter.pdf';
 }
 
-function generateContent(type: (typeof NEWS_TYPES)[number]) {
-	switch (type) {
-		case 'EVENT':
-			return faker.lorem.paragraphs(2);
-		case 'HISTORY':
-			return faker.lorem.paragraphs(4);
-		case 'NEWSLETTER':
-			return faker.lorem.paragraphs(3);
-		case 'NEWSCATS':
-			return faker.lorem.paragraphs(2);
-		default:
-			return faker.lorem.paragraphs(2);
-	}
-}
-
-function getFakePdf(type: (typeof NEWS_TYPES)[number]) {
-	return `/pdf/${type.toLowerCase()}.pdf`;
-}
-
+// ---------------------
+// MAIN
+// ---------------------
 async function main() {
 	console.log('🌱 Seeding...');
 
-	// CLEAN
+	// ---------------------
+	// CLEAN (ordre FK)
+	// ---------------------
 	await prisma.newsCat.deleteMany();
-	await prisma.news.deleteMany();
+	await prisma.catVolunteer.deleteMany();
+	await prisma.placement.deleteMany();
+	await prisma.adoption.deleteMany();
+	await prisma.care.deleteMany();
 	await prisma.mediaCat.deleteMany();
+
+	await prisma.news.deleteMany();
 	await prisma.cat.deleteMany();
+	await prisma.volunteer.deleteMany();
+	await prisma.host.deleteMany();
+	await prisma.blacklistHistoric.deleteMany();
+	await prisma.form.deleteMany();
+	await prisma.profil.deleteMany();
 
-	// 🐱 CREATE CATS
-	const createdCats = [];
+	// ---------------------
+	// 👤 PROFILS
+	// ---------------------
+	const profils = [];
 
-	for (let i = 0; i < 40; i++) {
+	for (let i = 0; i < 20; i++) {
+		const profil = await prisma.profil.create({
+			data: {
+				firstName: faker.person.firstName().slice(0, 60),
+				lastName: faker.person.lastName().slice(0, 60),
+
+				email: faker.internet.email().slice(0, 255),
+
+				phone: faker.string.numeric(10),
+
+				address: faker.location.streetAddress().slice(0, 255)
+			}
+		});
+		profils.push(profil);
+	}
+
+	// ---------------------
+	// 🙋 VOLUNTEERS
+	// ---------------------
+	const volunteers = [];
+
+	for (let i = 0; i < 5; i++) {
+		const volunteer = await prisma.volunteer.create({
+			data: {
+				password: 'password',
+				role: faker.helpers.arrayElement(VOLUNTEER_ROLE),
+				actif: 'true',
+				profilId: profils[i].id
+			}
+		});
+		volunteers.push(volunteer);
+	}
+
+	// ---------------------
+	// 🏠 HOSTS
+	// ---------------------
+	const hosts = [];
+
+	for (let i = 5; i < 10; i++) {
+		const host = await prisma.host.create({
+			data: {
+				profilId: profils[i].id,
+				age: faker.number.int({ min: 20, max: 70 }),
+				type: faker.helpers.arrayElement(HOST_TYPE),
+				isActif: true,
+				job: faker.person.jobTitle(),
+				status: faker.helpers.arrayElement(HOST_STATUS),
+				receptionCapacity: faker.number.float({ min: 1, max: 10 }),
+				description: faker.lorem.sentences(2),
+				isAnimalsAtHome: randomBool(),
+				space: faker.helpers.arrayElement(SPACE),
+				presence: 'FULL_TIME',
+				outside: randomBool(),
+				isStockFeed: randomBool(),
+				heal: faker.helpers.arrayElement(HEAL),
+				socialize: faker.helpers.arrayElement(SOCIALIZE),
+				car: randomBool(),
+				babyFeeding: faker.helpers.arrayElement(BABY),
+				stopActivity: faker.lorem.sentence(),
+				homeDescription: faker.lorem.sentences(2)
+			}
+		});
+		hosts.push(host);
+	}
+
+	// ---------------------
+	// 🐱 CATS
+	// ---------------------
+	const cats = [];
+
+	for (let i = 0; i < 30; i++) {
 		const cat = await prisma.cat.create({
 			data: {
 				name: faker.person.firstName(),
+				sex: faker.helpers.arrayElement(SEX),
 				age: faker.number.int({ min: 1, max: 18 }),
-				sex: faker.datatype.boolean(),
-
+				isVisible: true,
 				status: faker.helpers.arrayElement(STATUS),
-				isVisible: randomBool(0.9),
-
 				hairLength: faker.helpers.arrayElement(HAIR),
 				color: faker.color.human(),
 				origin: faker.location.country(),
 
 				isSterilize: randomBool(),
 				isAlreadySterilized: randomBool(),
-
 				vaccinate: faker.helpers.arrayElement(VACCINATE),
 
 				isFivTest: randomBool(),
@@ -99,68 +183,125 @@ async function main() {
 				media: {
 					create: [
 						{
-							picture: getRandomImage(i)
+							picture: randomImage(i)
 						}
 					]
 				}
 			}
 		});
 
-		createdCats.push(cat);
+		cats.push(cat);
 	}
 
-	console.log(`🐱 ${createdCats.length} cats created`);
+	// ---------------------
+	// 🔗 CAT ↔ VOLUNTEERS
+	// ---------------------
+	for (const cat of cats) {
+		const randomVols = faker.helpers.arrayElements(volunteers, 2);
 
-	// 📰 CREATE NEWS
-	for (let i = 0; i < 25; i++) {
+		for (const v of randomVols) {
+			await prisma.catVolunteer.create({
+				data: {
+					catId: cat.id,
+					volunteerId: v.id
+				}
+			});
+		}
+	}
+
+	// ---------------------
+	// 📍 PLACEMENTS
+	// ---------------------
+	for (const cat of cats.slice(0, 10)) {
+		await prisma.placement.create({
+			data: {
+				catId: cat.id,
+				hostId: faker.helpers.arrayElement(hosts).id,
+				started: faker.date.recent()
+			}
+		});
+	}
+
+	// ---------------------
+	// 💊 CARES
+	// ---------------------
+	for (const cat of cats.slice(0, 10)) {
+		await prisma.care.create({
+			data: {
+				catId: cat.id,
+				type: 'VACCINE',
+				reason: 'Routine',
+				description: faker.lorem.sentence()
+			}
+		});
+	}
+
+	// ---------------------
+	// 📰 NEWS
+	// ---------------------
+	for (let i = 0; i < 20; i++) {
 		const type = faker.helpers.arrayElement(NEWS_TYPES);
-
-		// 0 à 3 chats liés
-		const relatedCats = faker.helpers.arrayElements(
-			createdCats,
-			faker.number.int({ min: 1, max: 5 })
-		);
-
-		const isNewsCats = type === 'NEWSCATS';
+		const relatedCats = faker.helpers.arrayElements(cats, 3);
 
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
 				type,
-
-				// 🧠 logique métier claire
-				content: isNewsCats ? generateContent(type) : null,
-				mediaUrl: !isNewsCats ? getFakePdf(type) : null,
-
-				created_at: faker.date.between({
-					from: new Date('2025-01-01'),
-					to: new Date()
-				}),
-
-				// 🐱 uniquement pour NEWSCATS
-				cats: isNewsCats
-					? {
-							create: relatedCats.map((cat) => ({
-								cat: {
-									connect: { id: cat.id }
-								}
-							}))
-						}
-					: undefined
+				content: faker.lorem.paragraph(),
+				mediaUrl: getLocalPdf(),
+				cats: {
+					create: relatedCats.map((c) => ({
+						catId: c.id
+					}))
+				}
 			}
 		});
 	}
 
-	console.log('📰 News created');
+	// ---------------------
+	// 🐾 ADOPTIONS
+	// ---------------------
+	for (const cat of cats.slice(0, 5)) {
+		await prisma.adoption.create({
+			data: {
+				catId: cat.id,
+				profilId: faker.helpers.arrayElement(profils).id
+			}
+		});
+	}
 
-	console.log('✅ Seeding terminé');
+	// ---------------------
+	// 🚫 BLACKLIST
+	// ---------------------
+	await prisma.blacklistHistoric.create({
+		data: {
+			profilId: profils[0].id,
+			email: profils[0].email,
+			description: 'Bad adopter',
+			isBlacklisted: true
+		}
+	});
+
+	// ---------------------
+	// 📄 FORMS
+	// ---------------------
+	for (let i = 0; i < 10; i++) {
+		await prisma.form.create({
+			data: {
+				type: faker.helpers.arrayElement(FORM_TYPES),
+				status: faker.helpers.arrayElement(FORM_STATUS),
+				email: faker.internet.email(),
+				data: { message: faker.lorem.sentence() }
+			}
+		});
+	}
+
+	console.log('✅ Seed terminé');
 }
 
+// ---------------------
 main()
-	.catch((e) => {
-		console.error(e);
-		process.exit(1);
-	})
+	.catch(console.error)
 	.finally(async () => {
 		await prisma.$disconnect();
 		await pool.end();
