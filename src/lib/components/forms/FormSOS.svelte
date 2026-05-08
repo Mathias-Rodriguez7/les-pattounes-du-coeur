@@ -43,7 +43,7 @@
 		alertTypes.find((t) => t.value === value)?.label ?? 'Choisir un type';
 </script>
 
-<form method="POST" use:enhance class="space-y-6">
+<form method="POST" action="?/sos" use:enhance class="space-y-6">
 	<!-- TYPE ALERT (UI only) -->
 	<Form.Field {form} name="alertType">
 		<Form.Control>

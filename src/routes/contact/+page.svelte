@@ -4,6 +4,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { fade, fly } from 'svelte/transition';
 	import FormSOS from '$lib/components/forms/FormSOS.svelte';
+	import FormHost from '$lib/components/forms/FormHost.svelte';
+	import FormVolunteer from '$lib/components/forms/FormVolunteer.svelte';
 
 	let { data } = $props();
 </script>
@@ -54,7 +56,7 @@
 								<Button size="lg">Faire un signalement</Button>
 							</Dialog.Trigger>
 							<Dialog.Content class="sm:max-w-125">
-								<FormSOS data={data.form} />
+								<FormSOS data={data.sosForm} />
 							</Dialog.Content>
 						</Dialog.Root>
 					</Card.Footer>
@@ -90,31 +92,10 @@
 				<Card.Footer class="justify-end">
 					<Dialog.Root>
 						<Dialog.Trigger>
-							<Button size="lg">Devenir famille d’accueil</Button>
+							<Button size="lg">Faire un signalement</Button>
 						</Dialog.Trigger>
 						<Dialog.Content class="sm:max-w-125">
-							<Dialog.Header>
-								<Dialog.Title>Signaler un chat en détresse</Dialog.Title>
-
-								<Dialog.Description>
-									Décrivez la situation afin que notre équipe puisse intervenir rapidement.
-								</Dialog.Description>
-							</Dialog.Header>
-
-							<div class="space-y-4 py-4">
-								<p>Vous pourrez bientôt :</p>
-
-								<ul class="space-y-2 text-sm">
-									<li>• Ajouter une adresse</li>
-									<li>• Décrire l’état du chat</li>
-									<li>• Envoyer des photos</li>
-									<li>• Être recontacté par un bénévole</li>
-								</ul>
-							</div>
-
-							<Dialog.Footer>
-								<Button>test</Button>
-							</Dialog.Footer>
+							<FormHost data={data.hostForm} />
 						</Dialog.Content>
 					</Dialog.Root>
 				</Card.Footer>
@@ -139,31 +120,10 @@
 				<Card.Footer class="justify-end">
 					<Dialog.Root>
 						<Dialog.Trigger>
-							<Button size="lg">Je veux aider</Button>
+							<Button size="lg">Faire un signalement</Button>
 						</Dialog.Trigger>
 						<Dialog.Content class="sm:max-w-125">
-							<Dialog.Header>
-								<Dialog.Title>Signaler un chat en détresse</Dialog.Title>
-
-								<Dialog.Description>
-									Décrivez la situation afin que notre équipe puisse intervenir rapidement.
-								</Dialog.Description>
-							</Dialog.Header>
-
-							<div class="space-y-4 py-4">
-								<p>Vous pourrez bientôt :</p>
-
-								<ul class="space-y-2 text-sm">
-									<li>• Ajouter une adresse</li>
-									<li>• Décrire l’état du chat</li>
-									<li>• Envoyer des photos</li>
-									<li>• Être recontacté par un bénévole</li>
-								</ul>
-							</div>
-
-							<Dialog.Footer>
-								<Button>Continuer</Button>
-							</Dialog.Footer>
+							<FormVolunteer data={data.volunteerForm} />
 						</Dialog.Content>
 					</Dialog.Root>
 				</Card.Footer>
