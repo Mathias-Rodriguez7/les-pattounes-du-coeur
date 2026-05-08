@@ -14,7 +14,7 @@ export const step1Schema = z.object({
 
 	address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
 
-	phone: z.string().min(10, 'Numéro de téléphone invalide'),
+	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
 
 	email: z.email("L'adresse email n'est pas valide"),
 

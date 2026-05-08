@@ -14,21 +14,15 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		console.log('🔥 SUBMIT REÇU');
-
 		const raw = await request.formData();
 
-		console.log('📦 RAW FORM DATA:');
 		for (const [key, value] of raw.entries()) {
 			console.log(key, value);
 		}
 
 		const form = await superValidate(raw, zod4(adoptionFormSchema));
 
-		console.log('📦 PARSED DATA:', form.data);
-
 		if (!form.valid) {
-			console.log('❌ ZOD ERRORS:', form.errors);
 			return fail(400, { form });
 		}
 

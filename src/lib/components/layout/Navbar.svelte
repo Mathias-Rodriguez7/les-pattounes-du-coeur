@@ -127,18 +127,7 @@
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Trigger class="text-2xl">Contact</NavigationMenu.Trigger>
-						<NavigationMenu.Content class="shadow-md">
-							<ul class="grid w-52 gap-2 p-3">
-								<li><NavigationMenu.Link href="#" class="text-2xl">SOS</NavigationMenu.Link></li>
-								<li>
-									<NavigationMenu.Link href="#" class="text-2xl">Famille</NavigationMenu.Link>
-								</li>
-								<li>
-									<NavigationMenu.Link href="#" class="text-2xl">Bénévole</NavigationMenu.Link>
-								</li>
-							</ul>
-						</NavigationMenu.Content>
+						<NavigationMenu.Link href="/contact" class="text-2xl">Contact</NavigationMenu.Link>
 					</NavigationMenu.Item>
 				</NavigationMenu.List>
 			</NavigationMenu.Root>
