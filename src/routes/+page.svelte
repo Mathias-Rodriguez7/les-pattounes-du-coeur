@@ -36,7 +36,9 @@
 						</p>
 					</Card.Content>
 					<Card.Footer class="flex justify-end">
-						<Button>Offrir un foyer</Button>
+						<a href={resolve(`/adoptions/chat`)}>
+							<Button>Offrir un foyer</Button>
+						</a>
 					</Card.Footer>
 				</Card.Root>
 			</div>

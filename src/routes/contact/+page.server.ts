@@ -1,14 +1,11 @@
 import { fail } from '@sveltejs/kit';
-
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-
 import { sosFormSchema } from '$lib/schema/sosForm';
 import { hostFormSchema } from '$lib/schema/hostForm';
 import { volunteerFormSchema } from '$lib/schema/volunteerForm';
-
+import { colabForm } from '$lib/schema/colabForm.js';
 import { prisma } from '$lib/server/prisma';
-
 import { FormStatus, FormType } from '@prisma/client';
 
 //
@@ -18,13 +15,11 @@ export const load = async () => {
 	return {
 		sosForm: await superValidate(zod4(sosFormSchema)),
 		hostForm: await superValidate(zod4(hostFormSchema)),
-		volunteerForm: await superValidate(zod4(volunteerFormSchema))
+		volunteerForm: await superValidate(zod4(volunteerFormSchema)),
+		colabForm: await superValidate(zod4(colabForm))
 	};
 };
 
-//
-// 🚨 ACTIONS
-//
 export const actions = {
 	//
 	// SOS
@@ -92,16 +87,7 @@ export const actions = {
 	// 🤝 VOLUNTEER
 	//
 	volunteer: async ({ request }) => {
-		const raw = await request.clone().formData();
-
-		console.log('🔥 RAW FORM:');
-		console.log(Object.fromEntries(raw));
-
 		const form = await superValidate(request, zod4(volunteerFormSchema));
-
-		console.log('🔥 VALID:', form.valid);
-		console.log('🔥 DATA:', form.data);
-		console.log('🔥 ERRORS:', form.errors);
 
 		if (!form.valid) {
 			return fail(400, { volunteerForm: form });
@@ -113,9 +99,7 @@ export const actions = {
 					type: FormType.VOLUNTEER,
 					status: FormStatus.PENDING,
 					email: form.data.email,
-
-					// 🔥 TEMP FIX DEBUG
-					data: JSON.parse(JSON.stringify(form.data))
+					data: form.data
 				}
 			});
 
@@ -126,5 +110,30 @@ export const actions = {
 		}
 
 		return { volunteerForm: form };
+	},
+
+	colab: async ({ request }) => {
+		const form = await superValidate(request, zod4(colabForm));
+
+		if (!form.valid) {
+			return fail(400, { colabForm: form });
+		}
+
+		try {
+			const created = await prisma.form.create({
+				data: {
+					type: FormType.COLAB,
+					status: FormStatus.PENDING,
+					email: form.data.email,
+					data: form.data
+				}
+			});
+
+			console.log('✅ CREATED:', created);
+		} catch (e) {
+			console.error('🔥 PRISMA ERROR FULL:', e);
+			return fail(500, { colabForm: form });
+		}
+		return { colabForm: form };
 	}
 };

@@ -82,6 +82,21 @@
 		}
 	}
 
+	const availabilityOptions = [
+		{
+			value: 'LOW',
+			label: 'Quelques heures par mois'
+		},
+		{
+			value: 'MEDIUM',
+			label: 'Quelques heures par semaine'
+		},
+		{
+			value: 'HIGH',
+			label: 'Très disponible'
+		}
+	];
+
 	// STYLE
 	const fieldClass =
 		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
@@ -369,14 +384,17 @@
 
 					<Select.Root type="single" bind:value={$formData.availability}>
 						<Select.Trigger {...props} class={selectClass}>
-							{$formData.availability ? $formData.availability : 'Choisir'}
+							{availabilityOptions.find((option) => option.value === $formData.availability)
+								?.label ?? 'Choisir'}
 						</Select.Trigger>
 
 						<Select.Content>
 							<Select.Group>
-								<Select.Item value="LOW">Quelques heures par mois</Select.Item>
-								<Select.Item value="MEDIUM">Quelques heures par semaine</Select.Item>
-								<Select.Item value="HIGH">Très disponible</Select.Item>
+								{#each availabilityOptions as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
+									</Select.Item>
+								{/each}
 							</Select.Group>
 						</Select.Content>
 					</Select.Root>
