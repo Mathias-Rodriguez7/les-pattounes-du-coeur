@@ -1,50 +1,49 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { adoptionFormSchema } from '$lib/schema/adoptionForm';
+import { QuickAdoptionFormSchema } from '$lib/schema/quickAdoptionForm';
 import { prisma } from '$lib/server/prisma';
 
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ params }) => {
+	const cat = await prisma.cat.findUnique({
+		where: { id: params.id }
+	});
 	return {
-		form: await superValidate(zod4(adoptionFormSchema))
+		cat,
+		catId: params.id, // 👈 ou depuis ton load cat
+		form: await superValidate(zod4(QuickAdoptionFormSchema))
 	};
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
-		const raw = await request.formData();
+	default: async ({ request, params }) => {
+		const form = await superValidate(request, zod4(QuickAdoptionFormSchema));
 
-		for (const [key, value] of raw.entries()) {
-			console.log(key, value);
-		}
-
-		const form = await superValidate(raw, zod4(adoptionFormSchema));
+		// 🔥 injecte catId côté server (important)
+		form.data.catId = params.id;
 
 		if (!form.valid) {
 			return fail(400, { form });
 		}
+
+		console.log('📝 Form Data:', form.data);
 
 		try {
 			await prisma.form.create({
 				data: {
 					type: 'ADOPTION',
 					status: 'PENDING',
+
 					email: form.data.email,
+
 					data: {
+						catId: form.data.catId,
 						firstName: form.data.firstName,
 						lastName: form.data.lastName,
 						phone: form.data.phone,
 						age: form.data.age,
-
-						catPreferences: {
-							age: form.data.catAge,
-							sex: form.data.catSex,
-							furLength: form.data.furLength,
-							color: form.data.color,
-							temperament: form.data.temperament
-						},
 
 						housing: {
 							size: form.data.housingSize,
@@ -64,18 +63,10 @@ export const actions: Actions = {
 				}
 			});
 
-			return {
-				form,
-				success: true as const
-			};
-		} catch (error) {
-			console.error('❌ ERREUR PRISMA:', error);
-
-			return fail(500, {
-				form,
-				message: 'Erreur serveur',
-				error: String(error)
-			});
+			return { form, success: true };
+		} catch (e) {
+			console.error('❌ ERREUR PRISMA:', e);
+			return fail(500, { form, message: e.message });
 		}
 	}
 };

@@ -1,12 +1,17 @@
 import { z } from 'zod';
 
-// 🔧 Helper pour sécuriser les nombres (évite NaN)
+// 🔧 Helper nombres sécurisés
 const numberField = (label: string) =>
 	z.coerce.number().refine((val) => !isNaN(val), {
 		message: `${label} doit être un nombre`
 	});
 
-// 👤 STEP 1
+// 🧠 BASE
+const baseSchema = z.object({
+	catId: z.uuid().optional()
+});
+
+// 👤 STEP 1 - profil adoptant
 export const step1Schema = z.object({
 	firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
 	lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
@@ -16,48 +21,38 @@ export const step1Schema = z.object({
 	age: z.coerce.number().min(18, 'Vous devez être majeur')
 });
 
-// 🐱 STEP 2
+// 🏠 STEP 2 - foyer
 export const step2Schema = z.object({
-	catAge: z.enum(['kitten', 'adult', 'senior', 'free'], {
-		message: 'Veuillez sélectionner l’âge du chat'
-	}),
-	catSex: z.enum(['male', 'female', 'free'], {
-		message: 'Veuillez sélectionner le sexe du chat'
-	}),
-	color: z.string().min(2, 'Veuillez indiquer une couleur'),
-	furLength: z.enum(['short', 'medium', 'long', 'free'], {
-		message: 'Veuillez sélectionner la longueur du poil'
-	}),
-	temperament: z.string().min(5, 'Le caractère doit contenir au moins 5 caractères')
-});
-
-// 🏠 STEP 3
-export const step3Schema = z.object({
 	housingSize: numberField('La taille du logement')
-		.min(10, 'La taille doit être supérieure à 10 m²')
+		.min(10, 'Minimum 10 m²')
 		.max(1000, 'Valeur trop élevée'),
+
 	hasGarden: z.boolean(),
+
 	gardenSize: numberField('La taille du jardin').min(0).max(1000).optional(),
+
 	hasPets: z.boolean(),
+
 	numberOfCats: numberField('Nombre de chats').min(0).default(0),
 	numberOfDogs: numberField('Nombre de chiens').min(0).default(0),
+
 	otherPets: z.string().optional(),
+
 	numberOfChildren: numberField("Nombre d'enfants").min(0)
 });
 
-// 🔗 GLOBAL SCHEMA
-export const adoptionFormSchema = step1Schema
+// 🔗 FINAL (comme ton ancien form → clean extend)
+export const QuickAdoptionFormSchema = baseSchema
+	.extend(step1Schema.shape)
 	.extend(step2Schema.shape)
-	.extend(step3Schema.shape)
 	.superRefine((data, ctx) => {
-		if (data.hasGarden && (data.gardenSize === undefined || data.gardenSize === null)) {
+		if (data.hasGarden && !data.gardenSize) {
 			ctx.addIssue({
 				path: ['gardenSize'],
 				code: 'custom',
-				message: 'Veuillez indiquer la taille du jardin'
+				message: 'Taille du jardin requise'
 			});
 		}
 	});
 
-// 🧠 TYPE TS
-export type AdoptionForm = z.infer<typeof adoptionFormSchema>;
+export type QuickAdoptionForm = z.infer<typeof QuickAdoptionFormSchema>;

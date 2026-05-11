@@ -45,10 +45,13 @@ model Host {
   job                String      @db.VarChar(255)
   status             HostStatus
   isAvailable        Boolean     @default(true) @db.Boolean
-  receptionCapacity  Float       @map("reception_capacity")
-  description        String      @db.Text
-  isAnimalsAtHome    Boolean     @map("is_animals-at-home") @db.Boolean
+  additionalInformation        String      @db.Text
+  hasAnimalsAtHome   Boolean     @map("is_animals-at-home") @db.Boolean
+  numberOfCatsAtHome Int?
+  numberOfDogsAtHome Int?
+  otherAnimalsAtHome String?
   space              Space
+  homeDescription    String      @map("home_description") @db.Text
   presence           String      @db.VarChar(255)
   outside            Boolean     @db.Boolean
   outsideDescription String?     @map("outside_desciption") @db.Text
@@ -58,7 +61,7 @@ model Host {
   car                Boolean     @db.Boolean
   babyFeeding        BabyFeeding @map("baby_feeding")
   stopActivity       String      @db.Text
-  homeDescription    String      @map("home_description") @db.Text
+  availabilityDuration String
   created_at         DateTime    @default(now())
   updated_at         DateTime    @default(now()) @updatedAt
   placements         Placement[]

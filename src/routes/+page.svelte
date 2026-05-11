@@ -36,7 +36,9 @@
 						</p>
 					</Card.Content>
 					<Card.Footer class="flex justify-end">
-						<Button>Offrir un foyer</Button>
+						<a href={resolve(`/adoptions/chat`)}>
+							<Button>Offrir un foyer</Button>
+						</a>
 					</Card.Footer>
 				</Card.Root>
 			</div>
@@ -54,11 +56,13 @@
 			</div>
 
 			<div class="mt-4 flex justify-center">
-				<Button
-					><span class="flex items-center gap-2">
-						Voir <Plus />
-					</span>
-				</Button>
+				<a href={resolve(`/adoptions/chat`)}>
+					<Button
+						><span class="flex items-center gap-2">
+							Voir <Plus />
+						</span>
+					</Button>
+				</a>
 			</div>
 		</section>
 
@@ -106,11 +110,13 @@
 				{/each}
 			</div>
 			<div class="mt-4 flex justify-center">
-				<Button
-					><span class="flex items-center gap-2">
-						Voir <Plus />
-					</span>
-				</Button>
+				<a href={resolve(`/association/news`)}>
+					<Button
+						><span class="flex items-center gap-2">
+							Voir <Plus />
+						</span>
+					</Button>
+				</a>
 			</div>
 		</section>
 	</div>
