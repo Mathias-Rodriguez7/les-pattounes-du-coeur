@@ -19,12 +19,70 @@
 					<Sheet.Title>Menu</Sheet.Title>
 				</Sheet.Header>
 
-				<nav class="mt-6 flex flex-col gap-4 px-4 text-lg">
-					<a href="#">Adoptions</a>
-					<a href="#">Donation</a>
-					<a href="#">Association</a>
-					<a href="#">Contact</a>
-				</nav>
+				<div class="mt-6 flex flex-col gap-4 px-4 text-lg">
+					<NavigationMenu.Root viewport={false}>
+						<NavigationMenu.List class="flex flex-col items-center gap-6">
+							<NavigationMenu.Item>
+								<NavigationMenu.Link href="/" class="text-2xl">Accueil</NavigationMenu.Link>
+							</NavigationMenu.Item>
+							<NavigationMenu.Item>
+								<NavigationMenu.Trigger class="text-2xl">Adoptions</NavigationMenu.Trigger>
+								<NavigationMenu.Content class="shadow-md">
+									<ul class="grid w-52 gap-2 p-3">
+										<li>
+											<NavigationMenu.Link href="/adoptions/chat" class="text-2xl"
+												>Chats</NavigationMenu.Link
+											>
+										</li>
+										<li>
+											<NavigationMenu.Link href="/adoptions/formChat" class="text-2xl"
+												>Formulaire</NavigationMenu.Link
+											>
+										</li>
+									</ul>
+								</NavigationMenu.Content>
+							</NavigationMenu.Item>
+
+							<NavigationMenu.Item>
+								<NavigationMenu.Link
+									href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
+									target="_blank"
+									class="text-2xl">Donation</NavigationMenu.Link
+								>
+							</NavigationMenu.Item>
+
+							<NavigationMenu.Item>
+								<NavigationMenu.Trigger class="text-2xl">Association</NavigationMenu.Trigger>
+								<NavigationMenu.Content class="shadow-md">
+									<ul class="grid w-52 gap-2 p-3">
+										<li>
+											<NavigationMenu.Link href="/association/info" class="text-2xl"
+												>Info</NavigationMenu.Link
+											>
+										</li>
+										<li>
+											<NavigationMenu.Link href="/association/news" class="text-2xl"
+												>News</NavigationMenu.Link
+											>
+										</li>
+										<li>
+											<NavigationMenu.Link href="/association/conseils" class="text-2xl"
+												>Conseils</NavigationMenu.Link
+											>
+										</li>
+										<li>
+											<NavigationMenu.Link href="#" class="text-2xl">Boutique</NavigationMenu.Link>
+										</li>
+									</ul>
+								</NavigationMenu.Content>
+							</NavigationMenu.Item>
+
+							<NavigationMenu.Item>
+								<NavigationMenu.Link href="/contact" class="text-2xl">Contact</NavigationMenu.Link>
+							</NavigationMenu.Item>
+						</NavigationMenu.List>
+					</NavigationMenu.Root>
+				</div>
 			</Sheet.Content>
 		</Sheet.Root>
 
@@ -42,19 +100,19 @@
 					<Sheet.Title>Connexion</Sheet.Title>
 				</Sheet.Header>
 
-				<div class="mt-6 grid gap-4 px-4">
+				<form method="POST" action="/login" class="mt-6 grid gap-4 px-4">
 					<div class="grid gap-2">
 						<Label>Email</Label>
-						<Input />
+						<Input name="email" type="email" required />
 					</div>
 
 					<div class="grid gap-2">
 						<Label>Mot de passe</Label>
-						<Input type="password" />
+						<Input name="password" type="password" required />
 					</div>
 
-					<Button class="mt-2 w-full">Connexion</Button>
-				</div>
+					<Button type="submit" class="w-full">Connexion</Button>
+				</form>
 			</Sheet.Content>
 		</Sheet.Root>
 	</div>
@@ -134,6 +192,7 @@
 		</div>
 
 		<!-- LOGIN DESKTOP -->
+		<!-- LOGIN DESKTOP -->
 		<Sheet.Root>
 			<Sheet.Trigger class={buttonVariants}>
 				<img src="/img/cat-sleeping.png" alt="login" class="h-20 w-20" />
@@ -144,15 +203,19 @@
 					<Sheet.Title>Connexion</Sheet.Title>
 				</Sheet.Header>
 
-				<div class="mt-6 grid gap-4 px-4">
-					<Label>Email</Label>
-					<Input />
+				<form method="POST" action="/login" class="mt-6 grid gap-4 px-4">
+					<div class="grid gap-2">
+						<Label>Email</Label>
+						<Input name="email" type="email" required />
+					</div>
 
-					<Label>Mot de passe</Label>
-					<Input type="password" />
+					<div class="grid gap-2">
+						<Label>Mot de passe</Label>
+						<Input name="password" type="password" required />
+					</div>
 
-					<Button class="w-full">Connexion</Button>
-				</div>
+					<Button type="submit" class="w-full">Connexion</Button>
+				</form>
 			</Sheet.Content>
 		</Sheet.Root>
 	</div>

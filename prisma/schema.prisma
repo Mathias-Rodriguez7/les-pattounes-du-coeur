@@ -27,44 +27,45 @@ model Volunteer {
   id         String         @id @default(uuid()) @db.Uuid
   password   String         @db.VarChar(255)
   role       VolunteerRole
-  actif      String         @db.VarChar(255)
+  actif      ColabActivity?
   profilId   String         @unique @db.Uuid
   profil     Profil         @relation(fields: [profilId], references: [id])
   created_at DateTime       @default(now())
   updated_at DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
+  sessions   Session[]
 }
 
 model Host {
-  id                 String      @id @default(uuid()) @db.Uuid
-  profilId           String      @unique @db.Uuid
-  profil             Profil      @relation(fields: [profilId], references: [id])
-  age                Int
-  type               HostType?
-  isActif            Boolean     @map("is_actif") @db.Boolean
-  job                String      @db.VarChar(255)
-  status             HostStatus
-  isAvailable        Boolean     @default(true) @db.Boolean
-  additionalInformation        String      @db.Text
-  hasAnimalsAtHome   Boolean     @map("is_animals-at-home") @db.Boolean
-  numberOfCatsAtHome Int?
-  numberOfDogsAtHome Int?
-  otherAnimalsAtHome String?
-  space              Space
-  homeDescription    String      @map("home_description") @db.Text
-  presence           String      @db.VarChar(255)
-  outside            Boolean     @db.Boolean
-  outsideDescription String?     @map("outside_desciption") @db.Text
-  isStockFeed        Boolean     @db.Boolean
-  heal               Heal
-  socialize          Socialize
-  car                Boolean     @db.Boolean
-  babyFeeding        BabyFeeding @map("baby_feeding")
-  stopActivity       String      @db.Text
-  availabilityDuration String
-  created_at         DateTime    @default(now())
-  updated_at         DateTime    @default(now()) @updatedAt
-  placements         Placement[]
+  id                    String      @id @default(uuid()) @db.Uuid
+  profilId              String      @unique @db.Uuid
+  profil                Profil      @relation(fields: [profilId], references: [id])
+  age                   Int
+  type                  HostType?
+  actif                 ColabActivity?
+  job                   String      @db.VarChar(255)
+  status                HostStatus
+  isAvailable           Boolean     @default(true) @db.Boolean
+  additionalInformation String      @db.Text
+  hasAnimalsAtHome      Boolean     @map("is_animals-at-home") @db.Boolean
+  numberOfCatsAtHome    Int?
+  numberOfDogsAtHome    Int?
+  otherAnimalsAtHome    String?
+  space                 Space
+  homeDescription       String      @map("home_description") @db.Text
+  presence              String      @db.VarChar(255)
+  outside               Boolean     @db.Boolean
+  outsideDescription    String?     @map("outside_desciption") @db.Text
+  isStockFeed           Boolean     @db.Boolean
+  heal                  Heal
+  socialize             Socialize
+  car                   Boolean     @db.Boolean
+  babyFeeding           BabyFeeding @map("baby_feeding")
+  stopActivity          String      @db.Text
+  availabilityDuration  String
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @default(now()) @updatedAt
+  placements            Placement[]
 }
 
 model BlacklistHistoric {
@@ -170,17 +171,30 @@ model Placement {
 }
 
 model Adoption {
-  id    String @id @default(uuid())
-  catId String @db.Uuid
-  cat   Cat    @relation(fields: [catId], references: [id])
+  id          String @id @default(uuid()) @db.Uuid
+  catId       String @db.Uuid
+  cat         Cat    @relation(fields: [catId], references: [id])
 
-  profilId String @db.Uuid
-  profil   Profil @relation(fields: [profilId], references: [id])
+  profilId    String @db.Uuid
+  profil      Profil @relation(fields: [profilId], references: [id])
 
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 
   @@unique([catId])
+}
+
+model Session {
+  id          String @id @default(uuid()) @db.Uuid
+  token       String @unique @db.VarChar(255)
+
+  volunteerId String @db.Uuid
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  expiresAt   DateTime @map("expires_at")
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 }
 
 model Form {
@@ -208,6 +222,13 @@ model Care {
 //////////////////////////
 // Enums
 //////////////////////////
+
+// VOLUNTEER AND HOST
+enum ColabActivity {
+  ACTIVE
+  BREAK
+  STOP
+}
 
 // VOLUNTEER
 enum VolunteerRole {
