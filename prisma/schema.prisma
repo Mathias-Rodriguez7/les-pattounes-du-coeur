@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -84,7 +85,7 @@ model Cat {
   name                String?     @db.VarChar(255)
   sex                 SexCat
   age                 Int?
-  isVisible           Boolean     @db.Boolean
+  isVisible           Boolean     @default(false) @db.Boolean
   status              CatStatus
   hairLength          HairLength?
   color               String?     @db.VarChar(255)
@@ -97,10 +98,10 @@ model Cat {
   isFivTest           Boolean     @default(false) @db.Boolean
   isDeworming         Boolean     @default(false) @db.Boolean
   description         String?     @db.Text
-  isOkCat             Boolean     @default(false) @db.Boolean
-  isOkDog             Boolean     @default(false) @db.Boolean
-  isOkChild           Boolean     @default(false) @db.Boolean
-  isOutside           Boolean     @default(false) @db.Boolean
+  isOkCat             Boolean?    @default(false) @db.Boolean
+  isOkDog             Boolean?    @default(false) @db.Boolean
+  isOkChild           Boolean?    @default(false) @db.Boolean
+  isOutside           Boolean?    @default(false) @db.Boolean
   isIdentify          Boolean     @default(false) @db.Boolean
   chipId              String?     @db.VarChar(255)
 

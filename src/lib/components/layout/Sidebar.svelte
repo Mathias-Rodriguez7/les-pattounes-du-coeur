@@ -29,7 +29,7 @@
 	<!-- toggle -->
 	<button
 		onclick={() => (collapsed = !collapsed)}
-		class="bg-background hover:bg-secondary absolute top-6 -right-4 z-50 rounded-full p-2 shadow-xl transition"
+		class="from-accent to-primary absolute top-6 -right-4 z-50 rounded-2xl bg-linear-to-br p-2 shadow-xl transition"
 	>
 		{#if collapsed}
 			<ArrowRightToLine class="h-5 w-5" />
@@ -39,7 +39,7 @@
 	</button>
 
 	<!-- NAV -->
-	<nav class="flex flex-col gap-2 p-4 pt-16">
+	<nav class="flex flex-col gap-2 pt-16">
 		{#each items as item (item.href)}
 			{@const Icon = item.icon}
 
@@ -49,7 +49,9 @@
 					collapsed ? 'justify-center' : 'gap-3'
 				}`}
 			>
-				<div class="flex justify-center">
+				<div
+					class="from-accent to-primary flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br shadow-lg"
+				>
 					<Icon class="h-5 w-5" />
 				</div>
 
@@ -78,7 +80,7 @@
 		<form method="POST" action="/logout" use:enhance>
 			<button
 				type="submit"
-				class="flex w-full items-center gap-3 rounded-4xl p-4 text-red-400 hover:bg-red-700"
+				class="hover:bg-destructive flex w-full items-center gap-3 rounded-4xl p-4 text-red-400"
 			>
 				<LogOut class="h-5 w-5" />
 
