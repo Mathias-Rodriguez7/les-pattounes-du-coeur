@@ -1684,6 +1684,8 @@ export const FormScalarFieldEnum = {
   status: 'status',
   email: 'email',
   data: 'data',
+  assignedToId: 'assignedToId',
+  notes: 'notes',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

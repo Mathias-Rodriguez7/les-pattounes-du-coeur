@@ -1,5 +1,19 @@
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 import type { PageServerLoad } from './$types';
+
+type DashboardTask = {
+	label: string;
+	value: number;
+	description: string;
+	icon: string;
+};
+
+type QuickAction = {
+	label: string;
+	description: string;
+	href: string;
+	icon: string;
+};
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
@@ -53,7 +67,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const volunteerCats = volunteer.cats.length;
 
-	// hosts uniques liés aux chats du bénévole
 	const hostIds = new Set<string>();
 
 	volunteer.cats.forEach((relation) => {
@@ -64,7 +77,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const volunteerHosts = hostIds.size;
 
-	// chats adoptés du bénévole
 	const volunteerAdoptions = volunteer.cats.filter(
 		(relation) => relation.cat.adoptions.length > 0
 	).length;
@@ -105,6 +117,167 @@ export const load: PageServerLoad = async ({ locals }) => {
 				}
 			})
 		]);
+
+	/*
+	|--------------------------------------------------------------------------
+	| TASKS DASHBOARD
+	|--------------------------------------------------------------------------
+	*/
+
+	let dashboardTasks: DashboardTask[] = [];
+
+	/*
+	|--------------------------------------------------------------------------
+	| ADMIN TASKS
+	|--------------------------------------------------------------------------
+	*/
+
+	if (user.role === 'ADMIN') {
+		const [findFA, createFA, treatForms] = await Promise.all([
+			prisma.cat.count({
+				where: {
+					isVisible: false,
+					status: {
+						not: 'FREE'
+					}
+				}
+			}),
+
+			prisma.form.count({
+				where: {
+					type: 'HOST',
+					status: 'PENDING'
+				}
+			}),
+
+			prisma.form.count({
+				where: {
+					status: 'PENDING'
+				}
+			})
+		]);
+
+		dashboardTasks = [
+			{
+				label: 'Trouver des FA',
+				value: findFA,
+				description: 'Chats non visibles',
+				icon: 'search'
+			},
+
+			{
+				label: 'Créer des FA',
+				value: createFA,
+				description: 'Demandes HOST en attente',
+				icon: 'plus'
+			},
+
+			{
+				label: 'Traiter les candidatures',
+				value: treatForms,
+				description: 'Formulaires à traiter',
+				icon: 'clipboard'
+			}
+		];
+
+		/*
+	|--------------------------------------------------------------------------
+	| MANAGER / COMMUNICATION TASKS
+	|--------------------------------------------------------------------------
+	*/
+	} else if (user.role === 'MANAGER' || user.role === 'COMMUNICATION') {
+		const [completeCats, treatForms] = await Promise.all([
+			prisma.catVolunteer.count({
+				where: {
+					volunteerId: user.id,
+					cat: {
+						OR: [{ name: null }, { description: null }, { chipId: null }]
+					}
+				}
+			}),
+
+			prisma.form.count({
+				where: {
+					assignedToId: user.id,
+					status: 'PENDING'
+				}
+			})
+		]);
+
+		dashboardTasks = [
+			{
+				label: 'Compléter les chats',
+				value: completeCats,
+				description: 'Informations manquantes',
+				icon: 'cat'
+			},
+
+			{
+				label: 'Traiter les candidatures',
+				value: treatForms,
+				description: 'Formulaires assignés',
+				icon: 'clipboard'
+			}
+		];
+	}
+
+	/*
+|--------------------------------------------------------------------------
+| QUICK ACTIONS
+|--------------------------------------------------------------------------
+*/
+
+	let quickActions: QuickAction[] = [];
+
+	if (user.role === 'ADMIN') {
+		quickActions = [
+			{
+				label: 'Ajouter un chat',
+				description: 'Créer un nouveau chat.',
+				href: '/dashboard/cats/new',
+				icon: 'cat'
+			},
+
+			{
+				label: 'Ajouter une FA',
+				description: 'Créer une nouvelle famille d’accueil.',
+				href: '/dashboard/hosts/new',
+				icon: 'house'
+			},
+
+			{
+				label: 'Les candidatures',
+				description: 'Consulter les formulaires.',
+				href: '/dashboard/forms',
+				icon: 'mail'
+			},
+
+			{
+				label: 'Les bénévoles',
+				description: 'Gérer les bénévoles.',
+				href: '/dashboard/volunteer',
+				icon: 'users'
+			}
+		];
+	} else if (user.role === 'MANAGER') {
+		quickActions = [
+			{
+				label: 'Ajouter un chat',
+				description: 'Créer une fiche chat.',
+				href: '/dashboard/cats/new',
+				icon: 'cat'
+			}
+		];
+	} else if (user.role === 'COMMUNICATION') {
+		quickActions = [
+			{
+				label: 'Publier une news',
+				description: 'Créer une actualité.',
+				href: '/dashboard/news',
+				icon: 'mail'
+			}
+		];
+	}
 
 	/*
 	|--------------------------------------------------------------------------
@@ -153,18 +326,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 		},
 
 		stats: {
-			// personnelles
 			volunteerCats,
 			volunteerHosts,
 			volunteerAdoptions,
 
-			// globales
 			totalAvailableCats,
 			totalActiveHosts,
 			totalYearAdoptions,
 			totalVolunteers
 		},
 
+		dashboardTasks,
+		quickActions,
 		latestAvailableCats,
 		latestAdoptedCats
 	};

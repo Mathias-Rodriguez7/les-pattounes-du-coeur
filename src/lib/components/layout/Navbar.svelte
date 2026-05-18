@@ -214,7 +214,7 @@
 						<Input name="password" type="password" required />
 					</div>
 
-					<Button type="submit" class="w-full">Connexion</Button>
+					<Button type="submit" class="h-12 w-full rounded-4xl text-xl">Connexion</Button>
 				</form>
 			</Sheet.Content>
 		</Sheet.Root>

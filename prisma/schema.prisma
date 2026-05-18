@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -34,6 +35,7 @@ model Volunteer {
   updated_at DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
   sessions   Session[]
+  assignedForms Form[] 
 }
 
 model Host {
@@ -203,6 +205,11 @@ model Form {
   status     FormStatus
   email      String     @db.VarChar(255)
   data       Json
+  assignedToId String? @db.Uuid
+
+  assignedTo Volunteer? @relation(fields: [assignedToId], references: [id])
+
+  notes String? @db.Text
   created_at DateTime   @default(now())
   updated_at DateTime   @default(now()) @updatedAt
 }

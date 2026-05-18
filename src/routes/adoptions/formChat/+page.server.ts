@@ -1,7 +1,7 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { adoptionFormSchema } from '$lib/schema/adoptionForm';
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';

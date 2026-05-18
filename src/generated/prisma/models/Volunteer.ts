@@ -201,6 +201,7 @@ export type VolunteerWhereInput = {
   profil?: Prisma.XOR<Prisma.ProfilScalarRelationFilter, Prisma.ProfilWhereInput>
   cats?: Prisma.CatVolunteerListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
+  assignedForms?: Prisma.FormListRelationFilter
 }
 
 export type VolunteerOrderByWithRelationInput = {
@@ -214,6 +215,7 @@ export type VolunteerOrderByWithRelationInput = {
   profil?: Prisma.ProfilOrderByWithRelationInput
   cats?: Prisma.CatVolunteerOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
+  assignedForms?: Prisma.FormOrderByRelationAggregateInput
 }
 
 export type VolunteerWhereUniqueInput = Prisma.AtLeast<{
@@ -230,6 +232,7 @@ export type VolunteerWhereUniqueInput = Prisma.AtLeast<{
   profil?: Prisma.XOR<Prisma.ProfilScalarRelationFilter, Prisma.ProfilWhereInput>
   cats?: Prisma.CatVolunteerListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
+  assignedForms?: Prisma.FormListRelationFilter
 }, "id" | "profilId">
 
 export type VolunteerOrderByWithAggregationInput = {
@@ -268,6 +271,7 @@ export type VolunteerCreateInput = {
   profil: Prisma.ProfilCreateNestedOneWithoutVolunteerInput
   cats?: Prisma.CatVolunteerCreateNestedManyWithoutVolunteerInput
   sessions?: Prisma.SessionCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerUncheckedCreateInput = {
@@ -280,6 +284,7 @@ export type VolunteerUncheckedCreateInput = {
   updated_at?: Date | string
   cats?: Prisma.CatVolunteerUncheckedCreateNestedManyWithoutVolunteerInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerUpdateInput = {
@@ -292,6 +297,7 @@ export type VolunteerUpdateInput = {
   profil?: Prisma.ProfilUpdateOneRequiredWithoutVolunteerNestedInput
   cats?: Prisma.CatVolunteerUpdateManyWithoutVolunteerNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerUncheckedUpdateInput = {
@@ -304,6 +310,7 @@ export type VolunteerUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cats?: Prisma.CatVolunteerUncheckedUpdateManyWithoutVolunteerNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUncheckedUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerCreateManyInput = {
@@ -443,6 +450,22 @@ export type VolunteerUpdateOneRequiredWithoutSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VolunteerUpdateToOneWithWhereWithoutSessionsInput, Prisma.VolunteerUpdateWithoutSessionsInput>, Prisma.VolunteerUncheckedUpdateWithoutSessionsInput>
 }
 
+export type VolunteerCreateNestedOneWithoutAssignedFormsInput = {
+  create?: Prisma.XOR<Prisma.VolunteerCreateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedCreateWithoutAssignedFormsInput>
+  connectOrCreate?: Prisma.VolunteerCreateOrConnectWithoutAssignedFormsInput
+  connect?: Prisma.VolunteerWhereUniqueInput
+}
+
+export type VolunteerUpdateOneWithoutAssignedFormsNestedInput = {
+  create?: Prisma.XOR<Prisma.VolunteerCreateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedCreateWithoutAssignedFormsInput>
+  connectOrCreate?: Prisma.VolunteerCreateOrConnectWithoutAssignedFormsInput
+  upsert?: Prisma.VolunteerUpsertWithoutAssignedFormsInput
+  disconnect?: Prisma.VolunteerWhereInput | boolean
+  delete?: Prisma.VolunteerWhereInput | boolean
+  connect?: Prisma.VolunteerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VolunteerUpdateToOneWithWhereWithoutAssignedFormsInput, Prisma.VolunteerUpdateWithoutAssignedFormsInput>, Prisma.VolunteerUncheckedUpdateWithoutAssignedFormsInput>
+}
+
 export type VolunteerCreateWithoutProfilInput = {
   id?: string
   password: string
@@ -452,6 +475,7 @@ export type VolunteerCreateWithoutProfilInput = {
   updated_at?: Date | string
   cats?: Prisma.CatVolunteerCreateNestedManyWithoutVolunteerInput
   sessions?: Prisma.SessionCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerUncheckedCreateWithoutProfilInput = {
@@ -463,6 +487,7 @@ export type VolunteerUncheckedCreateWithoutProfilInput = {
   updated_at?: Date | string
   cats?: Prisma.CatVolunteerUncheckedCreateNestedManyWithoutVolunteerInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerCreateOrConnectWithoutProfilInput = {
@@ -490,6 +515,7 @@ export type VolunteerUpdateWithoutProfilInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cats?: Prisma.CatVolunteerUpdateManyWithoutVolunteerNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerUncheckedUpdateWithoutProfilInput = {
@@ -501,6 +527,7 @@ export type VolunteerUncheckedUpdateWithoutProfilInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cats?: Prisma.CatVolunteerUncheckedUpdateManyWithoutVolunteerNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUncheckedUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerCreateWithoutCatsInput = {
@@ -512,6 +539,7 @@ export type VolunteerCreateWithoutCatsInput = {
   updated_at?: Date | string
   profil: Prisma.ProfilCreateNestedOneWithoutVolunteerInput
   sessions?: Prisma.SessionCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerUncheckedCreateWithoutCatsInput = {
@@ -523,6 +551,7 @@ export type VolunteerUncheckedCreateWithoutCatsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerCreateOrConnectWithoutCatsInput = {
@@ -550,6 +579,7 @@ export type VolunteerUpdateWithoutCatsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profil?: Prisma.ProfilUpdateOneRequiredWithoutVolunteerNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerUncheckedUpdateWithoutCatsInput = {
@@ -561,6 +591,7 @@ export type VolunteerUncheckedUpdateWithoutCatsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUncheckedUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerCreateWithoutSessionsInput = {
@@ -572,6 +603,7 @@ export type VolunteerCreateWithoutSessionsInput = {
   updated_at?: Date | string
   profil: Prisma.ProfilCreateNestedOneWithoutVolunteerInput
   cats?: Prisma.CatVolunteerCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerUncheckedCreateWithoutSessionsInput = {
@@ -583,6 +615,7 @@ export type VolunteerUncheckedCreateWithoutSessionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   cats?: Prisma.CatVolunteerUncheckedCreateNestedManyWithoutVolunteerInput
+  assignedForms?: Prisma.FormUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type VolunteerCreateOrConnectWithoutSessionsInput = {
@@ -610,6 +643,7 @@ export type VolunteerUpdateWithoutSessionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profil?: Prisma.ProfilUpdateOneRequiredWithoutVolunteerNestedInput
   cats?: Prisma.CatVolunteerUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUpdateManyWithoutAssignedToNestedInput
 }
 
 export type VolunteerUncheckedUpdateWithoutSessionsInput = {
@@ -621,6 +655,71 @@ export type VolunteerUncheckedUpdateWithoutSessionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cats?: Prisma.CatVolunteerUncheckedUpdateManyWithoutVolunteerNestedInput
+  assignedForms?: Prisma.FormUncheckedUpdateManyWithoutAssignedToNestedInput
+}
+
+export type VolunteerCreateWithoutAssignedFormsInput = {
+  id?: string
+  password: string
+  role: $Enums.VolunteerRole
+  actif?: $Enums.ColabActivity | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  profil: Prisma.ProfilCreateNestedOneWithoutVolunteerInput
+  cats?: Prisma.CatVolunteerCreateNestedManyWithoutVolunteerInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutVolunteerInput
+}
+
+export type VolunteerUncheckedCreateWithoutAssignedFormsInput = {
+  id?: string
+  password: string
+  role: $Enums.VolunteerRole
+  actif?: $Enums.ColabActivity | null
+  profilId: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  cats?: Prisma.CatVolunteerUncheckedCreateNestedManyWithoutVolunteerInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutVolunteerInput
+}
+
+export type VolunteerCreateOrConnectWithoutAssignedFormsInput = {
+  where: Prisma.VolunteerWhereUniqueInput
+  create: Prisma.XOR<Prisma.VolunteerCreateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedCreateWithoutAssignedFormsInput>
+}
+
+export type VolunteerUpsertWithoutAssignedFormsInput = {
+  update: Prisma.XOR<Prisma.VolunteerUpdateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedUpdateWithoutAssignedFormsInput>
+  create: Prisma.XOR<Prisma.VolunteerCreateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedCreateWithoutAssignedFormsInput>
+  where?: Prisma.VolunteerWhereInput
+}
+
+export type VolunteerUpdateToOneWithWhereWithoutAssignedFormsInput = {
+  where?: Prisma.VolunteerWhereInput
+  data: Prisma.XOR<Prisma.VolunteerUpdateWithoutAssignedFormsInput, Prisma.VolunteerUncheckedUpdateWithoutAssignedFormsInput>
+}
+
+export type VolunteerUpdateWithoutAssignedFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumVolunteerRoleFieldUpdateOperationsInput | $Enums.VolunteerRole
+  actif?: Prisma.NullableEnumColabActivityFieldUpdateOperationsInput | $Enums.ColabActivity | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profil?: Prisma.ProfilUpdateOneRequiredWithoutVolunteerNestedInput
+  cats?: Prisma.CatVolunteerUpdateManyWithoutVolunteerNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutVolunteerNestedInput
+}
+
+export type VolunteerUncheckedUpdateWithoutAssignedFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumVolunteerRoleFieldUpdateOperationsInput | $Enums.VolunteerRole
+  actif?: Prisma.NullableEnumColabActivityFieldUpdateOperationsInput | $Enums.ColabActivity | null
+  profilId?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cats?: Prisma.CatVolunteerUncheckedUpdateManyWithoutVolunteerNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutVolunteerNestedInput
 }
 
 
@@ -631,11 +730,13 @@ export type VolunteerUncheckedUpdateWithoutSessionsInput = {
 export type VolunteerCountOutputType = {
   cats: number
   sessions: number
+  assignedForms: number
 }
 
 export type VolunteerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cats?: boolean | VolunteerCountOutputTypeCountCatsArgs
   sessions?: boolean | VolunteerCountOutputTypeCountSessionsArgs
+  assignedForms?: boolean | VolunteerCountOutputTypeCountAssignedFormsArgs
 }
 
 /**
@@ -662,6 +763,13 @@ export type VolunteerCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.SessionWhereInput
 }
 
+/**
+ * VolunteerCountOutputType without action
+ */
+export type VolunteerCountOutputTypeCountAssignedFormsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FormWhereInput
+}
+
 
 export type VolunteerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -674,6 +782,7 @@ export type VolunteerSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   profil?: boolean | Prisma.ProfilDefaultArgs<ExtArgs>
   cats?: boolean | Prisma.Volunteer$catsArgs<ExtArgs>
   sessions?: boolean | Prisma.Volunteer$sessionsArgs<ExtArgs>
+  assignedForms?: boolean | Prisma.Volunteer$assignedFormsArgs<ExtArgs>
   _count?: boolean | Prisma.VolunteerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["volunteer"]>
 
@@ -714,6 +823,7 @@ export type VolunteerInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   profil?: boolean | Prisma.ProfilDefaultArgs<ExtArgs>
   cats?: boolean | Prisma.Volunteer$catsArgs<ExtArgs>
   sessions?: boolean | Prisma.Volunteer$sessionsArgs<ExtArgs>
+  assignedForms?: boolean | Prisma.Volunteer$assignedFormsArgs<ExtArgs>
   _count?: boolean | Prisma.VolunteerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VolunteerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -729,6 +839,7 @@ export type $VolunteerPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     profil: Prisma.$ProfilPayload<ExtArgs>
     cats: Prisma.$CatVolunteerPayload<ExtArgs>[]
     sessions: Prisma.$SessionPayload<ExtArgs>[]
+    assignedForms: Prisma.$FormPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1135,6 +1246,7 @@ export interface Prisma__VolunteerClient<T, Null = never, ExtArgs extends runtim
   profil<T extends Prisma.ProfilDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfilDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfilClient<runtime.Types.Result.GetResult<Prisma.$ProfilPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   cats<T extends Prisma.Volunteer$catsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Volunteer$catsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CatVolunteerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.Volunteer$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Volunteer$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignedForms<T extends Prisma.Volunteer$assignedFormsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Volunteer$assignedFormsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1617,6 +1729,30 @@ export type Volunteer$sessionsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.SessionScalarFieldEnum | Prisma.SessionScalarFieldEnum[]
+}
+
+/**
+ * Volunteer.assignedForms
+ */
+export type Volunteer$assignedFormsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Form
+   */
+  select?: Prisma.FormSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Form
+   */
+  omit?: Prisma.FormOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FormInclude<ExtArgs> | null
+  where?: Prisma.FormWhereInput
+  orderBy?: Prisma.FormOrderByWithRelationInput | Prisma.FormOrderByWithRelationInput[]
+  cursor?: Prisma.FormWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FormScalarFieldEnum | Prisma.FormScalarFieldEnum[]
 }
 
 /**

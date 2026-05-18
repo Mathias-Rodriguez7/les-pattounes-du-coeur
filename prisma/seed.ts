@@ -2,7 +2,6 @@
 
 import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client';
-import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
 import { hashPassword } from '../src/lib/server/password';
@@ -10,13 +9,11 @@ import { hashPassword } from '../src/lib/server/password';
 // ---------------------
 // DB
 // ---------------------
-const pool = new Pool({
-	connectionString: process.env.DATABASE_URL
+const adapter = new PrismaPg({
+	connectionString: process.env.DATABASE_URL!
 });
 
-const prisma = new PrismaClient({
-	adapter: new PrismaPg(pool)
-});
+const prisma = new PrismaClient({ adapter });
 
 // ---------------------
 // ENUMS
@@ -373,17 +370,30 @@ async function main() {
 	// ---------------------
 	// 📄 FORMS
 	// ---------------------
-	for (let i = 0; i < 10; i++) {
+	for (let i = 0; i < 20; i++) {
+		const shouldBeAssigned = randomBool(0.7);
+
 		await prisma.form.create({
 			data: {
 				type: faker.helpers.arrayElement(FORM_TYPES),
 				status: faker.helpers.arrayElement(FORM_STATUS),
 				email: faker.internet.email(),
-				data: { message: faker.lorem.sentence() }
+				data: {
+					message: faker.lorem.sentence()
+				},
+
+				assignedTo: shouldBeAssigned
+					? {
+							connect: {
+								id: faker.helpers.arrayElement(volunteers).id
+							}
+						}
+					: undefined
 			}
 		});
 	}
 
+	console.log(prisma.form.fields);
 	console.log('✅ Seed terminé');
 }
 
@@ -392,5 +402,4 @@ main()
 	.catch(console.error)
 	.finally(async () => {
 		await prisma.$disconnect();
-		await pool.end();
 	});

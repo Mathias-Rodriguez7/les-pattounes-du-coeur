@@ -1,4 +1,4 @@
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 import { mapCat } from '$lib/mappers/cats';
 import { mapNews } from '$lib/mappers/news';
 

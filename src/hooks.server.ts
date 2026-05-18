@@ -1,26 +1,18 @@
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 
 export async function handle({ event, resolve }) {
 	const token = event.cookies.get('session');
 
-	console.log('session' in prisma);
-	console.log(Object.keys(prisma));
-
 	if (!token) {
 		event.locals.user = null;
-
 		return resolve(event);
 	}
 
 	const session = await prisma.session.findUnique({
-		where: {
-			token
-		},
+		where: { token },
 		include: {
 			volunteer: {
-				include: {
-					profil: true
-				}
+				include: { profil: true }
 			}
 		}
 	});
@@ -28,16 +20,11 @@ export async function handle({ event, resolve }) {
 	if (!session || session.expiresAt < new Date()) {
 		if (session) {
 			await prisma.session.delete({
-				where: {
-					id: session.id
-				}
+				where: { token: session.token }
 			});
 		}
 
-		event.cookies.delete('session', {
-			path: '/'
-		});
-
+		event.cookies.delete('session', { path: '/' });
 		event.locals.user = null;
 
 		return resolve(event);

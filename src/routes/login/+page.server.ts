@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import argon2 from 'argon2';
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 
 export const actions = {
 	default: async ({ request, cookies }) => {

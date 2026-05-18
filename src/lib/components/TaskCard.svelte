@@ -1,19 +1,26 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import { Search, Plus, ClipboardList, Cat } from 'lucide-svelte';
 
-	type StatItem = {
+	type DashboardTask = {
 		label: string;
 		value: number;
-		total?: number;
-		icon: Component;
+		description: string;
+		icon: string;
 	};
 
 	type Props = {
 		title: string;
-		stats: StatItem[];
+		tasks: DashboardTask[];
 	};
 
-	let { title, stats }: Props = $props();
+	let { title, tasks }: Props = $props();
+
+	const icons = {
+		search: Search,
+		plus: Plus,
+		clipboard: ClipboardList,
+		cat: Cat
+	};
 </script>
 
 <div
@@ -32,9 +39,9 @@
 			</h2>
 		</div>
 
-		<!-- STATS -->
+		<!-- TASKS -->
 		<div class="divide-border flex flex-col divide-y">
-			{#each stats as stat (stat.label)}
+			{#each tasks as task (task.label)}
 				<div class="flex items-center justify-between py-2">
 					<!-- LEFT -->
 					<div class="flex items-center gap-4">
@@ -52,26 +59,24 @@
 								shadow-lg
 							"
 						>
-							<svelte:component this={stat.icon} class="h-5 w-5" />
+							<svelte:component this={icons[task.icon]} class="h-5 w-5" />
 						</div>
 
-						<div class="flex flex-col">
+						<div>
 							<p class="text-sm font-medium">
-								{stat.label}
+								{task.label}
 							</p>
 
-							{#if stat.total}
-								<p class="text-muted-foreground text-xs">
-									sur {stat.total} au total
-								</p>
-							{/if}
+							<p class="text-muted-foreground text-xs">
+								{task.description}
+							</p>
 						</div>
 					</div>
 
 					<!-- RIGHT -->
 					<div class="flex flex-col items-end">
 						<p class="text-3xl font-black tracking-tight">
-							{stat.value}
+							{task.value}
 						</p>
 					</div>
 				</div>
