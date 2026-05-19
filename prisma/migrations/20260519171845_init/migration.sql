@@ -239,6 +239,8 @@ CREATE TABLE "Form" (
     "status" "FormStatus" NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "data" JSONB NOT NULL,
+    "assignedToId" UUID,
+    "notes" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -315,6 +317,9 @@ ALTER TABLE "Adoption" ADD CONSTRAINT "Adoption_profilId_fkey" FOREIGN KEY ("pro
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_volunteerId_fkey" FOREIGN KEY ("volunteerId") REFERENCES "Volunteer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Form" ADD CONSTRAINT "Form_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES "Volunteer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Care" ADD CONSTRAINT "Care_catId_fkey" FOREIGN KEY ("catId") REFERENCES "Cat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
