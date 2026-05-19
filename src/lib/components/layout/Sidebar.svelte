@@ -17,9 +17,9 @@
 
 	const items = [
 		{ label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-		{ label: 'Chats', icon: Cat, href: '/dashboard/cats' },
-		{ label: 'Familles', icon: HouseHeart, href: '/dashboard/hosts' },
-		{ label: 'Bénévoles', icon: Users, href: '/dashboard/volunteers' }
+		{ label: 'Chats', icon: Cat, href: '/dashboard/chat' },
+		{ label: 'FA', icon: HouseHeart, href: '/dashboard/fa' },
+		{ label: 'Bénévoles', icon: Users, href: '/dashboard/benevole' }
 	] as const;
 </script>
 
