@@ -5,7 +5,7 @@ import { sosFormSchema } from '$lib/schema/sosForm';
 import { hostFormSchema } from '$lib/schema/hostForm';
 import { volunteerFormSchema } from '$lib/schema/volunteerForm';
 import { colabForm } from '$lib/schema/colabForm.js';
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 import { FormStatus, FormType } from '@prisma/client';
 
 //

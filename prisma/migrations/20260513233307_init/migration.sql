@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "ColabActivity" AS ENUM ('ACTIVE', 'BREAK', 'STOP');
+
+-- CreateEnum
 CREATE TYPE "VolunteerRole" AS ENUM ('ADMIN', 'MANAGER', 'COMMUNICATION');
 
 -- CreateEnum
@@ -62,7 +65,7 @@ CREATE TABLE "Volunteer" (
     "id" UUID NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     "role" "VolunteerRole" NOT NULL,
-    "actif" VARCHAR(255) NOT NULL,
+    "actif" "ColabActivity",
     "profilId" UUID NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -76,14 +79,17 @@ CREATE TABLE "Host" (
     "profilId" UUID NOT NULL,
     "age" INTEGER NOT NULL,
     "type" "HostType",
-    "is_actif" BOOLEAN NOT NULL,
+    "actif" "ColabActivity",
     "job" VARCHAR(255) NOT NULL,
     "status" "HostStatus" NOT NULL,
     "isAvailable" BOOLEAN NOT NULL DEFAULT true,
-    "reception_capacity" DOUBLE PRECISION NOT NULL,
-    "description" TEXT NOT NULL,
+    "additionalInformation" TEXT NOT NULL,
     "is_animals-at-home" BOOLEAN NOT NULL,
+    "numberOfCatsAtHome" INTEGER,
+    "numberOfDogsAtHome" INTEGER,
+    "otherAnimalsAtHome" TEXT,
     "space" "Space" NOT NULL,
+    "home_description" TEXT NOT NULL,
     "presence" VARCHAR(255) NOT NULL,
     "outside" BOOLEAN NOT NULL,
     "outside_desciption" TEXT,
@@ -93,7 +99,7 @@ CREATE TABLE "Host" (
     "car" BOOLEAN NOT NULL,
     "baby_feeding" "BabyFeeding" NOT NULL,
     "stopActivity" TEXT NOT NULL,
-    "home_description" TEXT NOT NULL,
+    "availabilityDuration" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -119,7 +125,7 @@ CREATE TABLE "Cat" (
     "name" VARCHAR(255),
     "sex" "SexCat" NOT NULL,
     "age" INTEGER,
-    "isVisible" BOOLEAN NOT NULL,
+    "isVisible" BOOLEAN NOT NULL DEFAULT false,
     "status" "CatStatus" NOT NULL,
     "hairLength" "HairLength",
     "color" VARCHAR(255),
@@ -132,10 +138,10 @@ CREATE TABLE "Cat" (
     "isFivTest" BOOLEAN NOT NULL DEFAULT false,
     "isDeworming" BOOLEAN NOT NULL DEFAULT false,
     "description" TEXT,
-    "isOkCat" BOOLEAN NOT NULL DEFAULT false,
-    "isOkDog" BOOLEAN NOT NULL DEFAULT false,
-    "isOkChild" BOOLEAN NOT NULL DEFAULT false,
-    "isOutside" BOOLEAN NOT NULL DEFAULT false,
+    "isOkCat" BOOLEAN DEFAULT false,
+    "isOkDog" BOOLEAN DEFAULT false,
+    "isOkChild" BOOLEAN DEFAULT false,
+    "isOutside" BOOLEAN DEFAULT false,
     "isIdentify" BOOLEAN NOT NULL DEFAULT false,
     "chipId" VARCHAR(255),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -205,13 +211,25 @@ CREATE TABLE "Placement" (
 
 -- CreateTable
 CREATE TABLE "Adoption" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "catId" UUID NOT NULL,
     "profilId" UUID NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Adoption_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" UUID NOT NULL,
+    "token" VARCHAR(255) NOT NULL,
+    "volunteerId" UUID NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -256,6 +274,9 @@ CREATE UNIQUE INDEX "Host_profilId_key" ON "Host"("profilId");
 -- CreateIndex
 CREATE UNIQUE INDEX "Adoption_catId_key" ON "Adoption"("catId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_token_key" ON "Session"("token");
+
 -- AddForeignKey
 ALTER TABLE "Volunteer" ADD CONSTRAINT "Volunteer_profilId_fkey" FOREIGN KEY ("profilId") REFERENCES "Profil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -291,6 +312,9 @@ ALTER TABLE "Adoption" ADD CONSTRAINT "Adoption_catId_fkey" FOREIGN KEY ("catId"
 
 -- AddForeignKey
 ALTER TABLE "Adoption" ADD CONSTRAINT "Adoption_profilId_fkey" FOREIGN KEY ("profilId") REFERENCES "Profil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_volunteerId_fkey" FOREIGN KEY ("volunteerId") REFERENCES "Volunteer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Care" ADD CONSTRAINT "Care_catId_fkey" FOREIGN KEY ("catId") REFERENCES "Cat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

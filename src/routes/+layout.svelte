@@ -14,16 +14,18 @@
 
 {#if data.user}
 	<!-- DASHBOARD LAYOUT -->
-	<div class="flex min-h-screen flex-col">
-		<div class="flex flex-1">
+	<div class="flex h-screen overflow-hidden">
+		<!-- SIDEBAR FIXE -->
+		<div class="shrink-0">
 			<Sidebar user={data.user} />
+		</div>
 
-			<div class="flex-1 overflow-auto">
+		<!-- CONTENU SCROLLABLE -->
+		<div class="flex flex-1 flex-col overflow-y-auto">
+			<div class="flex-1">
 				<slot />
 			</div>
 		</div>
-
-		<Footer />
 	</div>
 {:else}
 	<!-- PUBLIC LAYOUT -->

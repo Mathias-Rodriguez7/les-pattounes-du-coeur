@@ -143,9 +143,7 @@
 		<h1 class="text-2xl font-bold">Ils attendent leur famille</h1>
 
 		<!-- FILTER BAR -->
-		<div
-			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
-		>
+		<div class="bg-card flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4">
 			<!-- FILTER BUTTON -->
 			<Sheet.Root>
 				<Sheet.Trigger>
@@ -265,7 +263,7 @@
 					</div>
 
 					<!-- ACTION -->
-					<Button variant="outline" class="w-full" onclick={resetFilters}>
+					<Button variant="outline" class="h-16 w-full rounded-4xl text-xl" onclick={resetFilters}>
 						Réinitialiser les filtres
 					</Button>
 				</Sheet.Content>

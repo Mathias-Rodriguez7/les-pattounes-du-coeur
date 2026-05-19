@@ -26,6 +26,9 @@ export function mapNews(news: PrismaNewsWithCats): News {
 
 		image: newsImages[news.type],
 
-		cats: news.cats.map((nc) => mapCat(nc.cat))
+		cats: (news.cats ?? [])
+			.map((nc) => nc.cat)
+			.filter(Boolean)
+			.map(mapCat)
 	};
 }

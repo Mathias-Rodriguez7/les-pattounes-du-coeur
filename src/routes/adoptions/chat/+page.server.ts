@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
+import prisma from '$lib/server/prisma';
 import { mapCat } from '$lib/mappers/cats';
 
 export const load: PageServerLoad = async ({ url }) => {

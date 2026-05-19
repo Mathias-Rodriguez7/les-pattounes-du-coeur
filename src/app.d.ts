@@ -1,16 +1,22 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
-/// <reference types="@sveltejs/kit" />
-/// <reference types="svelte" />
 declare global {
 	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
+		interface Locals {
+			user: {
+				id: string;
+				role: Prisma.VolunteerRole;
+				profil: {
+					firstName: string;
+					lastName: string;
+					email: string;
+				};
+			} | null;
+		}
+
+		interface PageData {
+			user: App.Locals['user'];
+		}
 	}
 }
 
-export { };
-
+export {};
