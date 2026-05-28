@@ -21,7 +21,7 @@ RUN npx svelte-kit sync
 RUN npx prisma generate
 
 # Build the app.
-RUN npm run build
+RUN npm run build -- --logLevel info
 
 # Serve the app
 CMD ["npm", "run", "start"]
