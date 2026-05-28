@@ -5,7 +5,7 @@
 	import { Toaster } from 'svelte-sonner';
 	import '../app.css';
 
-	const { data } = $props();
+	const { data, children } = $props();
 </script>
 
 <svelte:head>
@@ -23,7 +23,7 @@
 		<!-- CONTENU SCROLLABLE -->
 		<div class="flex flex-1 flex-col overflow-y-auto">
 			<div class="flex-1">
-				<slot />
+				{@render children()}
 			</div>
 		</div>
 	</div>
@@ -33,7 +33,7 @@
 		<Navbar />
 
 		<div class="flex-1">
-			<slot />
+			{@render children()}
 
 			<Footer />
 		</div>
