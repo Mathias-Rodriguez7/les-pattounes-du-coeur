@@ -16,6 +16,8 @@ RUN npm ci
 # Copy local code to the container image.
 COPY . ./
 
+RUN npx svelte-kit sync
+
 RUN npx prisma generate
 
 # Build the app.
