@@ -8,6 +8,8 @@ WORKDIR /app
 # Copy the files to the container image
 COPY package*.json ./
 
+COPY prisma ./prisma
+
 # Install packages
 RUN npm ci
 
@@ -15,9 +17,6 @@ RUN npm ci
 COPY . ./
 
 RUN npx prisma generate
-
-# Build the app.
-RUN npm run build
 
 # Serve the app
 CMD ["npm", "run", "start"]
