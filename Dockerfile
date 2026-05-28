@@ -15,6 +15,9 @@ RUN npm install --include=optional
 
 COPY . .
 
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npx prisma generate
 
 EXPOSE 5173
