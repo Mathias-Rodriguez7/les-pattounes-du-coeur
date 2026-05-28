@@ -6,7 +6,7 @@ FROM node:lts-alpine
 WORKDIR /app
 
 # Copy the files to the container image
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install packages
 RUN npm ci
