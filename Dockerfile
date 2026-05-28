@@ -1,27 +1,23 @@
-FROM node:22-slim
+# Use the Node alpine official image
+# https://hub.docker.com/_/node
+FROM node:lts-alpine
 
+# Create and change to the app directory.
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-  openssl \
-  ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-
+# Copy the files to the container image
 COPY package*.json ./
 
-COPY prisma ./prisma
+# Install packages
+RUN npm ci
 
-RUN npm install --include=optional
-
-COPY . .
-
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-
-RUN npx svelte-kit sync
+# Copy local code to the container image.
+COPY . ./
 
 RUN npx prisma generate
 
-EXPOSE 5173
+# Build the app.
+RUN npm run build
 
-CMD ["npm", "run", "dev", "--", "--host"]
+# Serve the app
+CMD ["npm", "run", "start"]
