@@ -12,14 +12,13 @@
 
 	import { toast } from 'svelte-sonner';
 
-	import { volunteerFormSchema } from '$lib/schema/volunteerForm';
-
 	import {
-		step1Schema,
-		step2Schema,
-		step3Schema,
-		step4Schema
-	} from '$lib/schema/volunteerSteps.schema';
+		volunteerFormSchema,
+		volunteerStep1Schema,
+		volunteerStep2Schema,
+		volunteerStep3Schema,
+		volunteerStep4Schema
+	} from '$lib/schema/volunteerForm';
 
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 
@@ -56,10 +55,16 @@
 		console.log('STEP:', step);
 		console.log('DATA:', get(formData));
 		console.log('STEP 4 DATA:', get(formData));
-		console.log('STEP 4 SCHEMA:', step4Schema.shape);
+		console.log('STEP 4 SCHEMA:', volunteerStep4Schema.shape);
 
 		const schema =
-			step === 1 ? step1Schema : step === 2 ? step2Schema : step === 3 ? step3Schema : step4Schema;
+			step === 1
+				? volunteerStep1Schema
+				: step === 2
+					? volunteerStep2Schema
+					: step === 3
+						? volunteerStep3Schema
+						: volunteerStep4Schema;
 
 		const result = schema.safeParse(get(formData));
 

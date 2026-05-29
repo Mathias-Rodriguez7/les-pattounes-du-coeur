@@ -46,9 +46,12 @@ export const step3Schema = z.object({
 });
 
 // 🔗 GLOBAL SCHEMA
-export const adoptionFormSchema = step1Schema
-	.extend(step2Schema.shape)
-	.extend(step3Schema.shape)
+export const adoptionFormSchema = z
+	.object({
+		...step1Schema.shape,
+		...step2Schema.shape,
+		...step3Schema.shape
+	})
 	.superRefine((data, ctx) => {
 		if (data.hasGarden && (data.gardenSize === undefined || data.gardenSize === null)) {
 			ctx.addIssue({

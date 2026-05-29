@@ -56,7 +56,7 @@
 							<Dialog.Trigger>
 								<Button size="lg">Faire un signalement</Button>
 							</Dialog.Trigger>
-							<Dialog.Content class="sm:max-w-125">
+							<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
 								<FormSOS data={data.sosForm} />
 							</Dialog.Content>
 						</Dialog.Root>
@@ -95,7 +95,7 @@
 						<Dialog.Trigger>
 							<Button size="lg">Devenir famille d’accueil</Button>
 						</Dialog.Trigger>
-						<Dialog.Content class="sm:max-w-125">
+						<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
 							<FormHost data={data.hostForm} />
 						</Dialog.Content>
 					</Dialog.Root>
@@ -123,7 +123,7 @@
 						<Dialog.Trigger>
 							<Button size="lg">Je veux aider</Button>
 						</Dialog.Trigger>
-						<Dialog.Content class="sm:max-w-125">
+						<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
 							<FormVolunteer data={data.volunteerForm} />
 						</Dialog.Content>
 					</Dialog.Root>
@@ -162,7 +162,7 @@
 							<Dialog.Trigger>
 								<Button size="lg">Nous contacter</Button>
 							</Dialog.Trigger>
-							<Dialog.Content class="sm:max-w-125">
+							<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
 								<FormColab data={data.colabForm} />
 							</Dialog.Content>
 						</Dialog.Root>

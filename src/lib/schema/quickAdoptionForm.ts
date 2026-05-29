@@ -42,11 +42,14 @@ export const step2Schema = z.object({
 });
 
 // 🔗 FINAL (comme ton ancien form → clean extend)
-export const QuickAdoptionFormSchema = baseSchema
-	.extend(step1Schema.shape)
-	.extend(step2Schema.shape)
+export const QuickAdoptionFormSchema = z
+	.object({
+		...baseSchema.shape,
+		...step1Schema.shape,
+		...step2Schema.shape
+	})
 	.superRefine((data, ctx) => {
-		if (data.hasGarden && !data.gardenSize) {
+		if (data.hasGarden && (data.gardenSize === undefined || data.gardenSize === null)) {
 			ctx.addIssue({
 				path: ['gardenSize'],
 				code: 'custom',

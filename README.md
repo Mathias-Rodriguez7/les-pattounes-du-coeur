@@ -40,3 +40,5 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+![CI](https://github.com/TON_USER/TON_REPO/actions/workflows/tests.yml/badge.svg)

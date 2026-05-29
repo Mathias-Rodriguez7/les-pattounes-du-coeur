@@ -36,6 +36,4 @@ export const colabForm = colabStep1Schema.extend(colabStep2Schema.shape);
 // TYPES
 //
 
-export type ColabForm = typeof colabForm;
-
 export type ColabFormData = z.infer<typeof colabForm>;

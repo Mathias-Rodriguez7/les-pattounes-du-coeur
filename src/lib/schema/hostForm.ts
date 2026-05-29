@@ -32,46 +32,16 @@ export const hostStep1Schema = z.object({
 // STEP 2 — LOGEMENT
 //
 
-export const hostStep2Schema = z
-	.object({
-		space: spaceEnum,
-		outside: z.boolean(),
-		outsideDescription: z.string().optional(),
-		hasAnimalsAtHome: z.boolean(),
-		numberOfCatsAtHome: z.union([z.coerce.number(), z.nan()]).optional(),
-		numberOfDogsAtHome: z.union([z.coerce.number(), z.nan()]).optional(),
-		otherAnimalsAtHome: z.string().optional(),
-		homeDescription: z.string().min(1, 'La description du foyer est obligatoire')
-	})
-	.superRefine((data, ctx) => {
-		// VALIDATION OUTSIDE
-		if (data.outside && !data.outsideDescription?.trim()) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['outsideDescription'],
-				message: "Veuillez décrire l'accès extérieur"
-			});
-		}
-
-		// VALIDATION ANIMAUX
-		if (!data.hasAnimalsAtHome) return;
-
-		if ((data.numberOfCatsAtHome ?? 0) < 0) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['numberOfCatsAtHome'],
-				message: 'Le nombre de chats doit être positif'
-			});
-		}
-
-		if ((data.numberOfDogsAtHome ?? 0) < 0) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['numberOfDogsAtHome'],
-				message: 'Le nombre de chiens doit être positif'
-			});
-		}
-	});
+export const hostStep2Schema = z.object({
+	space: spaceEnum,
+	outside: z.boolean(),
+	outsideDescription: z.string().optional(),
+	hasAnimalsAtHome: z.boolean(),
+	numberOfCatsAtHome: z.union([z.coerce.number(), z.nan()]).optional(),
+	numberOfDogsAtHome: z.union([z.coerce.number(), z.nan()]).optional(),
+	otherAnimalsAtHome: z.string().optional(),
+	homeDescription: z.string().min(1, 'La description du foyer est obligatoire')
+});
 
 //
 // STEP 3 — EXPÉRIENCE
@@ -124,11 +94,42 @@ export const hostStep4Schema = z.object({
 // SCHEMA GLOBAL
 //
 
-export const hostFormSchema = hostStep1Schema
-	.extend(hostStep2Schema.shape)
-	.extend(hostStep3Schema.shape)
-	.extend(hostStep4Schema.shape);
+export const hostFormSchema = z
+	.object({
+		...hostStep1Schema.shape,
+		...hostStep2Schema.shape,
+		...hostStep3Schema.shape,
+		...hostStep4Schema.shape
+	})
+	.superRefine((data, ctx) => {
+		// VALIDATION OUTSIDE
+		if (data.outside && !data.outsideDescription?.trim()) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['outsideDescription'],
+				message: "Veuillez décrire l'accès extérieur"
+			});
+		}
 
+		// VALIDATION ANIMAUX
+		if (!data.hasAnimalsAtHome) return;
+
+		if ((data.numberOfCatsAtHome ?? 0) < 0) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['numberOfCatsAtHome'],
+				message: 'Le nombre de chats doit être positif'
+			});
+		}
+
+		if ((data.numberOfDogsAtHome ?? 0) < 0) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['numberOfDogsAtHome'],
+				message: 'Le nombre de chiens doit être positif'
+			});
+		}
+	});
 //
 // TYPES
 //
