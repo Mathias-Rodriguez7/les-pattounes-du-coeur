@@ -17,7 +17,7 @@
 		"test:run": "vitest run",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"postinstall": "prisma generate",
+		"prisma:generate": "prisma generate",
 		"db:migrate": "docker compose exec app npx prisma migrate dev",
 		"db:reset": "docker compose exec app npx prisma migrate reset",
 		"db:seed": "docker compose exec app npx tsx prisma/seed.ts",
