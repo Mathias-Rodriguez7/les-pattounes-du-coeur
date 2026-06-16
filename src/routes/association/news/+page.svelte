@@ -1,7 +1,7 @@
 <script lang="ts">
-	import NewsDialog from '$lib/components/NewsDialog.svelte';
-	import NewsCard from '$lib/components/NewsCard.svelte';
-	import NewsCatCard from '$lib/components/NewsCatCard.svelte';
+	import NewsDialog from '$lib/components/news/NewsDialog.svelte';
+	import NewsCard from '$lib/components/news/NewsCard.svelte';
+	import NewsCatCard from '$lib/components/news/NewsCatCard.svelte';
 	import type { News } from '$lib/types/news';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Sheet from '$lib/components/ui/sheet';

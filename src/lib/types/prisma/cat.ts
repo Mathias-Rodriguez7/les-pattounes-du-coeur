@@ -5,3 +5,27 @@ export type PrismaCatWithMedia = Prisma.CatGetPayload<{
 		media: true;
 	};
 }>;
+
+export type PrismaCatFull = Prisma.CatGetPayload<{
+	include: {
+		media: true;
+		placements: {
+			include: {
+				host: {
+					include: {
+						profil: true;
+					};
+				};
+			};
+		};
+		volunteers: {
+			include: {
+				volunteer: {
+					include: {
+						profil: true;
+					};
+				};
+			};
+		};
+	};
+}>;
