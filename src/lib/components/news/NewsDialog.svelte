@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
 	import type { News } from '$lib/types/news';
-	import NewsCatDialog from '$lib/components/NewsCatDialog.svelte';
+	import NewsCatDialog from '$lib/components/news/NewsCatDialog.svelte';
 
 	let { selectedNews }: { selectedNews: News | null } = $props();
 </script>

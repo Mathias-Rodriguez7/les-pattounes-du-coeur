@@ -7,8 +7,8 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import CatCard from '$lib/components/CatCard.svelte';
-	import CatDialog from '$lib/components/CatDialog.svelte';
+	import CatCard from '$lib/components/cats/CatCard.svelte';
+	import CatDialog from '$lib/components/cats/CatDialog.svelte';
 	import type { Cat } from '$lib/types/cat';
 	import { fade, fly } from 'svelte/transition';
 

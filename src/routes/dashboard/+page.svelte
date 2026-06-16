@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AdoptedBadge from '$lib/components/AdoptedBadge.svelte';
-	import CatCard from '$lib/components/CatCard.svelte';
+	import CatCard from '$lib/components/cats/CatCard.svelte';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 

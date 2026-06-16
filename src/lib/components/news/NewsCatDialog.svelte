@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Carousel from '$lib/components/ui/carousel';
-	import CatCard from './CatCard.svelte';
+	import CatCard from '$lib/components/cats/CatCard.svelte';
 	import type { Cat } from '$lib/types/cat';
 	import { resolve } from '$app/paths';
 
