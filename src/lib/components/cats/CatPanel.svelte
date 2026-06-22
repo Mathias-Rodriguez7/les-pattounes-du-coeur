@@ -24,8 +24,8 @@
 		isAdmin = false
 	}: {
 		cat: CatFull | null;
-		hosts: { id: string; firstName: string; lastName: string }[];
-		volunteers: { id: string; role: string; firstName: string; lastName: string }[];
+		hosts: any[]; // ou ton type Prisma complet
+		volunteers: any[];
 		isAdmin?: boolean;
 	} = $props();
 
@@ -256,8 +256,12 @@
 								class="border-input bg-background rounded-md border px-3 py-1.5 text-sm"
 							>
 								<option value="">Aucun</option>
+								{#each hosts as h (h.id)}
+									<option value={h.id}>{h.profil.firstName} {h.profil.lastName}</option>
+								{/each}
+
 								{#each volunteers as v (v.id)}
-									<option value={v.id}>{v.firstName} {v.lastName}</option>
+									<option value={v.id}>{v.profil.firstName} {v.profil.lastName}</option>
 								{/each}
 							</select>
 						</div>
@@ -332,16 +336,22 @@
 				<div class="grid grid-cols-2 gap-1">
 					<span class="text-muted-foreground">FA</span>
 					<span>
+						<!-- FA -->
 						{#if cat.currentHost}
-							{cat.currentHost.firstName} {cat.currentHost.lastName}
+							<span>{cat.currentHost.firstName} {cat.currentHost.lastName}</span>
+							<span class="text-muted-foreground block text-xs">{cat.currentHost.email}</span>
+							<span class="text-muted-foreground block text-xs">{cat.currentHost.phone}</span>
 						{:else}
 							<span class="text-red-500">Aucune</span>
 						{/if}
 					</span>
 					<span class="text-muted-foreground">Référent</span>
 					<span>
+						<!-- Référent -->
 						{#if cat.referent}
-							{cat.referent.firstName} {cat.referent.lastName}
+							<span>{cat.referent.firstName} {cat.referent.lastName}</span>
+							<span class="text-muted-foreground block text-xs">{cat.referent.email}</span>
+							<span class="text-muted-foreground block text-xs">{cat.referent.phone}</span>
 						{:else}
 							<span class="text-muted-foreground">—</span>
 						{/if}

@@ -58,15 +58,21 @@ export function mapCatFull(cat: PrismaCatFull): CatFull {
 
 		currentHost: activePlacement
 			? {
+					id: activePlacement.host.id,
 					firstName: activePlacement.host.profil.firstName,
-					lastName: activePlacement.host.profil.lastName
+					lastName: activePlacement.host.profil.lastName,
+					phone: activePlacement.host.profil.phone,
+					email: activePlacement.host.profil.email
 				}
 			: null,
 
 		referent: referentLink
 			? {
+					id: referentLink.volunteer.id,
 					firstName: referentLink.volunteer.profil.firstName,
-					lastName: referentLink.volunteer.profil.lastName
+					lastName: referentLink.volunteer.profil.lastName,
+					phone: referentLink.volunteer.profil.phone,
+					email: referentLink.volunteer.profil.email
 				}
 			: null
 	};

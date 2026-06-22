@@ -26,22 +26,22 @@
 	const statCards = $derived([
 		{
 			label: 'Chats gérés',
-			value: `${stats.withVolunteer} / ${stats.total}`,
+			value: `${stats.volunteerCats} / ${stats.totalManagedCats}`,
 			icon: Cat
 		},
 		{
 			label: 'Infos incomplètes',
-			value: stats.incomplete,
+			value: stats.volunteerCatsIncomplete,
 			icon: Cat
 		},
 		{
 			label: "En famille d'accueil",
-			value: `${stats.withHost} / ${stats.total}`,
+			value: `${stats.volunteerCatsWithHost} / ${stats.totalManagedCats}`,
 			icon: Cat
 		},
 		{
 			label: 'Sans FA',
-			value: stats.withoutHost,
+			value: stats.volunteerCatsWithoutHost,
 			icon: Cat
 		}
 	]);
@@ -49,9 +49,15 @@
 	const filteredCats = $derived(() => {
 		switch (currentTab) {
 			case 'with_fa':
-				return cats.filter((c) => c.currentHost !== null);
+				return cats.filter(
+					(c) => c.currentHost !== null && (c.status === 'AVAILABLE' || c.status === 'SOCIALIZE')
+				);
 			case 'without_fa':
-				return cats.filter((c) => c.currentHost === null && c.status !== 'ADOPTED');
+				return cats.filter(
+					(c) => c.currentHost === null && c.status !== 'ADOPTED' && c.status !== 'FREE'
+				);
+			case 'free':
+				return cats.filter((c) => c.status === 'FREE');
 			case 'adopted':
 				return cats.filter((c) => c.status === 'ADOPTED');
 			default:
@@ -103,6 +109,7 @@
 						<Tabs.Trigger value="with_fa">Avec FA</Tabs.Trigger>
 						<Tabs.Trigger value="without_fa">Sans FA</Tabs.Trigger>
 						<Tabs.Trigger value="adopted">Adoptés</Tabs.Trigger>
+						<Tabs.Trigger value="free">Libres</Tabs.Trigger>
 					</Tabs.List>
 
 					<Table.Root>

@@ -34,11 +34,18 @@ export type CatFull = Cat & {
 	isIdentify: boolean;
 	chipId: string | null;
 	currentHost: {
+		id: string;
 		firstName: string;
 		lastName: string;
+		phone: string | null;
+		email: string;
 	} | null;
+
 	referent: {
+		id: string;
 		firstName: string;
 		lastName: string;
+		email: string;
+		phone: string | null;
 	} | null;
 };

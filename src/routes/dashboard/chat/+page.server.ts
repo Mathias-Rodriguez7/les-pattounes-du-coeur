@@ -1,54 +1,134 @@
 import prisma from '$lib/server/prisma';
 import { mapCatFull } from '$lib/mappers/cats';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { SexCat, CatStatus, HairLength, Vaccinate } from '../../../generated/prisma/client.js';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	const user = locals.user;
+
+	if (!user) {
+		throw redirect(302, '/');
+	}
+
+	/*
+    |--------------------------------------------------------------------------
+    | TOUS LES CHATS
+    |--------------------------------------------------------------------------
+    */
+
+	const isAdmin = user.role === 'ADMIN';
+
 	const cats = await prisma.cat.findMany({
+		where: isAdmin
+			? {}
+			: {
+					volunteers: {
+						some: {
+							volunteerId: user.id
+						}
+					}
+				},
 		include: {
 			media: true,
 			placements: {
-				include: { host: { include: { profil: true } } }
+				include: {
+					host: {
+						include: {
+							profil: true
+						}
+					}
+				}
 			},
 			volunteers: {
-				include: { volunteer: { include: { profil: true } } }
+				include: {
+					volunteer: {
+						include: {
+							profil: true
+						}
+					}
+				}
 			}
 		},
 		orderBy: { created_at: 'desc' }
 	});
 
-	const mapped = cats.map(mapCatFull);
-	const total = mapped.length;
-	const withVolunteer = mapped.filter((c) => c.referent !== null).length;
-	const withHost = mapped.filter((c) => c.currentHost !== null).length;
-	const withoutHost = mapped.filter((c) => c.currentHost === null).length;
-	const incomplete = mapped.filter(
-		(c) => !c.name || !c.description || !c.hairLength || !c.color || !c.vaccinate
-	).length;
+	/*
+    |--------------------------------------------------------------------------
+    | STATS
+    |--------------------------------------------------------------------------
+    */
 
-	// Pour le sélecteur de FA et de bénévoles
-	const hosts = await prisma.host.findMany({
-		include: { profil: true }
+	const totalManagedCats = await prisma.catVolunteer.count();
+
+	const volunteerCats = await prisma.catVolunteer.count({
+		where: { volunteerId: user.id }
 	});
 
-	const volunteers = await prisma.volunteer.findMany({
-		include: { profil: true }
+	const volunteerCatsWithHost = await prisma.catVolunteer.count({
+		where: {
+			volunteerId: user.id,
+			cat: {
+				placements: {
+					some: {}
+				}
+			}
+		}
 	});
+
+	const volunteerCatsWithoutHost = await prisma.catVolunteer.count({
+		where: {
+			volunteerId: user.id,
+			cat: {
+				placements: {
+					none: {}
+				}
+			}
+		}
+	});
+
+	const volunteerCatsIncomplete = await prisma.catVolunteer.count({
+		where: {
+			volunteerId: user.id,
+			cat: {
+				OR: [
+					{ name: null },
+					{ description: null },
+					{ chipId: null },
+					{ age: null },
+					{ color: null },
+					{ isOkCat: null },
+					{ isOkDog: null },
+					{ isOkChild: null },
+					{ isOutside: null }
+				]
+			}
+		}
+	});
+
+	// Récupérer hosts et volunteers
+	const hosts = await prisma.host.findMany({ include: { profil: true } });
+	const volunteers = await prisma.volunteer.findMany({ include: { profil: true } });
+	/*
+    |--------------------------------------------------------------------------
+    | RETURN
+    |--------------------------------------------------------------------------
+    */
 
 	return {
-		cats: mapped,
-		stats: { total, withVolunteer, withHost, withoutHost, incomplete },
-		hosts: hosts.map((h) => ({
-			id: h.id,
-			firstName: h.profil.firstName,
-			lastName: h.profil.lastName
-		})),
-		volunteers: volunteers.map((v) => ({
-			id: v.id,
-			role: v.role,
-			firstName: v.profil.firstName,
-			lastName: v.profil.lastName
-		}))
+		user,
+		cats: cats.map(mapCatFull),
+		hosts,
+		volunteers,
+		isAdmin,
+		stats: {
+			volunteerCats,
+			totalManagedCats,
+			volunteerCatsWithHost,
+			volunteerCatsWithoutHost,
+			volunteerCatsIncomplete,
+			volunteerCatsTotal: volunteerCats
+		}
 	};
 };
 
@@ -63,7 +143,7 @@ export const actions: Actions = {
 		if (!sex || !status) return fail(400, { message: 'Champs manquants' });
 
 		await prisma.cat.create({
-			data: { name, sex: sex as any, age, status: status as any }
+			data: { name, sex: sex as SexCat, age, status: status as CatStatus }
 		});
 	},
 
@@ -86,19 +166,19 @@ export const actions: Actions = {
 			where: { id },
 			data: {
 				name: str('name'),
-				sex: (str('sex') as any) ?? undefined,
+				sex: (str('sex') as SexCat) ?? undefined,
 				age: num('age') ?? undefined,
-				status: (str('status') as any) ?? undefined,
+				status: (str('status') as CatStatus) ?? undefined,
 				isVisible: bool('isVisible'),
 				description: str('description'),
-				hairLength: (str('hairLength') as any) ?? null,
+				hairLength: (str('hairLength') as HairLength) ?? null,
 				color: str('color'),
 				origin: str('origin'),
 				isSterilize: bool('isSterilize'),
 				isAlreadySterilized: bool('isAlreadySterilized'),
 				sickness: str('sickness'),
 				treatment: str('treatment'),
-				vaccinate: (str('vaccinate') as any) ?? null,
+				vaccinate: (str('vaccinate') as Vaccinate) ?? null,
 				isFivTest: bool('isFivTest'),
 				isDeworming: bool('isDeworming'),
 				isIdentify: bool('isIdentify'),
