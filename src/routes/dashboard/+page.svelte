@@ -4,7 +4,7 @@
 	import StatCard from '$lib/components/StatCard.svelte';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 
-	import { Cat, Users, HouseHeart, Mail, PawPrint } from 'lucide-svelte';
+	import { Cat, Users, HouseHeart, Mail, PawPrint } from '@lucide/svelte';
 
 	import type { PageData } from './$types';
 

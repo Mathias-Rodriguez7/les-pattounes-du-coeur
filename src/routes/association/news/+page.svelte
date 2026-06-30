@@ -9,7 +9,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
-	import { Search } from 'lucide-svelte';
+	import { Search } from '@lucide/svelte';
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {

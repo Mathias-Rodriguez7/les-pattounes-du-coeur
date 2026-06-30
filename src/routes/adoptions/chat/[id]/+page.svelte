@@ -3,7 +3,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { ChevronRight, ChevronLeft } from 'lucide-svelte';
+	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { QuickAdoptionFormSchema, step1Schema, step2Schema } from '$lib/schema/quickAdoptionForm';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';

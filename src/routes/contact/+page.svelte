@@ -8,7 +8,7 @@
 	import FormVolunteer from '$lib/components/forms/FormVolunteer.svelte';
 	import FormColab from '$lib/components/forms/FormColab.svelte';
 	import CountUp from '$lib/components/CountUp.svelte';
-	import { Mail } from 'lucide-svelte';
+	import { Mail } from '@lucide/svelte';
 
 	let { data } = $props();
 </script>

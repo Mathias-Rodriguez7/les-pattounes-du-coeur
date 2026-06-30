@@ -10,7 +10,7 @@
 		ArrowLeftFromLine,
 		ArrowRightToLine,
 		UserCog
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { Route } from '@sveltejs/kit';
 
