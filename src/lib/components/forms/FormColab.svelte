@@ -3,7 +3,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schema/colabForm';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';

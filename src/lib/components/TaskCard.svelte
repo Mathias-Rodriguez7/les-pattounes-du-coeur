@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, Plus, ClipboardList, Cat } from 'lucide-svelte';
+	import { Search, Plus, ClipboardList, Cat } from '@lucide/svelte';
 
 	type DashboardTask = {
 		label: string;

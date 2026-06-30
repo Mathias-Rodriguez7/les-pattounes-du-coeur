@@ -17,7 +17,7 @@
 		BookOpen,
 		ShoppingBag,
 		Mail
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let mobileMenuOpen = $state(false);
 </script>

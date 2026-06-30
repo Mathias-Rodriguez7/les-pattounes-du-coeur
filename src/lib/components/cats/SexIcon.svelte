@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Mars, Venus, CircleHelp } from 'lucide-svelte';
+	import { Mars, Venus, CircleHelp } from '@lucide/svelte';
 
 	type Props = {
 		sex: string | null;

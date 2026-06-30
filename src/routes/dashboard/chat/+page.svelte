@@ -4,7 +4,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Button } from '$lib/components/ui/button';
-	import { Cat, Plus } from 'lucide-svelte';
+	import { Cat, Plus } from '@lucide/svelte';
 	import NewCatDialog from '$lib/components/cats/NewCatDialog.svelte';
 	import CatPanel from '$lib/components/cats/CatPanel.svelte';
 	import CatRow from '$lib/components/cats/CatRow.svelte';

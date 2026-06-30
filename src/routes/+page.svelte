@@ -3,7 +3,7 @@
 	import CatCard from '$lib/components/cats/CatCard.svelte';
 	import AreaChart from '$lib/components/AreaChart.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Plus, Search, Heart, Home, ArrowRight, HeartHandshake } from 'lucide-svelte';
+	import { Plus, Search, Heart, Home, ArrowRight, HeartHandshake } from '@lucide/svelte';
 	import NewsCard from '$lib/components/news/NewsCard.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
