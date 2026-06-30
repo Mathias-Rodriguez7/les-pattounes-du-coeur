@@ -469,10 +469,6 @@ export type PlacementUncheckedUpdateManyWithoutCatNestedInput = {
   deleteMany?: Prisma.PlacementScalarWhereInput | Prisma.PlacementScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type PlacementCreateWithoutHostInput = {
   id?: string
   started?: Date | string | null

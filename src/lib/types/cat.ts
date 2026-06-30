@@ -2,11 +2,12 @@ export type Cat = {
 	id: string;
 	name: string | null;
 	sex: string | null;
-	age: number;
+	birthDate: Date | null;
 	formattedAge: string;
 	ageBadge: string;
 	description: string | null;
 	media: CatMedia[];
+	focalPoint: 'TOP' | 'MID' | 'BOT';
 
 	isOkDog: boolean;
 	isOkCat: boolean;

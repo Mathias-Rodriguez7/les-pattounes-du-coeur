@@ -3,6 +3,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import type { CatFull } from '$lib/types/cat';
 	import { statusLabel, sexLabel, dot } from '$lib/utils/catHelpers';
+	import { focalPointClass } from '$lib/utils/catHelpers';
 
 	const { cat, onclick }: { cat: CatFull; onclick: () => void } = $props();
 </script>
@@ -12,7 +13,7 @@
 		<img
 			src={cat.media?.[0]?.picture ?? '/img/logo.png'}
 			alt={cat.name}
-			class="h-12 w-12 rounded-full object-cover"
+			class="h-12 w-12 rounded-full object-cover {focalPointClass[cat.focalPoint ?? 'MID']}"
 		/>
 	</Table.Cell>
 	<Table.Cell class="font-medium">{cat.name}</Table.Cell>

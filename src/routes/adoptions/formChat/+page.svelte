@@ -20,15 +20,8 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { fade, fly } from 'svelte/transition';
 
-	let {
-		data
-	}: {
-		data: {
-			form: SuperValidated<Infer<typeof adoptionFormSchema>>;
-		};
-	} = $props();
+	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 
-	// ✅ FORM CONFIG
 	const form = superForm(data.form, {
 		validators: zod4Client(adoptionFormSchema),
 
@@ -45,19 +38,15 @@
 		}
 	});
 
-	// ⚠️ IMPORTANT
 	const { form: formData, enhance } = form;
 
-	// ✅ STATE
 	let step = $state(1);
 	const totalSteps = 3;
 
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
-	// ✅ VALIDATION STEP
 	function validateCurrentStep() {
 		let schema = step === 1 ? step1Schema : step === 2 ? step2Schema : step3Schema;
-
 		return schema.safeParse(get(formData)).success;
 	}
 
@@ -70,12 +59,11 @@
 		if (step > 1) step--;
 	}
 
-	// ✅ DATA
 	const catAge = [
+		{ value: 'free', label: 'Sans préférence' },
 		{ value: 'kitten', label: 'Chaton' },
 		{ value: 'adult', label: 'Adulte' },
-		{ value: 'senior', label: 'Senior' },
-		{ value: 'free', label: 'Sans préférence' }
+		{ value: 'senior', label: 'Senior' }
 	];
 
 	const catSex = [
@@ -91,7 +79,6 @@
 		{ value: 'free', label: 'Sans préférence' }
 	];
 
-	// ✅ STYLES
 	const fieldClass =
 		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40';
 
@@ -110,7 +97,7 @@
 				<Card.Description class="space-y-3 text-left leading-relaxed">
 					<p>
 						Vous souhaitez adopter un minou, mais vous ne savez plus où donner de la tête avec tous
-						ces chats à l’adoption ?
+						ces chats à l'adoption ?
 					</p>
 
 					<p>
@@ -127,7 +114,8 @@
 							href={resolve('/adoptions/chat')}
 							class="text-primary hover:text-primary/80 inline-flex items-center font-medium underline underline-offset-4 transition"
 						>
-							→ Voir les chats disponibles
+							<ChevronRight />
+							Je préfère voir les chats disponibles
 						</a>
 					</div>
 				</Card.Description>
@@ -143,7 +131,7 @@
 								<Form.Field {form} name="firstName">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Prénom</Form.Label>
+											<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
 											<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
 										{/snippet}
 									</Form.Control>
@@ -152,7 +140,7 @@
 								<Form.Field {form} name="lastName">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Nom</Form.Label>
+											<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
 											<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
 										{/snippet}
 									</Form.Control>
@@ -162,7 +150,7 @@
 							<Form.Field {form} name="address">
 								<Form.Control>
 									{#snippet children({ props })}
-										<Form.Label>Adresse</Form.Label>
+										<Form.Label>Adresse <span class="text-destructive">*</span></Form.Label>
 										<Input {...props} bind:value={$formData.address} class={fieldClass} />
 									{/snippet}
 								</Form.Control>
@@ -171,7 +159,7 @@
 							<Form.Field {form} name="email">
 								<Form.Control>
 									{#snippet children({ props })}
-										<Form.Label>Email</Form.Label>
+										<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
 										<Input
 											type="email"
 											{...props}
@@ -186,7 +174,7 @@
 								<Form.Field {form} name="phone">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Téléphone</Form.Label>
+											<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
 											<Input {...props} bind:value={$formData.phone} class={fieldClass} />
 										{/snippet}
 									</Form.Control>
@@ -195,7 +183,7 @@
 								<Form.Field {form} name="age">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Âge</Form.Label>
+											<Form.Label>Âge <span class="text-destructive">*</span></Form.Label>
 											<Input
 												type="number"
 												{...props}
@@ -206,18 +194,22 @@
 									</Form.Control>
 								</Form.Field>
 							</div>
+
+							<p class="text-muted-foreground text-xs">
+								<span class="text-destructive">*</span> Champs obligatoires
+							</p>
 						</div>
 					</div>
 
 					<!-- 🐱 STEP 2 -->
 					<div class:hidden={step !== 2}>
 						<div class="space-y-6">
-							<h2>Critere</h2>
+							<h2>Critères</h2>
 							<div class="grid grid-cols-2 gap-4">
 								<Form.Field {form} name="catAge">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Âge du chat</Form.Label>
+											<Form.Label>Âge du chat <span class="text-destructive">*</span></Form.Label>
 
 											<Select.Root type="single" bind:value={$formData.catAge}>
 												<Select.Trigger {...props} class={selectTrigger}>
@@ -249,7 +241,7 @@
 								<Form.Field {form} name="catSex">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Sexe</Form.Label>
+											<Form.Label>Sexe <span class="text-destructive">*</span></Form.Label>
 
 											<Select.Root type="single" bind:value={$formData.catSex}>
 												<Select.Trigger {...props} class={selectTrigger}>
@@ -261,7 +253,7 @@
 													</div>
 												</Select.Trigger>
 
-												<Select.Content class=" border shadow-lg">
+												<Select.Content class="border shadow-lg">
 													<Select.Group>
 														{#each catSex as sex (sex.value)}
 															<Select.Item
@@ -282,7 +274,8 @@
 							<Form.Field {form} name="furLength">
 								<Form.Control>
 									{#snippet children({ props })}
-										<Form.Label>Longueur du poil</Form.Label>
+										<Form.Label>Longueur du poil <span class="text-destructive">*</span></Form.Label
+										>
 
 										<Select.Root type="single" bind:value={$formData.furLength}>
 											<Select.Trigger {...props} class={selectTrigger}>
@@ -294,7 +287,7 @@
 												</div>
 											</Select.Trigger>
 
-											<Select.Content class=" border shadow-lg">
+											<Select.Content class="border shadow-lg">
 												<Select.Group>
 													{#each furLength as length (length.value)}
 														<Select.Item
@@ -324,7 +317,7 @@
 							<Form.Field {form} name="temperament">
 								<Form.Control>
 									{#snippet children({ props })}
-										<Form.Label>Caractère</Form.Label>
+										<Form.Label>Caractère <span class="text-destructive">*</span></Form.Label>
 										<Textarea
 											placeholder="Ex: calme, calin, joueur, pas craintif..."
 											{...props}
@@ -335,6 +328,10 @@
 								</Form.Control>
 								<Form.FieldErrors />
 							</Form.Field>
+
+							<p class="text-muted-foreground text-xs">
+								<span class="text-destructive">*</span> Champs obligatoires
+							</p>
 						</div>
 					</div>
 
@@ -342,12 +339,13 @@
 					<div class:hidden={step !== 3}>
 						<div class="space-y-6">
 							<h2>Votre foyer</h2>
+
 							<!-- LOGEMENT -->
 							<div class="space-y-4">
 								<Form.Field {form} name="housingSize">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Logement (m²)</Form.Label>
+											<Form.Label>Logement (m²) <span class="text-destructive">*</span></Form.Label>
 											<Input type="number" {...props} bind:value={$formData.housingSize} />
 										{/snippet}
 									</Form.Control>
@@ -358,7 +356,6 @@
 									<Form.Control>
 										{#snippet children({ props })}
 											<Form.Label>Jardin</Form.Label>
-
 											<Checkbox
 												{...props}
 												checked={$formData.hasGarden}
@@ -403,7 +400,7 @@
 											<Form.Field {form} name="numberOfCats">
 												<Form.Control>
 													{#snippet children({ props })}
-														<Form.Label>Chat</Form.Label>
+														<Form.Label>Chats</Form.Label>
 														<Input type="number" {...props} bind:value={$formData.numberOfCats} />
 													{/snippet}
 												</Form.Control>
@@ -413,13 +410,14 @@
 											<Form.Field {form} name="numberOfDogs">
 												<Form.Control>
 													{#snippet children({ props })}
-														<Form.Label>Chien</Form.Label>
+														<Form.Label>Chiens</Form.Label>
 														<Input type="number" {...props} bind:value={$formData.numberOfDogs} />
 													{/snippet}
 												</Form.Control>
 												<Form.FieldErrors />
 											</Form.Field>
 										</div>
+
 										<Form.Field {form} name="otherPets">
 											<Form.Control>
 												{#snippet children({ props })}
@@ -443,13 +441,17 @@
 								<Form.Field {form} name="numberOfChildren">
 									<Form.Control>
 										{#snippet children({ props })}
-											<Form.Label>Enfants</Form.Label>
+											<Form.Label>Enfants <span class="text-destructive">*</span></Form.Label>
 											<Input type="number" {...props} bind:value={$formData.numberOfChildren} />
 										{/snippet}
 									</Form.Control>
 									<Form.FieldErrors />
 								</Form.Field>
 							</div>
+
+							<p class="text-muted-foreground text-xs">
+								<span class="text-destructive">*</span> Champs obligatoires
+							</p>
 						</div>
 					</div>
 

@@ -121,6 +121,15 @@ export const Vaccinate = {
 export type Vaccinate = (typeof Vaccinate)[keyof typeof Vaccinate]
 
 
+export const FocalPoint = {
+  TOP: 'TOP',
+  MID: 'MID',
+  BOT: 'BOT'
+} as const
+
+export type FocalPoint = (typeof FocalPoint)[keyof typeof FocalPoint]
+
+
 export const CareType = {
   VACCINE: 'VACCINE',
   TREATMENT: 'TREATMENT',

@@ -91,8 +91,13 @@
 							{/each}
 						</select>
 
-						<label for="age" class="text-muted-foreground">Âge (mois)</label>
-						<Input id="age" name="age" type="number" value={cat.age ?? ''} />
+						<label for="birthDate" class="text-muted-foreground">Date de naissance</label>
+						<Input
+							id="birthDate"
+							name="birthDate"
+							type="date"
+							value={cat.birthDate ? new Date(cat.birthDate).toISOString().split('T')[0] : ''}
+						/>
 
 						<label for="status" class="text-muted-foreground">Statut</label>
 						<select

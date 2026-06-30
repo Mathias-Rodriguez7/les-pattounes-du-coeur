@@ -7,6 +7,8 @@
 	import FormHost from '$lib/components/forms/FormHost.svelte';
 	import FormVolunteer from '$lib/components/forms/FormVolunteer.svelte';
 	import FormColab from '$lib/components/forms/FormColab.svelte';
+	import CountUp from '$lib/components/CountUp.svelte';
+	import { Mail } from 'lucide-svelte';
 
 	let { data } = $props();
 </script>
@@ -48,7 +50,17 @@
 							</li>
 						</ul>
 
-						<div class="text-muted-foreground pt-2 text-sm">+120 chats sauvés cette année 🐱</div>
+						<div class="text-muted-foreground pt-2 text-sm">
+							<CountUp target={data.savedThisYear} /> chats sauvés cette année 🐱
+						</div>
+
+						<a
+							href="mailto:contact@association.fr"
+							class="text-muted-foreground hover:text-primary flex items-center gap-2 transition-colors"
+						>
+							<Mail class="h-4 w-4" />
+							lespattounesducoeur@gmail.com
+						</a>
 					</Card.Content>
 
 					<Card.Footer class="mt-8 justify-start p-0">

@@ -25,7 +25,7 @@
 	let selectedCat = $state<Cat | null>(null);
 	let isOpen = $state(false);
 
-	type AgeFilter = 'ALL' | 'CHATON' | 'ADULT' | 'SENIOR' | 'SUPER SENIOR';
+	type AgeFilter = 'ALL' | 'CHATON' | 'JUNIOR' | 'ADULT' | 'SENIOR';
 	type SexFilter = 'ALL' | 'MALE' | 'FEMALE';
 
 	type CatFilters = {
@@ -53,6 +53,13 @@
 
 		garden: null
 	});
+
+	function getAgeInMonths(birthDate: Date | null): number {
+		if (!birthDate) return 0;
+		const now = new Date();
+		const birth = new Date(birthDate);
+		return (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+	}
 
 	// -----------------------------
 	// ACTIONS
@@ -99,10 +106,11 @@
 
 		// AGE
 		if (filters.age !== 'ALL') {
-			if (filters.age === 'CHATON' && cat.age >= 1) return false;
-			if (filters.age === 'ADULT' && (cat.age <= 1 || cat.age > 7)) return false;
-			if (filters.age === 'SENIOR' && (cat.age <= 7 || cat.age > 10)) return false;
-			if (filters.age === 'SUPER SENIOR' && cat.age <= 10) return false;
+			const months = getAgeInMonths(cat.birthDate);
+			if (filters.age === 'CHATON' && months >= 6) return false;
+			if (filters.age === 'JUNIOR' && (months < 6 || months > 36)) return false;
+			if (filters.age === 'ADULT' && (months < 36 || months > 120)) return false;
+			if (filters.age === 'SENIOR' && months <= 120) return false;
 		}
 
 		return true;
@@ -119,9 +127,9 @@
 	const ageOptions = [
 		{ value: 'ALL', label: 'Tous' },
 		{ value: 'CHATON', label: 'Chaton' },
+		{ value: 'JUNIOR', label: 'Junior' },
 		{ value: 'ADULT', label: 'Adulte' },
-		{ value: 'SENIOR', label: 'Senior' },
-		{ value: 'SUPER SENIOR', label: 'Super Senior' }
+		{ value: 'SENIOR', label: 'Senior' }
 	];
 	// -----------------------------
 	// EFFECT (deep link)
@@ -147,7 +155,7 @@
 			<!-- FILTER BUTTON -->
 			<Sheet.Root>
 				<Sheet.Trigger>
-					<Button class="rounded-2xl">Filtres</Button>
+					<Button>Filtres</Button>
 				</Sheet.Trigger>
 
 				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
@@ -172,7 +180,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">OK chien</p>
 									<p class="text-muted-foreground text-xs">Compatible avec les chiens</p>
 								</div>
 							</Label>
@@ -187,7 +194,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">OK chat</p>
 									<p class="text-muted-foreground text-xs">Compatible avec les chats</p>
 								</div>
 							</Label>
@@ -202,7 +208,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">OK enfant</p>
 									<p class="text-muted-foreground text-xs">Compatible avec les enfants</p>
 								</div>
 							</Label>
@@ -217,7 +222,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">Besoin d’un jardin</p>
 									<p class="text-muted-foreground text-xs">Accès extérieur recommandé</p>
 								</div>
 							</Label>
@@ -263,7 +267,7 @@
 					</div>
 
 					<!-- ACTION -->
-					<Button variant="outline" class="h-16 w-full rounded-4xl text-xl" onclick={resetFilters}>
+					<Button variant="outline" class="h-16 w-full text-xl" onclick={resetFilters}>
 						Réinitialiser les filtres
 					</Button>
 				</Sheet.Content>
@@ -282,6 +286,23 @@
 				<button type="button" class="w-full text-left" onclick={() => openCat(cat)}>
 					<CatCard {cat} />
 				</button>
+			{:else}
+				<div
+					class="col-span-full flex flex-col items-center justify-center gap-4 py-20 text-center"
+				>
+					<img src="/img/3.cats.jpg" alt="3.cats" class="h-40" />
+					<h2 class="text-xl font-semibold">Aucun chat trouvé</h2>
+					<p class="text-muted-foreground text-sm">
+						Essayez de modifier ou de réinitialiser vos filtres.
+					</p>
+					<button
+						type="button"
+						onclick={resetFilters}
+						class="text-primary text-sm underline underline-offset-4 hover:opacity-70 transition-opacity"
+					>
+						Réinitialiser les filtres
+					</button>
+				</div>
 			{/each}
 		</section>
 

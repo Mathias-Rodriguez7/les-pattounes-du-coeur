@@ -32,3 +32,9 @@ export function dot(value: boolean): string {
 		? 'inline-block h-3 w-3 rounded-full bg-green-500'
 		: 'inline-block h-3 w-3 rounded-full bg-red-500';
 }
+
+export const focalPointClass: Record<string, string> = {
+	TOP: 'object-top',
+	MID: 'object-center',
+	BOT: 'object-bottom'
+};

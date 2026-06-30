@@ -1,7 +1,9 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
+	import SexIcon from '$lib/components/cats/SexIcon.svelte';
 	import type { Cat } from '$lib/types/cat';
+	import { focalPointClass } from '$lib/utils/catHelpers';
 
 	type BadgeKey = 'isOkCat' | 'isOkDog' | 'isOkChild' | 'isOutside';
 
@@ -12,15 +14,6 @@
 		{ key: 'isOutside', label: 'Jardin' }
 	];
 
-	function getAgeBadge(months: number): string {
-		const years = months / 12;
-
-		if (years < 1) return 'Chaton';
-		if (years < 7) return 'Adulte';
-		if (years < 10) return 'Senior';
-		return 'Super senior';
-	}
-
 	const { cat } = $props<{ cat: Cat }>();
 </script>
 
@@ -30,26 +23,30 @@
 	<img
 		src={cat.media?.[0]?.picture ?? '/img/logo.png'}
 		alt={cat.name}
-		class="h-85 w-full object-cover"
+		class="h-85 w-full object-cover {focalPointClass[cat.focalPoint ?? 'MID']}"
 	/>
 
 	<Card.Header>
 		<Card.Title>{cat.name}</Card.Title>
+		<span class="flex gap-2">
+			<SexIcon sex={cat.sex} class="size-4" />
+			{cat.formattedAge}
+		</span>
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-4">
 		<div class="flex flex-wrap gap-2">
 			{#each badges as badge (badge.key)}
 				{#if cat[badge.key]}
-					<Badge variant="outline" class="bg-accent">
+					<Badge variant="soft">
 						{badge.label}
 					</Badge>
 				{/if}
 			{/each}
 
-			{#if cat.age !== undefined}
-				<Badge variant="outline" class="bg-accent">
-					{getAgeBadge(cat.age)}
+			{#if cat.ageBadge}
+				<Badge variant="soft">
+					{cat.ageBadge}
 				</Badge>
 			{/if}
 		</div>

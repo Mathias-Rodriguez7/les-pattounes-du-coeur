@@ -14,7 +14,7 @@
 
 	type PageData = {
 		news: News[];
-		selectedNews?: string | null;
+		selectedNewsId?: string | null;
 	};
 
 	let { data }: { data: PageData } = $props();
@@ -72,9 +72,9 @@
 	);
 
 	$effect(() => {
-		if (!data.selectedNews) return;
+		if (!data.selectedNewsId) return;
 
-		const news = data.news.find((n) => n.id === data.selectedNews);
+		const news = data.news.find((n) => n.id === data.selectedNewsId);
 
 		if (news) {
 			selectedNews = news;
@@ -90,13 +90,11 @@
 		<!-- ===================== -->
 		<!-- TOP BAR -->
 		<!-- ===================== -->
-		<div
-			class="bg-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4"
-		>
+		<div class="bg-card flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4">
 			<!-- FILTER SHEET -->
 			<Sheet.Root>
 				<Sheet.Trigger>
-					<Button class="rounded-2xl">Filtres</Button>
+					<Button>Filtres</Button>
 				</Sheet.Trigger>
 
 				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
@@ -120,7 +118,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">News</p>
 									<p class="text-muted-foreground text-xs">Toutes les news de l'association.</p>
 								</div>
 							</Label>
@@ -135,7 +132,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">News Chat</p>
 									<p class="text-muted-foreground text-xs">
 										Les nouveaux chats qui cherche une famille.
 									</p>
@@ -152,7 +148,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">News Letter</p>
 									<p class="text-muted-foreground text-xs">
 										Toutes les news letter de l'association
 									</p>
@@ -169,7 +164,6 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">Histoire</p>
 									<p class="text-muted-foreground text-xs">Toutes les histoires de l'association</p>
 								</div>
 							</Label>
@@ -184,16 +178,15 @@
 									}}
 								/>
 								<div>
-									<p class="text-sm font-medium">Evènement</p>
 									<p class="text-muted-foreground text-xs">
-										Toutes les évènements organiser par l'association
+										Les évènements organiser par l'association
 									</p>
 								</div>
 							</Label>
 						</div>
 					</div>
 
-					<Button variant="outline" class="w-full" onclick={resetFilters}>
+					<Button variant="outline" class="h-16 w-full text-xl" onclick={resetFilters}>
 						Réinitialiser les filtres
 					</Button>
 				</Sheet.Content>
