@@ -1,6 +1,7 @@
+import type { Handle } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 
-export async function handle({ event, resolve }) {
+export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('session');
 
 	if (!token) {
@@ -33,8 +34,12 @@ export async function handle({ event, resolve }) {
 	event.locals.user = {
 		id: session.volunteer.id,
 		role: session.volunteer.role,
-		profil: session.volunteer.profil
+		profil: {
+			firstName: session.volunteer.profil!.firstName,
+			lastName: session.volunteer.profil!.lastName,
+			email: session.volunteer.profil!.email
+		}
 	};
 
 	return resolve(event);
-}
+};

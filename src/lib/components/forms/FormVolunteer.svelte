@@ -52,11 +52,6 @@
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
 	function validateCurrentStep() {
-		console.log('STEP:', step);
-		console.log('DATA:', get(formData));
-		console.log('STEP 4 DATA:', get(formData));
-		console.log('STEP 4 SCHEMA:', volunteerStep4Schema.shape);
-
 		const schema =
 			step === 1
 				? volunteerStep1Schema
@@ -67,8 +62,6 @@
 						: volunteerStep4Schema;
 
 		const result = schema.safeParse(get(formData));
-
-		console.log('VALIDATION RESULT:', result);
 
 		return result.success;
 	}
@@ -88,18 +81,17 @@
 	}
 
 	const availabilityOptions = [
-		{
-			value: 'LOW',
-			label: 'Quelques heures par mois'
-		},
-		{
-			value: 'MEDIUM',
-			label: 'Quelques heures par semaine'
-		},
-		{
-			value: 'HIGH',
-			label: 'Très disponible'
-		}
+		{ value: 'LOW', label: 'Quelques heures par mois' },
+		{ value: 'MEDIUM', label: 'Quelques heures par semaine' },
+		{ value: 'HIGH', label: 'Très disponible' }
+	];
+
+	const availabilityDurationOptions = [
+		{ value: 'LESS_THAN_1_MONTH', label: "Moins d'1 mois" },
+		{ value: '1_TO_3_MONTHS', label: '1 à 3 mois' },
+		{ value: '3_TO_6_MONTHS', label: '3 à 6 mois' },
+		{ value: 'MORE_THAN_6_MONTHS', label: 'Plus de 6 mois' },
+		{ value: 'LONG_TERM', label: 'Long terme' }
 	];
 
 	// STYLE
@@ -117,7 +109,6 @@
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Informations personnelles</h2>
-
 			<p class="text-muted-foreground text-sm">Parlez-nous un peu de vous.</p>
 		</div>
 
@@ -125,24 +116,20 @@
 			<Form.Field {form} name="firstName">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Prénom</Form.Label>
-
+						<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="lastName">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Nom</Form.Label>
-
+						<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 		</div>
@@ -150,12 +137,10 @@
 		<Form.Field {form} name="email">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Email</Form.Label>
-
+					<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
 					<Input type="email" {...props} bind:value={$formData.email} class={fieldClass} />
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
@@ -163,24 +148,20 @@
 			<Form.Field {form} name="phone">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Téléphone</Form.Label>
-
+						<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.phone} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="age">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Âge</Form.Label>
-
+						<Form.Label>Âge <span class="text-destructive">*</span></Form.Label>
 						<Input type="number" {...props} bind:value={$formData.age} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 		</div>
@@ -188,24 +169,20 @@
 		<Form.Field {form} name="address">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Adresse</Form.Label>
-
+					<Form.Label>Adresse <span class="text-destructive">*</span></Form.Label>
 					<Input {...props} bind:value={$formData.address} class={fieldClass} />
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
 		<Form.Field {form} name="job">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Profession</Form.Label>
-
+					<Form.Label>Profession <span class="text-destructive">*</span></Form.Label>
 					<Input {...props} bind:value={$formData.job} class={fieldClass} />
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 	</div>
@@ -219,7 +196,6 @@
 			</p>
 		</div>
 
-		<!-- 🐱 EXPERIENCE CHATS -->
 		<Form.Field {form} name="hasCatExperience">
 			<Form.Control>
 				{#snippet children({ props })}
@@ -231,7 +207,6 @@
 							checked={$formData.hasCatExperience}
 							onCheckedChange={(v) => ($formData.hasCatExperience = !!v)}
 						/>
-
 						<div>
 							<p class="text-sm font-medium">Expérience avec les chats</p>
 							<p class="text-muted-foreground text-xs">
@@ -248,10 +223,12 @@
 			<Form.Field {form} name="catExperienceDescription">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Décrivez votre expérience avec les chats</Form.Label>
-
+						<Form.Label
+							>Décrivez votre expérience avec les chats <span class="text-destructive">*</span
+							></Form.Label
+						>
 						<Textarea
-							placeholder="Ex : j'ai eu plusieurs chats, famille d’accueil, etc..."
+							placeholder="Ex : j'ai eu plusieurs chats, famille d'accueil, etc..."
 							{...props}
 							bind:value={$formData.catExperienceDescription}
 							class={textareaClass}
@@ -262,7 +239,6 @@
 			</Form.Field>
 		{/if}
 
-		<!-- 🏠 EXPERIENCE ASSOCIATION -->
 		<Form.Field {form} name="hasAssociationExperience">
 			<Form.Control>
 				{#snippet children({ props })}
@@ -274,7 +250,6 @@
 							checked={$formData.hasAssociationExperience}
 							onCheckedChange={(v) => ($formData.hasAssociationExperience = !!v)}
 						/>
-
 						<div>
 							<p class="text-sm font-medium">Expérience associative</p>
 							<p class="text-muted-foreground text-xs">
@@ -291,8 +266,10 @@
 			<Form.Field {form} name="associationExperienceDescription">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Décrivez votre expérience associative</Form.Label>
-
+						<Form.Label
+							>Décrivez votre expérience associative <span class="text-destructive">*</span
+							></Form.Label
+						>
 						<Textarea
 							placeholder="Ex : bénévolat, refuge, organisation..."
 							{...props}
@@ -305,7 +282,6 @@
 			</Form.Field>
 		{/if}
 
-		<!-- 🏥 SOINS -->
 		<Form.Field {form} name="hasMedicalCareExperience">
 			<Form.Control>
 				{#snippet children({ props })}
@@ -317,7 +293,6 @@
 							checked={$formData.hasMedicalCareExperience}
 							onCheckedChange={(v) => ($formData.hasMedicalCareExperience = !!v)}
 						/>
-
 						<div>
 							<p class="text-sm font-medium">Soins médicaux</p>
 							<p class="text-muted-foreground text-xs">
@@ -334,8 +309,7 @@
 			<Form.Field {form} name="medicalCareDescription">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Détail des soins</Form.Label>
-
+						<Form.Label>Détail des soins <span class="text-destructive">*</span></Form.Label>
 						<Textarea
 							placeholder="Ex : médicaments, blessures, injections..."
 							{...props}
@@ -348,7 +322,6 @@
 			</Form.Field>
 		{/if}
 
-		<!-- 🚗 TRANSPORT (checkbox simple) -->
 		<Form.Field {form} name="hasTransportExperience">
 			<Form.Control>
 				{#snippet children({ props })}
@@ -360,9 +333,8 @@
 							checked={$formData.hasTransportExperience}
 							onCheckedChange={(v) => ($formData.hasTransportExperience = !!v)}
 						/>
-
 						<div>
-							<p class="text-sm font-medium">Transport d’animaux</p>
+							<p class="text-sm font-medium">Transport d'animaux</p>
 							<p class="text-muted-foreground text-xs">Avez-vous déjà transporté des animaux ?</p>
 						</div>
 					</Label>
@@ -377,57 +349,54 @@
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Disponibilité</h2>
 			<p class="text-muted-foreground text-sm">
-				Dites-nous quand vous êtes disponible pour aider l’association.
+				Dites-nous quand vous êtes disponible pour aider l'association.
 			</p>
 		</div>
 
-		<!-- 📅 DISPONIBILITÉ GLOBALE -->
 		<Form.Field {form} name="availability">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Disponibilité générale</Form.Label>
-
+					<Form.Label>Disponibilité générale <span class="text-destructive">*</span></Form.Label>
 					<Select.Root type="single" bind:value={$formData.availability}>
 						<Select.Trigger {...props} class={selectClass}>
-							{availabilityOptions.find((option) => option.value === $formData.availability)
-								?.label ?? 'Choisir'}
+							{availabilityOptions.find((o) => o.value === $formData.availability)?.label ??
+								'Choisir'}
 						</Select.Trigger>
-
 						<Select.Content>
 							<Select.Group>
 								{#each availabilityOptions as option (option.value)}
-									<Select.Item value={option.value}>
-										{option.label}
-									</Select.Item>
+									<Select.Item value={option.value}>{option.label}</Select.Item>
 								{/each}
 							</Select.Group>
 						</Select.Content>
 					</Select.Root>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
-		<!-- ⏳ DURÉE D'ENGAGEMENT -->
 		<Form.Field {form} name="availabilityDuration">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Durée d’engagement</Form.Label>
-
-					<Input
-						placeholder="Ex: 3 mois, 6 mois, long terme..."
-						{...props}
-						bind:value={$formData.availabilityDuration}
-						class={fieldClass}
-					/>
+					<Form.Label>Durée d'engagement <span class="text-destructive">*</span></Form.Label>
+					<Select.Root type="single" bind:value={$formData.availabilityDuration}>
+						<Select.Trigger {...props} class={selectClass}>
+							{availabilityDurationOptions.find((o) => o.value === $formData.availabilityDuration)
+								?.label ?? 'Choisir'}
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Group>
+								{#each availabilityDurationOptions as option (option.value)}
+									<Select.Item value={option.value}>{option.label}</Select.Item>
+								{/each}
+							</Select.Group>
+						</Select.Content>
+					</Select.Root>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
-		<!-- 📆 DISPONIBILITÉ SEMAINE -->
 		<div class="space-y-3">
 			<h3 class="text-sm font-medium">Quand pouvez-vous aider ?</h3>
 
@@ -442,7 +411,6 @@
 								checked={$formData.canHelpWeekdays}
 								onCheckedChange={(v) => ($formData.canHelpWeekdays = !!v)}
 							/>
-
 							<div>
 								<p class="text-sm font-medium">En semaine</p>
 								<p class="text-muted-foreground text-xs">Lundi à vendredi</p>
@@ -463,7 +431,6 @@
 								checked={$formData.canHelpWeekends}
 								onCheckedChange={(v) => ($formData.canHelpWeekends = !!v)}
 							/>
-
 							<div>
 								<p class="text-sm font-medium">Week-end</p>
 								<p class="text-muted-foreground text-xs">Samedi et dimanche</p>
@@ -484,7 +451,6 @@
 								checked={$formData.canHelpEmergencies}
 								onCheckedChange={(v) => ($formData.canHelpEmergencies = !!v)}
 							/>
-
 							<div>
 								<p class="text-sm font-medium">Urgences</p>
 								<p class="text-muted-foreground text-xs">Interventions ponctuelles rapides</p>
@@ -495,7 +461,6 @@
 			</Form.Field>
 		</div>
 
-		<!-- 🚗 CAR -->
 		<Form.Field {form} name="car">
 			<Form.Control>
 				{#snippet children({ props })}
@@ -507,7 +472,6 @@
 							checked={$formData.car}
 							onCheckedChange={(v) => ($formData.car = !!v)}
 						/>
-
 						<div>
 							<p class="text-sm font-medium">Véhicule disponible</p>
 							<p class="text-muted-foreground text-xs">Pour transports ou urgences vétérinaires</p>
@@ -522,18 +486,15 @@
 	<div class:hidden={step !== 4} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Motivation</h2>
-
 			<p class="text-muted-foreground text-sm">
-				Dites-nous pourquoi vous souhaitez rejoindre l’association.
+				Dites-nous pourquoi vous souhaitez rejoindre l'association.
 			</p>
 		</div>
 
-		<!-- MOTIVATION (OBLIGATOIRE) -->
 		<Form.Field {form} name="motivation">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Votre motivation</Form.Label>
-
+					<Form.Label>Votre motivation <span class="text-destructive">*</span></Form.Label>
 					<Textarea
 						placeholder="Expliquez pourquoi vous voulez devenir bénévole..."
 						{...props}
@@ -542,16 +503,13 @@
 					/>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
-		<!-- SKILLS (OPTIONNEL) -->
 		<Form.Field {form} name="skills">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Compétences</Form.Label>
-
 					<Textarea
 						placeholder="Ex: expérience animale, association, organisation..."
 						{...props}
@@ -560,16 +518,13 @@
 					/>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
-		<!-- ADDITIONAL INFO (OPTIONNEL) -->
 		<Form.Field {form} name="additionalInformation">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Informations complémentaires</Form.Label>
-
 					<Textarea
 						placeholder="Autres informations utiles..."
 						{...props}
@@ -578,7 +533,6 @@
 					/>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 	</div>
@@ -610,7 +564,6 @@
 				style={`width: ${progress}%`}
 			></div>
 		</div>
-
 		<p class="text-muted-foreground text-center text-xs">
 			Étape {step} / {totalSteps}
 		</p>

@@ -14,19 +14,13 @@
 		data: SuperValidated<Infer<typeof colabForm>>;
 	}>();
 
-	//
-	// FORM
-	//
-
 	const form = superForm(data, {
 		validators: zod4Client(colabForm),
 
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Demande envoyée avec succès 🤝');
-
 				form.reset();
-
 				step = 1;
 			}
 
@@ -38,10 +32,6 @@
 
 	const { form: formData, enhance } = form;
 
-	//
-	// STEP
-	//
-
 	let step = $state(1);
 
 	const totalSteps = 2;
@@ -49,30 +39,18 @@
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
 	function validateCurrentStep() {
-		const data = get(formData);
-
 		const schema = step === 1 ? colabStep1Schema : colabStep2Schema;
-
-		return schema.safeParse(data).success;
+		return schema.safeParse(get(formData)).success;
 	}
 
 	function nextStep() {
 		if (!validateCurrentStep()) return;
-
-		if (step < totalSteps) {
-			step++;
-		}
+		if (step < totalSteps) step++;
 	}
 
 	function prevStep() {
-		if (step > 1) {
-			step--;
-		}
+		if (step > 1) step--;
 	}
-
-	//
-	// STYLE
-	//
 
 	const fieldClass =
 		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
@@ -85,7 +63,6 @@
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Informations</h2>
-
 			<p class="text-muted-foreground text-sm">Présentez-vous avant de proposer un partenariat.</p>
 		</div>
 
@@ -93,24 +70,20 @@
 			<Form.Field {form} name="firstName">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Prénom</Form.Label>
-
+						<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="lastName">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Nom</Form.Label>
-
+						<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 		</div>
@@ -118,12 +91,12 @@
 		<Form.Field {form} name="companyName">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Entreprise (optionnel)</Form.Label>
-
+					<Form.Label
+						>Entreprise <span class="text-muted-foreground text-xs">(optionnel)</span></Form.Label
+					>
 					<Input {...props} bind:value={$formData.companyName} class={fieldClass} />
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
@@ -131,24 +104,20 @@
 			<Form.Field {form} name="email">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Email</Form.Label>
-
+						<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
 						<Input type="email" {...props} bind:value={$formData.email} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="phone">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Téléphone</Form.Label>
-
+						<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
 						<Input {...props} bind:value={$formData.phone} class={fieldClass} />
 					{/snippet}
 				</Form.Control>
-
 				<Form.FieldErrors />
 			</Form.Field>
 		</div>
@@ -158,7 +127,6 @@
 	<div class:hidden={step !== 2} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Partenariat</h2>
-
 			<p class="text-muted-foreground text-sm">
 				Expliquez votre activité et votre proposition de collaboration.
 			</p>
@@ -167,8 +135,7 @@
 		<Form.Field {form} name="presentation">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Présentation</Form.Label>
-
+					<Form.Label>Présentation <span class="text-destructive">*</span></Form.Label>
 					<Textarea
 						placeholder="Présentez votre activité, votre entreprise ou votre projet..."
 						{...props}
@@ -177,15 +144,14 @@
 					/>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 
 		<Form.Field {form} name="partnershipProposal">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Proposition de partenariat</Form.Label>
-
+					<Form.Label>Proposition de partenariat <span class="text-destructive">*</span></Form.Label
+					>
 					<Textarea
 						placeholder="Expliquez comment vous souhaitez collaborer avec l'association..."
 						{...props}
@@ -194,7 +160,6 @@
 					/>
 				{/snippet}
 			</Form.Control>
-
 			<Form.FieldErrors />
 		</Form.Field>
 	</div>
@@ -226,7 +191,6 @@
 				style={`width: ${progress}%`}
 			></div>
 		</div>
-
 		<p class="text-muted-foreground text-center text-xs">
 			Étape {step} / {totalSteps}
 		</p>

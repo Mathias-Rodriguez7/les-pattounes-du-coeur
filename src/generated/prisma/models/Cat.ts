@@ -20,25 +20,15 @@ export type CatModel = runtime.Types.Result.DefaultSelection<Prisma.$CatPayload>
 
 export type AggregateCat = {
   _count: CatCountAggregateOutputType | null
-  _avg: CatAvgAggregateOutputType | null
-  _sum: CatSumAggregateOutputType | null
   _min: CatMinAggregateOutputType | null
   _max: CatMaxAggregateOutputType | null
-}
-
-export type CatAvgAggregateOutputType = {
-  age: number | null
-}
-
-export type CatSumAggregateOutputType = {
-  age: number | null
 }
 
 export type CatMinAggregateOutputType = {
   id: string | null
   name: string | null
   sex: $Enums.SexCat | null
-  age: number | null
+  birthDate: Date | null
   isVisible: boolean | null
   status: $Enums.CatStatus | null
   hairLength: $Enums.HairLength | null
@@ -58,6 +48,7 @@ export type CatMinAggregateOutputType = {
   isOutside: boolean | null
   isIdentify: boolean | null
   chipId: string | null
+  focalPoint: $Enums.FocalPoint | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -66,7 +57,7 @@ export type CatMaxAggregateOutputType = {
   id: string | null
   name: string | null
   sex: $Enums.SexCat | null
-  age: number | null
+  birthDate: Date | null
   isVisible: boolean | null
   status: $Enums.CatStatus | null
   hairLength: $Enums.HairLength | null
@@ -86,6 +77,7 @@ export type CatMaxAggregateOutputType = {
   isOutside: boolean | null
   isIdentify: boolean | null
   chipId: string | null
+  focalPoint: $Enums.FocalPoint | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -94,7 +86,7 @@ export type CatCountAggregateOutputType = {
   id: number
   name: number
   sex: number
-  age: number
+  birthDate: number
   isVisible: number
   status: number
   hairLength: number
@@ -114,25 +106,18 @@ export type CatCountAggregateOutputType = {
   isOutside: number
   isIdentify: number
   chipId: number
+  focalPoint: number
   created_at: number
   updated_at: number
   _all: number
 }
 
 
-export type CatAvgAggregateInputType = {
-  age?: true
-}
-
-export type CatSumAggregateInputType = {
-  age?: true
-}
-
 export type CatMinAggregateInputType = {
   id?: true
   name?: true
   sex?: true
-  age?: true
+  birthDate?: true
   isVisible?: true
   status?: true
   hairLength?: true
@@ -152,6 +137,7 @@ export type CatMinAggregateInputType = {
   isOutside?: true
   isIdentify?: true
   chipId?: true
+  focalPoint?: true
   created_at?: true
   updated_at?: true
 }
@@ -160,7 +146,7 @@ export type CatMaxAggregateInputType = {
   id?: true
   name?: true
   sex?: true
-  age?: true
+  birthDate?: true
   isVisible?: true
   status?: true
   hairLength?: true
@@ -180,6 +166,7 @@ export type CatMaxAggregateInputType = {
   isOutside?: true
   isIdentify?: true
   chipId?: true
+  focalPoint?: true
   created_at?: true
   updated_at?: true
 }
@@ -188,7 +175,7 @@ export type CatCountAggregateInputType = {
   id?: true
   name?: true
   sex?: true
-  age?: true
+  birthDate?: true
   isVisible?: true
   status?: true
   hairLength?: true
@@ -208,6 +195,7 @@ export type CatCountAggregateInputType = {
   isOutside?: true
   isIdentify?: true
   chipId?: true
+  focalPoint?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -251,18 +239,6 @@ export type CatAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: CatAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: CatSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: CatMinAggregateInputType
@@ -293,8 +269,6 @@ export type CatGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   _count?: CatCountAggregateInputType | true
-  _avg?: CatAvgAggregateInputType
-  _sum?: CatSumAggregateInputType
   _min?: CatMinAggregateInputType
   _max?: CatMaxAggregateInputType
 }
@@ -303,7 +277,7 @@ export type CatGroupByOutputType = {
   id: string
   name: string | null
   sex: $Enums.SexCat
-  age: number | null
+  birthDate: Date | null
   isVisible: boolean
   status: $Enums.CatStatus
   hairLength: $Enums.HairLength | null
@@ -323,11 +297,10 @@ export type CatGroupByOutputType = {
   isOutside: boolean | null
   isIdentify: boolean
   chipId: string | null
+  focalPoint: $Enums.FocalPoint | null
   created_at: Date
   updated_at: Date
   _count: CatCountAggregateOutputType | null
-  _avg: CatAvgAggregateOutputType | null
-  _sum: CatSumAggregateOutputType | null
   _min: CatMinAggregateOutputType | null
   _max: CatMaxAggregateOutputType | null
 }
@@ -354,7 +327,7 @@ export type CatWhereInput = {
   id?: Prisma.UuidFilter<"Cat"> | string
   name?: Prisma.StringNullableFilter<"Cat"> | string | null
   sex?: Prisma.EnumSexCatFilter<"Cat"> | $Enums.SexCat
-  age?: Prisma.IntNullableFilter<"Cat"> | number | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Cat"> | Date | string | null
   isVisible?: Prisma.BoolFilter<"Cat"> | boolean
   status?: Prisma.EnumCatStatusFilter<"Cat"> | $Enums.CatStatus
   hairLength?: Prisma.EnumHairLengthNullableFilter<"Cat"> | $Enums.HairLength | null
@@ -374,6 +347,7 @@ export type CatWhereInput = {
   isOutside?: Prisma.BoolNullableFilter<"Cat"> | boolean | null
   isIdentify?: Prisma.BoolFilter<"Cat"> | boolean
   chipId?: Prisma.StringNullableFilter<"Cat"> | string | null
+  focalPoint?: Prisma.EnumFocalPointNullableFilter<"Cat"> | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFilter<"Cat"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Cat"> | Date | string
   media?: Prisma.MediaCatListRelationFilter
@@ -388,7 +362,7 @@ export type CatOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   sex?: Prisma.SortOrder
-  age?: Prisma.SortOrderInput | Prisma.SortOrder
+  birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   isVisible?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hairLength?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -408,6 +382,7 @@ export type CatOrderByWithRelationInput = {
   isOutside?: Prisma.SortOrderInput | Prisma.SortOrder
   isIdentify?: Prisma.SortOrder
   chipId?: Prisma.SortOrderInput | Prisma.SortOrder
+  focalPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   media?: Prisma.MediaCatOrderByRelationAggregateInput
@@ -425,7 +400,7 @@ export type CatWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CatWhereInput | Prisma.CatWhereInput[]
   name?: Prisma.StringNullableFilter<"Cat"> | string | null
   sex?: Prisma.EnumSexCatFilter<"Cat"> | $Enums.SexCat
-  age?: Prisma.IntNullableFilter<"Cat"> | number | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Cat"> | Date | string | null
   isVisible?: Prisma.BoolFilter<"Cat"> | boolean
   status?: Prisma.EnumCatStatusFilter<"Cat"> | $Enums.CatStatus
   hairLength?: Prisma.EnumHairLengthNullableFilter<"Cat"> | $Enums.HairLength | null
@@ -445,6 +420,7 @@ export type CatWhereUniqueInput = Prisma.AtLeast<{
   isOutside?: Prisma.BoolNullableFilter<"Cat"> | boolean | null
   isIdentify?: Prisma.BoolFilter<"Cat"> | boolean
   chipId?: Prisma.StringNullableFilter<"Cat"> | string | null
+  focalPoint?: Prisma.EnumFocalPointNullableFilter<"Cat"> | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFilter<"Cat"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Cat"> | Date | string
   media?: Prisma.MediaCatListRelationFilter
@@ -459,7 +435,7 @@ export type CatOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   sex?: Prisma.SortOrder
-  age?: Prisma.SortOrderInput | Prisma.SortOrder
+  birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   isVisible?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hairLength?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -479,13 +455,12 @@ export type CatOrderByWithAggregationInput = {
   isOutside?: Prisma.SortOrderInput | Prisma.SortOrder
   isIdentify?: Prisma.SortOrder
   chipId?: Prisma.SortOrderInput | Prisma.SortOrder
+  focalPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.CatCountOrderByAggregateInput
-  _avg?: Prisma.CatAvgOrderByAggregateInput
   _max?: Prisma.CatMaxOrderByAggregateInput
   _min?: Prisma.CatMinOrderByAggregateInput
-  _sum?: Prisma.CatSumOrderByAggregateInput
 }
 
 export type CatScalarWhereWithAggregatesInput = {
@@ -495,7 +470,7 @@ export type CatScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"Cat"> | string
   name?: Prisma.StringNullableWithAggregatesFilter<"Cat"> | string | null
   sex?: Prisma.EnumSexCatWithAggregatesFilter<"Cat"> | $Enums.SexCat
-  age?: Prisma.IntNullableWithAggregatesFilter<"Cat"> | number | null
+  birthDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Cat"> | Date | string | null
   isVisible?: Prisma.BoolWithAggregatesFilter<"Cat"> | boolean
   status?: Prisma.EnumCatStatusWithAggregatesFilter<"Cat"> | $Enums.CatStatus
   hairLength?: Prisma.EnumHairLengthNullableWithAggregatesFilter<"Cat"> | $Enums.HairLength | null
@@ -515,6 +490,7 @@ export type CatScalarWhereWithAggregatesInput = {
   isOutside?: Prisma.BoolNullableWithAggregatesFilter<"Cat"> | boolean | null
   isIdentify?: Prisma.BoolWithAggregatesFilter<"Cat"> | boolean
   chipId?: Prisma.StringNullableWithAggregatesFilter<"Cat"> | string | null
+  focalPoint?: Prisma.EnumFocalPointNullableWithAggregatesFilter<"Cat"> | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Cat"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Cat"> | Date | string
 }
@@ -523,7 +499,7 @@ export type CatCreateInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -543,6 +519,7 @@ export type CatCreateInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -557,7 +534,7 @@ export type CatUncheckedCreateInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -577,6 +554,7 @@ export type CatUncheckedCreateInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -591,7 +569,7 @@ export type CatUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -611,6 +589,7 @@ export type CatUpdateInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -625,7 +604,7 @@ export type CatUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -645,6 +624,7 @@ export type CatUncheckedUpdateInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -659,7 +639,7 @@ export type CatCreateManyInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -679,6 +659,7 @@ export type CatCreateManyInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -687,7 +668,7 @@ export type CatUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -707,6 +688,7 @@ export type CatUpdateManyMutationInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -715,7 +697,7 @@ export type CatUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -735,6 +717,7 @@ export type CatUncheckedUpdateManyInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -743,7 +726,7 @@ export type CatCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   sex?: Prisma.SortOrder
-  age?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   isVisible?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hairLength?: Prisma.SortOrder
@@ -763,19 +746,16 @@ export type CatCountOrderByAggregateInput = {
   isOutside?: Prisma.SortOrder
   isIdentify?: Prisma.SortOrder
   chipId?: Prisma.SortOrder
+  focalPoint?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-}
-
-export type CatAvgOrderByAggregateInput = {
-  age?: Prisma.SortOrder
 }
 
 export type CatMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   sex?: Prisma.SortOrder
-  age?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   isVisible?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hairLength?: Prisma.SortOrder
@@ -795,6 +775,7 @@ export type CatMaxOrderByAggregateInput = {
   isOutside?: Prisma.SortOrder
   isIdentify?: Prisma.SortOrder
   chipId?: Prisma.SortOrder
+  focalPoint?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -803,7 +784,7 @@ export type CatMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   sex?: Prisma.SortOrder
-  age?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   isVisible?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hairLength?: Prisma.SortOrder
@@ -823,12 +804,9 @@ export type CatMinOrderByAggregateInput = {
   isOutside?: Prisma.SortOrder
   isIdentify?: Prisma.SortOrder
   chipId?: Prisma.SortOrder
+  focalPoint?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-}
-
-export type CatSumOrderByAggregateInput = {
-  age?: Prisma.SortOrder
 }
 
 export type CatScalarRelationFilter = {
@@ -838,6 +816,10 @@ export type CatScalarRelationFilter = {
 
 export type EnumSexCatFieldUpdateOperationsInput = {
   set?: $Enums.SexCat
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type EnumCatStatusFieldUpdateOperationsInput = {
@@ -854,6 +836,10 @@ export type NullableEnumVaccinateFieldUpdateOperationsInput = {
 
 export type NullableBoolFieldUpdateOperationsInput = {
   set?: boolean | null
+}
+
+export type NullableEnumFocalPointFieldUpdateOperationsInput = {
+  set?: $Enums.FocalPoint | null
 }
 
 export type CatCreateNestedOneWithoutMediaInput = {
@@ -944,7 +930,7 @@ export type CatCreateWithoutMediaInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -964,6 +950,7 @@ export type CatCreateWithoutMediaInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   volunteers?: Prisma.CatVolunteerCreateNestedManyWithoutCatInput
@@ -977,7 +964,7 @@ export type CatUncheckedCreateWithoutMediaInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -997,6 +984,7 @@ export type CatUncheckedCreateWithoutMediaInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   volunteers?: Prisma.CatVolunteerUncheckedCreateNestedManyWithoutCatInput
@@ -1026,7 +1014,7 @@ export type CatUpdateWithoutMediaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1046,6 +1034,7 @@ export type CatUpdateWithoutMediaInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   volunteers?: Prisma.CatVolunteerUpdateManyWithoutCatNestedInput
@@ -1059,7 +1048,7 @@ export type CatUncheckedUpdateWithoutMediaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1079,6 +1068,7 @@ export type CatUncheckedUpdateWithoutMediaInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   volunteers?: Prisma.CatVolunteerUncheckedUpdateManyWithoutCatNestedInput
@@ -1092,7 +1082,7 @@ export type CatCreateWithoutNewsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1112,6 +1102,7 @@ export type CatCreateWithoutNewsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -1125,7 +1116,7 @@ export type CatUncheckedCreateWithoutNewsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1145,6 +1136,7 @@ export type CatUncheckedCreateWithoutNewsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -1174,7 +1166,7 @@ export type CatUpdateWithoutNewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1194,6 +1186,7 @@ export type CatUpdateWithoutNewsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -1207,7 +1200,7 @@ export type CatUncheckedUpdateWithoutNewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1227,6 +1220,7 @@ export type CatUncheckedUpdateWithoutNewsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -1240,7 +1234,7 @@ export type CatCreateWithoutVolunteersInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1260,6 +1254,7 @@ export type CatCreateWithoutVolunteersInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -1273,7 +1268,7 @@ export type CatUncheckedCreateWithoutVolunteersInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1293,6 +1288,7 @@ export type CatUncheckedCreateWithoutVolunteersInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -1322,7 +1318,7 @@ export type CatUpdateWithoutVolunteersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1342,6 +1338,7 @@ export type CatUpdateWithoutVolunteersInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -1355,7 +1352,7 @@ export type CatUncheckedUpdateWithoutVolunteersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1375,6 +1372,7 @@ export type CatUncheckedUpdateWithoutVolunteersInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -1388,7 +1386,7 @@ export type CatCreateWithoutPlacementsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1408,6 +1406,7 @@ export type CatCreateWithoutPlacementsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -1421,7 +1420,7 @@ export type CatUncheckedCreateWithoutPlacementsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1441,6 +1440,7 @@ export type CatUncheckedCreateWithoutPlacementsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -1470,7 +1470,7 @@ export type CatUpdateWithoutPlacementsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1490,6 +1490,7 @@ export type CatUpdateWithoutPlacementsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -1503,7 +1504,7 @@ export type CatUncheckedUpdateWithoutPlacementsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1523,6 +1524,7 @@ export type CatUncheckedUpdateWithoutPlacementsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -1536,7 +1538,7 @@ export type CatCreateWithoutAdoptionsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1556,6 +1558,7 @@ export type CatCreateWithoutAdoptionsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -1569,7 +1572,7 @@ export type CatUncheckedCreateWithoutAdoptionsInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1589,6 +1592,7 @@ export type CatUncheckedCreateWithoutAdoptionsInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -1618,7 +1622,7 @@ export type CatUpdateWithoutAdoptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1638,6 +1642,7 @@ export type CatUpdateWithoutAdoptionsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -1651,7 +1656,7 @@ export type CatUncheckedUpdateWithoutAdoptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1671,6 +1676,7 @@ export type CatUncheckedUpdateWithoutAdoptionsInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -1684,7 +1690,7 @@ export type CatCreateWithoutCaresInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1704,6 +1710,7 @@ export type CatCreateWithoutCaresInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatCreateNestedManyWithoutCatInput
@@ -1717,7 +1724,7 @@ export type CatUncheckedCreateWithoutCaresInput = {
   id?: string
   name?: string | null
   sex: $Enums.SexCat
-  age?: number | null
+  birthDate?: Date | string | null
   isVisible?: boolean
   status: $Enums.CatStatus
   hairLength?: $Enums.HairLength | null
@@ -1737,6 +1744,7 @@ export type CatUncheckedCreateWithoutCaresInput = {
   isOutside?: boolean | null
   isIdentify?: boolean
   chipId?: string | null
+  focalPoint?: $Enums.FocalPoint | null
   created_at?: Date | string
   updated_at?: Date | string
   media?: Prisma.MediaCatUncheckedCreateNestedManyWithoutCatInput
@@ -1766,7 +1774,7 @@ export type CatUpdateWithoutCaresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1786,6 +1794,7 @@ export type CatUpdateWithoutCaresInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUpdateManyWithoutCatNestedInput
@@ -1799,7 +1808,7 @@ export type CatUncheckedUpdateWithoutCaresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sex?: Prisma.EnumSexCatFieldUpdateOperationsInput | $Enums.SexCat
-  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isVisible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumCatStatusFieldUpdateOperationsInput | $Enums.CatStatus
   hairLength?: Prisma.NullableEnumHairLengthFieldUpdateOperationsInput | $Enums.HairLength | null
@@ -1819,6 +1828,7 @@ export type CatUncheckedUpdateWithoutCaresInput = {
   isOutside?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   isIdentify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   chipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  focalPoint?: Prisma.NullableEnumFocalPointFieldUpdateOperationsInput | $Enums.FocalPoint | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaCatUncheckedUpdateManyWithoutCatNestedInput
@@ -1908,7 +1918,7 @@ export type CatSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   id?: boolean
   name?: boolean
   sex?: boolean
-  age?: boolean
+  birthDate?: boolean
   isVisible?: boolean
   status?: boolean
   hairLength?: boolean
@@ -1928,6 +1938,7 @@ export type CatSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   isOutside?: boolean
   isIdentify?: boolean
   chipId?: boolean
+  focalPoint?: boolean
   created_at?: boolean
   updated_at?: boolean
   media?: boolean | Prisma.Cat$mediaArgs<ExtArgs>
@@ -1943,7 +1954,7 @@ export type CatSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   id?: boolean
   name?: boolean
   sex?: boolean
-  age?: boolean
+  birthDate?: boolean
   isVisible?: boolean
   status?: boolean
   hairLength?: boolean
@@ -1963,6 +1974,7 @@ export type CatSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   isOutside?: boolean
   isIdentify?: boolean
   chipId?: boolean
+  focalPoint?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["cat"]>
@@ -1971,7 +1983,7 @@ export type CatSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   id?: boolean
   name?: boolean
   sex?: boolean
-  age?: boolean
+  birthDate?: boolean
   isVisible?: boolean
   status?: boolean
   hairLength?: boolean
@@ -1991,6 +2003,7 @@ export type CatSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   isOutside?: boolean
   isIdentify?: boolean
   chipId?: boolean
+  focalPoint?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["cat"]>
@@ -1999,7 +2012,7 @@ export type CatSelectScalar = {
   id?: boolean
   name?: boolean
   sex?: boolean
-  age?: boolean
+  birthDate?: boolean
   isVisible?: boolean
   status?: boolean
   hairLength?: boolean
@@ -2019,11 +2032,12 @@ export type CatSelectScalar = {
   isOutside?: boolean
   isIdentify?: boolean
   chipId?: boolean
+  focalPoint?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type CatOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "sex" | "age" | "isVisible" | "status" | "hairLength" | "color" | "origin" | "isSterilize" | "isAlreadySterilized" | "sickness" | "treatment" | "vaccinate" | "isFivTest" | "isDeworming" | "description" | "isOkCat" | "isOkDog" | "isOkChild" | "isOutside" | "isIdentify" | "chipId" | "created_at" | "updated_at", ExtArgs["result"]["cat"]>
+export type CatOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "sex" | "birthDate" | "isVisible" | "status" | "hairLength" | "color" | "origin" | "isSterilize" | "isAlreadySterilized" | "sickness" | "treatment" | "vaccinate" | "isFivTest" | "isDeworming" | "description" | "isOkCat" | "isOkDog" | "isOkChild" | "isOutside" | "isIdentify" | "chipId" | "focalPoint" | "created_at" | "updated_at", ExtArgs["result"]["cat"]>
 export type CatInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   media?: boolean | Prisma.Cat$mediaArgs<ExtArgs>
   volunteers?: boolean | Prisma.Cat$volunteersArgs<ExtArgs>
@@ -2050,7 +2064,7 @@ export type $CatPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     id: string
     name: string | null
     sex: $Enums.SexCat
-    age: number | null
+    birthDate: Date | null
     isVisible: boolean
     status: $Enums.CatStatus
     hairLength: $Enums.HairLength | null
@@ -2070,6 +2084,7 @@ export type $CatPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     isOutside: boolean | null
     isIdentify: boolean
     chipId: string | null
+    focalPoint: $Enums.FocalPoint | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["cat"]>
@@ -2504,7 +2519,7 @@ export interface CatFieldRefs {
   readonly id: Prisma.FieldRef<"Cat", 'String'>
   readonly name: Prisma.FieldRef<"Cat", 'String'>
   readonly sex: Prisma.FieldRef<"Cat", 'SexCat'>
-  readonly age: Prisma.FieldRef<"Cat", 'Int'>
+  readonly birthDate: Prisma.FieldRef<"Cat", 'DateTime'>
   readonly isVisible: Prisma.FieldRef<"Cat", 'Boolean'>
   readonly status: Prisma.FieldRef<"Cat", 'CatStatus'>
   readonly hairLength: Prisma.FieldRef<"Cat", 'HairLength'>
@@ -2524,6 +2539,7 @@ export interface CatFieldRefs {
   readonly isOutside: Prisma.FieldRef<"Cat", 'Boolean'>
   readonly isIdentify: Prisma.FieldRef<"Cat", 'Boolean'>
   readonly chipId: Prisma.FieldRef<"Cat", 'String'>
+  readonly focalPoint: Prisma.FieldRef<"Cat", 'FocalPoint'>
   readonly created_at: Prisma.FieldRef<"Cat", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Cat", 'DateTime'>
 }

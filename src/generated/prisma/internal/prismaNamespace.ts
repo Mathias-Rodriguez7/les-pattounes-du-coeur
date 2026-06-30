@@ -1569,7 +1569,7 @@ export const CatScalarFieldEnum = {
   id: 'id',
   name: 'name',
   sex: 'sex',
-  age: 'age',
+  birthDate: 'birthDate',
   isVisible: 'isVisible',
   status: 'status',
   hairLength: 'hairLength',
@@ -1589,6 +1589,7 @@ export const CatScalarFieldEnum = {
   isOutside: 'isOutside',
   isIdentify: 'isIdentify',
   chipId: 'chipId',
+  focalPoint: 'focalPoint',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1967,6 +1968,20 @@ export type EnumVaccinateFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'Vaccinate[]'
  */
 export type ListEnumVaccinateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Vaccinate[]'>
+    
+
+
+/**
+ * Reference to a field of type 'FocalPoint'
+ */
+export type EnumFocalPointFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FocalPoint'>
+    
+
+
+/**
+ * Reference to a field of type 'FocalPoint[]'
+ */
+export type ListEnumFocalPointFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FocalPoint[]'>
     
 
 

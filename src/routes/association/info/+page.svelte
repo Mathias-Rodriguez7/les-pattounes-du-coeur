@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { fade, fly } from 'svelte/transition';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { resolve } from '$app/paths';
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -15,9 +17,8 @@
 							<Card.Description>
 								Créée en février 2013, Les Pattounes du Cœur est une association de protection
 								féline basée à Montpellier et ses alentours. Née de l’initiative de passionnées
-								rassemblaient autour d'une même cause : venir en aide aux chats abandonnés et sans
-								foyer. À travers ses actions, l’association œuvre chaque jour pour améliorer leur
-								quotidien et sensibiliser à la protection animale.
+								rassemblées autour d'une même cause : venir en aide aux chats abandonnés et sans
+								foyer.
 							</Card.Description>
 						</Card.Header>
 
@@ -25,8 +26,8 @@
 							<p class="text-muted-foreground leading-relaxed">
 								Au fil des années, l’association s’est développée autour d’une mission simple : agir
 								concrètement pour améliorer la vie des chats tout en sensibilisant à leur
-								protection. Indépendante, elle fonctionne uniquement grâce aux dons et au soutien de
-								sa communauté.
+								protection. L'association fonctionne en grande partie grâce aux dons et au soutien
+								de sa communauté.
 							</p>
 							<p class="text-muted-foreground leading-relaxed">
 								Chaque sauvetage représente un engagement important et des coûts significatifs :
@@ -44,8 +45,8 @@
 							<Card.Description>
 								Sur le terrain, l’association intervient auprès des chats errants pour les soigner,
 								les stériliser et les identifier. Cette approche permet de stabiliser les
-								populations tout en garantissant de meilleures conditions de vie aux chats,
-								désormais suivis et nourris chaque jour via différents points de nourrissage.
+								populations tout en garantissant de meilleures conditions de vie aux chats, suivis
+								via différents points de nourrissage.
 							</Card.Description>
 						</Card.Header>
 
@@ -70,17 +71,33 @@
 
 		<section>
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.1.jpg" alt="asso" class="h-full w-full object-cover" />
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
+					<img
+						src="/img/association/asso.1.jpg"
+						alt="asso"
+						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+					/>
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.5.jpg" alt="asso" class="h-full w-full object-cover" />
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
+					<img
+						src="/img/association/asso.5.jpg"
+						alt="asso"
+						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+					/>
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.3.jpg" alt="asso" class="h-full w-full object-cover" />
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
+					<img
+						src="/img/association/asso.3.jpg"
+						alt="asso"
+						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+					/>
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.4.jpg" alt="asso" class="h-full w-full object-cover" />
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
+					<img
+						src="/img/association/asso.4.jpg"
+						alt="asso"
+						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+					/>
 				</div>
 			</div>
 		</section>
@@ -138,22 +155,32 @@
 							nos pensionnaires !
 						</li>
 					</ul>
+
+					<div class="mt-4 flex">
+						<a href={resolve(`/association/news`)}>
+							<Button><span class="flex items-center gap-2"> Nous rejoindre </span></Button>
+						</a>
+					</div>
 				</Card.Content>
 			</Card.Root>
 		</section>
 
 		<section>
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img src="/img/association/asso.2.jpg" alt="asso" class="h-full w-full object-cover" />
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img src="/img/association/asso.6.jpg" alt="asso" class="h-full w-full object-cover" />
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.7.jpg" alt="asso" class="h-full w-full object-cover" />
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
+					<img
+						src="/img/association/asso.7.jpg"
+						alt="asso"
+						class="h-full w-full object-cover object-[center_82%]"
+					/>
 				</div>
-				<div class="aspect-3/2 overflow-hidden rounded-2xl">
+				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img src="/img/association/asso.8.jpg" alt="asso" class="h-full w-full object-cover" />
 				</div>
 			</div>
@@ -175,7 +202,7 @@
 								<img
 									src="/img/partners/mairie.MTP.png"
 									alt="Mairie de Montpellier"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -185,7 +212,7 @@
 								<img
 									src="/img/partners/metropole.MTP.jpeg"
 									alt="Montpellier Méditerranée Métropole"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -199,7 +226,7 @@
 								<img
 									src="/img/partners/auberge.du.chat.jpg"
 									alt="Auberge du Chat"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -209,7 +236,7 @@
 								<img
 									src="/img/partners/almo-nature.png"
 									alt="Almo Nature"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -223,7 +250,7 @@
 								<img
 									src="/img/partners/fondazione.png"
 									alt="Fondazione Capellino"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -237,7 +264,7 @@
 								<img
 									src="/img/partners/fat.bob.studio.png"
 									alt="Fatbobstudio"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -247,7 +274,7 @@
 								<img
 									src="/img/partners/safti.png"
 									alt="Safti"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -257,7 +284,7 @@
 								<img
 									src="/img/partners/clapiers.png"
 									alt="Clapiers"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>
@@ -271,7 +298,7 @@
 								<img
 									src="/img/partners/saint.clement.de.riviere.png"
 									alt="Saint Clément de Rivière"
-									class="mx-auto h-16 object-contain"
+									class="mx-auto h-20 object-contain"
 								/>
 							</a>
 						</div>

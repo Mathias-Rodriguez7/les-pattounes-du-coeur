@@ -1,10 +1,11 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
+/// <reference types="@sveltejs/kit" />
+
 declare global {
 	namespace App {
 		interface Locals {
 			user: {
 				id: string;
-				role: Prisma.VolunteerRole;
+				role: import('../generated/prisma/enums').VolunteerRole;
 				profil: {
 					firstName: string;
 					lastName: string;

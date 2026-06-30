@@ -12,7 +12,18 @@ import { FormStatus, FormType } from '../../generated/prisma/client';
 // 🧠 LOAD (initialisation des forms)
 //
 export const load = async () => {
+	const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+	const savedThisYear = await prisma.cat.count({
+		where: {
+			created_at: {
+				gte: startOfYear
+			}
+		}
+	});
+
 	return {
+		savedThisYear,
 		sosForm: await superValidate(zod4(sosFormSchema)),
 		hostForm: await superValidate(zod4(hostFormSchema)),
 		volunteerForm: await superValidate(zod4(volunteerFormSchema)),

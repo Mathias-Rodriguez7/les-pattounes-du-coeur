@@ -103,7 +103,7 @@
 			<Select.Content class="rounded-xl">
 				<Select.Item value="3y" class="rounded-lg">3 ans</Select.Item>
 				<Select.Item value="2y" class="rounded-lg">2 ans</Select.Item>
-				<Select.Item value="1y" class="rounded-lg">1 ans</Select.Item>
+				<Select.Item value="1y" class="rounded-lg">1 an</Select.Item>
 			</Select.Content>
 		</Select.Root>
 	</Card.Header>

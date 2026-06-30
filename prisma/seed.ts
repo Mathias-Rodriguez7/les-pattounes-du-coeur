@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
 import 'dotenv/config';
-import { PrismaClient } from '../src/generated/prisma/client.js';
+import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
 import { hashPassword } from '../src/lib/server/password';
@@ -229,12 +229,14 @@ async function main() {
 	// ---------------------
 	const cats = [];
 
+	const FOCAL_POINT = ['TOP', 'MID', 'BOT'] as const;
+
 	for (let i = 0; i < 30; i++) {
 		const cat = await prisma.cat.create({
 			data: {
 				name: faker.person.firstName(),
 				sex: faker.helpers.arrayElement(SEX),
-				age: faker.number.int({ min: 1, max: 18 }),
+				birthDate: faker.date.birthdate({ min: 1, max: 30, mode: 'age' }),
 				isVisible: true,
 				status: faker.helpers.arrayElement(STATUS),
 				hairLength: faker.helpers.arrayElement(HAIR),
@@ -258,6 +260,8 @@ async function main() {
 				isIdentify: randomBool(),
 
 				chipId: faker.string.alphanumeric(10),
+
+				focalPoint: faker.helpers.arrayElement(FOCAL_POINT), // 👈
 
 				media: {
 					create: [{ picture: randomImage(i) }]

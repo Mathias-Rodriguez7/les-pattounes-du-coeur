@@ -32,10 +32,10 @@
 	const { form: formData, enhance } = form;
 
 	const alertTypes = [
-		{ value: 'abandon', label: 'Abandon' },
-		{ value: 'feeding_spot', label: 'Point de nourrissage' },
-		{ value: 'found', label: 'Chat trouvé' },
-		{ value: 'danger', label: 'Chat en danger' },
+		{ value: 'abandon', label: 'Abandons / problèmes de comportement au sein de votre foyer' },
+		{ value: 'Unneutered', label: 'Chats errants non stérilisés' },
+		{ value: 'Sociable_cats_without_owners', label: 'Chats sociables sans propriétaire' },
+		{ value: 'found', label: 'Chatons trouvés / vus' },
 		{ value: 'other', label: 'Autre' }
 	];
 
@@ -44,11 +44,11 @@
 </script>
 
 <form method="POST" action="?/sos" use:enhance class="space-y-6">
-	<!-- TYPE ALERT (UI only) -->
+	<!-- TYPE ALERT -->
 	<Form.Field {form} name="alertType">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Type de signalement</Form.Label>
+				<Form.Label>Type de signalement <span class="text-destructive">*</span></Form.Label>
 
 				<Select.Root type="single" bind:value={$formData.alertType}>
 					<Select.Trigger {...props}>
@@ -76,7 +76,7 @@
 		<Form.Field {form} name="firstName">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Prénom</Form.Label>
+					<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
 					<Input {...props} bind:value={$formData.firstName} />
 				{/snippet}
 			</Form.Control>
@@ -86,7 +86,7 @@
 		<Form.Field {form} name="lastName">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Nom</Form.Label>
+					<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
 					<Input {...props} bind:value={$formData.lastName} />
 				{/snippet}
 			</Form.Control>
@@ -98,7 +98,7 @@
 	<Form.Field {form} name="phone">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Téléphone</Form.Label>
+				<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
 				<Input {...props} bind:value={$formData.phone} />
 			{/snippet}
 		</Form.Control>
@@ -108,7 +108,7 @@
 	<Form.Field {form} name="email">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Email</Form.Label>
+				<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
 				<Input type="email" {...props} bind:value={$formData.email} />
 			{/snippet}
 		</Form.Control>
@@ -119,7 +119,7 @@
 	<Form.Field {form} name="address">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Lieu du signalement</Form.Label>
+				<Form.Label>Lieu du signalement <span class="text-destructive">*</span></Form.Label>
 				<Input placeholder="Adresse ou lieu" {...props} bind:value={$formData.address} />
 			{/snippet}
 		</Form.Control>
@@ -130,7 +130,7 @@
 	<Form.Field {form} name="description">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Description</Form.Label>
+				<Form.Label>Description <span class="text-destructive">*</span></Form.Label>
 				<Textarea
 					placeholder="Décrivez la situation..."
 					{...props}

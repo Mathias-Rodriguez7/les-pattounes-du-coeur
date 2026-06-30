@@ -18,16 +18,22 @@ export const step1Schema = z.object({
 
 // 🐱 STEP 2
 export const step2Schema = z.object({
-	catAge: z.enum(['kitten', 'adult', 'senior', 'free'], {
-		message: 'Veuillez sélectionner l’âge du chat'
-	}),
-	catSex: z.enum(['male', 'female', 'free'], {
-		message: 'Veuillez sélectionner le sexe du chat'
-	}),
-	color: z.string().min(2, 'Veuillez indiquer une couleur'),
-	furLength: z.enum(['short', 'medium', 'long', 'free'], {
-		message: 'Veuillez sélectionner la longueur du poil'
-	}),
+	catAge: z
+		.enum(['kitten', 'adult', 'senior', 'free'], {
+			message: 'Veuillez sélectionner l’âge du chat'
+		})
+		.default('free'),
+	catSex: z
+		.enum(['male', 'female', 'free'], {
+			message: 'Veuillez sélectionner le sexe du chat'
+		})
+		.default('free'),
+	color: z.string().min(2, 'Veuillez indiquer une couleur').optional(),
+	furLength: z
+		.enum(['short', 'medium', 'long', 'free'], {
+			message: 'Veuillez sélectionner la longueur du poil'
+		})
+		.default('free'),
 	temperament: z.string().min(5, 'Le caractère doit contenir au moins 5 caractères')
 });
 
