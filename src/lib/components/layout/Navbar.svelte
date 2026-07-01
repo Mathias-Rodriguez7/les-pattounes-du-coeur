@@ -149,13 +149,13 @@
 					<div class="my-2 border-t"></div>
 
 					<a
-						href={resolve('/contact')}
+						href={resolve('/agir')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
-                {page.url.pathname === '/contact' ? 'bg-accent font-semibold' : ''}"
+                {page.url.pathname === '/agir' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Mail class="h-4 w-4 shrink-0" />
-						Contact
+						Agir
 					</a>
 				</nav>
 			</Sheet.Content>
@@ -266,7 +266,7 @@
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Link href="/contact" class="text-2xl">Contact</NavigationMenu.Link>
+						<NavigationMenu.Link href="/agir" class="text-2xl">Agir</NavigationMenu.Link>
 					</NavigationMenu.Item>
 				</NavigationMenu.List>
 			</NavigationMenu.Root>
