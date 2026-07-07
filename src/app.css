@@ -1,16 +1,5 @@
 @import 'tailwindcss';
-
-/* =========================
-FONT
-========================= */
-
-@font-face {
-	font-family: 'TT Rounds Neue';
-	src: url('/fonts/tt-rounds-neue.woff2') format('woff2');
-	font-weight: 100 900;
-	font-style: normal;
-	font-display: swap;
-}
+@import '/static/fonts/fonts.css';
 
 /* =========================
 DESIGN TOKENS

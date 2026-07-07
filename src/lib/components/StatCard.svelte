@@ -1,81 +1,57 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import * as Card from '$lib/components/ui/card';
+	import type { ComponentType } from 'svelte';
 
-	type StatItem = {
+	interface Props {
 		label: string;
 		value: number;
-		total?: number;
-		icon: Component;
-	};
+		icon: ComponentType;
+		description: string;
+		trend?: {
+			value: number;
+			isPositive: boolean;
+		};
+	}
 
-	type Props = {
-		title: string;
-		stats: StatItem[];
-	};
-
-	let { title, stats }: Props = $props();
+	let { label, value, icon: Icon, description, trend }: Props = $props();
 </script>
 
-<div
-	class="
-		bg-card
-		border-border
-		overflow-hidden
-		rounded-3xl
-	"
+<Card.Root
+	class="group hover:border-primary/50 relative overflow-hidden transition-all hover:shadow-md"
 >
-	<div class="flex flex-col gap-2 p-6">
-		<!-- HEADER -->
-		<div>
-			<h2 class="text-xl font-bold tracking-tight">
-				{title}
-			</h2>
+	<Card.Content class="space-y-4 p-6">
+		<!-- Header: Icon + Label -->
+		<div class="flex items-start justify-between">
+			<div class="flex-1 space-y-1">
+				<p class="text-muted-foreground text-sm font-medium">{label}</p>
+				<h3 class="text-2xl font-bold tracking-tight">{value.toLocaleString('fr-FR')}</h3>
+			</div>
+
+			<div class="bg-primary/10 text-primary shrink-0 rounded-lg p-3">
+				<svelte:component this={Icon} class="h-5 w-5" />
+			</div>
 		</div>
 
-		<!-- STATS -->
-		<div class="divide-border flex flex-col divide-y">
-			{#each stats as stat (stat.label)}
-				<div class="flex items-center justify-between py-2">
-					<!-- LEFT -->
-					<div class="flex items-center gap-4">
-						<div
-							class="
-								from-accent
-								to-primary
-								flex
-								h-10
-								w-10
-								items-center
-								justify-center
-								rounded-2xl
-								bg-linear-to-br
-								shadow-lg
-							"
-						>
-							<svelte:component this={stat.icon} class="h-5 w-5" />
-						</div>
+		<!-- Description + Trend -->
+		<div class="flex items-center justify-between">
+			<p class="text-muted-foreground text-xs">{description}</p>
 
-						<div class="flex flex-col">
-							<p class="text-sm font-medium">
-								{stat.label}
-							</p>
-
-							{#if stat.total}
-								<p class="text-muted-foreground text-xs">
-									sur {stat.total} au total
-								</p>
-							{/if}
-						</div>
-					</div>
-
-					<!-- RIGHT -->
-					<div class="flex flex-col items-end">
-						<p class="text-3xl font-black tracking-tight">
-							{stat.value}
-						</p>
-					</div>
+			{#if trend}
+				<div
+					class="rounded-full px-2 py-1 text-xs font-semibold"
+					class:bg-green-100={trend.isPositive}
+					class:text-green-700={trend.isPositive}
+					class:bg-red-100={!trend.isPositive}
+					class:text-red-700={!trend.isPositive}
+				>
+					{trend.isPositive ? '+' : '-'}{trend.value}%
 				</div>
-			{/each}
+			{/if}
 		</div>
-	</div>
-</div>
+	</Card.Content>
+
+	<!-- Gradient background subtil au hover -->
+	<div
+		class="from-primary pointer-events-none absolute inset-0 bg-gradient-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-5"
+	></div>
+</Card.Root>
