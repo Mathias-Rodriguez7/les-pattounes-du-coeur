@@ -90,7 +90,7 @@
 		<!-- Tableau -->
 		<Card.Root class="col-span-2">
 			<Card.Header class="flex flex-row items-center justify-between">
-				<Card.Title>Chats</Card.Title>
+				<Card.Title class="text-2xl font-bold">Chats en gestion</Card.Title>
 				<Button size="sm" onclick={() => (newCatOpen = true)}>
 					<Plus class="mr-2 h-4 w-4" />
 					Nouveau chat
@@ -115,8 +115,8 @@
 								<Table.Head>Statut</Table.Head>
 								<Table.Head title="OK chien">🐕</Table.Head>
 								<Table.Head title="OK chat">🐈</Table.Head>
-								<Table.Head title="OK enfant">🧒</Table.Head>
-								<Table.Head title="Jardin">🌿</Table.Head>
+								<Table.Head title="OK enfant">👶</Table.Head>
+								<Table.Head title="Jardin">🏡</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>

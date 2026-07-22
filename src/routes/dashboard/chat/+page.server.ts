@@ -3,6 +3,20 @@ import { mapCatFull } from '$lib/mappers/cats';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
+export type PageData = {
+	cats: ReturnType<typeof mapCatFull>[];
+	stats: {
+		total: number;
+		withVolunteer: number;
+		withHost: number;
+		withoutHost: number;
+		incomplete: number;
+	};
+	hosts: Array<{ id: string; firstName: string; lastName: string }>;
+	volunteers: Array<{ id: string; role: string; firstName: string; lastName: string }>;
+	isAdmin: boolean;
+};
+
 export const load: PageServerLoad = async () => {
 	const cats = await prisma.cat.findMany({
 		include: {

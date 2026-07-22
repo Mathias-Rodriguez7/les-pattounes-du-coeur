@@ -2,7 +2,6 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Chart from '$lib/components/ui/chart/index.js';
 	import { ArcChart, Text } from 'layerchart';
-	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 	import { cn } from '$lib/utils';
 
 	interface Props {
@@ -83,11 +82,10 @@
 	</Card.Content>
 	<Card.Footer class="flex-col gap-2 text-sm">
 		<div class="flex items-center gap-2 leading-none font-medium">
-			{percentage}% des chats de l'association
-			<TrendingUpIcon class="size-4" />
+			Vous gérez {percentage}% des chats de l'association
 		</div>
 		<div class="text-muted-foreground flex items-center gap-2 leading-none">
-			Total : {totalCats} chats en gestion
+			Total : {totalCats} chats en gestion dans l'association
 		</div>
 	</Card.Footer>
 </Card.Root>

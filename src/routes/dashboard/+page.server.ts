@@ -400,7 +400,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			},
 
 			{
-				label: 'Les bénévoles',
+				label: 'Ajouter un(e) bénévoles',
 				description: 'Gérer les bénévoles.',
 				href: '/dashboard/volunteer',
 				icon: 'users'

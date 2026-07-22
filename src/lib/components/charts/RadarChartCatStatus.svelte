@@ -48,7 +48,7 @@
 			color: 'hsl(var(--primary))'
 		},
 		volunteer: {
-			label: 'Bénévole',
+			label: 'Vous',
 			color: 'hsl(var(--secondary))'
 		}
 	} satisfies Chart.ChartConfig);
@@ -87,6 +87,7 @@
 				x="categoryLabel"
 				xScale={scaleBand()}
 				padding={12}
+				legend={{ classes: { root: '-bottom-5' } }}
 				props={{
 					spline: {
 						curve: curveLinearClosed,

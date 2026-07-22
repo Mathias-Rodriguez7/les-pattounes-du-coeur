@@ -210,16 +210,22 @@
 					<NavigationMenu.Item>
 						<NavigationMenu.Trigger class="text-2xl">Adoptions</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
-							<ul class="grid w-52 gap-2 p-3">
+							<ul class="w-64">
 								<li>
-									<NavigationMenu.Link href="/adoptions/chat" class="text-2xl"
-										>Chats</NavigationMenu.Link
+									<NavigationMenu.Link
+										href="/adoptions/chat"
+										class="block w-full px-3 py-5 text-2xl"
 									>
+										Chats
+									</NavigationMenu.Link>
 								</li>
-								<li>
-									<NavigationMenu.Link href="/adoptions/formChat" class="text-2xl"
-										>Formulaire</NavigationMenu.Link
+								<li class="w-full">
+									<NavigationMenu.Link
+										href="/adoptions/formChat"
+										class="block w-full px-3 py-5 text-2xl"
 									>
+										Formulaire
+									</NavigationMenu.Link>
 								</li>
 							</ul>
 						</NavigationMenu.Content>
@@ -229,7 +235,7 @@
 						<NavigationMenu.Link
 							href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
 							target="_blank"
-							class="text-2xl">Donation</NavigationMenu.Link
+							class="rounded-md px-4 text-2xl">Donation</NavigationMenu.Link
 						>
 					</NavigationMenu.Item>
 
@@ -242,31 +248,38 @@
 					<NavigationMenu.Item>
 						<NavigationMenu.Trigger class="text-2xl">Association</NavigationMenu.Trigger>
 						<NavigationMenu.Content class="shadow-md">
-							<ul class="grid w-52 gap-2 p-3">
+							<ul class="grid w-64 gap-2">
 								<li>
-									<NavigationMenu.Link href="/association/info" class="text-2xl"
-										>Info</NavigationMenu.Link
+									<NavigationMenu.Link
+										href="/association/info"
+										class="block w-full px-3 py-5 text-2xl">Info</NavigationMenu.Link
 									>
 								</li>
 								<li>
-									<NavigationMenu.Link href="/association/news" class="text-2xl"
-										>News</NavigationMenu.Link
+									<NavigationMenu.Link
+										href="/association/news"
+										class="block w-full px-3 py-5 text-2xl">News</NavigationMenu.Link
 									>
 								</li>
 								<li>
-									<NavigationMenu.Link href="/association/conseils" class="text-2xl"
-										>Conseils</NavigationMenu.Link
+									<NavigationMenu.Link
+										href="/association/conseils"
+										class="block w-full px-3 py-5 text-2xl">Conseils</NavigationMenu.Link
 									>
 								</li>
 								<li>
-									<NavigationMenu.Link href="#" class="text-2xl">Boutique</NavigationMenu.Link>
+									<NavigationMenu.Link href="#" class="block w-full px-3 py-5 text-2xl"
+										>Boutique</NavigationMenu.Link
+									>
 								</li>
 							</ul>
 						</NavigationMenu.Content>
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Link href="/agir" class="text-2xl">Agir</NavigationMenu.Link>
+						<NavigationMenu.Link href="/agir" class="rounded-md px-4 text-2xl"
+							>Agir</NavigationMenu.Link
+						>
 					</NavigationMenu.Item>
 				</NavigationMenu.List>
 			</NavigationMenu.Root>

@@ -11,11 +11,41 @@
 	let { data }: { data: PageData } = $props();
 
 	const user = $derived(data.user);
-	const stats = $derived(data.stats ?? {});
 	const taskGroups = $derived(data.taskGroups ?? []);
 	const quickActions = $derived(data.quickActions ?? []);
-	const volunteerStats = $derived(data.volunteerStats ?? []);
-	const radarChartData = $derived(data.radarChartData ?? []);
+
+	// ✅ CALCULER LES STATS AGRÉGÉES DIRECTEMENT DEPUIS LES DONNÉES
+	const totalCats = $derived(data.volunteerStats?.reduce((sum, v) => sum + v.catsManaged, 0) ?? 0);
+	const totalAdoptions = $derived(
+		data.volunteerStats?.reduce((sum, v) => sum + v.catsAdopted, 0) ?? 0
+	);
+	const volunteerCats = $derived(data.volunteerStats?.[0]?.catsManaged ?? 0);
+	const volunteerAdoptions = $derived(data.volunteerStats?.[0]?.catsAdopted ?? 0);
+
+	// Calculer les données pour le radar chart
+	const allCatsData = $derived.by(() => {
+		const result = { AVAILABLE: 0, SOCIALIZE: 0, ADOPTED: 0, FREE: 0 };
+		data.radarChartData?.forEach((r) => {
+			result.AVAILABLE += r.AVAILABLE;
+			result.SOCIALIZE += r.SOCIALIZE;
+			result.ADOPTED += r.ADOPTED;
+			result.FREE += r.FREE;
+		});
+		return result;
+	});
+
+	const volunteerCatsData = $derived.by(() => {
+		if (!data.radarChartData || data.radarChartData.length === 0) {
+			return { AVAILABLE: 0, SOCIALIZE: 0, ADOPTED: 0, FREE: 0 };
+		}
+		const firstVolunteer = data.radarChartData[0];
+		return {
+			AVAILABLE: firstVolunteer.AVAILABLE,
+			SOCIALIZE: firstVolunteer.SOCIALIZE,
+			ADOPTED: firstVolunteer.ADOPTED,
+			FREE: firstVolunteer.FREE
+		};
+	});
 
 	const iconMap: Record<string, string> = {
 		cat: 'cat',
@@ -146,11 +176,11 @@
 						</div>
 						<div class="flex flex-col items-end gap-1">
 							<p class="text-primary text-2xl font-bold">
-								{stats.volunteerCatsManaged ?? 0}/{stats.totalAssociationCats ?? 0}
+								{volunteerCats}/{data.stats.totalAssociationCats}
 							</p>
 							<p class="text-muted-foreground text-xs font-medium">
-								{#if stats.totalAssociationCats}
-									{Math.round((stats.volunteerCatsManaged / stats.totalAssociationCats) * 100)}%
+								{#if data.stats.totalAssociationCats}
+									{Math.round((volunteerCats / data.stats.totalAssociationCats) * 100)}%
 								{:else}
 									0%
 								{/if}
@@ -178,12 +208,13 @@
 						</div>
 						<div class="flex flex-col items-end gap-1">
 							<p class="text-primary text-2xl font-bold">
-								{stats.availableHostFamilies ?? 0}/{stats.totalActiveHosts ?? 0}
+								{data.stats.availableHostFamilies}/{data.stats.totalActiveHosts}
 							</p>
 							<p class="text-muted-foreground text-xs font-medium">
-								{#if stats.totalActiveHosts}
+								{#if data.stats.totalActiveHosts}
 									{Math.round(
-										((stats.availableHostFamilies ?? 0) / (stats.totalActiveHosts ?? 1)) * 100
+										((data.stats.availableHostFamilies ?? 0) / (data.stats.totalActiveHosts ?? 1)) *
+											100
 									)}%
 								{:else}
 									0%
@@ -212,12 +243,12 @@
 						</div>
 						<div class="flex flex-col items-end gap-1">
 							<p class="text-primary text-2xl font-bold">
-								{stats.volunteerAdoptions ?? 0}/{stats.totalYearAdoptions ?? 0}
+								{volunteerAdoptions}/{data.stats.totalYearAdoptions}
 							</p>
 							<p class="text-muted-foreground text-xs font-medium">
-								{#if stats.totalYearAdoptions}
+								{#if data.stats.totalYearAdoptions}
 									{Math.round(
-										((stats.volunteerAdoptions ?? 0) / (stats.totalYearAdoptions ?? 1)) * 100
+										((volunteerAdoptions ?? 0) / (data.stats.totalYearAdoptions ?? 1)) * 100
 									)}%
 								{:else}
 									0%
@@ -245,7 +276,7 @@
 							</div>
 						</div>
 						<div class="flex flex-col items-end gap-1">
-							<p class="text-primary text-2xl font-bold">{stats.totalVolunteers ?? 0}</p>
+							<p class="text-primary text-2xl font-bold">{data.stats.totalVolunteers}</p>
 							<p class="text-muted-foreground text-xs font-medium">actifs</p>
 						</div>
 					</div>
@@ -259,7 +290,7 @@
 		<SectionHeader title="Mes Stats" />
 
 		<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-			<!-- GRAPHIQUE 1: Chats gérés par bénévole -->
+			<!-- GRAPHIQUE 1: Chats gérés -->
 			<div class="border-border bg-card rounded-xl border p-6">
 				<div class="mb-6 flex items-center gap-3">
 					<Icon
@@ -270,8 +301,8 @@
 					/>
 					<h3 class="font-semibold">Chats gérés par bénévole (année en cours)</h3>
 				</div>
-				{#if volunteerStats.length > 0}
-					<BarChartVolunteerCats totalCats={380} volunteerCats={63} />
+				{#if volunteerCats > 0}
+					<BarChartVolunteerCats {totalCats} {volunteerCats} />
 				{:else}
 					<div class="flex h-64 items-center justify-center">
 						<p class="text-muted-foreground text-sm">Pas de données disponibles</p>
@@ -279,19 +310,19 @@
 				{/if}
 			</div>
 
-			<!-- GRAPHIQUE 2: Chats adoptés par bénévole -->
+			<!-- GRAPHIQUE 2: Adoptions -->
 			<div class="border-border bg-card rounded-xl border p-6">
 				<div class="mb-6 flex items-center gap-3">
 					<Icon
 						name="paw"
 						withWrapper={true}
-						wrapperClass="from-green-500 to-emerald-500 flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg"
+						wrapperClass="from-orange-500 to-orange-600 flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg"
 						iconClass="h-5 w-5 text-white"
 					/>
 					<h3 class="font-semibold">Chats adoptés par bénévole (année en cours)</h3>
 				</div>
-				{#if volunteerStats.length > 0}
-					<RadialChartVolunteerAdoptions totalAdoptions={150} volunteerAdoptions={45} />
+				{#if volunteerAdoptions > 0}
+					<RadialChartVolunteerAdoptions {totalAdoptions} {volunteerAdoptions} />
 				{:else}
 					<div class="flex h-64 items-center justify-center">
 						<p class="text-muted-foreground text-sm">Pas de données disponibles</p>
@@ -299,32 +330,19 @@
 				{/if}
 			</div>
 
-			<!-- GRAPHIQUE 3: Radar Chart des statuts -->
+			<!-- GRAPHIQUE 3: Distribution des statuts -->
 			<div class="border-border bg-card rounded-xl border p-6">
 				<div class="mb-6 flex items-center gap-3">
 					<Icon
 						name="clipboard"
 						withWrapper={true}
-						wrapperClass="from-purple-500 to-pink-500 flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg"
+						wrapperClass="from-indigo-500 to-purple-600 flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg"
 						iconClass="h-5 w-5 text-white"
 					/>
 					<h3 class="font-semibold">Distribution des statuts par bénévole</h3>
 				</div>
-				{#if radarChartData.length > 0}
-					<RadarChartCatStatus
-						allCatsData={{
-							AVAILABLE: 15,
-							SOCIALIZE: 18,
-							ADOPTED: 10,
-							FREE: 7
-						}}
-						volunteerCatsData={{
-							AVAILABLE: 6,
-							SOCIALIZE: 9,
-							ADOPTED: 5,
-							FREE: 1
-						}}
-					/>
+				{#if Object.values(allCatsData).some((v) => v > 0)}
+					<RadarChartCatStatus {allCatsData} {volunteerCatsData} />
 				{:else}
 					<div class="flex h-96 items-center justify-center">
 						<p class="text-muted-foreground text-sm">Pas de données disponibles</p>
