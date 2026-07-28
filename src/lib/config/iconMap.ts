@@ -8,7 +8,8 @@ import {
 	Mail,
 	Users,
 	Newspaper,
-	HeartPlus
+	HeartPlus,
+	PenTool
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -22,5 +23,6 @@ export const iconMap: Record<string, Component> = {
 	mail: Mail,
 	users: Users,
 	news: Newspaper,
-	heart: HeartPlus
+	heart: HeartPlus,
+	pen: PenTool
 };

@@ -65,11 +65,36 @@ export const load: PageServerLoad = async ({ locals }) => {
 			}
 		];
 
+		const communicationQuickActions = [
+			{
+				label: 'Créer un chat',
+				description: 'Ajouter un nouveau chat',
+				icon: 'cat',
+				iconTheme: 'cats',
+				href: '/cats/new'
+			},
+			{
+				label: 'Créer une News',
+				description: 'Ajouter une News',
+				icon: 'pen',
+				iconTheme: 'news',
+				href: '/dashboard/news/new'
+			},
+			{
+				label: 'Candidatures',
+				description: 'Traiter mes candidatures',
+				icon: 'mail',
+				iconTheme: 'pending',
+				href: '/applications?assigned=me'
+			}
+		];
+
 		return {
 			user,
 			stats,
 			adminQuickActions,
 			managerQuickActions,
+			communicationQuickActions,
 			...taskData
 		};
 	} catch (err) {
@@ -382,33 +407,114 @@ async function getManagerTasks(volunteerId: string) {
 // ============================================
 
 async function getCommunicationTasks(volunteerId: string) {
-	const [newsThisMonth, totalNewsletters, totalCats, totalNews] = await Promise.all([
+	const now = new Date();
+	const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+	const [
+		totalCats,
+		incompleteCats,
+		assignedPendingVolunteerForms,
+		assignedPendingHostForms,
+		newsThisMonth,
+		newslettersThisMonth
+	] = await Promise.all([
+		// 1️⃣ TOTAL DE CHATS EN GESTION
+		prisma.catVolunteer.count({
+			where: {
+				volunteerId: volunteerId
+			}
+		}),
+
+		// 2️⃣ FICHES DE CHATS INCOMPLÈTES
+		prisma.cat.count({
+			where: {
+				volunteers: {
+					some: {
+						volunteerId: volunteerId
+					}
+				},
+				OR: [
+					{ name: null },
+					{ birthDate: null },
+					{ color: null },
+					{ isSterilize: false },
+					{ vaccinate: null },
+					{ isFivTest: false },
+					{ isDeworming: false },
+					{ description: null },
+					{ isOkCat: null },
+					{ isOkDog: null },
+					{ isOkChild: null },
+					{ isOutside: null },
+					{ isIdentify: false },
+					{ chipId: null }
+				]
+			}
+		}),
+
+		// 3️⃣ CANDIDATURES BÉNÉVOLES EN ATTENTE
+		prisma.form.count({
+			where: {
+				type: 'VOLUNTEER',
+				status: 'PENDING',
+				assignedToId: volunteerId
+			}
+		}),
+
+		// 4️⃣ CANDIDATURES FA EN ATTENTE
+		prisma.form.count({
+			where: {
+				type: 'HOST',
+				status: 'PENDING',
+				assignedToId: volunteerId
+			}
+		}),
+
+		// 5️⃣ NEWS CRÉÉES CE MOIS
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
 				created_at: {
-					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+					gte: firstDayOfMonth
 				}
 			}
 		}),
+
+		// 6️⃣ NEWSLETTERS CRÉÉES CE MOIS
 		prisma.news.count({
 			where: {
-				type: 'NEWSLETTER'
+				type: 'NEWSLETTER',
+				created_at: {
+					gte: firstDayOfMonth
+				}
 			}
-		}),
-		prisma.cat.count({
-			where: {
-				isVisible: true
-			}
-		}),
-		prisma.news.count()
+		})
 	]);
 
 	return [
 		{
-			theme: 'Communication',
-			icon: 'paperclip',
-			iconTheme: 'communication',
+			theme: 'Mes Chats',
+			icon: 'cat',
+			iconTheme: 'cats',
+			tasks: [
+				{
+					label: 'Chats en gestion',
+					description: 'Total suivi',
+					value: totalCats,
+					href: '/dashboard/mes-chats'
+				},
+				{
+					label: 'Fiches incomplètes',
+					description: 'À compléter',
+					value: incompleteCats,
+					href: '/dashboard/mes-chats?filter=incomplete'
+				}
+			]
+		},
+		{
+			theme: 'News',
+			icon: 'pen',
+			iconTheme: 'news',
 			tasks: [
 				{
 					label: 'News ce mois',
@@ -418,28 +524,28 @@ async function getCommunicationTasks(volunteerId: string) {
 				},
 				{
 					label: 'Newsletters',
-					description: 'À programmer/publier',
-					value: totalNewsletters,
+					description: 'Créées ce mois-ci',
+					value: newslettersThisMonth,
 					href: '/dashboard/news?type=NEWSLETTER'
 				}
 			]
 		},
 		{
-			theme: 'Contenu',
-			icon: 'pen',
-			iconTheme: 'content',
+			theme: 'Mes candidatures',
+			icon: 'mail',
+			iconTheme: 'pending',
 			tasks: [
 				{
-					label: 'Articles total',
-					description: 'Tous les contenus',
-					value: totalNews,
-					href: '/dashboard/news'
+					label: 'Candidatures bénévoles',
+					description: 'En attente de traitement',
+					value: assignedPendingVolunteerForms,
+					href: '/dashboard/candidatures?assigned=true'
 				},
 				{
-					label: 'Chats visibles',
-					description: 'À mettre en avant',
-					value: totalCats,
-					href: '/dashboard/chats?filter=visible'
+					label: 'Candidatures FA',
+					description: 'En attente de traitement',
+					value: assignedPendingHostForms,
+					href: '/dashboard/candidatures?assigned=true&type=HOST'
 				}
 			]
 		}

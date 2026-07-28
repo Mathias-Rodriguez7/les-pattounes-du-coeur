@@ -11,28 +11,8 @@
 
 	let { data }: Props = $props();
 
-	const managerQuickActions = $derived([
-		{
-			label: 'Créer un chat',
-			description: 'Ajouter un nouveau chat',
-			icon: 'cat',
-			href: '/cats/new'
-		},
-		{
-			label: "Familles d'accueil",
-			description: 'Voir les FA de mes chats',
-			icon: 'house',
-			href: '/host-families?myChats=true'
-		},
-		{
-			label: 'Candidatures',
-			description: 'Traiter mes candidatures',
-			icon: 'mail',
-			href: '/applications?assigned=me'
-		}
-	]);
-
-	const managerTasks = $derived(data.taskGroups ?? []);
+	const managerQuickActions = $derived(data.managerQuickActions);
+	const managerTasks = $derived(data.managerTasks ?? []);
 </script>
 
 <div class="flex flex-col gap-8 lg:min-h-[calc(100vh-550px)] lg:flex-row">

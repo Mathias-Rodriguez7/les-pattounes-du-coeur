@@ -11,34 +11,8 @@
 
 	let { data }: Props = $props();
 
-	const communicationQuickActions = $derived([
-		{
-			label: 'Créer une news',
-			description: 'Publier une nouvelle actualité',
-			icon: 'news',
-			href: '/news/new'
-		},
-		{
-			label: 'Créer un chat',
-			description: 'Ajouter un nouveau chat',
-			icon: 'cat',
-			href: '/cats/new'
-		},
-		{
-			label: 'Mes chats',
-			description: 'Gérer mes chats assignés',
-			icon: 'cat',
-			href: '/cats?myChats=true'
-		},
-		{
-			label: 'Candidatures',
-			description: 'Traiter mes candidatures',
-			icon: 'mail',
-			href: '/applications?assigned=me'
-		}
-	]);
-
-	const communicationTasks = $derived(data.taskGroups ?? []);
+	const communicationQuickActions = $derived(data.communicationQuickActions);
+	const communicationTasks = $derived(data.communicationTasks ?? []);
 </script>
 
 <div class="flex flex-col gap-8 lg:min-h-[calc(100vh-550px)] lg:flex-row">

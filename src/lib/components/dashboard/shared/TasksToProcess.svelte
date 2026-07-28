@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 
 	interface TaskGroup {
@@ -28,14 +29,13 @@
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 		{#each taskGroups as group (group.theme)}
 			<div class="border-border bg-card py4 rounded-xl border px-6 pt-6">
-				<div class="mb-6 flex items-center gap-3">
-					<Icon
-						name={group.icon}
-						withWrapper={true}
-						wrapperClass="flex h-10 w-10 items-center justify-center rounded-2xl shadow-lg"
-						iconClass="h-5 w-5 text-white"
-						style="background: linear-gradient(135deg, var(--icon-{group.iconTheme}-from), var(--icon-{group.iconTheme}-to))"
-					/>
+				<div class="flex items-center gap-4">
+					<div
+						class="flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-lg"
+						style="background: {getGradientStyle(group.iconTheme)}"
+					>
+						<Icon name={group.icon} iconClass="h-5 w-5 text-white" />
+					</div>
 					<h3 class="font-semibold">{group.theme}</h3>
 				</div>
 
@@ -50,7 +50,7 @@
 									<p class="text-sm font-medium">{task.label}</p>
 									<span
 										class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
-										style="background: linear-gradient(135deg, var(--icon-{group.iconTheme}-from), var(--icon-{group.iconTheme}-to))"
+										style="background: {getGradientStyle(group.iconTheme)}"
 									>
 										{task.value}
 									</span>

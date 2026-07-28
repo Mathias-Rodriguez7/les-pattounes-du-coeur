@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import { getGradientStyle } from '$lib/utils/iconThemes';
 
 	interface Action {
 		label: string;
@@ -15,15 +16,6 @@
 	}
 
 	let { actions }: Props = $props();
-
-	const iconMap: Record<string, string> = {
-		cat: 'cat',
-		house: 'house',
-		mail: 'mail',
-		users: 'users',
-		clipboard: 'clipboard',
-		news: 'news'
-	};
 </script>
 
 <section class="flex flex-col gap-4">
@@ -35,13 +27,12 @@
 					class="border-border bg-card hover:border-primary/50 rounded-xl border px-6 py-8 transition-all hover:shadow-md"
 				>
 					<div class="flex items-start gap-4">
-						<Icon
-							name={iconMap[action.icon] || 'plus'}
-							withWrapper={true}
-							wrapperClass="flex h-10 w-10 items-center justify-center rounded-2xl shadow-lg"
-							iconClass="h-5 w-5 text-white"
-							style="background: linear-gradient(135deg, var(--icon-{action.iconTheme}-from), var(--icon-{action.iconTheme}-to))"
-						/>
+						<div
+							class="flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-lg"
+							style="background: {getGradientStyle(action.iconTheme)}"
+						>
+							<Icon name={action.icon} iconClass="h-5 w-5 text-white" />
+						</div>
 						<div class="flex min-w-0 flex-col gap-1">
 							<span class="group-hover:text-primary text-sm font-semibold transition-colors"
 								>{action.label}</span
