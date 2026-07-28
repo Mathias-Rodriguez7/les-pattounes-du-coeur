@@ -65,7 +65,7 @@
 				{/snippet}
 
 				{#snippet aboveMarks()}
-					<text textAnchor="start" x="-45" y="10" class="fill-foreground text-4xl! font-bold">
+					<text textAnchor="start" x="-30" y="10" class="fill-foreground text-4xl! font-bold">
 						{volunteerAdoptions}
 						<tspan class="fill-muted-foreground text-lg! font-normal">
 							/ {totalAdoptions}

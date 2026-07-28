@@ -7,7 +7,8 @@ import {
 	ClipboardList,
 	Mail,
 	Users,
-	Newspaper
+	Newspaper,
+	HeartPlus
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -20,5 +21,6 @@ export const iconMap: Record<string, Component> = {
 	clipboard: ClipboardList,
 	mail: Mail,
 	users: Users,
-	news: Newspaper
+	news: Newspaper,
+	heart: HeartPlus
 };
