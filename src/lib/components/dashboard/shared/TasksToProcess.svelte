@@ -26,30 +26,30 @@
 <section class="flex flex-col gap-4">
 	<SectionHeader title="À traiter" />
 
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+	<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 		{#each taskGroups as group (group.theme)}
-			<div class="border-border bg-card py4 rounded-xl border px-6 pt-6">
-				<div class="flex items-center gap-4">
+			<div class="border-border bg-card rounded-xl border px-4 py-6 sm:px-6">
+				<div class="flex items-center gap-3 sm:gap-4">
 					<div
-						class="flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-lg"
+						class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
 						style="background: {getGradientStyle(group.iconTheme)}"
 					>
 						<Icon name={group.icon} iconClass="h-5 w-5 text-white" />
 					</div>
-					<h3 class="font-semibold">{group.theme}</h3>
+					<h3 class="text-sm font-semibold sm:text-base">{group.theme}</h3>
 				</div>
 
 				{#if group.tasks.length > 0}
-					<div class="flex flex-col gap-3">
+					<div class="mt-4 flex flex-col gap-3">
 						{#each group.tasks as task (task.label)}
 							<a
 								href={task.href || '#'}
-								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg p-4 transition-all hover:shadow-md"
+								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg border border-transparent px-3 py-3 transition-all hover:shadow-md sm:px-4 sm:py-4"
 							>
-								<div class="flex items-center justify-between">
-									<p class="text-sm font-medium">{task.label}</p>
+								<div class="flex items-center justify-between gap-2">
+									<p class="text-xs font-medium sm:text-sm">{task.label}</p>
 									<span
-										class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
+										class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white sm:h-8 sm:w-8"
 										style="background: {getGradientStyle(group.iconTheme)}"
 									>
 										{task.value}
@@ -57,11 +57,13 @@
 								</div>
 								<p class="text-muted-foreground text-xs">{task.description}</p>
 							</a>
-							<Separator />
+							{#if group.tasks.indexOf(task) < group.tasks.length - 1}
+								<Separator />
+							{/if}
 						{/each}
 					</div>
 				{:else}
-					<p class="text-muted-foreground text-xs">Aucune tâche</p>
+					<p class="text-muted-foreground mt-4 text-xs">Aucune tâche</p>
 				{/if}
 			</div>
 		{/each}

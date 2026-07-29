@@ -51,13 +51,11 @@
 	]);
 </script>
 
-<section
-	class="border-border bg-card lg:grid-cols grid grid-cols-1 gap-2 overflow-hidden rounded-2xl border pt-2"
->
-	{#each overviewItems as item (item.id)}
-		<div class="px-6">
+<section class="border-border bg-card flex flex-col gap-0 overflow-hidden rounded-2xl border">
+	{#each overviewItems as item, index (item.id)}
+		<div class="flex flex-1 flex-col px-6 py-4">
 			<div class="flex items-center justify-between">
-				<div class="flex flex-col gap-3.5">
+				<div class="flex flex-col gap-1">
 					<p class="text-sm font-medium text-gray-600">{item.label}</p>
 					<div
 						class="flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-lg"
@@ -74,6 +72,8 @@
 				</span>
 			</div>
 		</div>
-		<Separator />
+		{#if index < overviewItems.length - 1}
+			<Separator />
+		{/if}
 	{/each}
 </section>

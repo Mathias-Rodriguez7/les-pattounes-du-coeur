@@ -12,36 +12,37 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const userRole = user.role;
 
 		// Récupérer les stats ET les tâches en parallèle
-		const [stats, taskData] = await Promise.all([
+		const [stats, taskData, volunteerStats] = await Promise.all([
 			getAssociationStats(),
-			getTasksByRole(userRole, user.id)
+			getTasksByRole(userRole, user.id),
+			getVolunteerStats(user.id)
 		]);
 
 		const adminQuickActions = [
 			{
-				label: 'Créer un chat',
-				description: 'Ajouter un nouveau chat',
+				label: 'Chat',
+				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
 				href: '/dashboard/chat'
 			},
 			{
-				label: 'Créer une FA',
-				description: "Ajouter une famille d'accueil",
+				label: 'Famille d’accueil',
+				description: 'Ajouter une FA',
 				icon: 'house',
 				iconTheme: 'fa',
 				href: '/dashboard/fa'
 			},
 			{
-				label: 'Créer un bénévole',
-				description: 'Inviter un nouveau bénévole',
+				label: 'Bénévole',
+				description: 'Ajouter un bénévole',
 				icon: 'users',
 				iconTheme: 'volunteers',
 				href: '/dashboard/benevole'
 			},
 			{
 				label: 'Candidatures',
-				description: 'Traiter les nouvelles candidatures',
+				description: 'Traiter les candidatures',
 				icon: 'mail',
 				iconTheme: 'pending',
 				href: '/dashboard/candidature'
@@ -50,8 +51,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		const managerQuickActions = [
 			{
-				label: 'Créer un chat',
-				description: 'Ajouter un nouveau chat',
+				label: 'Chat',
+				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
 				href: '/cats/new'
@@ -67,14 +68,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		const communicationQuickActions = [
 			{
-				label: 'Créer un chat',
-				description: 'Ajouter un nouveau chat',
+				label: 'Chat',
+				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
 				href: '/cats/new'
 			},
 			{
-				label: 'Créer une News',
+				label: 'News',
 				description: 'Ajouter une News',
 				icon: 'pen',
 				iconTheme: 'news',
@@ -92,6 +93,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			user,
 			stats,
+			volunteerStats,
 			adminQuickActions,
 			managerQuickActions,
 			communicationQuickActions,
@@ -180,18 +182,20 @@ async function getAdminTasks(volunteerId: string) {
 			}
 		}),
 		// 2. FA - FA actives sans chat
-		prisma.placement.count({
+		prisma.host.count({
 			where: {
-				host: {
-					actif: 'ACTIVE'
-				},
-				catId: undefined
+				actif: 'ACTIVE',
+				placements: {
+					some: {
+						catId: undefined
+					}
+				}
 			}
 		}),
 		// 3. FA - FA en pause
 		prisma.host.count({
 			where: {
-				actif: { not: 'ACTIVE' }
+				actif: 'BREAK'
 			}
 		}),
 		// 4. BÉNÉVOLE - Bénévoles actifs sans chat
@@ -240,7 +244,7 @@ async function getAdminTasks(volunteerId: string) {
 			]
 		},
 		{
-			theme: 'FA',
+			theme: 'Familles d’accueil',
 			icon: 'house',
 			iconTheme: 'fa',
 			tasks: [
@@ -283,13 +287,13 @@ async function getAdminTasks(volunteerId: string) {
 			iconTheme: 'pending',
 			tasks: [
 				{
-					label: 'Pour devenir FA',
+					label: 'FA',
 					description: 'À traiter',
 					value: pendingHostForms,
 					href: '/dashboard/candidatures?type=HOST'
 				},
 				{
-					label: 'Pour devenir bénévole',
+					label: 'Bénévoles',
 					description: 'À traiter',
 					value: pendingVolunteerForms,
 					href: '/dashboard/candidatures?type=VOLUNTEER'
@@ -572,4 +576,95 @@ async function getTasksByRole(role: string, volunteerId: string) {
 		};
 	}
 	return {};
+}
+
+// ============================================
+// VOLUNTEER STATS
+// ============================================
+
+async function getVolunteerStats(volunteerId: string) {
+	const currentYear = new Date().getFullYear();
+	const yearStart = new Date(currentYear, 0, 1);
+
+	const [
+		totalCatsInAssociation,
+		totalCatsManagedByVolunteer,
+		totalAdoptionsThisYear,
+		adoptionsThisYearByVolunteer,
+		totalApplicationsThisYear,
+		applicationsAssignedToVolunteerNonPending
+	] = await Promise.all([
+		// 1️⃣ TOTAL CHATS DANS L'ASSO
+		prisma.cat.count({}),
+
+		// 1️⃣ TOTAL CHATS GÉRÉS PAR LE BÉNÉVOLE
+		prisma.catVolunteer.count({
+			where: {
+				volunteerId: volunteerId
+			}
+		}),
+
+		// 2️⃣ TOTAL ADOPTIONS CETTE ANNÉE DANS L'ASSO
+		prisma.adoption.count({
+			where: {
+				created_at: {
+					gte: yearStart
+				}
+			}
+		}),
+
+		// 2️⃣ ADOPTIONS CETTE ANNÉE PAR LE BÉNÉVOLE
+		prisma.adoption.count({
+			where: {
+				cat: {
+					volunteers: {
+						some: {
+							volunteerId: volunteerId
+						}
+					}
+				},
+				created_at: {
+					gte: yearStart
+				}
+			}
+		}),
+
+		// 3️⃣ TOTAL CANDIDATURES CETTE ANNÉE
+		prisma.form.count({
+			where: {
+				created_at: {
+					gte: yearStart
+				}
+			}
+		}),
+
+		// 3️⃣ CANDIDATURES ASSIGNÉES AU BÉNÉVOLE (NON PENDING)
+		prisma.form.count({
+			where: {
+				assignedToId: volunteerId,
+				status: {
+					not: 'PENDING'
+				},
+				created_at: {
+					gte: yearStart
+				}
+			}
+		})
+	]);
+
+	return {
+		// Stats pour les radial charts
+		catsManaged: {
+			volunteerValue: totalCatsManagedByVolunteer,
+			totalValue: totalCatsInAssociation
+		},
+		adoptionsThisYear: {
+			volunteerValue: adoptionsThisYearByVolunteer,
+			totalValue: totalAdoptionsThisYear
+		},
+		applicationsProcessed: {
+			volunteerValue: applicationsAssignedToVolunteerNonPending,
+			totalValue: totalApplicationsThisYear
+		}
+	};
 }

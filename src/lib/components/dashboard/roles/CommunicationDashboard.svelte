@@ -15,21 +15,26 @@
 	const communicationTasks = $derived(data.communicationTasks ?? []);
 </script>
 
-<div class="flex flex-col gap-8 lg:min-h-[calc(100vh-550px)] lg:flex-row">
-	<!-- COLONNE GAUCHE -->
-	<div class="flex flex-col gap-8 lg:flex-1">
-		<!-- ACTIONS RAPIDES COMMUNICATION -->
-		<QuickActions actions={communicationQuickActions} />
+<section>
+	<header class="flex items-center justify-between">
+		<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+			Bonjour {data.user?.firstName} 👋
+		</h1>
+	</header>
+	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px] lg:grid-rows-[1fr]">
+		<!-- COLONNE GAUCHE -->
+		<div class="flex flex-col gap-6 sm:gap-8">
+			<!-- ACTIONS RAPIDES COMMUNICATION -->
+			<QuickActions actions={communicationQuickActions} />
 
-		<!-- TÂCHES À TRAITER -->
-		<TasksToProcess taskGroups={communicationTasks} />
+			<!-- TÂCHES À TRAITER -->
+			<TasksToProcess taskGroups={communicationTasks} />
+		</div>
+
+		<!-- COLONNE DROITE - STATS COMMUNICATION -->
+		<aside class="sticky top-8 flex flex-col gap-4">
+			<SectionHeader title="Mes Stats" />
+			<StatsOverview {data} />
+		</aside>
 	</div>
-
-	<!-- COLONNE DROITE - STATS COMMUNICATION -->
-	<aside class="flex flex-col gap-4 lg:min-h-full lg:w-96">
-		<SectionHeader title="Mes Stats" />
-		<StatsOverview {data} />
-	</aside>
-</div>
-
-<!-- GRAPHIQUES COMMUNS -->
+</section>

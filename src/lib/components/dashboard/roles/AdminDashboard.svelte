@@ -24,31 +24,42 @@
 	const displayedTasks = $derived(isManagerView ? managerTasks : adminTasks);
 </script>
 
-<!-- SWITCH VIEW -->
-<div class="mb-8 flex items-center space-x-4">
-	<Switch id="view-toggle" bind:checked={isManagerView} />
-	<Label for="view-toggle" class="text-xl font-bold">
-		{isManagerView ? 'Vue Manager' : 'Vue Admin'}
-	</Label>
-</div>
+<section>
+	<header class="flex items-center justify-between">
+		<div class="flex flex-col gap-1">
+			<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+				Bonjour {data.user?.firstName} 👋
+			</h1>
+		</div>
+		<!-- SWITCH VIEW -->
+		<div class="flex items-center justify-center gap-4">
+			<Switch id="view-toggle" bind:checked={isManagerView} />
+			<Label for="view-toggle" class="text-lg font-bold sm:text-xl">
+				{isManagerView ? 'Vue Manager' : 'Vue Admin'}
+			</Label>
+		</div>
+	</header>
 
-<div class="flex flex-col gap-8 lg:min-h-[calc(100vh-550px)] lg:flex-row">
-	<!-- COLONNE GAUCHE -->
-	<div class="flex flex-col gap-8 lg:flex-1">
-		{#key isManagerView}
-			<div in:fade={{ duration: 300, delay: 300 }} out:fade={{ duration: 300 }}>
-				<QuickActions actions={displayedActions} />
+	<div>
+		<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px] lg:grid-rows-[1fr]">
+			<!-- COLONNE GAUCHE -->
+			<div class="flex flex-col gap-6 sm:gap-8">
+				{#key isManagerView}
+					<div in:fade={{ duration: 300, delay: 300 }} out:fade={{ duration: 300 }}>
+						<QuickActions actions={displayedActions} />
+					</div>
+
+					<div in:fade={{ duration: 300, delay: 300 }} out:fade={{ duration: 300 }}>
+						<TasksToProcess taskGroups={displayedTasks} />
+					</div>
+				{/key}
 			</div>
 
-			<div in:fade={{ duration: 300, delay: 300 }} out:fade={{ duration: 300 }}>
-				<TasksToProcess taskGroups={displayedTasks} />
-			</div>
-		{/key}
+			<!-- COLONNE DROITE - STATS -->
+			<aside class="sticky top-8 flex flex-col gap-4">
+				<SectionHeader title="Vue d'ensemble" />
+				<StatsOverview {data} />
+			</aside>
+		</div>
 	</div>
-
-	<!-- COLONNE DROITE - STATS -->
-	<aside class="flex flex-col gap-4 lg:min-h-full lg:w-80">
-		<SectionHeader title="Vue d'ensemble" />
-		<StatsOverview {data} />
-	</aside>
-</div>
+</section>
