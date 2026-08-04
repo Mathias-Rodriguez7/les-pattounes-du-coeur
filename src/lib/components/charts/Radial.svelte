@@ -1,7 +1,6 @@
 <script lang="ts">
-	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 	import * as Chart from '$lib/components/ui/chart/index.js';
-	import { PieChart, Text } from 'layerchart';
+	import { PieChart } from 'layerchart';
 
 	interface Props {
 		title: string;
@@ -11,11 +10,6 @@
 		unit: string;
 		volunteerColor?: string;
 		otherColor?: string;
-		trend?: string;
-		trendIcon?: boolean;
-		footer?: string;
-		details?: Array<{ label: string; value: number | string }>;
-		class?: string;
 	}
 
 	let {
@@ -24,106 +18,66 @@
 		volunteerValue,
 		totalValue,
 		unit,
-		volunteerColor = 'var(--chart-1)',
-		otherColor = 'var(--chart-2)',
-		trend,
-		trendIcon = false,
-		footer,
-		details,
-		class: className
+		volunteerColor = '#3b82f6',
+		otherColor = '#e5e7eb'
 	}: Props = $props();
 
-	const otherValue = totalValue - volunteerValue;
-	const percentage = ((volunteerValue / totalValue) * 100).toFixed(1);
-
 	const chartConfig = {
-		volunteer: { label: 'Bénévole', color: volunteerColor },
-		other: { label: 'Autres', color: otherColor }
-	} satisfies Chart.ChartConfig;
+		volunteer: {
+			label: 'Vos stats',
+			color: volunteerColor
+		},
+		other: {
+			label: "Total dans l'asso",
+			color: otherColor
+		}
+	};
 
-	const pieData = [
-		{ name: 'Bénévole', value: volunteerValue, color: volunteerColor },
-		{ name: 'Autres', value: otherValue, color: otherColor }
-	];
+	const percentage = $derived(totalValue > 0 ? Math.round((volunteerValue / totalValue) * 100) : 0);
 </script>
 
-<div class="flex h-full flex-col gap-4 {className}">
-	<!-- Header -->
+<div class="grid h-full grid-rows-[auto_max-content_auto] gap-8">
 	<div class="text-center">
-		<h3 class="text-base font-semibold sm:text-lg">{title}</h3>
-		<p class="text-muted-foreground text-xs sm:text-sm">{description}</p>
+		<h3 class="text-lg font-semibold">{title}</h3>
+		<p class="text-muted-foreground text-sm">{description}</p>
 	</div>
 
-	<!-- Chart -->
-	<div class="flex flex-1 items-center justify-center px-2 sm:px-4">
-		<Chart.Container
-			config={chartConfig}
-			class="aspect-square max-h-50 w-full sm:max-h-62.5 md:max-h-75"
-		>
-			<PieChart
-				data={pieData}
-				key="name"
-				value="value"
-				c="color"
-				innerRadius={60}
-				padding={20}
-				range={[-90, 90]}
-				props={{ pie: { sort: null } }}
-				cornerRadius={4}
-			>
-				{#snippet aboveMarks()}
-					<Text
-						value={`${volunteerValue}/${totalValue}`}
-						textAnchor="middle"
-						verticalAnchor="middle"
-						class="fill-foreground text-xl font-bold sm:text-2xl!"
-						dy={-20}
-					/>
-					<Text
-						value={unit}
-						textAnchor="middle"
-						verticalAnchor="middle"
-						class="fill-muted-foreground! text-muted-foreground text-xs sm:text-sm"
-						dy={-4}
-					/>
-				{/snippet}
-				{#snippet tooltip()}
-					<Chart.Tooltip hideLabel />
-				{/snippet}
-			</PieChart>
-		</Chart.Container>
+	<div class="relative flex items-center justify-center">
+		<div class="aspect-square h-48 w-full max-w-48">
+			<Chart.Container config={chartConfig} class="h-full w-full">
+				<PieChart
+					data={[
+						{ platform: 'volunteer', visitors: volunteerValue, color: chartConfig.volunteer.color },
+						{
+							platform: 'other',
+							visitors: totalValue - volunteerValue,
+							color: chartConfig.other.color
+						}
+					]}
+					key="platform"
+					value="visitors"
+					c="color"
+					innerRadius={76}
+					outerRadius={110}
+					padding={29}
+					range={[-90, 90]}
+					props={{ pie: { sort: null } }}
+					cornerRadius={4}
+				>
+					{#snippet tooltip()}
+						<Chart.Tooltip hideLabel />
+					{/snippet}
+				</PieChart>
+			</Chart.Container>
+		</div>
+		<div class="absolute flex flex-col items-center justify-center">
+			<div class="text-2xl font-bold">{percentage}%</div>
+			<div class="text-muted-foreground text-sm">{unit}</div>
+		</div>
 	</div>
 
-	<!-- Footer Info -->
-	<div class="space-y-2 text-sm">
-		{#if trend && trendIcon}
-			<div class="flex items-center gap-2 text-xs leading-none font-medium sm:text-sm">
-				{trend}
-				<TrendingUpIcon class="size-3 sm:size-4" />
-			</div>
-		{/if}
-
-		{#if footer}
-			<div class="text-muted-foreground text-xs leading-none">
-				{footer}
-			</div>
-		{/if}
-
-		{#if !footer && !trend}
-			<div class="text-muted-foreground text-xs leading-none">
-				{percentage}% des {unit.toLowerCase()} gérées par ce bénévole
-			</div>
-		{/if}
-
-		{#if details && details.length > 0}
-			<div class="flex flex-col gap-1 border-t pt-2">
-				{#each details as detail, i (detail.label + i)}
-					<div class="flex justify-between text-xs">
-						<span class="text-muted-foreground">{detail.label}</span>
-						<span class="font-medium">{detail.value}</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
+	<div class="text-muted-foreground -mt-16 text-center text-sm">
+		{volunteerValue}/{totalValue}
+		{unit.toLowerCase()}
 	</div>
 </div>

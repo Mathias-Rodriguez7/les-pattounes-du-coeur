@@ -24,7 +24,7 @@
 	const displayedTasks = $derived(isManagerView ? managerTasks : adminTasks);
 </script>
 
-<section>
+<section class="flex flex-col gap-6">
 	<header class="flex items-center justify-between">
 		<div class="flex flex-col gap-1">
 			<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">

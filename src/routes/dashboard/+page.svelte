@@ -21,38 +21,46 @@
 		{/if}
 	</div>
 
-	<section class="bg-card border-border rounded-2xl border p-6">
-		<h2>Mes stats</h2>
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-			<Radial
-				title="Chats en gestion"
-				description="Sous votre responsabilité"
-				volunteerValue={data.volunteerStats.catsManaged.volunteerValue}
-				totalValue={data.volunteerStats.catsManaged.totalValue}
-				unit="Chats"
-				volunteerColor="#3b82f6"
-				otherColor="#e5e7eb"
-			/>
-
-			<Radial
-				title="Adoptions {new Date().getFullYear()}"
-				description="Succès réalisés cette année"
-				volunteerValue={data.volunteerStats.adoptionsThisYear.volunteerValue}
-				totalValue={data.volunteerStats.adoptionsThisYear.totalValue}
-				unit="Adoptions"
-				volunteerColor="#10b981"
-				otherColor="#d1d5db"
-			/>
-
-			<Radial
-				title="Candidatures traitées"
-				description="Dossiers finalisés"
-				volunteerValue={data.volunteerStats.applicationsProcessed.volunteerValue}
-				totalValue={data.volunteerStats.applicationsProcessed.totalValue}
-				unit="Dossiers"
-				volunteerColor="#f59e0b"
-				otherColor="#fef3c7"
-			/>
+	<section class="flex flex-col gap-4">
+		<h2 class="text-xl font-bold">Mes stats</h2>
+		<div class="bg-card border-border rounded-2xl border p-6">
+			<div class="flex items-stretch gap-4">
+				<div class="flex flex-1 items-center justify-center">
+					<Radial
+						title="Chats en gestion"
+						description="Sous votre responsabilité"
+						volunteerValue={data.volunteerStats.catsManaged.volunteerValue}
+						totalValue={data.volunteerStats.catsManaged.totalValue}
+						unit="Chats"
+						volunteerColor="#3b82f6"
+						otherColor="#e5e7eb"
+					/>
+				</div>
+				<div class="bg-border w-px"></div>
+				<div class="flex flex-1 items-center justify-center">
+					<Radial
+						title="Adoptions {new Date().getFullYear()}"
+						description="Succès réalisés cette année"
+						volunteerValue={data.volunteerStats.adoptionsThisYear.volunteerValue}
+						totalValue={data.volunteerStats.adoptionsThisYear.totalValue}
+						unit="Adoptions"
+						volunteerColor="#10b981"
+						otherColor="#d1d5db"
+					/>
+				</div>
+				<div class="bg-border w-px"></div>
+				<div class="flex flex-1 items-center justify-center">
+					<Radial
+						title="Candidatures traitées"
+						description="Dossiers finalisés"
+						volunteerValue={data.volunteerStats.applicationsProcessed.volunteerValue}
+						totalValue={data.volunteerStats.applicationsProcessed.totalValue}
+						unit="Dossiers"
+						volunteerColor="#f59e0b"
+						otherColor="#fef3c7"
+					/>
+				</div>
+			</div>
 		</div>
 	</section>
 </main>
