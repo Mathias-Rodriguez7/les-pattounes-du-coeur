@@ -4,7 +4,8 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Button } from '$lib/components/ui/button';
-	import { Cat, Plus } from '@lucide/svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import NewCatDialog from '$lib/components/cats/NewCatDialog.svelte';
 	import CatPanel from '$lib/components/cats/CatPanel.svelte';
 	import CatRow from '$lib/components/cats/CatRow.svelte';
@@ -27,24 +28,35 @@
 		{
 			label: 'Chats gérés',
 			value: `${stats.withVolunteer} / ${stats.total}`,
-			icon: Cat
+			icon: 'cat',
+			theme: 'cats'
 		},
 		{
 			label: 'Infos incomplètes',
 			value: stats.incomplete,
-			icon: Cat
+			icon: 'cat',
+			theme: 'cats'
 		},
 		{
 			label: "En famille d'accueil",
 			value: `${stats.withHost} / ${stats.total}`,
-			icon: Cat
+			icon: 'house',
+			theme: 'fa'
 		},
 		{
 			label: 'Sans FA',
 			value: stats.withoutHost,
-			icon: Cat
+			icon: 'cat',
+			theme: 'cats'
 		}
 	]);
+
+	const compatibilityIcons = [
+		{ icon: 'dog', theme: 'volunteers', title: 'Compatible avec les chiens' },
+		{ icon: 'cat', theme: 'cats', title: 'Compatible avec les chats' },
+		{ icon: 'baby', theme: 'adoptions', title: 'Compatible avec les enfants' },
+		{ icon: 'trees', theme: 'fa', title: 'Nécessite un jardin' }
+	];
 
 	const filteredCats = $derived(() => {
 		switch (currentTab) {
@@ -76,7 +88,13 @@
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between pb-2">
 					<Card.Title class="text-sm font-medium">{card.label}</Card.Title>
-					<card.icon class="text-muted-foreground h-4 w-4" />
+					<Icon
+						name={card.icon}
+						withWrapper={true}
+						wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+						style="background: {getGradientStyle(card.theme)}"
+						iconClass="h-5 w-5"
+					/>
 				</Card.Header>
 				<Card.Content>
 					<p class="text-2xl font-bold">{card.value}</p>
@@ -92,17 +110,37 @@
 			<Card.Header class="flex flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Chats en gestion</Card.Title>
 				<Button size="sm" onclick={() => (newCatOpen = true)}>
-					<Plus class="mr-2 h-4 w-4" />
+					<Icon name="plus" class="mr-2 h-4 w-4" />
 					Nouveau chat
 				</Button>
 			</Card.Header>
 			<Card.Content>
 				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="w-full">
-					<Tabs.List>
-						<Tabs.Trigger value="all">Tout</Tabs.Trigger>
-						<Tabs.Trigger value="with_fa">Avec FA</Tabs.Trigger>
-						<Tabs.Trigger value="without_fa">Sans FA</Tabs.Trigger>
-						<Tabs.Trigger value="adopted">Adoptés</Tabs.Trigger>
+					<Tabs.List class="bg-muted grid grid-cols-4 gap-2 p-1">
+						<Tabs.Trigger value="all" class="relative">
+							Tout
+							{#if currentTab === 'all'}
+								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
+							{/if}
+						</Tabs.Trigger>
+						<Tabs.Trigger value="with_fa" class="relative">
+							Avec FA
+							{#if currentTab === 'with_fa'}
+								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
+							{/if}
+						</Tabs.Trigger>
+						<Tabs.Trigger value="without_fa" class="relative">
+							Sans FA
+							{#if currentTab === 'without_fa'}
+								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
+							{/if}
+						</Tabs.Trigger>
+						<Tabs.Trigger value="adopted" class="relative">
+							Adoptés
+							{#if currentTab === 'adopted'}
+								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
+							{/if}
+						</Tabs.Trigger>
 					</Tabs.List>
 
 					<Table.Root>
@@ -113,10 +151,19 @@
 								<Table.Head>Sexe</Table.Head>
 								<Table.Head>Âge</Table.Head>
 								<Table.Head>Statut</Table.Head>
-								<Table.Head title="OK chien">🐕</Table.Head>
-								<Table.Head title="OK chat">🐈</Table.Head>
-								<Table.Head title="OK enfant">👶</Table.Head>
-								<Table.Head title="Jardin">🏡</Table.Head>
+								{#each compatibilityIcons as compat (compat.title)}
+									<Table.Head title={compat.title} class="text-center">
+										<div class="flex justify-center text-white">
+											<Icon
+												name={compat.icon}
+												withWrapper={true}
+												wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
+												style="background: {getGradientStyle(compat.theme)}"
+												iconClass="h-5 w-5"
+											/>
+										</div>
+									</Table.Head>
+								{/each}
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>

@@ -45,7 +45,7 @@
 						totalValue={data.volunteerStats.adoptionsThisYear.totalValue}
 						unit="Adoptions"
 						volunteerColor="#10b981"
-						otherColor="#d1d5db"
+						otherColor="#e5e7eb"
 					/>
 				</div>
 				<div class="bg-border w-px"></div>
@@ -57,7 +57,7 @@
 						totalValue={data.volunteerStats.applicationsProcessed.totalValue}
 						unit="Dossiers"
 						volunteerColor="#f59e0b"
-						otherColor="#fef3c7"
+						otherColor="#e5e7eb"
 					/>
 				</div>
 			</div>

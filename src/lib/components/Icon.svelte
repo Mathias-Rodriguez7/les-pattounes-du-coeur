@@ -1,4 +1,3 @@
-<!-- src/lib/components/Icon.svelte -->
 <script lang="ts">
 	import { iconMap } from '$lib/config/iconMap';
 
@@ -21,6 +20,7 @@
 	}: Props = $props();
 
 	const IconComponent = iconMap[name];
+	const finalClass = className || iconClass;
 </script>
 
 {#if withWrapper}
@@ -28,5 +28,5 @@
 		<svelte:component this={IconComponent} class={iconClass} />
 	</div>
 {:else}
-	<svelte:component this={IconComponent} class={className} />
+	<svelte:component this={IconComponent} class={finalClass} />
 {/if}

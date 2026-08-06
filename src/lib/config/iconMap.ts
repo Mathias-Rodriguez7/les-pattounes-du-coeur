@@ -9,7 +9,13 @@ import {
 	Users,
 	Newspaper,
 	HeartPlus,
-	PenTool
+	PenTool,
+	Dog,
+	Baby,
+	Trees,
+	CircleCheckBig,
+	CircleSlash2,
+	CircleQuestionMark
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -24,5 +30,11 @@ export const iconMap: Record<string, Component> = {
 	users: Users,
 	news: Newspaper,
 	heart: HeartPlus,
-	pen: PenTool
+	pen: PenTool,
+	dog: Dog,
+	baby: Baby,
+	trees: Trees,
+	CircleCheck: CircleCheckBig,
+	CircleSlash: CircleSlash2,
+	CircleQuestionMark: CircleQuestionMark
 };
