@@ -14,7 +14,7 @@ import {
 	Baby,
 	Trees,
 	CircleCheckBig,
-	CircleSlash2,
+	CircleX,
 	CircleQuestionMark
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
@@ -35,6 +35,6 @@ export const iconMap: Record<string, Component> = {
 	baby: Baby,
 	trees: Trees,
 	CircleCheck: CircleCheckBig,
-	CircleSlash: CircleSlash2,
+	CircleX: CircleX,
 	CircleQuestionMark: CircleQuestionMark
 };

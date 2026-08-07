@@ -4,7 +4,7 @@
 	import type { CatFull } from '$lib/types/cat';
 	import { statusLabel, sexLabel, focalPointClass } from '$lib/utils/catHelpers';
 	import { formatAge } from '$lib/utils/age';
-	import BooleanIcon from '../icons/BooleanCell.svelte';
+	import BooleanIcon from '../icons/BooleanIcon.svelte';
 
 	const { cat, onclick }: { cat: CatFull; onclick: () => void } = $props();
 
