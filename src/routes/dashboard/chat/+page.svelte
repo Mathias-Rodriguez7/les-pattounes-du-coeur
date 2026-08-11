@@ -104,10 +104,10 @@
 	</section>
 
 	<!-- Tableau + Panel détail -->
-	<section class="grid grid-cols-3 gap-4">
+	<section class="grid h-[calc(97vh-50px)] grid-cols-1 gap-4 lg:grid-cols-3">
 		<!-- Tableau -->
-		<Card.Root class="col-span-2">
-			<Card.Header class="flex flex-row items-center justify-between">
+		<Card.Root class="flex flex-col lg:col-span-2">
+			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Chats en gestion</Card.Title>
 				<Button size="sm" onclick={() => (newCatOpen = true)}>
 					<Icon name="plus" class="mr-2 h-4 w-4" />
@@ -210,12 +210,14 @@
 		</Card.Root>
 
 		<!-- Panel détail -->
-		<CatPanel
-			cat={selectedCat}
-			hosts={data.hosts}
-			volunteers={data.volunteers}
-			isAdmin={data.isAdmin}
-		/>
+		<div class="col-span-1 overflow-y-auto">
+			<CatPanel
+				cat={selectedCat}
+				hosts={data.hosts}
+				volunteers={data.volunteers}
+				isAdmin={data.isAdmin}
+			/>
+		</div>
 	</section>
 </main>
 
