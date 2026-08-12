@@ -164,7 +164,7 @@ async function getAssociationStats() {
 // TASKS - ADMIN
 // ============================================
 
-async function getAdminTasks(volunteerId: string) {
+async function getAdminTasks() {
 	const [
 		catsWithoutFA,
 		activeHostsWithoutCat,

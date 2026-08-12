@@ -28,9 +28,9 @@ export type PlacementMinAggregateOutputType = {
   id: string | null
   catId: string | null
   hostId: string | null
+  type: $Enums.PlacementType | null
   started: Date | null
   ended: Date | null
-  isPrimary: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -39,9 +39,9 @@ export type PlacementMaxAggregateOutputType = {
   id: string | null
   catId: string | null
   hostId: string | null
+  type: $Enums.PlacementType | null
   started: Date | null
   ended: Date | null
-  isPrimary: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -50,9 +50,9 @@ export type PlacementCountAggregateOutputType = {
   id: number
   catId: number
   hostId: number
+  type: number
   started: number
   ended: number
-  isPrimary: number
   created_at: number
   updated_at: number
   _all: number
@@ -63,9 +63,9 @@ export type PlacementMinAggregateInputType = {
   id?: true
   catId?: true
   hostId?: true
+  type?: true
   started?: true
   ended?: true
-  isPrimary?: true
   created_at?: true
   updated_at?: true
 }
@@ -74,9 +74,9 @@ export type PlacementMaxAggregateInputType = {
   id?: true
   catId?: true
   hostId?: true
+  type?: true
   started?: true
   ended?: true
-  isPrimary?: true
   created_at?: true
   updated_at?: true
 }
@@ -85,9 +85,9 @@ export type PlacementCountAggregateInputType = {
   id?: true
   catId?: true
   hostId?: true
+  type?: true
   started?: true
   ended?: true
-  isPrimary?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -169,9 +169,9 @@ export type PlacementGroupByOutputType = {
   id: string
   catId: string
   hostId: string
+  type: $Enums.PlacementType
   started: Date | null
   ended: Date | null
-  isPrimary: boolean
   created_at: Date
   updated_at: Date
   _count: PlacementCountAggregateOutputType | null
@@ -201,9 +201,9 @@ export type PlacementWhereInput = {
   id?: Prisma.UuidFilter<"Placement"> | string
   catId?: Prisma.UuidFilter<"Placement"> | string
   hostId?: Prisma.UuidFilter<"Placement"> | string
+  type?: Prisma.EnumPlacementTypeFilter<"Placement"> | $Enums.PlacementType
   started?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
   ended?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
-  isPrimary?: Prisma.BoolFilter<"Placement"> | boolean
   created_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
   cat?: Prisma.XOR<Prisma.CatScalarRelationFilter, Prisma.CatWhereInput>
@@ -214,9 +214,9 @@ export type PlacementOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   catId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   started?: Prisma.SortOrderInput | Prisma.SortOrder
   ended?: Prisma.SortOrderInput | Prisma.SortOrder
-  isPrimary?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cat?: Prisma.CatOrderByWithRelationInput
@@ -230,9 +230,9 @@ export type PlacementWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PlacementWhereInput | Prisma.PlacementWhereInput[]
   catId?: Prisma.UuidFilter<"Placement"> | string
   hostId?: Prisma.UuidFilter<"Placement"> | string
+  type?: Prisma.EnumPlacementTypeFilter<"Placement"> | $Enums.PlacementType
   started?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
   ended?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
-  isPrimary?: Prisma.BoolFilter<"Placement"> | boolean
   created_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
   cat?: Prisma.XOR<Prisma.CatScalarRelationFilter, Prisma.CatWhereInput>
@@ -243,9 +243,9 @@ export type PlacementOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   catId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   started?: Prisma.SortOrderInput | Prisma.SortOrder
   ended?: Prisma.SortOrderInput | Prisma.SortOrder
-  isPrimary?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.PlacementCountOrderByAggregateInput
@@ -260,18 +260,18 @@ export type PlacementScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"Placement"> | string
   catId?: Prisma.UuidWithAggregatesFilter<"Placement"> | string
   hostId?: Prisma.UuidWithAggregatesFilter<"Placement"> | string
+  type?: Prisma.EnumPlacementTypeWithAggregatesFilter<"Placement"> | $Enums.PlacementType
   started?: Prisma.DateTimeNullableWithAggregatesFilter<"Placement"> | Date | string | null
   ended?: Prisma.DateTimeNullableWithAggregatesFilter<"Placement"> | Date | string | null
-  isPrimary?: Prisma.BoolWithAggregatesFilter<"Placement"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Placement"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Placement"> | Date | string
 }
 
 export type PlacementCreateInput = {
   id?: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   cat: Prisma.CatCreateNestedOneWithoutPlacementsInput
@@ -282,18 +282,18 @@ export type PlacementUncheckedCreateInput = {
   id?: string
   catId: string
   hostId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type PlacementUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cat?: Prisma.CatUpdateOneRequiredWithoutPlacementsNestedInput
@@ -304,9 +304,9 @@ export type PlacementUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   catId?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -315,18 +315,18 @@ export type PlacementCreateManyInput = {
   id?: string
   catId: string
   hostId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type PlacementUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -335,9 +335,9 @@ export type PlacementUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   catId?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -356,9 +356,9 @@ export type PlacementCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   catId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   started?: Prisma.SortOrder
   ended?: Prisma.SortOrder
-  isPrimary?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -367,9 +367,9 @@ export type PlacementMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   catId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   started?: Prisma.SortOrder
   ended?: Prisma.SortOrder
-  isPrimary?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -378,9 +378,9 @@ export type PlacementMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   catId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   started?: Prisma.SortOrder
   ended?: Prisma.SortOrder
-  isPrimary?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -469,11 +469,15 @@ export type PlacementUncheckedUpdateManyWithoutCatNestedInput = {
   deleteMany?: Prisma.PlacementScalarWhereInput | Prisma.PlacementScalarWhereInput[]
 }
 
+export type EnumPlacementTypeFieldUpdateOperationsInput = {
+  set?: $Enums.PlacementType
+}
+
 export type PlacementCreateWithoutHostInput = {
   id?: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   cat: Prisma.CatCreateNestedOneWithoutPlacementsInput
@@ -482,9 +486,9 @@ export type PlacementCreateWithoutHostInput = {
 export type PlacementUncheckedCreateWithoutHostInput = {
   id?: string
   catId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -522,18 +526,18 @@ export type PlacementScalarWhereInput = {
   id?: Prisma.UuidFilter<"Placement"> | string
   catId?: Prisma.UuidFilter<"Placement"> | string
   hostId?: Prisma.UuidFilter<"Placement"> | string
+  type?: Prisma.EnumPlacementTypeFilter<"Placement"> | $Enums.PlacementType
   started?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
   ended?: Prisma.DateTimeNullableFilter<"Placement"> | Date | string | null
-  isPrimary?: Prisma.BoolFilter<"Placement"> | boolean
   created_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Placement"> | Date | string
 }
 
 export type PlacementCreateWithoutCatInput = {
   id?: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   host: Prisma.HostCreateNestedOneWithoutPlacementsInput
@@ -542,9 +546,9 @@ export type PlacementCreateWithoutCatInput = {
 export type PlacementUncheckedCreateWithoutCatInput = {
   id?: string
   hostId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -578,18 +582,18 @@ export type PlacementUpdateManyWithWhereWithoutCatInput = {
 export type PlacementCreateManyHostInput = {
   id?: string
   catId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type PlacementUpdateWithoutHostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cat?: Prisma.CatUpdateOneRequiredWithoutPlacementsNestedInput
@@ -598,9 +602,9 @@ export type PlacementUpdateWithoutHostInput = {
 export type PlacementUncheckedUpdateWithoutHostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   catId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -608,9 +612,9 @@ export type PlacementUncheckedUpdateWithoutHostInput = {
 export type PlacementUncheckedUpdateManyWithoutHostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   catId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -618,18 +622,18 @@ export type PlacementUncheckedUpdateManyWithoutHostInput = {
 export type PlacementCreateManyCatInput = {
   id?: string
   hostId: string
+  type?: $Enums.PlacementType
   started?: Date | string | null
   ended?: Date | string | null
-  isPrimary?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type PlacementUpdateWithoutCatInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   host?: Prisma.HostUpdateOneRequiredWithoutPlacementsNestedInput
@@ -638,9 +642,9 @@ export type PlacementUpdateWithoutCatInput = {
 export type PlacementUncheckedUpdateWithoutCatInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -648,9 +652,9 @@ export type PlacementUncheckedUpdateWithoutCatInput = {
 export type PlacementUncheckedUpdateManyWithoutCatInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPlacementTypeFieldUpdateOperationsInput | $Enums.PlacementType
   started?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ended?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -661,9 +665,9 @@ export type PlacementSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   catId?: boolean
   hostId?: boolean
+  type?: boolean
   started?: boolean
   ended?: boolean
-  isPrimary?: boolean
   created_at?: boolean
   updated_at?: boolean
   cat?: boolean | Prisma.CatDefaultArgs<ExtArgs>
@@ -674,9 +678,9 @@ export type PlacementSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   catId?: boolean
   hostId?: boolean
+  type?: boolean
   started?: boolean
   ended?: boolean
-  isPrimary?: boolean
   created_at?: boolean
   updated_at?: boolean
   cat?: boolean | Prisma.CatDefaultArgs<ExtArgs>
@@ -687,9 +691,9 @@ export type PlacementSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   catId?: boolean
   hostId?: boolean
+  type?: boolean
   started?: boolean
   ended?: boolean
-  isPrimary?: boolean
   created_at?: boolean
   updated_at?: boolean
   cat?: boolean | Prisma.CatDefaultArgs<ExtArgs>
@@ -700,14 +704,14 @@ export type PlacementSelectScalar = {
   id?: boolean
   catId?: boolean
   hostId?: boolean
+  type?: boolean
   started?: boolean
   ended?: boolean
-  isPrimary?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type PlacementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "catId" | "hostId" | "started" | "ended" | "isPrimary" | "created_at" | "updated_at", ExtArgs["result"]["placement"]>
+export type PlacementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "catId" | "hostId" | "type" | "started" | "ended" | "created_at" | "updated_at", ExtArgs["result"]["placement"]>
 export type PlacementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cat?: boolean | Prisma.CatDefaultArgs<ExtArgs>
   host?: boolean | Prisma.HostDefaultArgs<ExtArgs>
@@ -731,9 +735,9 @@ export type $PlacementPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: string
     catId: string
     hostId: string
+    type: $Enums.PlacementType
     started: Date | null
     ended: Date | null
-    isPrimary: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["placement"]>
@@ -1164,9 +1168,9 @@ export interface PlacementFieldRefs {
   readonly id: Prisma.FieldRef<"Placement", 'String'>
   readonly catId: Prisma.FieldRef<"Placement", 'String'>
   readonly hostId: Prisma.FieldRef<"Placement", 'String'>
+  readonly type: Prisma.FieldRef<"Placement", 'PlacementType'>
   readonly started: Prisma.FieldRef<"Placement", 'DateTime'>
   readonly ended: Prisma.FieldRef<"Placement", 'DateTime'>
-  readonly isPrimary: Prisma.FieldRef<"Placement", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"Placement", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Placement", 'DateTime'>
 }

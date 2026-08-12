@@ -34,6 +34,10 @@ export type CatFull = Cat & {
 	isDeworming: boolean;
 	isIdentify: boolean;
 	chipId: string | null;
+	placement: {
+		startedDate: Date | null;
+		endedDate: Date | null;
+	};
 	currentHost: {
 		firstName: string;
 		lastName: string;

@@ -292,13 +292,27 @@ async function main() {
 	// 📍 PLACEMENTS
 	// ---------------------
 	for (const cat of cats.slice(0, 10)) {
+		// Créer un placement LONG pour chaque chat
 		await prisma.placement.create({
 			data: {
 				catId: cat.id,
 				hostId: faker.helpers.arrayElement(hosts).id,
+				type: 'LONG',
 				started: faker.date.recent()
 			}
 		});
+
+		// 50% de chance d'avoir un SHORT placement aussi
+		if (randomBool(0.5)) {
+			await prisma.placement.create({
+				data: {
+					catId: cat.id,
+					hostId: faker.helpers.arrayElement(hosts).id,
+					type: 'SHORT',
+					started: faker.date.recent()
+				}
+			});
+		}
 	}
 
 	// ---------------------

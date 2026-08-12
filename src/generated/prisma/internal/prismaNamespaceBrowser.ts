@@ -237,9 +237,9 @@ export const PlacementScalarFieldEnum = {
   id: 'id',
   catId: 'catId',
   hostId: 'hostId',
+  type: 'type',
   started: 'started',
   ended: 'ended',
-  isPrimary: 'isPrimary',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

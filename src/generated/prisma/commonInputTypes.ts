@@ -480,6 +480,23 @@ export type EnumNewsTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumNewsTypeFilter<$PrismaModel>
 }
 
+export type EnumPlacementTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlacementType | Prisma.EnumPlacementTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel> | $Enums.PlacementType
+}
+
+export type EnumPlacementTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlacementType | Prisma.EnumPlacementTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlacementTypeWithAggregatesFilter<$PrismaModel> | $Enums.PlacementType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel>
+}
+
 export type EnumFormTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.FormType | Prisma.EnumFormTypeFieldRefInput<$PrismaModel>
   in?: $Enums.FormType[] | Prisma.ListEnumFormTypeFieldRefInput<$PrismaModel>
@@ -1084,6 +1101,23 @@ export type NestedEnumNewsTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumNewsTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumNewsTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumPlacementTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlacementType | Prisma.EnumPlacementTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel> | $Enums.PlacementType
+}
+
+export type NestedEnumPlacementTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlacementType | Prisma.EnumPlacementTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlacementType[] | Prisma.ListEnumPlacementTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlacementTypeWithAggregatesFilter<$PrismaModel> | $Enums.PlacementType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPlacementTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumFormTypeFilter<$PrismaModel = never> = {

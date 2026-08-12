@@ -166,9 +166,9 @@ model Placement {
   cat        Cat       @relation(fields: [catId], references: [id])
   hostId     String    @db.Uuid
   host       Host      @relation(fields: [hostId], references: [id])
+  type       PlacementType @default(LONG)
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
-  isPrimary  Boolean   @default(true) @db.Boolean
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now()) @updatedAt
 }
@@ -333,6 +333,12 @@ enum NewsType {
   HISTORY
   NEWSCATS
   EVENT
+}
+
+// PLACEMENT
+enum PlacementType {
+  LONG    
+  SHORT  
 }
 
 // FORM

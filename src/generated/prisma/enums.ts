@@ -153,6 +153,14 @@ export const NewsType = {
 export type NewsType = (typeof NewsType)[keyof typeof NewsType]
 
 
+export const PlacementType = {
+  LONG: 'LONG',
+  SHORT: 'SHORT'
+} as const
+
+export type PlacementType = (typeof PlacementType)[keyof typeof PlacementType]
+
+
 export const FormType = {
   ADOPTION: 'ADOPTION',
   VOLUNTEER: 'VOLUNTEER',

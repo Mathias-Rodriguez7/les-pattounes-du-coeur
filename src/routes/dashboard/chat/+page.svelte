@@ -104,9 +104,9 @@
 	</section>
 
 	<!-- Tableau + Panel détail -->
-	<section class="grid h-[calc(97vh-50px)] grid-cols-1 gap-4 lg:grid-cols-3">
+	<section class="grid h-[calc(97vh-50px)] grid-cols-1 gap-4 lg:grid-cols-2">
 		<!-- Tableau -->
-		<Card.Root class="flex flex-col lg:col-span-2">
+		<Card.Root class="flex flex-col lg:col-span-1">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Chats en gestion</Card.Title>
 				<Button size="sm" onclick={() => (newCatOpen = true)}>
@@ -116,7 +116,7 @@
 			</Card.Header>
 			<Card.Content>
 				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="w-full">
-					<Tabs.List class="bg-muted grid grid-cols-4 gap-2 p-1">
+					<Tabs.List class="bg-muted grid grid-cols-5 gap-2 p-1">
 						<Tabs.Trigger value="all" class="relative">
 							Tout
 							{#if currentTab === 'all'}
@@ -124,7 +124,7 @@
 							{/if}
 						</Tabs.Trigger>
 						<Tabs.Trigger value="with_fa" class="relative">
-							Avec FA
+							En gestion
 							{#if currentTab === 'with_fa'}
 								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
 							{/if}
@@ -137,6 +137,12 @@
 						</Tabs.Trigger>
 						<Tabs.Trigger value="adopted" class="relative">
 							Adoptés
+							{#if currentTab === 'adopted'}
+								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
+							{/if}
+						</Tabs.Trigger>
+						<Tabs.Trigger value="adopted" class="relative">
+							Libre
 							{#if currentTab === 'adopted'}
 								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
 							{/if}

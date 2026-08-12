@@ -32,8 +32,8 @@
 						volunteerValue={data.volunteerStats.catsManaged.volunteerValue}
 						totalValue={data.volunteerStats.catsManaged.totalValue}
 						unit="Chats"
-						volunteerColor="#3b82f6"
-						otherColor="#e5e7eb"
+						volunteerColor="hsl(210 100% 50%)"
+						otherColor="hsl(var(--muted))"
 					/>
 				</div>
 				<div class="bg-border w-px"></div>
@@ -44,8 +44,8 @@
 						volunteerValue={data.volunteerStats.adoptionsThisYear.volunteerValue}
 						totalValue={data.volunteerStats.adoptionsThisYear.totalValue}
 						unit="Adoptions"
-						volunteerColor="#10b981"
-						otherColor="#e5e7eb"
+						volunteerColor="hsl(var(--primary))"
+						otherColor="hsl(var(--muted))"
 					/>
 				</div>
 				<div class="bg-border w-px"></div>
@@ -56,8 +56,8 @@
 						volunteerValue={data.volunteerStats.applicationsProcessed.volunteerValue}
 						totalValue={data.volunteerStats.applicationsProcessed.totalValue}
 						unit="Dossiers"
-						volunteerColor="#f59e0b"
-						otherColor="#e5e7eb"
+						volunteerColor="hsl(38 92% 50%)"
+						otherColor="hsl(var(--muted))"
 					/>
 				</div>
 			</div>
