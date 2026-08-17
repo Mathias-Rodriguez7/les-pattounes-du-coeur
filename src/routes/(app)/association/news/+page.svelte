@@ -1,0 +1,226 @@
+<script lang="ts">
+	import NewsDialog from '$lib/components/news/NewsDialog.svelte';
+	import NewsCard from '$lib/components/news/NewsCard.svelte';
+	import NewsCatCard from '$lib/components/news/NewsCatCard.svelte';
+	import type { News } from '$lib/types/news';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Label } from '$lib/components/ui/label';
+	import { Search } from '@lucide/svelte';
+	import { fade, fly } from 'svelte/transition';
+
+	type PageData = {
+		news: News[];
+		selectedNewsId?: string | null;
+	};
+
+	let { data }: { data: PageData } = $props();
+
+	let selectedNews = $state<News | null>(null);
+	let isOpen = $state(false);
+
+	function openNews(news: News) {
+		selectedNews = news;
+		isOpen = true;
+	}
+
+	// -----------------------------
+	// FILTER STATE
+	// -----------------------------
+	let filters = $state({
+		search: '',
+		toggles: {
+			news: false,
+			event: false,
+			history: false,
+			newsCat: false,
+			newsLetter: false
+		}
+	});
+
+	function resetFilters() {
+		filters.search = '';
+		Object.keys(filters.toggles).forEach((key) => {
+			filters.toggles[key as keyof typeof filters.toggles] = false;
+		});
+	}
+
+	const filterToTypeMap = {
+		news: 'NEWS',
+		event: 'EVENT',
+		history: 'HISTORY',
+		newsCat: 'NEWSCATS',
+		newsLetter: 'NEWSLETTER'
+	} as const;
+
+	let filteredNews = $derived(
+		data.news.filter((news) => {
+			const matchSearch =
+				!filters.search || news.title?.toLowerCase().includes(filters.search.toLowerCase());
+
+			const active = Object.entries(filters.toggles).filter(([, v]) => v);
+
+			const matchToggles =
+				active.length === 0 ||
+				active.some(([key]) => news.type === filterToTypeMap[key as keyof typeof filterToTypeMap]);
+
+			return matchSearch && matchToggles;
+		})
+	);
+
+	$effect(() => {
+		if (!data.selectedNewsId) return;
+
+		const news = data.news.find((n) => n.id === data.selectedNewsId);
+
+		if (news) {
+			selectedNews = news;
+			isOpen = true;
+		}
+	});
+</script>
+
+<main in:fade={{ duration: 200 }} class="flex justify-center p-4">
+	<div in:fly={{ y: 20, duration: 300 }} class="flex w-full flex-col gap-6 p-8">
+		<h1 class="text-3xl font-bold">News</h1>
+
+		<!-- ===================== -->
+		<!-- TOP BAR -->
+		<!-- ===================== -->
+		<div class="bg-card flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4">
+			<!-- FILTER SHEET -->
+			<Sheet.Root>
+				<Sheet.Trigger>
+					<Button>Filtres</Button>
+				</Sheet.Trigger>
+
+				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
+					<!-- HEADER -->
+					<div class="space-y-1">
+						<h2 class="text-2xl font-bold">Filtres</h2>
+						<p class="text-muted-foreground text-sm">Affinez votre recherche</p>
+					</div>
+
+					<!-- TYPES -->
+					<div class="space-y-4">
+						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Types</h3>
+						<div class="space-y-3">
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.news}
+									onCheckedChange={(checked) => {
+										filters.toggles.news = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-muted-foreground text-xs">Toutes les news de l'association.</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.newsCat}
+									onCheckedChange={(checked) => {
+										filters.toggles.newsCat = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-muted-foreground text-xs">
+										Les nouveaux chats qui cherche une famille.
+									</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.newsLetter}
+									onCheckedChange={(checked) => {
+										filters.toggles.newsLetter = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-muted-foreground text-xs">
+										Toutes les news letter de l'association
+									</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.history}
+									onCheckedChange={(checked) => {
+										filters.toggles.history = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-muted-foreground text-xs">Toutes les histoires de l'association</p>
+								</div>
+							</Label>
+
+							<Label
+								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+							>
+								<Checkbox
+									checked={filters.toggles.event}
+									onCheckedChange={(checked) => {
+										filters.toggles.event = !!checked;
+									}}
+								/>
+								<div>
+									<p class="text-muted-foreground text-xs">
+										Les évènements organiser par l'association
+									</p>
+								</div>
+							</Label>
+						</div>
+					</div>
+
+					<Button variant="outline" class="h-16 w-full text-xl" onclick={resetFilters}>
+						Réinitialiser les filtres
+					</Button>
+				</Sheet.Content>
+			</Sheet.Root>
+
+			<!-- SEARCH -->
+			<div class="flex items-center gap-2">
+				<Search class="size-4 opacity-60" />
+				<Input bind:value={filters.search} placeholder="Rechercher..." />
+			</div>
+		</div>
+
+		<!-- ===================== -->
+		<!-- GRID -->
+		<!-- ===================== -->
+		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			{#each filteredNews as news (news.id)}
+				<button class="text-left" onclick={() => openNews(news)}>
+					{#if news.type === 'NEWSCATS'}
+						<NewsCatCard {news} />
+					{:else}
+						<NewsCard {news} />
+					{/if}
+				</button>
+			{/each}
+		</section>
+
+		<!-- ===================== -->
+		<!-- DIALOG -->
+		<!-- ===================== -->
+		<Dialog.Root bind:open={isOpen}>
+			{#if selectedNews}
+				<NewsDialog {selectedNews} />
+			{/if}
+		</Dialog.Root>
+	</div>
+</main>
