@@ -17,9 +17,21 @@ export type Cat = {
 
 export type CatMedia = {
 	picture: string;
+	id: string;
+	catId: string;
+	type: 'image' | 'pdf';
+	name: string;
+	size: number;
+	url: string;
+	storageKey: string;
+	order: number;
+	focalPointX?: number;
+	focalPointY?: number;
+	uploadedAt: Date;
 };
 
 export type CatFull = Cat & {
+	id: string;
 	status: string;
 	isVisible: boolean;
 	hairLength: string | null;
@@ -34,6 +46,10 @@ export type CatFull = Cat & {
 	isDeworming: boolean;
 	isIdentify: boolean;
 	chipId: string | null;
+	placement: {
+		startedDate: Date | null;
+		endedDate: Date | null;
+	};
 	currentHost: {
 		firstName: string;
 		lastName: string;
@@ -42,4 +58,7 @@ export type CatFull = Cat & {
 		firstName: string;
 		lastName: string;
 	} | null;
+	medias?: CatMedia[];
+	focalPointX?: number;
+	focalPointY?: number;
 };

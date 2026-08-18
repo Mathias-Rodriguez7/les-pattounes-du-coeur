@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js" 
 }
 
 datasource db {
@@ -93,8 +92,6 @@ model Cat {
   origin              String?     @db.VarChar(255)
   isSterilize         Boolean     @default(false) @db.Boolean
   isAlreadySterilized Boolean     @default(false) @db.Boolean
-  sickness            String?     @db.Text
-  treatment           String?     @db.Text
   vaccinate           Vaccinate?
   isFivTest           Boolean     @default(false) @db.Boolean
   isDeworming         Boolean     @default(false) @db.Boolean
@@ -109,12 +106,31 @@ model Cat {
 
   created_at DateTime       @default(now())
   updated_at DateTime       @default(now()) @updatedAt
+  sicknesses  Sickness[] 
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
   cares      Care[]
   news       NewsCat[]
   adoptions  Adoption[]
+}
+
+model Sickness {
+  id        String   @id @default(uuid())
+  catId     String   @db.Uuid
+  cat       Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  
+  name        String   @db.VarChar(255)
+  description String?
+  treatment   String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      SicknessStatus @default(ACTIVE)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([catId])
 }
 
 model MediaCat {
@@ -166,9 +182,9 @@ model Placement {
   cat        Cat       @relation(fields: [catId], references: [id])
   hostId     String    @db.Uuid
   host       Host      @relation(fields: [hostId], references: [id])
+  type       PlacementType @default(LONG)
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
-  isPrimary  Boolean   @default(true) @db.Boolean
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now()) @updatedAt
 }
@@ -335,6 +351,12 @@ enum NewsType {
   EVENT
 }
 
+// PLACEMENT
+enum PlacementType {
+  LONG    
+  SHORT  
+}
+
 // FORM
 enum FormType {
   ADOPTION
@@ -349,4 +371,11 @@ enum FormStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// SICKNESS
+enum SicknessStatus {
+  ACTIVE
+  TREATED
+  RESOLVED
 }

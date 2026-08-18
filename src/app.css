@@ -1,16 +1,5 @@
 @import 'tailwindcss';
-
-/* =========================
-FONT
-========================= */
-
-@font-face {
-	font-family: 'TT Rounds Neue';
-	src: url('/fonts/tt-rounds-neue.woff2') format('woff2');
-	font-weight: 100 900;
-	font-style: normal;
-	font-display: swap;
-}
+@import '/static/fonts/fonts.css';
 
 /* =========================
 DESIGN TOKENS
@@ -61,6 +50,22 @@ DESIGN TOKENS
 	--gradient-green: 150 40% 93% /* hsl(150 40% 93%) */;
 	--gradient-pink-soft: 350 60% 95% /* hsl(350 60% 95%) */;
 	--gradient-green-soft: 150 30% 95% /* hsl(150 30% 95%) */;
+
+	/* 🎨 ICON THEMES - Cohérent avec la palette */
+	--icon-cats-from: hsl(210 100% 50%); /* Bleu vif */
+	--icon-cats-to: hsl(210 100% 35%); /* Bleu foncé */
+
+	--icon-fa-from: hsl(150 40% 60%); /* Secondary (vert/teal) */
+	--icon-fa-to: hsl(150 40% 40%); /* Secondary plus sombre */
+
+	--icon-adoptions-from: hsl(350 70% 90%); /* Accent (rose clair) */
+	--icon-adoptions-to: hsl(350 80% 65%); /* Primary (rose) */
+
+	--icon-pending-from: hsl(38 92% 50%); /* Amber vif */
+	--icon-pending-to: hsl(38 92% 35%); /* Amber foncé */
+
+	--icon-volunteers-from: hsl(280 85% 55%); /* Purple harmonieux */
+	--icon-volunteers-to: hsl(280 85% 35%); /* Purple foncé */
 }
 
 /* =========================
@@ -108,7 +113,25 @@ DARK MODE
 	--gradient-green: 150 30% 16% /* hsl(150 30% 16%) */;
 	--gradient-pink-soft: 350 40% 14% /* hsl(350 40% 14%) */;
 	--gradient-green-soft: 150 20% 14% /* hsl(150 20% 14%) */;
+
+	/* 🎨 ICON THEMES - Dark mode */
+	--icon-cats-from: hsl(210 100% 60%);
+	--icon-cats-to: hsl(210 100% 40%);
+
+	--icon-fa-from: hsl(150 35% 50%);
+	--icon-fa-to: hsl(150 35% 30%);
+
+	--icon-adoptions-from: hsl(350 70% 60%);
+	--icon-adoptions-to: hsl(350 80% 40%);
+
+	--icon-pending-from: hsl(38 92% 55%);
+	--icon-pending-to: hsl(38 92% 35%);
+
+	--icon-volunteers-from: hsl(280 85% 60%);
+	--icon-volunteers-to: hsl(280 85% 40%);
 }
+
+/* Reste du CSS... */
 
 /* =========================
 TAILWIND THEME BRIDGE

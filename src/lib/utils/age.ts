@@ -8,10 +8,13 @@ function getAgeInMonths(birthDate: Date | null): number {
 export function formatAge(birthDate: Date | null): string {
 	const months = getAgeInMonths(birthDate);
 	if (!birthDate || months === 0) return 'Âge inconnu';
+
+	// Entre 0 et 1 an : affiche le nombre de mois
 	if (months < 12) return `${months} mois`;
+
+	// À partir de 1 an : affiche seulement le nombre d'années
 	const years = Math.floor(months / 12);
-	const rem = months % 12;
-	return rem > 0 ? `${years} ans ${rem} mois` : `${years} ans`;
+	return `${years} ans`;
 }
 
 export function getAgeBadge(birthDate: Date | null): string {

@@ -5,9 +5,9 @@
 <footer class="bg-accent/70 w-full border-t border-black/10 px-6 py-12 backdrop-blur-lg">
 	<section class="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
 		<!-- GAUCHE : LOGO + SOCIALS -->
-		<div class="flex flex-col gap-6">
+		<div class="flex flex-col items-center gap-6">
 			<!-- LOGO -->
-			<div class="flex items-center gap-3">
+			<div class="flex w-80 items-center gap-3">
 				<img src="/img/logo.png" alt="logo" class="h-25 w-25 object-contain" />
 				<p class="text-sm leading-relaxed text-wrap opacity-70">
 					Association pour la protection des animaux abandonnés sur Montpellier et ses alentours.

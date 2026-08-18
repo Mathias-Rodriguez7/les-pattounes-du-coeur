@@ -1,4 +1,4 @@
-import type { NewsType } from '../../../generated/prisma/client';
+import type { NewsType } from '../@prisma/client/client';
 
 export type NewsDTO = {
 	id: string;
