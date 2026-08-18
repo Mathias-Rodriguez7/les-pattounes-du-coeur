@@ -184,10 +184,10 @@
 						<Table.Body>
 							{#each paginatedCats as cat (cat.id)}
 								<CatRow 
-        {cat} 
-        onclick={() => handleSelectCat(cat.id)}
-        isSelected={selectedCatId === cat.id}
-    />
+									{cat} 
+									onclick={() => handleSelectCat(cat.id)}
+									isSelected={selectedCatId === cat.id}
+								/>
 							{/each}
 						</Table.Body>
 					</Table.Root>

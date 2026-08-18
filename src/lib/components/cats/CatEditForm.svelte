@@ -159,39 +159,60 @@
 
 	<!-- HEADER EN MODE ÉDITION -->
 	<Card.Header>
-		<div class="grid grid-cols-2 gap-6">
-			<div class="space-y-3">
-				<div>
-					<label for="name" class="text-muted-foreground text-base">Nom</label>
-					<Input id="name" name="name" bind:value={nameValue} class="mt-1" />
+		<div class="grid grid-cols-[1fr_auto_1fr] gap-6">
+			<div class="grid grid-cols-1 gap-2">
+				<div class="grid grid-cols-2 gap-x-6 gap-y-2">
+					<div>
+						<label for="name" class="text-muted-foreground text-base">Nom</label>
+						<Input id="name" name="name" bind:value={nameValue} class="mt-1" />
+					</div>
+					<div>
+						<label for="isVisible" class="text-muted-foreground text-xs">Visible</label>
+						<Select.Root type="single" bind:value={isVisibleValue}>
+							<Select.Trigger class="mt-1">
+								{isVisibleValue === 'true'
+									? 'Oui'
+									: isVisibleValue === 'false'
+										? 'Non'
+										: 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="true">Oui</Select.Item>
+								<Select.Item value="false">Non</Select.Item>
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="isVisible" value={isVisibleValue} />
+					</div>
 				</div>
-				<div>
-					<label for="birthDate" class="text-muted-foreground text-xs">Date de naissance</label>
-					<Input
-						id="birthDate"
-						name="birthDate"
-						type="date"
-						bind:value={birthDateValue}
-						class="mt-1"
-					/>
-				</div>
+				<div class="grid grid-cols-2 gap-6">
+					<div>
+						<label for="birthDate" class="text-muted-foreground text-xs">Date de naissance</label>
+						<Input
+							id="birthDate"
+							name="birthDate"
+							type="date"
+							bind:value={birthDateValue}
+							class="mt-1"
+						/>
+					</div>
 
-				<div>
-					<label for="status" class="text-muted-foreground text-xs">Statut</label>
-					<Select.Root type="single" bind:value={statusValue}>
-						<Select.Trigger class="mt-1">
-							{statusLabel[statusValue] ?? 'Sélectionner...'}
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(statusLabel) as [val, label] (val)}
-								<Select.Item value={val}>{label}</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="status" value={statusValue} />
+					<div>
+						<label for="status" class="text-muted-foreground text-xs">Statut</label>
+						<Select.Root type="single" bind:value={statusValue}>
+							<Select.Trigger class="mt-1">
+								{statusLabel[statusValue] ?? 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(statusLabel) as [val, label] (val)}
+									<Select.Item value={val}>{label}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="status" value={statusValue} />
+					</div>
 				</div>
 			</div>
-
+			<Separator orientation="vertical" class="h-6" />
 			<!-- FA Section -->
 			<div>
 				<div class="space-y-3">
@@ -309,23 +330,6 @@
 							<input type="hidden" name="volunteerId" value={volunteerValue} />
 						</div>
 					{/if}
-					<div>
-						<label for="isVisible" class="text-muted-foreground text-xs">Visible</label>
-						<Select.Root type="single" bind:value={isVisibleValue}>
-							<Select.Trigger class="mt-1">
-								{isVisibleValue === 'true'
-									? 'Oui'
-									: isVisibleValue === 'false'
-										? 'Non'
-										: 'Sélectionner...'}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="true">Oui</Select.Item>
-								<Select.Item value="false">Non</Select.Item>
-							</Select.Content>
-						</Select.Root>
-						<input type="hidden" name="isVisible" value={isVisibleValue} />
-					</div>
 				</div>
 			</div>
 		</div>
@@ -336,8 +340,8 @@
 		<div class="grid grid-cols-[1fr_auto_1fr] gap-6">
 			<!-- Infos physiques -->
 			<div>
-				<p class="mb-3 font-medium">Informations physiques</p>
-				<div class="grid grid-cols-2 gap-4">
+				<p class="mb-2 text-base font-medium">Informations physiques</p>
+				<div class="grid grid-cols-2 gap-x-6 gap-y-2">
 					<div>
 						<label for="sex" class="text-muted-foreground text-xs">Sexe</label>
 						<Select.Root type="single" bind:value={sexValue}>
@@ -356,7 +360,6 @@
 						<label for="color" class="text-muted-foreground text-xs">Couleur</label>
 						<Input id="color" name="color" bind:value={colorValue} class="mt-1" />
 					</div>
-
 					<div>
 						<label for="hairLength" class="text-muted-foreground text-xs">Poil</label>
 						<Select.Root type="single" bind:value={hairLengthValue}>
@@ -381,8 +384,8 @@
 			<Separator orientation="vertical" class="h-6" />
 			<!-- Compatibilités -->
 			<div>
-				<p class="mb-3 font-medium">Compatibilités</p>
-				<div class="grid grid-cols-2 gap-4">
+				<p class="mb-2 text-base font-medium">Compatibilités</p>
+				<div class="grid grid-cols-2 gap-x-6 gap-y-2">
 					<div>
 						<label for="isOkDog" class="text-muted-foreground text-xs">Chien</label>
 						<Select.Root type="single" bind:value={isOkDogValue}>
@@ -418,7 +421,6 @@
 						</Select.Root>
 						<input type="hidden" name="isOkCat" value={isOkCatValue} />
 					</div>
-
 					<div>
 						<label for="isOkChild" class="text-muted-foreground text-xs">Enfant</label>
 						<Select.Root type="single" bind:value={isOkChildValue}>
@@ -461,111 +463,111 @@
 		<Separator />
 
 		<!-- Santé -->
-		<div class="grid grid-cols-1 gap-4">
-			<p class="mb-3 font-medium">Santé</p>
-			<div class="grid grid-cols-3 gap-4">
-				<div>
-					<label for="vaccinate" class="text-muted-foreground text-xs">Vaccin</label>
-					<Select.Root type="single" bind:value={vaccinateValue}>
-						<Select.Trigger class="mt-1">
-							{vaccinateLabel[vaccinateValue] ?? '—'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="">—</Select.Item>
-							{#each Object.entries(vaccinateLabel) as [val, label] (val)}
-								<Select.Item value={val}>{label}</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="vaccinate" value={vaccinateValue} />
-				</div>
+		<div>
+			<p class="mb-2 text-base font-medium">Santé</p>
+			<div class="grid grid-cols-1 gap-4">
+				<div class="grid grid-cols-3 gap-x-6 gap-y-2">
+					<div>
+						<label for="vaccinate" class="text-muted-foreground text-xs">Vaccin</label>
+						<Select.Root type="single" bind:value={vaccinateValue}>
+							<Select.Trigger class="mt-1">
+								{vaccinateLabel[vaccinateValue] ?? '—'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="">—</Select.Item>
+								{#each Object.entries(vaccinateLabel) as [val, label] (val)}
+									<Select.Item value={val}>{label}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="vaccinate" value={vaccinateValue} />
+					</div>
 
-				<div>
-					<label for="isFivTest" class="text-muted-foreground text-xs">Test FIV</label>
-					<Select.Root type="single" bind:value={isFivTestValue}>
-						<Select.Trigger class="mt-1">
-							{isFivTestValue === 'true'
-								? 'Oui'
-								: isFivTestValue === 'false'
-									? 'Non'
-									: 'Sélectionner...'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="true">Oui</Select.Item>
-							<Select.Item value="false">Non</Select.Item>
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="isFivTest" value={isFivTestValue} />
-				</div>
+					<div>
+						<label for="isFivTest" class="text-muted-foreground text-xs">Test FIV</label>
+						<Select.Root type="single" bind:value={isFivTestValue}>
+							<Select.Trigger class="mt-1">
+								{isFivTestValue === 'true'
+									? 'Oui'
+									: isFivTestValue === 'false'
+										? 'Non'
+										: 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="true">Oui</Select.Item>
+								<Select.Item value="false">Non</Select.Item>
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="isFivTest" value={isFivTestValue} />
+					</div>
+					<div>
+						<label for="isDeworming" class="text-muted-foreground text-xs">Vermifuge</label>
+						<Select.Root type="single" bind:value={isDewormingValue}>
+							<Select.Trigger class="mt-1">
+								{isDewormingValue === 'true'
+									? 'Oui'
+									: isDewormingValue === 'false'
+										? 'Non'
+										: 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="true">Oui</Select.Item>
+								<Select.Item value="false">Non</Select.Item>
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="isDeworming" value={isDewormingValue} />
+					</div>
 
-				<div>
-					<label for="isDeworming" class="text-muted-foreground text-xs">Vermifuge</label>
-					<Select.Root type="single" bind:value={isDewormingValue}>
-						<Select.Trigger class="mt-1">
-							{isDewormingValue === 'true'
-								? 'Oui'
-								: isDewormingValue === 'false'
-									? 'Non'
-									: 'Sélectionner...'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="true">Oui</Select.Item>
-							<Select.Item value="false">Non</Select.Item>
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="isDeworming" value={isDewormingValue} />
-				</div>
+					<div>
+						<label for="isSterilize" class="text-muted-foreground text-xs">Stérilisé·e</label>
+						<Select.Root type="single" bind:value={isSterilizeValue}>
+							<Select.Trigger class="mt-1">
+								{isSterilizeValue === 'true'
+									? 'Oui'
+									: isSterilizeValue === 'false'
+										? 'Non'
+										: 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="true">Oui</Select.Item>
+								<Select.Item value="false">Non</Select.Item>
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="isSterilize" value={isSterilizeValue} />
+					</div>
+					<div>
+						<label for="isIdentify" class="text-muted-foreground text-xs">Identifié·e</label>
+						<Select.Root type="single" bind:value={isIdentifyValue}>
+							<Select.Trigger class="mt-1">
+								{isIdentifyValue === 'true'
+									? 'Oui'
+									: isIdentifyValue === 'false'
+										? 'Non'
+										: 'Sélectionner...'}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="true">Oui</Select.Item>
+								<Select.Item value="false">Non</Select.Item>
+							</Select.Content>
+						</Select.Root>
+						<input type="hidden" name="isIdentify" value={isIdentifyValue} />
+					</div>
 
-				<div>
-					<label for="isSterilize" class="text-muted-foreground text-xs">Stérilisé·e</label>
-					<Select.Root type="single" bind:value={isSterilizeValue}>
-						<Select.Trigger class="mt-1">
-							{isSterilizeValue === 'true'
-								? 'Oui'
-								: isSterilizeValue === 'false'
-									? 'Non'
-									: 'Sélectionner...'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="true">Oui</Select.Item>
-							<Select.Item value="false">Non</Select.Item>
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="isSterilize" value={isSterilizeValue} />
+					<div>
+						<label for="chipId" class="text-muted-foreground text-xs">Puce</label>
+						<Input id="chipId" name="chipId" bind:value={chipIdValue} class="mt-1" />
+					</div>
 				</div>
+				<div class="grid grid-cols-2 gap-x-6 gap-y-2">
+					<div>
+						<label for="sickness" class="mb-2 text-base font-medium">Maladie</label>
+						<Textarea id="sickness" name="sickness" bind:value={sicknessValue} class="mt-1" />
+					</div>
 
-				<div>
-					<label for="isIdentify" class="text-muted-foreground text-xs">Identifié·e</label>
-					<Select.Root type="single" bind:value={isIdentifyValue}>
-						<Select.Trigger class="mt-1">
-							{isIdentifyValue === 'true'
-								? 'Oui'
-								: isIdentifyValue === 'false'
-									? 'Non'
-									: 'Sélectionner...'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="true">Oui</Select.Item>
-							<Select.Item value="false">Non</Select.Item>
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="isIdentify" value={isIdentifyValue} />
-				</div>
-
-				<div>
-					<label for="chipId" class="text-muted-foreground text-xs">Puce</label>
-					<Input id="chipId" name="chipId" bind:value={chipIdValue} class="mt-1" />
-				</div>
-			</div>
-			<div class="grid grid-cols-3 gap-2">
-				<div class="col-span-1">
-					<label for="sickness" class="text-muted-foreground text-xs">Maladie</label>
-					<Textarea id="sickness" name="sickness" bind:value={sicknessValue} class="mt-1" />
-				</div>
-
-				<div class="col-span-2">
-					<label for="treatment" class="text-muted-foreground text-xs">Traitement</label>
-					<Textarea id="treatment" name="treatment" bind:value={treatmentValue} class="mt-1" />
+					<div>
+						<label for="treatment" class="mb-2 text-base font-medium">Traitement</label>
+						<Textarea id="treatment" name="treatment" bind:value={treatmentValue} class="mt-1" />
+					</div>
 				</div>
 			</div>
 		</div>
@@ -574,7 +576,7 @@
 
 		<!-- Description -->
 		<div>
-			<label for="description" class="mb-3 font-medium">Description</label>
+			<label for="description" class="mb-2 text-base font-medium">Description</label>
 			<Textarea
 				id="description"
 				name="description"

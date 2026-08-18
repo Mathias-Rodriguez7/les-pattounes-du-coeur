@@ -57,7 +57,7 @@
 						<!-- FA & référent -->
 						<div>
 							<div class="grid grid-cols-2 gap-1 text-sm">
-							<span class="text-muted-foreground">Bénévole</span>
+								<span class="text-muted-foreground">Bénévole</span>
 								<span>
 									{#if cat.referent}
 										{cat.referent.firstName} {cat.referent.lastName}
@@ -190,11 +190,11 @@
 						<div class="grid grid-cols-2 gap-4">
 							<div>
 								<span class="mb-2 text-base font-medium">Maladie</span>
-								<span class="block ml-4">{cat.sickness ?? '—'}</span>
+								<span class="ml-4 block">{cat.sickness ?? '—'}</span>
 							</div>
 							<div>
 								<span class="mb-2 text-base font-medium">Traitement</span>
-								<span class="block ml-4">{cat.treatment ?? '—'}</span>
+								<span class="ml-4 block">{cat.treatment ?? '—'}</span>
 							</div>
 						</div>
 					</div>
@@ -203,7 +203,7 @@
 					<!-- Description -->
 					{#if cat.description}
 						<div>
-							<p class="mb-1 font-medium">Description</p>
+							<p class="mb-2 text-base font-medium">Description</p>
 							<p class="text-muted-foreground text-sm">{cat.description}</p>
 						</div>
 					{/if}
