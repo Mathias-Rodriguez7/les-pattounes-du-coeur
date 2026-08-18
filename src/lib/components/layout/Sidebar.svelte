@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
-	import type { VolunteerRole } from '../../../generated/prisma/enums';
+	import type { VolunteerRole } from '../@prisma/client/enums';
 	import {
 		LayoutDashboard,
 		Cat,
@@ -64,7 +64,7 @@
 
 <aside
 	class={`bg-accent/70 border-accent/40 relative flex h-screen flex-col border-r backdrop-blur-lg transition-all duration-300 ease-in-out
-    ${collapsed ? 'w-18' : 'w-60'}`}
+    ${collapsed ? 'w-18' : 'w-45'}`}
 >
 	<!-- Toggle -->
 	<button
@@ -141,25 +141,6 @@
 
 	<!-- BOTTOM -->
 	<div class="border-border flex flex-col gap-1 border-t px-2 py-3">
-		<a
-			href={resolve('/profile')}
-			onclick={() => onClose?.()}
-			class={`group text-muted-foreground hover:bg-accent/50 hover:text-foreground relative flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition
-            ${collapsed ? 'justify-center' : 'gap-3'}`}
-		>
-			<UserCog class="h-4.5 w-4.5 shrink-0" />
-			{#if !collapsed}
-				<span>Mon profil</span>
-			{/if}
-			{#if collapsed}
-				<span
-					class="bg-popover border-border text-popover-foreground pointer-events-none absolute left-full ml-3 rounded-lg border px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-xl transition-opacity group-hover:opacity-100"
-				>
-					Mon profil
-				</span>
-			{/if}
-		</a>
-
 		<form method="POST" action="/logout" use:enhance>
 			<button
 				type="submit"

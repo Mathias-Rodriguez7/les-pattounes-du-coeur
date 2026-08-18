@@ -1,6 +1,6 @@
 import type { PrismaNewsWithCats } from '$lib/types/prisma/news';
 import type { News } from '$lib/types/news';
-import type { NewsType } from '../../generated/prisma/client';
+import type { NewsType } from '@prisma/client/client';
 import { formatDate } from '$lib/utils/date';
 import { mapCat } from '$lib/mappers/cats';
 

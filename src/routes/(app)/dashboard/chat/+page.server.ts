@@ -27,7 +27,7 @@ export type PageData = {
 export const load: PageServerLoad = async ({ locals }) => {
     // ✅ Vérifier que l'user existe
     if (!locals.user) {
-        redirect(302, '/login');
+        redirect(302, '/');
     }
 
     try {

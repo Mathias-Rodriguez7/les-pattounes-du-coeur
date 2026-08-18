@@ -2,7 +2,7 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Pencil } from '@lucide/svelte';
+	import { Pencil, Camera } from '@lucide/svelte';
 	import type { CatFull } from '$lib/types/cat';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -28,6 +28,7 @@
 	} = $props();
 
 	let editing = $state(false);
+	let editimg = $state(false);
 
 	function getCurrentPlacement() {
 		if (!cat?.placements) return null;
@@ -43,47 +44,62 @@
 				<CatEditForm {cat} {hosts} {volunteers} {isAdmin} onCancel={() => (editing = false)} />
 			{:else}
 				<!-- MODE LECTURE -->
-				<Card.Header class="flex flex-row items-start justify-between bg-white">
-					<div>
-						<Card.Title class="text-xl">{cat.name}</Card.Title>
-						<Card.Description>
-							{cat.ageBadge} · {getLabel(sexLabel, cat.sex)}
-						</Card.Description>
-					</div>
-					<!-- FA & référent -->
-					<div>
-						<div class="grid grid-cols-2 gap-1 text-sm">
-							<span class="text-muted-foreground">FA</span>
-							<span>
-								{#if getCurrentPlacement()}
-									{getCurrentPlacement().host.firstName} {getCurrentPlacement().host.lastName}
-								{:else}
-									<span class="text-red-500">Aucune</span>
-								{/if}
-							</span>
+				<Card.Header>
+					<div class="flex flex-row items-start justify-between">
+						<div>
+							<Card.Title class="text-xl">{cat.name}</Card.Title>
+							<Card.Description>
+								{cat.ageBadge} · {getLabel(sexLabel, cat.sex)}
+							</Card.Description>
+							<span>ID</span>
+							<span>{cat.id}</span>
+						</div>
+						<!-- FA & référent -->
+						<div>
+							<div class="grid grid-cols-2 gap-1 text-sm">
 							<span class="text-muted-foreground">Bénévole</span>
-							<span>
-								{#if cat.referent}
-									{cat.referent.firstName} {cat.referent.lastName}
-								{:else}
-									<span class="text-muted-foreground">—</span>
-								{/if}
-							</span>
+								<span>
+									{#if cat.referent}
+										{cat.referent.firstName} {cat.referent.lastName}
+									{:else}
+										<span class="text-muted-foreground">—</span>
+									{/if}
+								</span>
+								<span class="text-muted-foreground">FA</span>
+								<span>
+									{#if getCurrentPlacement()}
+										{getCurrentPlacement().host.firstName} {getCurrentPlacement().host.lastName}
+									{:else}
+										<span class="text-red-500">Aucune</span>
+									{/if}
+								</span>
+								<span>Note Placement</span>
+							</div>
+						</div>
+
+						<div class="flex flex-col">
+							<Button
+								variant="ghost"
+								size="icon"
+								onclick={() => {
+									editing = true;
+								}}
+							>
+								<Pencil class="h-5 w-5" />
+							</Button>
+
+							<Button
+								variant="ghost"
+								size="icon"
+								onclick={() => {
+									editimg = true;
+								}}
+							>
+								<Camera class="W-5 h-5" />
+							</Button>
 						</div>
 					</div>
 
-					<Button
-						variant="ghost"
-						size="icon"
-						onclick={() => {
-							editing = true;
-						}}
-					>
-						<Pencil class="h-4 w-4" />
-					</Button>
-				</Card.Header>
-
-				<Card.Content class="flex flex-col gap-4 text-sm">
 					<!-- Statut & visibilité -->
 					<div class="flex gap-4">
 						<Badge variant="outline">{statusLabel[cat.status] ?? cat.status}</Badge>
@@ -93,6 +109,9 @@
 							<Badge class="bg-red-100 text-red-700">Masqué</Badge>
 						{/if}
 					</div>
+				</Card.Header>
+
+				<Card.Content class="flex flex-col gap-4 text-sm">
 					<Separator />
 
 					<div class="grid grid-cols-2 gap-6">
@@ -168,11 +187,15 @@
 								</div>
 							</section>
 						</div>
-						<div class="grid grid-cols-1 gap-2">
-							<span class="text-muted-foreground">Maladie</span>
-							<span class="ml-4">{cat.sickness ?? '—'}</span>
-							<span class="text-muted-foreground">Traitement</span>
-							<span class="ml-4">{cat.treatment ?? '—'}</span>
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<span class="mb-2 text-base font-medium">Maladie</span>
+								<span class="block ml-4">{cat.sickness ?? '—'}</span>
+							</div>
+							<div>
+								<span class="mb-2 text-base font-medium">Traitement</span>
+								<span class="block ml-4">{cat.treatment ?? '—'}</span>
+							</div>
 						</div>
 					</div>
 					<Separator />

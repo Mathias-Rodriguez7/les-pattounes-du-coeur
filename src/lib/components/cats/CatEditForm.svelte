@@ -333,7 +333,7 @@
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-4 text-sm">
-		<div class="grid grid-cols-2 gap-6">
+		<div class="grid grid-cols-[1fr_auto_1fr] gap-6">
 			<!-- Infos physiques -->
 			<div>
 				<p class="mb-3 font-medium">Informations physiques</p>
@@ -378,7 +378,7 @@
 					</div>
 				</div>
 			</div>
-
+			<Separator orientation="vertical" class="h-6" />
 			<!-- Compatibilités -->
 			<div>
 				<p class="mb-3 font-medium">Compatibilités</p>
@@ -557,13 +557,13 @@
 					<Input id="chipId" name="chipId" bind:value={chipIdValue} class="mt-1" />
 				</div>
 			</div>
-			<div class="grid grid-cols-2 gap-2">
-				<div>
+			<div class="grid grid-cols-3 gap-2">
+				<div class="col-span-1">
 					<label for="sickness" class="text-muted-foreground text-xs">Maladie</label>
 					<Textarea id="sickness" name="sickness" bind:value={sicknessValue} class="mt-1" />
 				</div>
 
-				<div>
+				<div class="col-span-2">
 					<label for="treatment" class="text-muted-foreground text-xs">Traitement</label>
 					<Textarea id="treatment" name="treatment" bind:value={treatmentValue} class="mt-1" />
 				</div>

@@ -21,7 +21,10 @@
 	let newCatOpen = $state(false);
 	let currentPage = $state(1);
 	let currentTab = $state('all');
-
+    
+    const handleSelectCat = (catId: string) => {
+        selectedCatId = catId;
+    };
 	const PAGE_SIZE = 10;
 
 	const statCards = $derived([
@@ -110,7 +113,7 @@
 	</section>
 
 	<!-- Tableau + Panel détail -->
-	<section class="grid h-[calc(97vh-50px)] grid-cols-1 gap-4 lg:grid-cols-5">
+	<section class="grid  grid-cols-1 gap-4 lg:grid-cols-5">
 		<!-- Tableau -->
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
@@ -121,7 +124,7 @@
 				</Button>
 			</Card.Header>
 			<Card.Content>
-				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="w-full">
+				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="min-w-full">
 					<Tabs.List class="bg-muted grid grid-cols-5 gap-2 p-1">
 						<Tabs.Trigger value="all" class="relative">
 							Tout
@@ -180,7 +183,11 @@
 						</Table.Header>
 						<Table.Body>
 							{#each paginatedCats as cat (cat.id)}
-								<CatRow {cat} onclick={() => (selectedCatId = cat.id)} />
+								<CatRow 
+        {cat} 
+        onclick={() => handleSelectCat(cat.id)}
+        isSelected={selectedCatId === cat.id}
+    />
 							{/each}
 						</Table.Body>
 					</Table.Root>
