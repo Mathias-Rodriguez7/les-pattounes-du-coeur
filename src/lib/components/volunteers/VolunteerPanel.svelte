@@ -1,23 +1,25 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import { Button } from '$lib/components/ui/button/index.ts';
+	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Pencil, X, Check } from '@lucide/svelte';
+	import { Pencil } from '@lucide/svelte';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { statusLabel } from '$lib/utils/catHelpers';
 	import { Badge } from '$lib/components/ui/badge';
 	import { truncate } from '$lib/utils/string';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import VolunteerEditForm from './VolunteerEditForm.svelte';
+
+	type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'ALERT' | 'OTHER';
 
 	const { volunteer, isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 	let currentPage = $state(1);
+	let isSaving = $state(false);
 
 	// ===== DONNÉES ÉDITION =====
 	let editData = $state({
@@ -25,14 +27,17 @@
 		lastName: '',
 		email: '',
 		phone: '',
-		quartier: '',
+		district: '',
 		address: '',
-		actif: 'ACTIVE'
+		actif: 'ACTIVE',
+		role: 'ADMIN',
+		city: '',
+		postalCode: ''
 	});
 
 	const PAGE_SIZE = 10;
 
-	// ===== CONFIG STATUS (déclarer AVANT son utilisation) =====
+	// ===== CONFIG STATUS =====
 	const statusConfig = {
 		ACTIVE: {
 			icon: 'CirclePlay',
@@ -82,7 +87,7 @@
 		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 	);
 
-	// ===== STATUS COURANT (utilise statusConfig défini au-dessus) =====
+	// ===== STATUS COURANT =====
 	const currentStatus = $derived(
 		volunteer?.actif
 			? statusConfig[volunteer.actif as keyof typeof statusConfig]
@@ -109,6 +114,15 @@
 		OTHER: { icon: 'other', theme: 'other' }
 	};
 
+	const formTypeLabels: Record<FormType, string> = {
+		ADOPTION: 'Adoptions',
+		VOLUNTEER: 'Bénévoles',
+		HOST: "Familles d'accueil",
+		COLAB: 'Collaborations',
+		ALERT: 'Alertes',
+		OTHER: 'Autres'
+	};
+
 	// ===== GESTION ÉDITION =====
 	const startEditing = () => {
 		editData = {
@@ -116,18 +130,18 @@
 			lastName: volunteer.profil.lastName,
 			email: volunteer.profil.email,
 			phone: volunteer.profil.phone || '',
-			quartier: volunteer.profil.quartier || '',
+			district: volunteer.profil.district || '',
 			address: volunteer.profil.address || '',
-			actif: volunteer.actif
+			city: volunteer.profil.city || '',
+			postalCode: volunteer.profil.postalCode || '',
+			actif: volunteer.actif,
+			role: volunteer.role
 		};
 		isEditing = true;
 	};
 
-	const cancelEditing = () => {
-		isEditing = false;
-	};
-
 	const saveEditing = async () => {
+		isSaving = true;
 		try {
 			const response = await fetch(`/api/volunteers/${volunteer.id}`, {
 				method: 'PUT',
@@ -140,8 +154,10 @@
 						lastName: editData.lastName,
 						email: editData.email,
 						phone: editData.phone,
-						quartier: editData.quartier,
-						address: editData.address
+						district: editData.district,
+						address: editData.address,
+						city: editData.city,
+						postalCode: editData.postalCode
 					},
 					actif: editData.actif
 				})
@@ -152,15 +168,23 @@
 				volunteer.profil.lastName = editData.lastName;
 				volunteer.profil.email = editData.email;
 				volunteer.profil.phone = editData.phone;
-				volunteer.profil.quartier = editData.quartier;
+				volunteer.profil.district = editData.district;
 				volunteer.profil.address = editData.address;
+				volunteer.profil.city = editData.city;
+				volunteer.profil.postalCode = editData.postalCode;
 				volunteer.actif = editData.actif;
 
 				isEditing = false;
 			}
 		} catch (error) {
 			console.error('Erreur lors de la sauvegarde:', error);
+		} finally {
+			isSaving = false;
 		}
+	};
+
+	const cancelEditing = () => {
+		isEditing = false;
 	};
 
 	// Couleurs pour les rôles
@@ -232,57 +256,7 @@
 		{:else}
 			<!-- ===== HEADER ÉDITION ===== -->
 			<Card.Header>
-				<div class="flex items-start justify-between gap-6">
-					<div class="flex-1">
-						<div class="grid grid-cols-2 gap-6">
-							<div>
-								<label class="text-sm font-medium text-gray-700">Prénom</label>
-								<Input bind:value={editData.firstName} class="mt-1" />
-							</div>
-							<div>
-								<label class="text-sm font-medium text-gray-700">Nom</label>
-								<Input bind:value={editData.lastName} class="mt-1" />
-							</div>
-							<div>
-								<label class="text-sm font-medium text-gray-700">Email</label>
-								<Input type="email" bind:value={editData.email} class="mt-1" />
-							</div>
-							<div>
-								<label class="text-sm font-medium text-gray-700">Téléphone</label>
-								<Input type="tel" bind:value={editData.phone} class="mt-1" />
-							</div>
-							<div>
-								<label class="text-sm font-medium text-gray-700">Statut</label>
-								<Select.Root
-									selected={{
-										value: editData.actif ? 'actif' : 'inactif',
-										label: editData.actif ? 'Actif' : 'Inactif'
-									}}
-									onSelectedChange={(v) => {
-										if (v) editData.actif = v.value === 'actif';
-									}}
-								>
-									<Select.Trigger class="mt-1">
-										<Select.Value />
-									</Select.Trigger>
-									<Select.Content>
-										<Select.Item value="actif">Actif</Select.Item>
-										<Select.Item value="inactif">Inactif</Select.Item>
-									</Select.Content>
-								</Select.Root>
-							</div>
-						</div>
-					</div>
-					<!-- Boutons save/cancel -->
-					<div class="mt-6 ml-4 flex gap-2">
-						<Button variant="ghost" size="icon" onclick={cancelEditing}>
-							<X class="h-5 w-5 text-red-500" />
-						</Button>
-						<Button variant="ghost" size="icon" onclick={saveEditing}>
-							<Check class="h-5 w-5 text-green-500" />
-						</Button>
-					</div>
-				</div>
+				<h3 class="text-2xl font-bold">Éditer le bénévole</h3>
 			</Card.Header>
 		{/if}
 
@@ -290,9 +264,8 @@
 		<Card.Content class="grid grid-cols-1 gap-6">
 			<Separator />
 			<div class="space-y-6">
-				<!-- ===== INFOS GÉOGRAPHIQUES ===== -->
 				{#if !isEditing}
-					<!-- MODE AFFICHAGE -->
+					<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
 					<div class="grid grid-cols-3 gap-x-6 gap-y-2">
 						<div>
 							<p class="text-muted-foreground text-sm font-medium">Adresse</p>
@@ -316,146 +289,115 @@
 						</div>
 					</div>
 				{:else}
-					<!-- MODE ÉDITION -->
-					<div class="grid grid-cols-2 gap-6">
-						<div>
-							<label class="text-sm font-medium text-gray-700">Quartier</label>
-							<Select.Root
-								selected={{
-									value: editData.quartier,
-									label:
-										DISTRICT_LABELS[editData.quartier as keyof typeof DISTRICT_LABELS] ||
-										'Sélectionner'
-								}}
-								onSelectedChange={(v) => {
-									if (v) editData.quartier = v.value;
-								}}
-							>
-								<Select.Trigger class="mt-1">
-									<Select.Value />
-								</Select.Trigger>
-								<Select.Content>
-									{#each Object.entries(DISTRICT_LABELS) as [key, label] (key)}
-										<Select.Item value={key}>
-											{label}
-										</Select.Item>
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						</div>
-						<div>
-							<label class="text-sm font-medium text-gray-700">Adresse</label>
-							<Input bind:value={editData.address} class="mt-1" />
-						</div>
-						<div>
-							<label class="text-sm font-medium text-gray-700">Ville</label>
-							<Input bind:value={editData.city} class="mt-1" />
-						</div>
-						<div>
-							<label class="text-sm font-medium text-gray-700">Code postal</label>
-							<Input bind:value={editData.postalCode} class="mt-1" />
-						</div>
-					</div>
+					<!-- ===== MODE ÉDITION ===== -->
+					<VolunteerEditForm
+						bind:editData
+						onSave={saveEditing}
+						onCancel={cancelEditing}
+						{isSaving}
+					/>
 				{/if}
 			</div>
 
-			<Separator />
+			{#if !isEditing}
+				<Separator />
 
-			<!-- Chats et Formulaires -->
-			<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-				<!-- CHATS EN GESTION -->
-				<div>
-					<h4 class="mb-4 text-base font-semibold text-gray-900">Chats en gestion</h4>
-					<Table.Root class="min-h-125">
-						<Table.Header>
-							<Table.Row>
-								<Table.Head>Chat</Table.Head>
-								<Table.Head>Statut</Table.Head>
-								<Table.Head>FA</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body>
-							{#each paginatedCats as cat (cat.catId)}
+				<!-- Chats et Formulaires -->
+				<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+					<!-- CHATS EN GESTION -->
+					<div>
+						<h4 class="mb-4 text-base font-semibold text-gray-900">Chats en gestion</h4>
+						<Table.Root class="min-h-125">
+							<Table.Header>
 								<Table.Row>
-									<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
-									<Table.Cell>
-										<Badge class={getBadgeClass(cat.catStatus)}>
-											{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
-										</Badge>
-									</Table.Cell>
-									<Table.Cell>
-										{#if cat.hasPlacement}
-											<span class="font-semibold text-gray-900">
-												{cat.hostFirstName}
-												{cat.hostLastName}
-											</span>
-										{:else}
-											<span class="text-gray-400">-</span>
-										{/if}
-									</Table.Cell>
+									<Table.Head>Chat</Table.Head>
+									<Table.Head>Statut</Table.Head>
+									<Table.Head>FA</Table.Head>
 								</Table.Row>
-							{/each}
-						</Table.Body>
-					</Table.Root>
+							</Table.Header>
+							<Table.Body>
+								{#each paginatedCats as cat (cat.catId)}
+									<Table.Row>
+										<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
+										<Table.Cell>
+											<Badge class={getBadgeClass(cat.catStatus)}>
+												{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
+											</Badge>
+										</Table.Cell>
+										<Table.Cell>
+											{#if cat.hasPlacement}
+												<span class="font-semibold text-gray-900">
+													{cat.hostFirstName}
+													{cat.hostLastName}
+												</span>
+											{:else}
+												<span class="text-gray-400">-</span>
+											{/if}
+										</Table.Cell>
+									</Table.Row>
+								{/each}
+							</Table.Body>
+						</Table.Root>
 
-					<!-- Pagination -->
-					<div class="mt-4 flex justify-center">
-						<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
-							{#snippet children({ pages, currentPage: cp })}
-								<Pagination.Content>
-									<Pagination.Item>
-										<Pagination.Previous />
-									</Pagination.Item>
-									{#each pages as page (page.key)}
-										{#if page.type === 'ellipsis'}
-											<Pagination.Item>
-												<Pagination.Ellipsis />
-											</Pagination.Item>
-										{:else}
-											<Pagination.Item>
-												<Pagination.Link {page} isActive={cp === page.value}>
-													{page.value}
-												</Pagination.Link>
-											</Pagination.Item>
-										{/if}
-									{/each}
-									<Pagination.Item>
-										<Pagination.Next />
-									</Pagination.Item>
-								</Pagination.Content>
-							{/snippet}
-						</Pagination.Root>
+						<!-- Pagination -->
+						<div class="mt-4 flex justify-center">
+							<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
+								{#snippet children({ pages, currentPage: cp })}
+									<Pagination.Content>
+										<Pagination.Item>
+											<Pagination.Previous />
+										</Pagination.Item>
+										{#each pages as page (page.key)}
+											{#if page.type === 'ellipsis'}
+												<Pagination.Item>
+													<Pagination.Ellipsis />
+												</Pagination.Item>
+											{:else}
+												<Pagination.Item>
+													<Pagination.Link {page} isActive={cp === page.value}>
+														{page.value}
+													</Pagination.Link>
+												</Pagination.Item>
+											{/if}
+										{/each}
+										<Pagination.Item>
+											<Pagination.Next />
+										</Pagination.Item>
+									</Pagination.Content>
+								{/snippet}
+							</Pagination.Root>
+						</div>
 					</div>
-				</div>
 
-				<!-- FORMULAIRES ASSIGNÉS -->
-				<div>
-					<h4 class="mb-4 text-base font-semibold text-gray-900">Formulaires assignés</h4>
-					<div class="space-y-2">
-						{#each Object.entries(formCounts) as [type, count] (type)}
-							<div
-								class="flex items-center justify-between rounded-xl border p-4 transition hover:shadow-md"
-							>
-								<div class="flex items-center gap-3">
-									<Icon
-										name={formTypeConfig[type]?.icon || 'FileText'}
-										withWrapper={true}
-										wrapperClass="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-white"
-										style="background: {getGradientStyle(formTypeConfig[type]?.theme || 'other')}"
-										iconClass="h-3 w-3"
-									/>
-									<span class="font-medium text-gray-900">{type}</span>
-								</div>
-								<span
-									class={`text-sm font-semibold ${count > 0 ? 'text-teal-600' : 'text-gray-400'}`}
+					<!-- FORMULAIRES ASSIGNÉS -->
+					<div>
+						<h4 class="mb-4 text-base font-semibold text-gray-900">Formulaires assignés</h4>
+						<div class="space-y-2">
+							{#each Object.entries(formCounts) as [type, count] (type)}
+								<div
+									class="flex items-center justify-between rounded-xl border p-4 transition hover:shadow-md"
 								>
-									{count}
-								</span>
-							</div>
-						{/each}
+									<div class="flex items-center gap-3">
+										<Icon
+											name={formTypeConfig[type]?.icon || 'FileText'}
+											withWrapper={true}
+											wrapperClass="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-white"
+											style="background: {getGradientStyle(formTypeConfig[type]?.theme || 'other')}"
+											iconClass="h-3 w-3"
+										/>
+										<span class="font-medium text-gray-900">{formTypeLabels[type]}</span>
+									</div>
+									<span
+										class={`text-sm font-semibold ${count > 0 ? 'text-teal-600' : 'text-gray-400'}`}
+									>
+										{count}
+									</span>
+								</div>
+							{/each}
+						</div>
 					</div>
 				</div>
-			</div>
+			{/if}
 		</Card.Content>
 	</Card.Root>
 {:else}
