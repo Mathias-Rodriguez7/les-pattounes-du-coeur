@@ -170,5 +170,5 @@
 	<Separator />
 
 	<!-- BOUTONS -->
-	<SaveCancelButtons {onSave} {onCancel} {isSaving} class="pt-4" />
+	<SaveCancelButtons onCancel={handleCancel} isSaving={isSubmitting} class="pt-4" />
 </div>

@@ -3,7 +3,6 @@
 	import { Save, X } from '@lucide/svelte';
 
 	interface Props {
-		onSave?: () => void | Promise<void>;
 		onCancel?: () => void;
 		isSaving?: boolean;
 		saveLabel?: string;
@@ -12,26 +11,12 @@
 	}
 
 	let {
-		onSave,
 		onCancel,
 		isSaving = false,
 		saveLabel = 'Enregistrer',
 		cancelLabel = 'Annuler',
 		class: className = ''
 	}: Props = $props();
-
-	let isLoading = $state(false);
-
-	const handleSave = async () => {
-		isLoading = true;
-		try {
-			if (onSave) {
-				await onSave();
-			}
-		} finally {
-			isLoading = false;
-		}
-	};
 
 	const handleCancel = () => {
 		if (onCancel) {
@@ -41,21 +26,15 @@
 </script>
 
 <div class="flex gap-2 {className}">
-	<Button type="button" class="flex-1" disabled={isLoading || isSaving} onclick={handleSave}>
+	<Button type="submit" class="flex-1" disabled={isSaving}>
 		<Save class="mr-2 h-4 w-4" />
-		{#if isLoading || isSaving}
+		{#if isSaving}
 			Enregistrement...
 		{:else}
 			{saveLabel}
 		{/if}
 	</Button>
-	<Button
-		type="button"
-		variant="outline"
-		class="flex-1"
-		disabled={isLoading || isSaving}
-		onclick={handleCancel}
-	>
+	<Button type="button" variant="outline" class="flex-1" disabled={isSaving} onclick={handleCancel}>
 		<X class="mr-2 h-4 w-4" />
 		{cancelLabel}
 	</Button>
