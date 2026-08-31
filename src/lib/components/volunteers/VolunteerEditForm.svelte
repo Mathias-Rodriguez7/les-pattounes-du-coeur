@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import SaveCancelButtons from '../SaveCancelButtons.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { updateVolunteerAction, deleteVolunteerAction } from '$lib/utils/volunteerActions';
+	import {
+		updateVolunteerAction,
+		deleteVolunteerAction,
+		blacklistVolunteerAction
+	} from '$lib/utils/volunteerActions';
+	import Icon from '$lib/components/Icon.svelte';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		editData: {
@@ -35,6 +43,10 @@
 		isDeleting = false
 	}: Props = $props();
 
+	let isBlacklisting = $state(false);
+	let showBlacklistDialog = $state(false);
+	let blacklistReason = $state('');
+
 	let selectedRole = $derived(editData.role);
 	let selectedStatus = $derived(editData.actif);
 	let selectedDistrict = $derived(editData.district);
@@ -63,18 +75,17 @@
 		editData.district = value;
 	};
 
-	// ✅ UTILISE L'UTILITAIRE CLIENT
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 
 		if (!volunteerId) {
 			console.error('❌ volunteerId manquant');
+			toast.error('Erreur: ID bénévole manquant');
 			return;
 		}
 
 		isSaving = true;
 
-		// ✅ On ignore le retour avec _
 		await updateVolunteerAction({
 			volunteerId,
 			data: editData,
@@ -96,16 +107,15 @@
 		}
 	};
 
-	// ✅ UTILISE L'UTILITAIRE CLIENT
 	const handleConfirmDelete = async () => {
 		if (!volunteerId) {
 			console.error('❌ volunteerId manquant');
+			toast.error('Erreur: ID bénévole manquant');
 			return;
 		}
 
 		isDeleting = true;
 
-		// ✅ On ignore le retour avec _
 		await deleteVolunteerAction(volunteerId, () => {
 			console.log('✅ Local delete');
 			if (onSuccess) {
@@ -114,6 +124,43 @@
 		});
 
 		isDeleting = false;
+	};
+
+	const handleBlacklistClick = () => {
+		showBlacklistDialog = true;
+		blacklistReason = '';
+	};
+
+	const handleConfirmBlacklist = async () => {
+		if (!volunteerId) {
+			console.error('❌ volunteerId manquant');
+			toast.error('Erreur: ID bénévole manquant');
+			return;
+		}
+
+		if (!blacklistReason.trim()) {
+			toast.error('Veuillez entrer une raison');
+			return;
+		}
+
+		isBlacklisting = true;
+
+		const success = await blacklistVolunteerAction(volunteerId, editData.email, blacklistReason);
+
+		if (success) {
+			showBlacklistDialog = false;
+			blacklistReason = '';
+			if (onSuccess) {
+				onSuccess();
+			}
+		}
+
+		isBlacklisting = false;
+	};
+
+	const handleCancelBlacklist = () => {
+		showBlacklistDialog = false;
+		blacklistReason = '';
 	};
 </script>
 
@@ -130,7 +177,7 @@
 					name="firstName"
 					bind:value={editData.firstName}
 					placeholder="Jean"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -141,7 +188,7 @@
 					name="lastName"
 					bind:value={editData.lastName}
 					placeholder="Dupont"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -153,7 +200,7 @@
 					type="email"
 					bind:value={editData.email}
 					placeholder="jean@example.com"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -165,7 +212,7 @@
 					type="tel"
 					bind:value={editData.phone}
 					placeholder="06 12 34 56 78"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 		</div>
@@ -173,17 +220,17 @@
 
 	<Separator />
 
-	<!-- SECTION 2: STATUT ET RÔLE -->
+	<!-- SECTION 2: STATUT ET RÔLE + BLACKLIST -->
 	<div>
 		<h3 class="mb-4 text-sm font-semibold text-gray-900">Statut et Rôle</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 			<div class="space-y-2">
 				<label for="status-select" class="text-sm font-medium text-gray-700">Statut</label>
 				<Select.Root
 					type="single"
 					value={selectedStatus}
 					onValueChange={handleStatusChange}
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				>
 					<Select.Trigger id="status-select">
 						{statusOptions.find((opt) => opt.value === selectedStatus)?.label || 'Sélectionner'}
@@ -202,7 +249,7 @@
 					type="single"
 					value={selectedRole}
 					onValueChange={handleRoleChange}
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				>
 					<Select.Trigger id="role-select">
 						{roleOptions.find((opt) => opt.value === selectedRole)?.label || 'Sélectionner'}
@@ -213,6 +260,25 @@
 						{/each}
 					</Select.Content>
 				</Select.Root>
+			</div>
+
+			<!-- ✅ BOUTON BLACKLIST DANS LA SECTION 2 -->
+			<div>
+				<h3 class="text-sm font-medium text-gray-700">Actions</h3>
+				<Button
+					type="button"
+					variant="destructive"
+					disabled={isSaving || isDeleting || isBlacklisting}
+					onclick={handleBlacklistClick}
+					class="w-full"
+				>
+					<Icon name="blacklist" class="mr-2 h-4 w-4" />
+					{#if isBlacklisting}
+						Mise en liste noire...
+					{:else}
+						Ajouter à la liste noire
+					{/if}
+				</Button>
 			</div>
 		</div>
 	</div>
@@ -230,7 +296,7 @@
 					name="address"
 					bind:value={editData.address}
 					placeholder="123 rue de la Paix"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -241,7 +307,7 @@
 					name="city"
 					bind:value={editData.city}
 					placeholder="Paris"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -252,7 +318,7 @@
 					name="postalCode"
 					bind:value={editData.postalCode}
 					placeholder="75001"
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				/>
 			</div>
 
@@ -262,7 +328,7 @@
 					type="single"
 					value={selectedDistrict}
 					onValueChange={handleDistrictChange}
-					disabled={isSaving || isDeleting}
+					disabled={isSaving || isDeleting || isBlacklisting}
 				>
 					<Select.Trigger id="district-select">
 						{Object.entries(DISTRICT_LABELS).find(([k]) => k === selectedDistrict)?.[1] ||
@@ -291,3 +357,55 @@
 		class="pt-4"
 	/>
 </form>
+
+<!-- ✅ DIALOG BLACKLIST -->
+<Dialog.Root bind:open={showBlacklistDialog}>
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>🚫 Blacklister</Dialog.Title>
+		</Dialog.Header>
+
+		<div class="space-y-4 py-4">
+			<p class="text-sm text-gray-600">
+				Vous êtes sur le point de blacklister <strong
+					>{editData.firstName} {editData.lastName}</strong
+				>.
+			</p>
+
+			<div class="space-y-2">
+				<label for="reason-input" class="text-sm font-medium text-gray-700">Raison</label>
+				<textarea
+					id="reason-input"
+					bind:value={blacklistReason}
+					placeholder="Entrez la raison de la mise en liste noire..."
+					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					rows="4"
+					disabled={isBlacklisting}
+				></textarea>
+			</div>
+		</div>
+
+		<Dialog.Footer>
+			<Button
+				type="button"
+				variant="outline"
+				disabled={isBlacklisting}
+				onclick={handleCancelBlacklist}
+			>
+				Annuler
+			</Button>
+			<Button
+				type="button"
+				variant="destructive"
+				disabled={isBlacklisting || !blacklistReason.trim()}
+				onclick={handleConfirmBlacklist}
+			>
+				{#if isBlacklisting}
+					Mise en liste noire...
+				{:else}
+					Confirmer la mise en liste noire
+				{/if}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

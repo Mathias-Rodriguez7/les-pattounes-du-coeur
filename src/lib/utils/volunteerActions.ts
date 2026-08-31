@@ -183,3 +183,40 @@ export const deleteVolunteerAction = async (volunteerId: string, onSuccess?: () 
 		return false;
 	}
 };
+
+export const blacklistVolunteerAction = async (
+	volunteerId: string,
+	email: string,
+	description: string
+) => {
+	try {
+		const formData = new FormData();
+		formData.append('volunteerId', volunteerId);
+		formData.append('email', email);
+		formData.append('description', description);
+
+		const response = await fetch('?/blacklistVolunteer', {
+			method: 'POST',
+			body: formData
+		});
+
+		const result = await response.json();
+
+		if (result.type === 'failure') {
+			toast.error('Erreur lors de la mise en liste noire');
+			return false;
+		}
+
+		if (result.type === 'success') {
+			toast.success('Bénévole ajouté à la liste noire');
+			await invalidateAll();
+			return true;
+		}
+
+		toast.error('Erreur inconnue');
+		return false;
+	} catch (error) {
+		toast.error('Erreur réseau ou serveur');
+		return false;
+	}
+};

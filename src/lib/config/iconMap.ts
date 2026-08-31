@@ -24,7 +24,8 @@ import {
 	CirclePlay,
 	Handshake,
 	CircleEllipsis,
-	Phone
+	Phone,
+	Ban
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -54,5 +55,6 @@ export const iconMap: Record<string, Component> = {
 	CirclePlay: CirclePlay,
 	Handshake: Handshake,
 	other: CircleEllipsis,
-	phone: Phone
+	phone: Phone,
+	blacklist: Ban
 };
