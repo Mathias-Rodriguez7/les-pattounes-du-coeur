@@ -5,13 +5,12 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import SaveCancelButtons from '../SaveCancelButtons.svelte';
-	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { createVolunteerAction } from '$lib/utils/volunteerActions';
+	import { toast } from 'svelte-sonner';
 
 	let { open = $bindable(false) } = $props();
 
 	let isSubmitting = $state(false);
-	let formElement: HTMLFormElement;
 
 	const roleOptions = [
 		{ value: 'ADMIN', label: 'Admin' },
@@ -24,20 +23,68 @@
 		label
 	}));
 
-	let selectedRole = $state<string | undefined>();
-	let selectedDistrict = $state<string | undefined>();
+	let firstName = $state('');
+	let lastName = $state('');
+	let email = $state('');
+	let phone = $state('');
+	let address = $state('');
+	let city = $state('');
+	let postalCode = $state('');
+	let selectedRole = $state<string>('MANAGER');
+	let selectedDistrict = $state<string>('');
 
 	function resetForm() {
-		if (formElement) {
-			formElement.reset();
-		}
-		selectedRole = undefined;
-		selectedDistrict = undefined;
+		firstName = '';
+		lastName = '';
+		email = '';
+		phone = '';
+		address = '';
+		city = '';
+		postalCode = '';
+		selectedRole = 'MANAGER';
+		selectedDistrict = '';
 	}
 
 	function handleCancel() {
 		resetForm();
 		open = false;
+	}
+
+	async function handleSubmit(e: SubmitEvent) {
+		e.preventDefault();
+		console.log('📋 Soumission du formulaire');
+		isSubmitting = true;
+
+		try {
+			// ✅ Validation basique
+			if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+				toast.error('Prénom, nom et email sont requis');
+				isSubmitting = false;
+				return;
+			}
+
+			const result = await createVolunteerAction({
+				firstName: firstName.trim(),
+				lastName: lastName.trim(),
+				email: email.trim(),
+				phone: phone.trim(),
+				address: address.trim(),
+				city: city.trim(),
+				postalCode: postalCode.trim(),
+				district: selectedDistrict,
+				role: selectedRole
+			});
+
+			if (result.success) {
+				console.log('✅ Bénévole créé avec succès');
+				resetForm();
+				open = false;
+			} else {
+				console.error('❌ Erreur lors de la création');
+			}
+		} finally {
+			isSubmitting = false;
+		}
 	}
 </script>
 
@@ -48,45 +95,16 @@
 			<Dialog.Description>Complétez les informations du bénévole</Dialog.Description>
 		</Dialog.Header>
 
-		<form
-			bind:this={formElement}
-			method="POST"
-			action="?/createVolunteer"
-			use:enhance={({ formData }) => {
-				isSubmitting = true;
-
-				// ✅ Ajoute les valeurs sélectionnées
-				if (selectedRole) {
-					formData.set('role', selectedRole);
-				}
-				if (selectedDistrict) {
-					formData.set('district', selectedDistrict);
-				}
-
-				return async ({ result }) => {
-					isSubmitting = false;
-
-					if (result.type === 'success') {
-						// ✅ Invalide TOUS les données cachées
-						await invalidateAll();
-						resetForm();
-						open = false;
-					} else if (result.type === 'failure') {
-						console.error('Erreur:', result.data?.error);
-					}
-				};
-			}}
-			class="space-y-4"
-		>
+		<!-- ✅ onsubmit à la place de on:submit -->
+		<form onsubmit={handleSubmit} class="space-y-4">
 			<div class="grid grid-cols-2 gap-6">
 				<!-- Prénom -->
 				<div class="grid gap-3">
 					<Label for="firstName">Prénom</Label>
 					<Input
 						id="firstName"
-						name="firstName"
+						bind:value={firstName}
 						type="text"
-						required
 						disabled={isSubmitting}
 						placeholder="Jean"
 					/>
@@ -97,9 +115,8 @@
 					<Label for="lastName">Nom</Label>
 					<Input
 						id="lastName"
-						name="lastName"
+						bind:value={lastName}
 						type="text"
-						required
 						disabled={isSubmitting}
 						placeholder="Dupont"
 					/>
@@ -111,9 +128,8 @@
 				<Label for="email">Email</Label>
 				<Input
 					id="email"
-					name="email"
+					bind:value={email}
 					type="email"
-					required
 					disabled={isSubmitting}
 					placeholder="jean@example.com"
 				/>
@@ -124,9 +140,8 @@
 				<Label for="phone">Téléphone</Label>
 				<Input
 					id="phone"
-					name="phone"
+					bind:value={phone}
 					type="tel"
-					required
 					disabled={isSubmitting}
 					placeholder="06 12 34 56 78"
 				/>
@@ -137,9 +152,8 @@
 				<Label for="address">Adresse</Label>
 				<Input
 					id="address"
-					name="address"
+					bind:value={address}
 					type="text"
-					required
 					disabled={isSubmitting}
 					placeholder="123 rue de la Paix"
 				/>
@@ -151,9 +165,8 @@
 					<Label for="city">Ville</Label>
 					<Input
 						id="city"
-						name="city"
+						bind:value={city}
 						type="text"
-						required
 						disabled={isSubmitting}
 						placeholder="Montpellier"
 					/>
@@ -164,9 +177,8 @@
 					<Label for="postalCode">Code Postal</Label>
 					<Input
 						id="postalCode"
-						name="postalCode"
+						bind:value={postalCode}
 						type="text"
-						required
 						disabled={isSubmitting}
 						placeholder="34000"
 					/>
@@ -182,6 +194,7 @@
 							'Sélectionner un quartier'}
 					</Select.Trigger>
 					<Select.Content>
+						<Select.Item value="" label="Aucun" />
 						{#each districtOptions as option (option.value)}
 							<Select.Item value={option.value} label={option.label} />
 						{/each}

@@ -2,6 +2,11 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { District, VolunteerRole } from '@prisma/client';
+import {
+	createVolunteer,
+	updateVolunteer,
+	deleteVolunteer
+} from '$lib/server/volunteers/mutations';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN
@@ -154,65 +159,29 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
 	createVolunteer: async ({ request, locals }) => {
-		// ✅ Vérifier que c'est un ADMIN
-		if (!locals.user || locals.user.role !== 'ADMIN') {
-			return fail(403, { error: 'Non autorisé' });
+		const result = await createVolunteer({ request, locals });
+		if (!result.success) {
+			return fail(400, result); // ✅ Retourne les erreurs Zod
 		}
+		return result;
+	},
 
+	updateVolunteer: async ({ request }) => {
+		const result = await updateVolunteer({ request });
+		if (!result.success) {
+			return fail(400, result); // ✅ Retourne les erreurs Zod
+		}
+		return result;
+	},
+
+	deleteVolunteer: async ({ request }) => {
 		const formData = await request.formData();
+		const volunteerId = formData.get('volunteerId') as string;
 
-		const firstName = formData.get('firstName')?.toString().trim();
-		const lastName = formData.get('lastName')?.toString().trim();
-		const email = formData.get('email')?.toString().trim();
-		const phone = formData.get('phone')?.toString().trim();
-		const address = formData.get('address')?.toString().trim();
-		const city = formData.get('city')?.toString().trim();
-		const postalCode = formData.get('postalCode')?.toString().trim();
-		const districtValue = formData.get('district')?.toString().trim() as District | undefined;
-		const roleValue = (formData.get('role')?.toString().trim() || 'MANAGER') as VolunteerRole;
-
-		// 👇 Valide tous les champs SAUF district (optionnel)
-		if (!firstName || !lastName || !email || !phone || !address || !city || !postalCode) {
-			return fail(400, { error: 'Tous les champs sont obligatoires' });
+		const result = await deleteVolunteer(volunteerId);
+		if (!result.success) {
+			return fail(400, result); // ✅ Retourne les erreurs Zod
 		}
-
-		// ✅ Valide que le district existe (si fourni)
-		if (districtValue && !Object.values(District).includes(districtValue)) {
-			return fail(400, { error: 'District invalide' });
-		}
-
-		// ✅ Valide que le rôle existe
-		if (!Object.values(VolunteerRole).includes(roleValue)) {
-			return fail(400, { error: 'Rôle invalide' });
-		}
-
-		try {
-			const profil = await prisma.profil.create({
-				data: {
-					firstName,
-					lastName,
-					email,
-					phone,
-					address,
-					city,
-					postalCode,
-					...(districtValue && { district: districtValue }) // ✅ Optionnel
-				}
-			});
-
-			await prisma.volunteer.create({
-				data: {
-					profilId: profil.id,
-					password: 'TempPassword123!',
-					role: roleValue,
-					actif: 'ACTIVE'
-				}
-			});
-
-			return { success: true };
-		} catch (error) {
-			console.error('Erreur création volunteer:', error);
-			return fail(500, { error: 'Erreur lors de la création' });
-		}
+		return result;
 	}
 };

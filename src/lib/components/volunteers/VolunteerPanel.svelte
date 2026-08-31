@@ -140,51 +140,28 @@
 		isEditing = true;
 	};
 
-	const saveEditing = async () => {
-		isSaving = true;
-		try {
-			const response = await fetch(`/api/volunteers/${volunteer.id}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					profil: {
-						firstName: editData.firstName,
-						lastName: editData.lastName,
-						email: editData.email,
-						phone: editData.phone,
-						district: editData.district,
-						address: editData.address,
-						city: editData.city,
-						postalCode: editData.postalCode
-					},
-					actif: editData.actif
-				})
-			});
+	// ✅ UNIFIÉ : Utilise handleFormSave du utils
+	const handleSuccessfulSave = () => {
+		console.log('✅ Volontaire mis à jour avec succès');
+		// Met à jour le volunteer object avec les nouvelles données
+		volunteer.profil.firstName = editData.firstName;
+		volunteer.profil.lastName = editData.lastName;
+		volunteer.profil.email = editData.email;
+		volunteer.profil.phone = editData.phone;
+		volunteer.profil.district = editData.district;
+		volunteer.profil.address = editData.address;
+		volunteer.profil.city = editData.city;
+		volunteer.profil.postalCode = editData.postalCode;
+		volunteer.actif = editData.actif;
+		volunteer.role = editData.role;
 
-			if (response.ok) {
-				volunteer.profil.firstName = editData.firstName;
-				volunteer.profil.lastName = editData.lastName;
-				volunteer.profil.email = editData.email;
-				volunteer.profil.phone = editData.phone;
-				volunteer.profil.district = editData.district;
-				volunteer.profil.address = editData.address;
-				volunteer.profil.city = editData.city;
-				volunteer.profil.postalCode = editData.postalCode;
-				volunteer.actif = editData.actif;
-
-				isEditing = false;
-			}
-		} catch (error) {
-			console.error('Erreur lors de la sauvegarde:', error);
-		} finally {
-			isSaving = false;
-		}
+		isEditing = false;
 	};
 
-	const cancelEditing = () => {
+	// ✅ UNIFIÉ : Gestion du cancel
+	const handleCancelEdit = () => {
 		isEditing = false;
+		// editData sera réinitialisé au prochain startEditing
 	};
 
 	// Couleurs pour les rôles
@@ -290,10 +267,12 @@
 					</div>
 				{:else}
 					<!-- ===== MODE ÉDITION ===== -->
+					<!-- ✅ Props correctement passées -->
 					<VolunteerEditForm
 						bind:editData
-						onSave={saveEditing}
-						onCancel={cancelEditing}
+						volunteerId={volunteer.id}
+						onSuccess={handleSuccessfulSave}
+						onCancel={handleCancelEdit}
 						{isSaving}
 					/>
 				{/if}
