@@ -10,6 +10,13 @@
 	const fullName = $derived(`${volunteer.profil.firstName} ${volunteer.profil.lastName}`);
 	const catsCount = $derived(volunteer.cats.length);
 	const formsCount = $derived(volunteer.assignedForms.length);
+	const location = $derived(
+		volunteer.profil.city === 'Montpellier' && volunteer.profil.district
+			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			: volunteer.profil.city !== 'Montpellier'
+				? volunteer.profil.city
+				: '—'
+	);
 
 	// Couleurs pour les rôles
 	const roleColors: Record<string, string> = {
@@ -37,31 +44,27 @@
 	{onclick}
 >
 	<Table.Cell>
-		<Icon
-			name={statusIcon.icon}
-			class="h-6 w-6 {statusIcon.color}"
+		<div
 			title={volunteer.actif === 'ACTIVE'
 				? 'En activité'
 				: volunteer.actif === 'BREAK'
 					? 'En pause'
 					: 'Arrêté'}
-		/>
+		>
+			<Icon name={statusIcon.icon} class="h-6 w-6 {statusIcon.color}" />
+		</div>
 	</Table.Cell>
-	<Table.Cell class="font-medium">{fullName}</Table.Cell>
+	<Table.Cell class="font-semibold text-gray-900" title={fullName}>
+		{truncate(fullName, 10)}
+	</Table.Cell>
 	<Table.Cell>
 		<Badge class={roleColors[volunteer.role] || 'bg-gray-100 text-gray-800'} title={volunteer.role}>
 			{truncate(volunteer.role, 5)}
 		</Badge>
 	</Table.Cell>
 
-	<Table.Cell>
-		{#if volunteer.profil.city === 'Montpellier' && volunteer.profil.district}
-			{DISTRICT_LABELS[volunteer.profil.district]}
-		{:else if volunteer.profil.city !== 'Montpellier'}
-			{volunteer.profil.city}
-		{:else}
-			—
-		{/if}
+	<Table.Cell class="text-sm text-gray-600" title={location}>
+		{truncate(location, 10)}
 	</Table.Cell>
 
 	<Table.Cell class="text-center">

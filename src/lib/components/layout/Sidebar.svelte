@@ -43,9 +43,9 @@
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
 		},
 		{
-			label: 'FA',
+			label: "Famille d'acceil",
 			icon: HouseHeart,
-			href: '/dashboard/fa' as const,
+			href: '/dashboard/famille_d_accueil' as const,
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
 		},
 		{

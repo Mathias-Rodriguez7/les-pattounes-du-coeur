@@ -12,16 +12,26 @@
 	import { truncate } from '$lib/utils/string';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
+	import {
+		type VolunteerWithRelations,
+		type FormType,
+		type CatVolunteerWithRelations,
+		FORM_TYPE_CONFIG,
+		FORM_TYPE_LABELS,
+		FORM_TYPES,
+		STATUS_CONFIG
+	} from '$lib/types/volunteer';
+	import type { Form } from '@prisma/client';
 
-	type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'ALERT' | 'OTHER';
-
-	const { volunteer, isAdmin = false } = $props();
+	const {
+		volunteer,
+		isAdmin = false
+	}: { volunteer: VolunteerWithRelations | null; isAdmin?: boolean } = $props();
 
 	let isEditing = $state(false);
 	let currentPage = $state(1);
 	let isSaving = $state(false);
 
-	// ===== DONNÉES ÉDITION =====
 	let editData = $state({
 		firstName: '',
 		lastName: '',
@@ -29,36 +39,16 @@
 		phone: '',
 		district: '',
 		address: '',
-		actif: 'ACTIVE',
-		role: 'ADMIN',
+		actif: 'ACTIVE' as const,
+		role: 'ADMIN' as const,
 		city: '',
 		postalCode: ''
 	});
 
 	const PAGE_SIZE = 10;
 
-	// ===== CONFIG STATUS =====
-	const statusConfig = {
-		ACTIVE: {
-			icon: 'CirclePlay',
-			label: 'En activité',
-			theme: 'activ'
-		},
-		BREAK: {
-			icon: 'CirclePause',
-			label: 'En pause',
-			theme: 'break'
-		},
-		STOP: {
-			icon: 'CircleX',
-			label: 'Arrêté',
-			theme: 'stop'
-		}
-	};
-
-	// Récupérer TOUS les chats + leur placement s'il existe
 	const catList = $derived(
-		volunteer?.cats?.map((catVolunteer) => {
+		volunteer?.cats?.map((catVolunteer: CatVolunteerWithRelations) => {
 			const placement = catVolunteer.cat.placements?.[0];
 			return {
 				catId: catVolunteer.catId,
@@ -82,49 +72,37 @@
 	const getBadgeClass = (status: string) =>
 		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
 
-	// Paginer les chats
 	const paginatedCats = $derived(
 		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 	);
 
-	// ===== STATUS COURANT =====
 	const currentStatus = $derived(
-		volunteer?.actif
-			? statusConfig[volunteer.actif as keyof typeof statusConfig]
-			: statusConfig.ACTIVE
+		volunteer?.actif && volunteer.actif in STATUS_CONFIG
+			? STATUS_CONFIG[volunteer.actif]
+			: STATUS_CONFIG.ACTIVE
 	);
 
 	const formCounts = $derived.by(() => {
-		const types = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'];
-		const counts: Record<string, number> = {};
+		const counts: Record<FormType, number> = {
+			ADOPTION: 0,
+			VOLUNTEER: 0,
+			HOST: 0,
+			COLAB: 0,
+			ALERT: 0,
+			OTHER: 0
+		};
 
-		types.forEach((type) => {
-			counts[type] = (volunteer?.assignedForms || []).filter((f) => f.type === type).length;
+		const forms = volunteer?.assignedForms ?? [];
+		FORM_TYPES.forEach((type) => {
+			counts[type] = forms.filter((f: Form) => (f.type as FormType) === type).length;
 		});
 
 		return counts;
 	});
 
-	const formTypeConfig = {
-		ADOPTION: { icon: 'heart', theme: 'adoptions' },
-		VOLUNTEER: { icon: 'users', theme: 'volunteers' },
-		HOST: { icon: 'house', theme: 'fa' },
-		COLAB: { icon: 'Handshake', theme: 'colab' },
-		ALERT: { icon: 'alert', theme: 'stop' },
-		OTHER: { icon: 'other', theme: 'other' }
-	};
-
-	const formTypeLabels: Record<FormType, string> = {
-		ADOPTION: 'Adoptions',
-		VOLUNTEER: 'Bénévoles',
-		HOST: "Familles d'accueil",
-		COLAB: 'Collaborations',
-		ALERT: 'Alertes',
-		OTHER: 'Autres'
-	};
-
-	// ===== GESTION ÉDITION =====
 	const startEditing = () => {
+		if (!volunteer) return;
+
 		editData = {
 			firstName: volunteer.profil.firstName,
 			lastName: volunteer.profil.lastName,
@@ -140,10 +118,10 @@
 		isEditing = true;
 	};
 
-	// ✅ UNIFIÉ : Utilise handleFormSave du utils
 	const handleSuccessfulSave = () => {
+		if (!volunteer) return;
+
 		console.log('✅ Volontaire mis à jour avec succès');
-		// Met à jour le volunteer object avec les nouvelles données
 		volunteer.profil.firstName = editData.firstName;
 		volunteer.profil.lastName = editData.lastName;
 		volunteer.profil.email = editData.email;
@@ -158,13 +136,10 @@
 		isEditing = false;
 	};
 
-	// ✅ UNIFIÉ : Gestion du cancel
 	const handleCancelEdit = () => {
 		isEditing = false;
-		// editData sera réinitialisé au prochain startEditing
 	};
 
-	// Couleurs pour les rôles
 	const roleColors: Record<string, string> = {
 		ADMIN: 'bg-red-100 text-red-800',
 		MANAGER: 'bg-blue-100 text-blue-800',
@@ -267,7 +242,6 @@
 					</div>
 				{:else}
 					<!-- ===== MODE ÉDITION ===== -->
-					<!-- ✅ Props correctement passées -->
 					<VolunteerEditForm
 						bind:editData
 						volunteerId={volunteer.id}
@@ -352,24 +326,24 @@
 					<div>
 						<h4 class="mb-4 text-base font-semibold text-gray-900">Formulaires assignés</h4>
 						<div class="space-y-2">
-							{#each Object.entries(formCounts) as [type, count] (type)}
+							{#each FORM_TYPES as type (type)}
 								<div
 									class="flex items-center justify-between rounded-xl border p-4 transition hover:shadow-md"
 								>
 									<div class="flex items-center gap-3">
 										<Icon
-											name={formTypeConfig[type]?.icon || 'FileText'}
+											name={FORM_TYPE_CONFIG[type].icon}
 											withWrapper={true}
 											wrapperClass="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-white"
-											style="background: {getGradientStyle(formTypeConfig[type]?.theme || 'other')}"
+											style="background: {getGradientStyle(FORM_TYPE_CONFIG[type].theme)}"
 											iconClass="h-3 w-3"
 										/>
-										<span class="font-medium text-gray-900">{formTypeLabels[type]}</span>
+										<span class="font-medium text-gray-900">{FORM_TYPE_LABELS[type]}</span>
 									</div>
 									<span
-										class={`text-sm font-semibold ${count > 0 ? 'text-teal-600' : 'text-gray-400'}`}
+										class={`text-sm font-semibold ${formCounts[type] > 0 ? 'text-teal-600' : 'text-gray-400'}`}
 									>
-										{count}
+										{formCounts[type]}
 									</span>
 								</div>
 							{/each}
