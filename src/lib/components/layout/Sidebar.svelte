@@ -8,7 +8,6 @@
 		HouseHeart,
 		Users,
 		LogOut,
-		UserCog,
 		ChevronLeft,
 		ChevronRight
 	} from '@lucide/svelte';
