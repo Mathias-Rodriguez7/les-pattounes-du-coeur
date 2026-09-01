@@ -203,12 +203,12 @@ export const blacklistVolunteerAction = async (
 		const result = await response.json();
 
 		if (result.type === 'failure') {
-			toast.error('Erreur lors de la mise en liste noire');
+			toast.error('Erreur lors du blacklistage');
 			return false;
 		}
 
 		if (result.type === 'success') {
-			toast.success('Bénévole ajouté à la liste noire');
+			toast.success('Bénévole blacklisté avec succès');
 			await invalidateAll();
 			return true;
 		}

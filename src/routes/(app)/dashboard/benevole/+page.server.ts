@@ -161,7 +161,7 @@ export const actions: Actions = {
 	createVolunteer: async ({ request, locals }) => {
 		const result = await createVolunteer({ request, locals });
 		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+			return fail(400, result);
 		}
 		return result;
 	},
@@ -169,7 +169,7 @@ export const actions: Actions = {
 	updateVolunteer: async ({ request }) => {
 		const result = await updateVolunteer({ request });
 		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+			return fail(400, result);
 		}
 		return result;
 	},
@@ -180,8 +180,44 @@ export const actions: Actions = {
 
 		const result = await deleteVolunteer(volunteerId);
 		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+			return fail(400, result);
 		}
 		return result;
+	},
+
+	blacklistVolunteer: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'ADMIN') {
+			return fail(403, { error: 'Non autorisé' });
+		}
+
+		const formData = await request.formData();
+		const volunteerId = formData.get('volunteerId') as string;
+		const email = formData.get('email') as string;
+		const description = formData.get('description') as string;
+
+		try {
+			const volunteer = await prisma.volunteer.findUnique({
+				where: { id: volunteerId },
+				select: { profilId: true }
+			});
+
+			if (!volunteer) {
+				return fail(404, { error: 'Bénévole non trouvé' });
+			}
+
+			const blacklisted = await prisma.blacklistHistoric.create({
+				data: {
+					profilId: volunteer.profilId,
+					email,
+					description,
+					isBlacklisted: true
+				}
+			});
+
+			return { success: true, data: blacklisted };
+		} catch (error) {
+			console.error('Erreur blacklist:', error);
+			return fail(400, { error: 'Erreur lors de la mise en liste noire' });
+		}
 	}
 };
