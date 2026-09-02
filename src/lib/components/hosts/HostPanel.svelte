@@ -1,281 +1,340 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { Pencil } from '@lucide/svelte';
-	import * as Pagination from '$lib/components/ui/pagination/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import type { HostFull } from '$lib/types/hosts';
+	import {
+		hostStatusLabel,
+		spaceLabel,
+		healLabel,
+		socializeLabel,
+		babyFeedingLabel
+	} from '$lib/types/hosts';
+	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { truncate } from '$lib/utils/string';
-	import HostEditForm from './HostEditForm.svelte';
-	import type { HostWithRelations } from '$lib/types/host';
+	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import { getGradientStyle } from '$lib/utils/iconThemes';
 
-	const { host, isAdmin = false }: { host: HostWithRelations | null; isAdmin?: boolean } = $props();
+	interface Props {
+		host: HostFull | null;
+		isAdmin?: boolean;
+	}
 
-	let isEditing = $state(false);
-	let currentPage = $state(1);
-	let isSaving = $state(false);
+	const { host, isAdmin = false }: Props = $props();
 
-	let editData = $state({
-		firstName: '',
-		lastName: '',
-		email: '',
-		phone: '',
-		address: '',
-		city: '',
-		postalCode: '',
-		numberOfCats: 0,
-		notes: ''
-	});
+	let editing = $state(false);
 
-	const PAGE_SIZE = 10;
+	const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
+		ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
+		BREAK: { label: 'En pause', icon: 'CirclePause', theme: 'break' },
+		STOP: { label: 'Arrêté', icon: 'CircleX', theme: 'stop' }
+	};
 
-	const catList = $derived(
-		host?.placements?.map((placement) => ({
-			catId: placement.catId,
-			catName: placement.cat.name,
-			catStatus: placement.cat.status,
-			arrivalDate: placement.startDate,
-			placementId: placement.id
-		})) ?? []
+	const TYPE_COLORS: Record<string, { label: string; color: string }> = {
+		CLASSIC: { label: 'Accueil Long', color: 'bg-purple-100 text-purple-800' },
+		RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
+	};
+
+	const SECTION_CONFIG = {
+		address: { icon: '📍', label: 'Adresse', color: 'slate' },
+		home: { icon: '🏠', label: 'Domicile', color: 'blue' },
+		animals: { icon: '🐾', label: 'Animaux', color: 'orange' },
+		capacity: { icon: '⭐', label: 'Capacités', color: 'indigo' },
+		availability: { icon: '⏱️', label: 'Colaboration', color: 'emerald' }
+	};
+
+	// États dérivés
+	const fullName = $derived(`${host?.profil.firstName} ${host?.profil.lastName}`);
+	const location = $derived(
+		host?.profil.district
+			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
+			: host?.profil.city || '—'
 	);
-
-	const statusColors = {
-		AVAILABLE: 'bg-emerald-100 text-emerald-800',
-		ADOPTED: 'bg-rose-100 text-rose-800',
-		SOCIALIZE: 'bg-sky-100 text-sky-800',
-		FREE: 'bg-orange-100 text-orange-800'
-	};
-
-	const getBadgeClass = (status: string) =>
-		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
-
-	const paginatedCats = $derived(
-		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+	const currentStatus = $derived(
+		host?.actif && host.actif in STATUS_CONFIG ? STATUS_CONFIG[host.actif] : STATUS_CONFIG.ACTIVE
 	);
-
-	const startEditing = () => {
-		if (!host) return;
-
-		editData = {
-			firstName: host.profil.firstName,
-			lastName: host.profil.lastName,
-			email: host.profil.email,
-			phone: host.profil.phone || '',
-			address: host.profil.address || '',
-			city: host.profil.city || '',
-			postalCode: host.profil.postalCode || '',
-			numberOfCats: host.numberOfCats || 0,
-			notes: host.notes || ''
-		};
-		isEditing = true;
-	};
-
-	const handleSuccessfulSave = () => {
-		if (!host) return;
-
-		console.log("✅ Famille d'accueil mise à jour avec succès");
-		host.profil.firstName = editData.firstName;
-		host.profil.lastName = editData.lastName;
-		host.profil.email = editData.email;
-		host.profil.phone = editData.phone;
-		host.profil.address = editData.address;
-		host.profil.city = editData.city;
-		host.profil.postalCode = editData.postalCode;
-		host.numberOfCats = editData.numberOfCats;
-		host.notes = editData.notes;
-
-		isEditing = false;
-	};
-
-	const handleCancelEdit = () => {
-		isEditing = false;
-	};
 </script>
 
 {#if host}
 	<Card.Root class="flex h-full flex-col">
-		{#if !isEditing}
-			<!-- ===== HEADER AFFICHAGE ===== -->
+		{#if !editing}
+			<!-- ===== HEADER ===== -->
 			<Card.Header>
-				<div class="flex justify-between">
-					<div class="flex gap-6">
-						<div class="flex items-center gap-6">
-							<div class="grid grid-cols-1 gap-2">
+				<div class="flex items-start justify-between gap-4">
+					<!-- Gauche : Statut + Infos -->
+					<div class="flex flex-1 gap-6">
+						<!-- Status Icon -->
+						<div class="flex flex-col items-center gap-2">
+							{#key host?.actif}
 								<Icon
-									name="house"
+									name={currentStatus.icon}
 									withWrapper={true}
-									wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
-									style="background: {getGradientStyle('fa')}"
-									iconClass="h-5 w-5"
+									wrapperClass="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+									style="background: {getGradientStyle(currentStatus.theme)}"
+									iconClass="h-6 w-6"
 								/>
-								<span class="text-muted-foreground text-xs">Famille d'accueil</span>
-							</div>
-							<div class="flex-1">
-								<Card.Title class="text-xl">
-									{host.profil.firstName}
-									{host.profil.lastName}
-								</Card.Title>
+							{/key}
+							<span class="text-muted-foreground text-center text-xs font-medium">
+								{currentStatus.label}
+							</span>
+						</div>
 
-								<div class="mt-2 flex items-center gap-2">
-									<Badge class="bg-blue-100 text-blue-800">
-										{host.numberOfCats || 0} chat{host.numberOfCats !== 1 ? 's' : ''}
-									</Badge>
+						<!-- Infos personnelles -->
+						<div>
+							<Card.Title class="text-2xl">{fullName}</Card.Title>
+							<Card.Description class="text-sm">
+								{host.age} ans · {host.job || '—'}
+							</Card.Description>
+
+							<div class="mt-3 flex items-center gap-2">
+								<Badge class={TYPE_COLORS[host.type]?.color || 'bg-gray-100 text-gray-800'}>
+									{TYPE_COLORS[host.type]?.label}
+								</Badge>
+								<Badge
+									variant={host.isAvailable ? 'default' : 'secondary'}
+									class={host.isAvailable
+										? 'bg-green-100 text-green-800'
+										: 'bg-red-100 text-red-800'}
+								>
+									{host.isAvailable ? '✓ Disponible' : '✗ Non disponible'}
+								</Badge>
+								<Badge variant="outline" class="text-xs">
+									{hostStatusLabel[host.status]}
+								</Badge>
+							</div>
+						</div>
+					</div>
+
+					<!-- Droite : Contact -->
+					<div class="flex flex-col gap-3">
+						<div class="flex items-center gap-2">
+							<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground flex-shrink-0" />
+							<a
+								href="mailto:{host.profil.email}"
+								class="truncate text-sm text-blue-600 hover:underline"
+								title={host.profil.email}
+							>
+								{truncate(host.profil.email, 28)}
+							</a>
+						</div>
+						<div class="flex items-center gap-2">
+							<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground flex-shrink-0" />
+							<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
+								{host.profil.phone || '—'}
+							</a>
+						</div>
+					</div>
+
+					<!-- Bouton édition -->
+					{#if isAdmin}
+						<Button variant="ghost" size="icon" onclick={() => (editing = true)} class="shrink-0">
+							<Pencil class="h-5 w-5" />
+						</Button>
+					{/if}
+				</div>
+			</Card.Header>
+
+			<!-- Contenu principal -->
+			<Card.Content class="space-y-6 overflow-y-auto">
+				<Separator />
+
+				<!-- Grille 2 colonnes : Adresse & Infos maison + Capacités -->
+				<div class="grid grid-cols-2 gap-6 lg:grid-cols-3">
+					<!-- Adresse -->
+					<div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+						<div class="mb-3 flex items-center gap-2">
+							<span class="text-lg">{SECTION_CONFIG.address.icon}</span>
+							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.address.label}</h4>
+						</div>
+						<div class="ml-6 space-y-2 text-xs">
+							<div>
+								<p class="text-muted-foreground font-medium">Rue</p>
+								<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
+							</div>
+							<div class="grid grid-cols-2 gap-2">
+								<div>
+									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
+								</div>
+								<div>
+									<p class="text-muted-foreground font-medium">Ville</p>
+									<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
+								</div>
+							</div>
+							<div>
+								<p class="text-muted-foreground font-medium">Quartier</p>
+								<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
+							</div>
+						</div>
+					</div>
+
+					<!-- Domicile -->
+					<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+						<div class="mb-3 flex items-center gap-2">
+							<span class="text-lg">{SECTION_CONFIG.home.icon}</span>
+							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.home.label}</h4>
+						</div>
+						<div class="ml-6 space-y-2 text-xs">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground font-medium">Espace</span>
+								<Badge class="bg-blue-100 text-xs text-blue-800">
+									{spaceLabel[host.space]}
+								</Badge>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground font-medium">Présence</span>
+								<span class="font-medium text-gray-900">{host.presence || '—'}</span>
+							</div>
+							<div class="space-y-1 border-t border-blue-100 pt-2">
+								<div class="flex items-center justify-between">
+									<span class="text-muted-foreground font-medium">Jardin</span>
+									<BooleanIcon value={host.outside} />
+								</div>
+								<div class="flex items-center justify-between">
+									<span class="text-muted-foreground font-medium">Voiture</span>
+									<BooleanIcon value={host.car} />
+								</div>
+								<div class="flex items-center justify-between">
+									<span class="text-muted-foreground font-medium">Stock</span>
+									<BooleanIcon value={host.isStockFeed} />
 								</div>
 							</div>
 						</div>
-						<!-- Contact Info avec icones -->
-						<div class="flex gap-6">
-							<!-- Email -->
-							<div class="flex items-end gap-2">
-								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{host.profil.email}</span>
-							</div>
+					</div>
 
-							<!-- Phone -->
-							<div class="flex items-end gap-2">
-								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{host.profil.phone || '-'}</span>
+					<!-- Animaux -->
+					<div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
+						<div class="mb-3 flex items-center gap-2">
+							<span class="text-lg">{SECTION_CONFIG.animals.icon}</span>
+							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.animals.label}</h4>
+						</div>
+						<div class="ml-6 space-y-2 text-xs">
+							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
+								<span class="text-muted-foreground font-medium">Présents</span>
+								<BooleanIcon value={host.hasAnimalsAtHome} />
+							</div>
+							{#if host.hasAnimalsAtHome}
+								<div class="space-y-1">
+									<div class="flex items-center justify-between">
+										<span class="flex items-center gap-1">🐱 Chats</span>
+										<Badge variant="outline" class="h-fit text-xs">
+											{host.numberOfCatsAtHome || 0}
+										</Badge>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="flex items-center gap-1">🐕 Chiens</span>
+										<Badge variant="outline" class="h-fit text-xs">
+											{host.numberOfDogsAtHome || 0}
+										</Badge>
+									</div>
+									{#if host.otherAnimalsAtHome}
+										<div class="flex items-center justify-between">
+											<span class="flex items-center gap-1">🐾 Autres</span>
+											<Badge variant="outline" class="h-fit text-xs">
+												{host.otherAnimalsAtHome}
+											</Badge>
+										</div>
+									{/if}
+								</div>
+							{:else}
+								<p class="text-muted-foreground italic">Aucun animal</p>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Capacités -->
+					<div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 lg:col-span-2">
+						<div class="mb-3 flex items-center gap-2">
+							<span class="text-lg">{SECTION_CONFIG.capacity.icon}</span>
+							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
+						</div>
+						<div class="ml-6 grid grid-cols-3 gap-3">
+							<div>
+								<p class="text-muted-foreground mb-1 text-xs font-medium">Soins médicaux</p>
+								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
+									{healLabel[host.heal]}
+								</Badge>
+							</div>
+							<div>
+								<p class="text-muted-foreground mb-1 text-xs font-medium">Socialisation</p>
+								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
+									{socializeLabel[host.socialize]}
+								</Badge>
+							</div>
+							<div>
+								<p class="text-muted-foreground mb-1 text-xs font-medium">Nourrissage</p>
+								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
+									{babyFeedingLabel[host.babyFeeding]}
+								</Badge>
 							</div>
 						</div>
 					</div>
-					<!-- Boutons d'édition -->
-					<div>
-						{#if isAdmin}
-							<Button variant="ghost" size="icon" onclick={startEditing}>
-								<Pencil class="h-5 w-5" />
-							</Button>
-						{/if}
+
+					<!-- Colaboration -->
+					<div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+						<div class="mb-3 flex items-center gap-2">
+							<span class="text-lg">{SECTION_CONFIG.availability.icon}</span>
+							<h4 class="text-sm font-semibold text-gray-900">
+								{SECTION_CONFIG.availability.label}
+							</h4>
+						</div>
+						<div class="ml-6">
+							<p class="text-muted-foreground mb-1 text-xs font-medium">Durée</p>
+							<p class="text-sm font-medium text-gray-900">{host.availabilityDuration || '—'}</p>
+						</div>
 					</div>
 				</div>
-			</Card.Header>
+
+				<Separator />
+
+				<!-- Descriptions -->
+				<div class="space-y-2">
+					{#if host.homeDescription}
+						<div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
+							<p class="mb-1 text-sm font-semibold text-gray-900">📝 Description du domicile</p>
+							<p class="text-xs text-gray-700">{host.homeDescription}</p>
+						</div>
+					{/if}
+
+					{#if host.outside && host.outsideDescription}
+						<div class="rounded-lg border border-green-200 bg-green-50 p-3">
+							<p class="mb-1 text-sm font-semibold text-gray-900">🌿 Description du jardin</p>
+							<p class="text-xs text-gray-700">{host.outsideDescription}</p>
+						</div>
+					{/if}
+
+					{#if host.stopActivity && host.actif === 'STOP'}
+						<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+							<p class="mb-1 text-sm font-semibold text-gray-900">⛔ Raison d'arrêt</p>
+							<p class="text-xs text-gray-700">{host.stopActivity}</p>
+						</div>
+					{/if}
+
+					{#if host.additionalInformation}
+						<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+							<p class="mb-1 text-sm font-semibold text-gray-900">ℹ️ Infos additionnelles</p>
+							<p class="text-xs text-gray-700">{host.additionalInformation}</p>
+						</div>
+					{/if}
+				</div>
+			</Card.Content>
 		{:else}
-			<!-- ===== HEADER ÉDITION ===== -->
+			<!-- ===== ÉDITION ===== -->
 			<Card.Header>
 				<h3 class="text-2xl font-bold">Éditer la famille d'accueil</h3>
 			</Card.Header>
+			<Card.Content class="flex items-center justify-center p-8">
+				<p class="text-muted-foreground">HostEditForm sera intégré ici</p>
+			</Card.Content>
 		{/if}
-
-		<!-- Contenu principal -->
-		<Card.Content class="grid grid-cols-1 gap-6">
-			<Separator />
-			<div class="space-y-6">
-				{#if !isEditing}
-					<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
-					<div class="grid grid-cols-3 gap-x-6 gap-y-2">
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Adresse</p>
-							<p class="text-sm font-semibold">{host.profil.address || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Ville</p>
-							<p class="text-sm font-semibold">{host.profil.city || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Code postal</p>
-							<p class="text-sm font-semibold">{host.profil.postalCode || '-'}</p>
-						</div>
-					</div>
-
-					{#if host.notes}
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Notes</p>
-							<p class="text-sm">{host.notes}</p>
-						</div>
-					{/if}
-				{:else}
-					<!-- ===== MODE ÉDITION ===== -->
-					<HostEditForm
-						bind:editData
-						hostId={host.id}
-						onSuccess={handleSuccessfulSave}
-						onCancel={handleCancelEdit}
-						{isSaving}
-					/>
-				{/if}
-			</div>
-
-			{#if !isEditing}
-				<Separator />
-
-				<!-- Chats en accueil -->
-				<div>
-					<h4 class="mb-4 text-base font-semibold text-gray-900">
-						Chats en accueil ({catList.length})
-					</h4>
-					<Table.Root class="min-h-125">
-						<Table.Header>
-							<Table.Row>
-								<Table.Head>Chat</Table.Head>
-								<Table.Head>Statut</Table.Head>
-								<Table.Head>Arrivée</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body>
-							{#if paginatedCats.length > 0}
-								{#each paginatedCats as cat (cat.placementId)}
-									<Table.Row>
-										<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
-										<Table.Cell>
-											<Badge class={getBadgeClass(cat.catStatus)}>
-												{truncate(cat.catStatus, 5)}
-											</Badge>
-										</Table.Cell>
-										<Table.Cell class="text-sm text-gray-600">
-											{new Date(cat.arrivalDate).toLocaleDateString('fr-FR')}
-										</Table.Cell>
-									</Table.Row>
-								{/each}
-							{:else}
-								<Table.Row>
-									<Table.Cell class="col-span-3 text-center text-gray-400">
-										Aucun chat en accueil
-									</Table.Cell>
-								</Table.Row>
-							{/if}
-						</Table.Body>
-					</Table.Root>
-
-					<!-- Pagination -->
-					{#if catList.length > PAGE_SIZE}
-						<div class="mt-4 flex justify-center">
-							<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
-								{#snippet children({ pages, currentPage: cp })}
-									<Pagination.Content>
-										<Pagination.Item>
-											<Pagination.Previous />
-										</Pagination.Item>
-										{#each pages as page (page.key)}
-											{#if page.type === 'ellipsis'}
-												<Pagination.Item>
-													<Pagination.Ellipsis />
-												</Pagination.Item>
-											{:else}
-												<Pagination.Item>
-													<Pagination.Link {page} isActive={cp === page.value}>
-														{page.value}
-													</Pagination.Link>
-												</Pagination.Item>
-											{/if}
-										{/each}
-										<Pagination.Item>
-											<Pagination.Next />
-										</Pagination.Item>
-									</Pagination.Content>
-								{/snippet}
-							</Pagination.Root>
-						</div>
-					{/if}
-				</div>
-			{/if}
-		</Card.Content>
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">
-			<Icon name="house" class="mx-auto mb-2 h-8 w-8 opacity-50" />
+			<Icon name="home" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez une famille d'accueil</p>
 		</Card.Content>
 	</Card.Root>

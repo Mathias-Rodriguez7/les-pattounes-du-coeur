@@ -60,7 +60,7 @@
 
 	<!-- Nom Complet -->
 	<Table.Cell class="font-semibold text-gray-900" title={fullName}>
-		{truncate(fullName, 10)}
+		{truncate(fullName, 8)}
 	</Table.Cell>
 
 	<!-- Type (CLASSIC/RELAY) -->
@@ -72,7 +72,7 @@
 
 	<!-- Quartier / Ville -->
 	<Table.Cell class="text-sm text-gray-600" title={location}>
-		{truncate(location, 10)}
+		{truncate(location, 8)}
 	</Table.Cell>
 
 	<!-- Espace -->
