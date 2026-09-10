@@ -18,7 +18,7 @@
 		volunteerStep2Schema,
 		volunteerStep3Schema,
 		volunteerStep4Schema
-	} from '$lib/schema/volunteerForm';
+	} from '$lib/schemas/volunteerForm';
 
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 

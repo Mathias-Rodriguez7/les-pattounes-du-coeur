@@ -182,7 +182,7 @@
 								class="hover:bg-muted cursor-pointer transition-colors"
 								onclick={handleRoleHeaderClick}
 								role="button"
-								tabindex="0"
+								tabindex={0}
 							>
 								Rôle
 							</Table.Head>

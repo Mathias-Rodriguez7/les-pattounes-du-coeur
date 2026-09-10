@@ -12,7 +12,7 @@
 		step1Schema,
 		step2Schema,
 		step3Schema
-	} from '$lib/schema/adoptionForm';
+	} from '$lib/schemas/adoptionForm';
 
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';

@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schema/colabForm';
+	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schemas/colabForm';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { get } from 'svelte/store';

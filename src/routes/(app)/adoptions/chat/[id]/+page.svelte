@@ -5,7 +5,11 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { QuickAdoptionFormSchema, step1Schema, step2Schema } from '$lib/schema/quickAdoptionForm';
+	import {
+		QuickAdoptionFormSchema,
+		step1Schema,
+		step2Schema
+	} from '$lib/schemas/quickAdoptionForm';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { get } from 'svelte/store';

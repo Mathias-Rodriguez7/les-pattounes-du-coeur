@@ -343,3 +343,67 @@ export async function deleteHost(hostId: string) {
 		};
 	}
 }
+
+export async function blacklistHost(hostId: string, email: string, reason: string) {
+	try {
+		// 🔍 Vérifier que la famille d'accueil existe
+		const existingHost = await prisma.host.findUnique({
+			where: { id: hostId },
+			include: { profil: true }
+		});
+
+		if (!existingHost) {
+			return {
+				success: false,
+				error: "Famille d'accueil non trouvée",
+				errors: {}
+			};
+		}
+
+		// 🔍 Vérifier si l'email est déjà blacklisté
+		const existingBlacklist = await prisma.blacklistHistoric.findFirst({
+			where: {
+				email,
+				isBlacklisted: true
+			}
+		});
+
+		if (existingBlacklist) {
+			return {
+				success: false,
+				error: 'Cet email est déjà en liste noire',
+				errors: {}
+			};
+		}
+
+		// 📝 Créer une entrée dans la blacklist
+		await prisma.blacklistHistoric.create({
+			data: {
+				profilId: existingHost.profilId,
+				email,
+				description: reason,
+				isBlacklisted: true
+			}
+		});
+
+		// 🔄 Mettre à jour le statut du host à STOP
+		await prisma.host.update({
+			where: { id: hostId },
+			data: {
+				actif: 'STOP'
+			}
+		});
+
+		return {
+			success: true,
+			message: "Famille d'accueil mise en liste noire avec succès"
+		};
+	} catch (error) {
+		console.error('❌ Erreur lors de la mise en liste noire:', error);
+		return {
+			success: false,
+			error: "Erreur lors de la mise en liste noire de la famille d'accueil",
+			errors: {}
+		};
+	}
+}

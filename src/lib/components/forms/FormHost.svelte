@@ -17,7 +17,7 @@
 		hostStep2Schema,
 		hostStep3Schema,
 		hostStep4Schema
-	} from '$lib/schema/hostForm';
+	} from '$lib/schemas/hostForm';
 
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 

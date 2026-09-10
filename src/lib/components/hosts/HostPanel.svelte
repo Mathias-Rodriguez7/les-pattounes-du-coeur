@@ -4,7 +4,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
-	import type { HostFull } from '$lib/types/hosts';
 	import {
 		hostStatusLabel,
 		spaceLabel,
@@ -17,15 +16,145 @@
 	import { truncate } from '$lib/utils/string';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import HostEditForm from './HostEditForm.svelte';
 
-	interface Props {
-		host: HostFull | null;
-		isAdmin?: boolean;
-	}
+	const { host = $bindable(), isAdmin = false } = $props();
 
-	const { host, isAdmin = false }: Props = $props();
+	let isEditing = $state(false);
+	let isSaving = $state(false);
 
-	let editing = $state(false);
+	// 1️⃣ DÉCLARER TOUS LES CHAMPS ÉDITABLES ICI
+	let editData = $state({
+		// Profil
+		firstName: '',
+		lastName: '',
+		email: '',
+		phone: '',
+		district: '',
+		address: '',
+		city: '',
+		postalCode: '',
+
+		// Host spécifiques
+		age: 0,
+		job: '',
+		actif: '',
+		type: '',
+		status: '',
+		isAvailable: false,
+
+		// Zone d'accueil
+		space: '',
+		presence: '',
+		outside: false,
+		car: false,
+		isStockFeed: false,
+
+		// Animaux
+		hasAnimalsAtHome: false,
+		numberOfCatsAtHome: 0,
+		numberOfDogsAtHome: 0,
+		otherAnimalsAtHome: '',
+
+		// Capacités
+		heal: '',
+		socialize: '',
+		babyFeeding: '',
+
+		// Descriptions et durée
+		homeDescription: '',
+		outsideDescription: '',
+		availabilityDuration: '',
+		stopActivity: '',
+		additionalInformation: ''
+	});
+
+	// 2️⃣ REMPLIR editData À PARTIR DU host
+	const startEditing = () => {
+		if (!host) return;
+
+		editData = {
+			firstName: host.profil.firstName,
+			lastName: host.profil.lastName,
+			email: host.profil.email,
+			phone: host.profil.phone,
+			district: host.profil.district || '',
+			address: host.profil.address,
+			city: host.profil.city,
+			postalCode: host.profil.postalCode,
+			age: host.age,
+			job: host.job,
+			actif: host.actif || '',
+			type: host.type || '',
+			status: host.status,
+			isAvailable: host.isAvailable,
+			space: host.space,
+			presence: host.presence,
+			outside: host.outside,
+			car: host.car,
+			isStockFeed: host.isStockFeed,
+			hasAnimalsAtHome: host.hasAnimalsAtHome,
+			numberOfCatsAtHome: host.numberOfCatsAtHome || 0,
+			numberOfDogsAtHome: host.numberOfDogsAtHome || 0,
+			otherAnimalsAtHome: host.otherAnimalsAtHome || '',
+			heal: host.heal,
+			socialize: host.socialize,
+			babyFeeding: host.babyFeeding,
+			homeDescription: host.homeDescription,
+			outsideDescription: host.outsideDescription || '',
+			availabilityDuration: host.availabilityDuration,
+			stopActivity: host.stopActivity,
+			additionalInformation: host.additionalInformation
+		};
+
+		isEditing = true;
+	};
+
+	// 3️⃣ METTRE À JOUR host APRÈS SUCCÈS
+	const handleSuccessfulSave = () => {
+		if (!host) return;
+
+		// Profil
+		host.profil.firstName = editData.firstName;
+		host.profil.lastName = editData.lastName;
+		host.profil.email = editData.email;
+		host.profil.phone = editData.phone;
+		host.profil.district = editData.district;
+		host.profil.address = editData.address;
+		host.profil.city = editData.city;
+		host.profil.postalCode = editData.postalCode;
+
+		// Host
+		host.age = editData.age;
+		host.job = editData.job;
+		host.actif = editData.actif;
+		host.type = editData.type;
+		host.status = editData.status;
+		host.isAvailable = editData.isAvailable;
+		host.space = editData.space;
+		host.presence = editData.presence;
+		host.outside = editData.outside;
+		host.car = editData.car;
+		host.isStockFeed = editData.isStockFeed;
+		host.hasAnimalsAtHome = editData.hasAnimalsAtHome;
+		host.numberOfCatsAtHome = editData.numberOfCatsAtHome;
+		host.numberOfDogsAtHome = editData.numberOfDogsAtHome;
+		host.otherAnimalsAtHome = editData.otherAnimalsAtHome;
+		host.heal = editData.heal;
+		host.socialize = editData.socialize;
+		host.babyFeeding = editData.babyFeeding;
+		host.homeDescription = editData.homeDescription;
+		host.outsideDescription = editData.outsideDescription;
+		host.availabilityDuration = editData.availabilityDuration;
+		host.stopActivity = editData.stopActivity;
+		host.additionalInformation = editData.additionalInformation;
+
+		isEditing = false;
+	};
+
+	const handleCancelEdit = () => {
+		isEditing = false;
+	};
 
 	const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
 		ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
@@ -39,15 +168,19 @@
 	};
 
 	const SECTION_CONFIG = {
-		address: { icon: '📍', label: 'Adresse', color: 'slate' },
-		home: { icon: '🏠', label: 'Domicile', color: 'blue' },
-		animals: { icon: '🐾', label: 'Animaux', color: 'orange' },
-		capacity: { icon: '⭐', label: 'Capacités', color: 'indigo' },
-		availability: { icon: '⏱️', label: 'Colaboration', color: 'emerald' }
+		address: { icon: 'map', label: 'Adresse' },
+		home: { icon: 'house', label: "Zone d'acceuil" },
+		animals: { icon: 'paw', label: 'Animaux' },
+		capacity: { icon: 'heart', label: 'Capacités' },
+		availability: { icon: 'Handshake', label: 'Colaboration' },
+		homeDescription: { icon: 'house', label: 'Description du domicile' },
+		outsideDescription: { icon: 'trees', label: 'Description du jardin' },
+		stopActivity: { icon: 'CircleX', label: "Raison d'arrêt" },
+		additionalInformation: { icon: 'plus', label: 'Infos additionnelles' }
 	};
 
 	// États dérivés
-	const fullName = $derived(`${host?.profil.firstName} ${host?.profil.lastName}`);
+	const fullName = $derived(host ? `${host.profil.firstName} ${host.profil.lastName}` : '');
 	const location = $derived(
 		host?.profil.district
 			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
@@ -60,14 +193,14 @@
 
 {#if host}
 	<Card.Root class="flex h-full flex-col">
-		{#if !editing}
+		{#if !isEditing}
 			<!-- ===== HEADER ===== -->
 			<Card.Header>
-				<div class="flex items-start justify-between gap-4">
+				<div class="flex justify-between gap-8">
 					<!-- Gauche : Statut + Infos -->
-					<div class="flex flex-1 gap-6">
+					<div class="flex flex-1 gap-8">
 						<!-- Status Icon -->
-						<div class="flex flex-col items-center gap-2">
+						<div class="flex flex-col items-center gap-4">
 							{#key host?.actif}
 								<Icon
 									name={currentStatus.icon}
@@ -77,22 +210,19 @@
 									iconClass="h-6 w-6"
 								/>
 							{/key}
-							<span class="text-muted-foreground text-center text-xs font-medium">
-								{currentStatus.label}
-							</span>
+							<Badge class={TYPE_COLORS[host.type]?.color || 'bg-gray-100 text-gray-800'}>
+								{TYPE_COLORS[host.type]?.label}
+							</Badge>
 						</div>
 
 						<!-- Infos personnelles -->
 						<div>
 							<Card.Title class="text-2xl">{fullName}</Card.Title>
 							<Card.Description class="text-sm">
-								{host.age} ans · {host.job || '—'}
+								{host.age} ans ·
 							</Card.Description>
 
 							<div class="mt-3 flex items-center gap-2">
-								<Badge class={TYPE_COLORS[host.type]?.color || 'bg-gray-100 text-gray-800'}>
-									{TYPE_COLORS[host.type]?.label}
-								</Badge>
 								<Badge
 									variant={host.isAvailable ? 'default' : 'secondary'}
 									class={host.isAvailable
@@ -106,31 +236,31 @@
 								</Badge>
 							</div>
 						</div>
-					</div>
 
-					<!-- Droite : Contact -->
-					<div class="flex flex-col gap-3">
-						<div class="flex items-center gap-2">
-							<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground flex-shrink-0" />
-							<a
-								href="mailto:{host.profil.email}"
-								class="truncate text-sm text-blue-600 hover:underline"
-								title={host.profil.email}
-							>
-								{truncate(host.profil.email, 28)}
-							</a>
-						</div>
-						<div class="flex items-center gap-2">
-							<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground flex-shrink-0" />
-							<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
-								{host.profil.phone || '—'}
-							</a>
+						<!-- Droite : Contact -->
+						<div class="flex items-end gap-6">
+							<div class="flex items-center gap-2">
+								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
+								<a
+									href="mailto:{host.profil.email}"
+									class="truncate text-sm text-blue-600 hover:underline"
+									title={host.profil.email}
+								>
+									{truncate(host.profil.email, 28)}
+								</a>
+							</div>
+							<div class="flex items-center gap-2">
+								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
+								<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
+									{host.profil.phone || '—'}
+								</a>
+							</div>
 						</div>
 					</div>
 
 					<!-- Bouton édition -->
 					{#if isAdmin}
-						<Button variant="ghost" size="icon" onclick={() => (editing = true)} class="shrink-0">
+						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
 							<Pencil class="h-5 w-5" />
 						</Button>
 					{/if}
@@ -146,7 +276,7 @@
 					<!-- Adresse -->
 					<div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
-							<span class="text-lg">{SECTION_CONFIG.address.icon}</span>
+							<Icon name={SECTION_CONFIG.address.icon} class="h-5 w-5 text-slate-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.address.label}</h4>
 						</div>
 						<div class="ml-6 space-y-2 text-xs">
@@ -156,12 +286,12 @@
 							</div>
 							<div class="grid grid-cols-2 gap-2">
 								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
-									<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
-								</div>
-								<div>
 									<p class="text-muted-foreground font-medium">Ville</p>
 									<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
+								</div>
+								<div>
+									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
 								</div>
 							</div>
 							<div>
@@ -171,10 +301,10 @@
 						</div>
 					</div>
 
-					<!-- Domicile -->
+					<!-- Zone d'accueil -->
 					<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
-							<span class="text-lg">{SECTION_CONFIG.home.icon}</span>
+							<Icon name={SECTION_CONFIG.home.icon} class="h-5 w-5 text-blue-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.home.label}</h4>
 						</div>
 						<div class="ml-6 space-y-2 text-xs">
@@ -208,7 +338,7 @@
 					<!-- Animaux -->
 					<div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
-							<span class="text-lg">{SECTION_CONFIG.animals.icon}</span>
+							<Icon name={SECTION_CONFIG.animals.icon} class="h-5 w-5 text-orange-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.animals.label}</h4>
 						</div>
 						<div class="ml-6 space-y-2 text-xs">
@@ -248,7 +378,7 @@
 					<!-- Capacités -->
 					<div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 lg:col-span-2">
 						<div class="mb-3 flex items-center gap-2">
-							<span class="text-lg">{SECTION_CONFIG.capacity.icon}</span>
+							<Icon name={SECTION_CONFIG.capacity.icon} class="h-5 w-5 text-indigo-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
 						</div>
 						<div class="ml-6 grid grid-cols-3 gap-3">
@@ -265,7 +395,7 @@
 								</Badge>
 							</div>
 							<div>
-								<p class="text-muted-foreground mb-1 text-xs font-medium">Nourrissage</p>
+								<p class="text-muted-foreground mb-1 text-xs font-medium">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{babyFeedingLabel[host.babyFeeding]}
 								</Badge>
@@ -276,7 +406,7 @@
 					<!-- Colaboration -->
 					<div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
-							<span class="text-lg">{SECTION_CONFIG.availability.icon}</span>
+							<Icon name={SECTION_CONFIG.availability.icon} class="h-5 w-5 text-emerald-700" />
 							<h4 class="text-sm font-semibold text-gray-900">
 								{SECTION_CONFIG.availability.label}
 							</h4>
@@ -291,43 +421,72 @@
 				<Separator />
 
 				<!-- Descriptions -->
-				<div class="space-y-2">
+				<div class="grid grid-cols-1 gap-6">
 					{#if host.homeDescription}
 						<div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-							<p class="mb-1 text-sm font-semibold text-gray-900">📝 Description du domicile</p>
+							<div class="mb-3 flex items-center gap-2">
+								<Icon name={SECTION_CONFIG.homeDescription.icon} class="h-5 w-5 text-blue-700" />
+								<h4 class="text-sm font-semibold text-gray-900">
+									{SECTION_CONFIG.homeDescription.label}
+								</h4>
+							</div>
 							<p class="text-xs text-gray-700">{host.homeDescription}</p>
 						</div>
 					{/if}
 
 					{#if host.outside && host.outsideDescription}
 						<div class="rounded-lg border border-green-200 bg-green-50 p-3">
-							<p class="mb-1 text-sm font-semibold text-gray-900">🌿 Description du jardin</p>
+							<div class="mb-3 flex items-center gap-2">
+								<Icon
+									name={SECTION_CONFIG.outsideDescription.icon}
+									class="h-5 w-5 text-emerald-700"
+								/>
+								<h4 class="text-sm font-semibold text-gray-900">
+									{SECTION_CONFIG.outsideDescription.label}
+								</h4>
+							</div>
 							<p class="text-xs text-gray-700">{host.outsideDescription}</p>
 						</div>
 					{/if}
 
 					{#if host.stopActivity && host.actif === 'STOP'}
-						<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-							<p class="mb-1 text-sm font-semibold text-gray-900">⛔ Raison d'arrêt</p>
+						<div class="rounded-lg border border-yellow-200 bg-red-50 p-3">
+							<div class="mb-3 flex items-center gap-2">
+								<Icon name={SECTION_CONFIG.stopActivity.icon} class="h-5 w-5 text-red-700" />
+								<h4 class="text-sm font-semibold text-gray-900">
+									{SECTION_CONFIG.stopActivity.label}
+								</h4>
+							</div>
 							<p class="text-xs text-gray-700">{host.stopActivity}</p>
 						</div>
 					{/if}
 
 					{#if host.additionalInformation}
 						<div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-							<p class="mb-1 text-sm font-semibold text-gray-900">ℹ️ Infos additionnelles</p>
+							<div class="mb-3 flex items-center gap-2">
+								<Icon
+									name={SECTION_CONFIG.additionalInformation.icon}
+									class="h-5 w-5 text-slate-700"
+								/>
+								<h4 class="text-sm font-semibold text-gray-900">
+									{SECTION_CONFIG.additionalInformation.label}
+								</h4>
+							</div>
 							<p class="text-xs text-gray-700">{host.additionalInformation}</p>
 						</div>
 					{/if}
 				</div>
 			</Card.Content>
 		{:else}
-			<!-- ===== ÉDITION ===== -->
-			<Card.Header>
-				<h3 class="text-2xl font-bold">Éditer la famille d'accueil</h3>
-			</Card.Header>
-			<Card.Content class="flex items-center justify-center p-8">
-				<p class="text-muted-foreground">HostEditForm sera intégré ici</p>
+			<Card.Content class="space-y-6 overflow-y-auto">
+				<!-- ===== ÉDITION ===== -->
+				<HostEditForm
+					bind:editData
+					hostId={host.id}
+					onSuccess={handleSuccessfulSave}
+					onCancel={handleCancelEdit}
+					{isSaving}
+				/>
 			</Card.Content>
 		{/if}
 	</Card.Root>

@@ -1,6 +1,6 @@
 import prisma from '$lib/server/prisma';
 import { District, VolunteerRole, ColabActivity } from '@prisma/client';
-import { createVolunteerSchema, updateVolunteerSchema } from './schema';
+import { createVolunteerSchema, updateVolunteerSchema } from '$lib/schemas/volunteer';
 import { ZodError } from 'zod';
 
 interface PrismaErrorWithCode {
@@ -177,6 +177,8 @@ export const updateVolunteer = async ({ request }: any) => {
 		});
 
 		console.log('✅ Volunteer mis à jour:', updatedVolunteer.id);
+		console.log('📊 updatedVolunteer.profil:', updatedVolunteer.profil);
+		console.log('📊 updatedVolunteer.profil.firstName:', updatedVolunteer.profil?.firstName);
 
 		// ✅ RETOURNER le volunteer mis à jour
 		return {
@@ -208,44 +210,3 @@ export const updateVolunteer = async ({ request }: any) => {
 		return { success: false, error: 'Erreur lors de la mise à jour du bénévole' };
 	}
 };
-
-export async function deleteVolunteer(volunteerId: string) {
-	try {
-		const volunteer = await prisma.volunteer.findUnique({
-			where: { id: volunteerId }
-		});
-
-		if (!volunteer) {
-			return {
-				success: false,
-				error: 'Bénévole non trouvé'
-			};
-		}
-
-		// ⚠️ IMPORTANT: Supprimer le profil aussi (ou gérer la cascade)
-		await prisma.volunteer.delete({
-			where: { id: volunteerId }
-		});
-
-		// Optionnel: Supprimer aussi le profil orphelin
-		await prisma.profil
-			.delete({
-				where: { id: volunteer.profilId }
-			})
-			.catch(() => {
-				// Ignorer les erreurs si le profil n'existe pas
-			});
-
-		return {
-			success: true,
-			message: 'Bénévole supprimé avec succès',
-			data: { volunteerId }
-		};
-	} catch (error) {
-		console.error('Erreur suppression:', error);
-		return {
-			success: false,
-			error: error instanceof Error ? error.message : 'Erreur inconnue'
-		};
-	}
-}

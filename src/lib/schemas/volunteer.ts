@@ -1,4 +1,3 @@
-// src/lib/server/volunteers/schema.ts
 import { z } from 'zod';
 import { District, VolunteerRole, ColabActivity } from '@prisma/client';
 

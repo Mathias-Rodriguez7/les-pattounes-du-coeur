@@ -3,9 +3,41 @@ import type { Volunteer, Form, Profil } from '@prisma/client';
 export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'ALERT' | 'OTHER';
 export type StatusType = 'ACTIVE' | 'BREAK' | 'STOP';
 
+export type SelectOption = {
+	value: string;
+	label: string;
+};
+
+export type VolunteerEditFormState = {
+	isSaving: boolean;
+	isDeleting: boolean;
+	isBlacklisting: boolean;
+};
+
+export type VolunteerEditData = {
+	firstName: string;
+	lastName: string;
+	email: string;
+	phone: string;
+	district: string;
+	address: string;
+	city: string;
+	postalCode: string;
+	actif: StatusType | string;
+	role: string;
+};
+
+export type VolunteerEditFormProps = {
+	editData: VolunteerEditData;
+	volunteerId?: string;
+	profileId?: string;
+	onSuccess?: () => void;
+	onCancel?: () => void;
+};
+
 export type CatWithPlacements = {
 	id: string;
-	name: string;
+	name: string | null;
 	status: string;
 	placements?: Array<{
 		id: string;

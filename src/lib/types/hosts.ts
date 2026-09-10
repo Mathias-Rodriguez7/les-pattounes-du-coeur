@@ -18,7 +18,7 @@ export type HostFull = Prisma.HostGetPayload<{
 }>;
 
 // Pour les formulaires
-export type HostFormData = {
+export type HostEditData = {
 	// Infos personnelles
 	firstName: string;
 	lastName: string;
@@ -65,13 +65,31 @@ export type HostFormData = {
 	stopActivity: string;
 };
 
+export type HostEditFormProps = {
+	editData: HostEditData;
+	hostId?: string;
+	profileId?: string;
+	onSuccess?: () => void;
+	onCancel?: () => void;
+};
+
+export type HostFormErrors = {
+	firstName: string;
+	lastName: string;
+	email: string;
+	phone: string;
+	address: string;
+	city: string;
+	postalCode: string;
+};
+
 // Pour les créations
-export type HostCreateInput = Omit<HostFormData, 'email' | 'phone' | 'firstName' | 'lastName'> & {
+export type HostCreateInput = Omit<HostEditData, 'email' | 'phone' | 'firstName' | 'lastName'> & {
 	profilId: string;
 };
 
 // Pour les mises à jour
-export type HostUpdateInput = Partial<HostFormData>;
+export type HostUpdateInput = Partial<HostEditData>;
 
 // Énums (alignés avec Prisma)
 export const HostStatus = {

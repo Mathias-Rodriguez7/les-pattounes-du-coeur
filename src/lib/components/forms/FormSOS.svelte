@@ -8,7 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { sosFormSchema } from '$lib/schema/sosForm';
+	import { sosFormSchema } from '$lib/schemas/sosForm';
 
 	let { data } = $props<{
 		data: SuperValidated<Infer<typeof sosFormSchema>>;

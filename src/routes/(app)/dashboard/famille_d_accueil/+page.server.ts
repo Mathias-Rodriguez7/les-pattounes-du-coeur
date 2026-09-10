@@ -2,7 +2,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { District, HostStatus } from '@prisma/client';
-import { createHost, updateHost, deleteHost } from '$lib/server/hosts/mutations';
+import { createHost, updateHost } from '$lib/server/hosts/mutations';
+import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN
@@ -49,7 +50,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			await Promise.all([
 				// 1. Total de familles d'accueil
 				prisma.host.count({
-					where: whereCondition
+					where: {
+						...whereCondition,
+						actif: {
+							not: 'STOP'
+						}
+					}
 				}),
 
 				// 2. Profils incomplets
@@ -148,7 +154,7 @@ export const actions: Actions = {
 	createHost: async ({ request, locals }) => {
 		const result = await createHost({ request, locals });
 		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+			return fail(400, result);
 		}
 		return result;
 	},
@@ -156,19 +162,40 @@ export const actions: Actions = {
 	updateHost: async ({ request }) => {
 		const result = await updateHost({ request });
 		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+			return fail(400, result);
 		}
 		return result;
 	},
 
-	deleteHost: async ({ request }) => {
-		const formData = await request.formData();
-		const hostId = formData.get('hostId') as string;
+	deleteProfile: async ({ request }) => {
+		const data = await request.formData();
+		const profileId = data.get('profileId') as string;
 
-		const result = await deleteHost(hostId);
-		if (!result.success) {
-			return fail(400, result); // ✅ Retourne les erreurs Zod
+		if (!profileId) {
+			return {
+				success: false,
+				error: 'ID manquant'
+			};
 		}
-		return result;
+
+		return await deleteProfile(profileId);
+	},
+
+	blacklistProfile: async ({ request, locals }) => {
+		// ✅ Vérifier les permissions
+		if (!locals.user || locals.user.role !== 'ADMIN') {
+			return fail(403, { error: 'Non autorisé' });
+		}
+
+		const data = await request.formData();
+		const profileId = data.get('profileId') as string;
+		const email = data.get('email') as string;
+		const description = data.get('description') as string;
+
+		if (!profileId || !email) {
+			return fail(400, { error: 'Données manquantes' });
+		}
+
+		return await blacklistProfile(profileId, email, description || '');
 	}
 };

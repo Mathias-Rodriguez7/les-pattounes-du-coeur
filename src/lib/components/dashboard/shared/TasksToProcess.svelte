@@ -31,7 +31,7 @@
 			<div class="border-border bg-card rounded-xl border px-4 py-6 sm:px-6">
 				<div class="flex items-center gap-3 sm:gap-4">
 					<div
-						class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
 						style="background: {getGradientStyle(group.iconTheme)}"
 					>
 						<Icon name={group.icon} iconClass="h-5 w-5 text-white" />
@@ -47,9 +47,9 @@
 								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg border border-transparent px-3 py-3 transition-all hover:shadow-md sm:px-4 sm:py-4"
 							>
 								<div class="flex items-center justify-between gap-2">
-									<p class="text-xs font-medium sm:text-sm">{task.label}</p>
+									<p class="text-xs font-semibold">{task.label}</p>
 									<span
-										class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white sm:h-8 sm:w-8"
+										class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
 										style="background: {getGradientStyle(group.iconTheme)}"
 									>
 										{task.value}

@@ -30,7 +30,6 @@
 
 	let isEditing = $state(false);
 	let currentPage = $state(1);
-	let isSaving = $state(false);
 
 	let editData = $state({
 		firstName: '',
@@ -39,8 +38,8 @@
 		phone: '',
 		district: '',
 		address: '',
-		actif: 'ACTIVE' as const,
-		role: 'ADMIN' as const,
+		actif: '',
+		role: '',
 		city: '',
 		postalCode: ''
 	});
@@ -100,28 +99,33 @@
 		return counts;
 	});
 
+	const prepareEditData = (volunteer: VolunteerWithRelations) => ({
+		firstName: volunteer.profil.firstName,
+		lastName: volunteer.profil.lastName,
+		email: volunteer.profil.email,
+		phone: volunteer.profil.phone || '',
+		district: volunteer.profil.district || '',
+		address: volunteer.profil.address || '',
+		city: volunteer.profil.city || '',
+		postalCode: volunteer.profil.postalCode || '',
+		actif: volunteer.actif || '',
+		role: volunteer.role
+	});
+
 	const startEditing = () => {
 		if (!volunteer) return;
-
-		editData = {
-			firstName: volunteer.profil.firstName,
-			lastName: volunteer.profil.lastName,
-			email: volunteer.profil.email,
-			phone: volunteer.profil.phone || '',
-			district: volunteer.profil.district || '',
-			address: volunteer.profil.address || '',
-			city: volunteer.profil.city || '',
-			postalCode: volunteer.profil.postalCode || '',
-			actif: volunteer.actif,
-			role: volunteer.role
-		};
+		editData = prepareEditData(volunteer);
 		isEditing = true;
+	};
+
+	const handleCancelEdit = () => {
+		isEditing = false;
 	};
 
 	const handleSuccessfulSave = () => {
 		if (!volunteer) return;
 
-		console.log('✅ Volontaire mis à jour avec succès');
+		// Met à jour les données du volunteer avec les changements
 		volunteer.profil.firstName = editData.firstName;
 		volunteer.profil.lastName = editData.lastName;
 		volunteer.profil.email = editData.email;
@@ -133,10 +137,6 @@
 		volunteer.actif = editData.actif;
 		volunteer.role = editData.role;
 
-		isEditing = false;
-	};
-
-	const handleCancelEdit = () => {
 		isEditing = false;
 	};
 
@@ -185,13 +185,24 @@
 							<!-- Email -->
 							<div class="flex items-end gap-2">
 								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{volunteer.profil.email}</span>
+								<a
+									href="mailto:{volunteer.profil.email}"
+									class="truncate text-sm text-blue-600 hover:underline"
+									title={volunteer.profil.email}
+								>
+									{truncate(volunteer.profil.email, 28)}
+								</a>
 							</div>
 
 							<!-- Phone -->
 							<div class="flex items-end gap-2">
 								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{volunteer.profil.phone || '-'}</span>
+								<a
+									href="tel:{volunteer.profil.phone}"
+									class="text-sm text-blue-600 hover:underline"
+								>
+									{volunteer.profil.phone || '—'}
+								</a>
 							</div>
 						</div>
 					</div>
@@ -205,18 +216,11 @@
 					</div>
 				</div>
 			</Card.Header>
-		{:else}
-			<!-- ===== HEADER ÉDITION ===== -->
-			<Card.Header>
-				<h3 class="text-2xl font-bold">Éditer le bénévole</h3>
-			</Card.Header>
-		{/if}
 
-		<!-- Contenu principal -->
-		<Card.Content class="grid grid-cols-1 gap-6">
-			<Separator />
-			<div class="space-y-6">
-				{#if !isEditing}
+			<!-- Contenu principal -->
+			<Card.Content class="grid grid-cols-1 gap-6">
+				<Separator />
+				<div class="space-y-6">
 					<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
 					<div class="grid grid-cols-3 gap-x-6 gap-y-2">
 						<div>
@@ -240,19 +244,8 @@
 							</p>
 						</div>
 					</div>
-				{:else}
-					<!-- ===== MODE ÉDITION ===== -->
-					<VolunteerEditForm
-						bind:editData
-						volunteerId={volunteer.id}
-						onSuccess={handleSuccessfulSave}
-						onCancel={handleCancelEdit}
-						{isSaving}
-					/>
-				{/if}
-			</div>
+				</div>
 
-			{#if !isEditing}
 				<Separator />
 
 				<!-- Chats et Formulaires -->
@@ -350,8 +343,19 @@
 						</div>
 					</div>
 				</div>
-			{/if}
-		</Card.Content>
+			</Card.Content>
+		{:else}
+			<Card.Content class="grid grid-cols-1 gap-6">
+				<!-- ===== MODE ÉDITION ===== -->
+				<VolunteerEditForm
+					bind:editData
+					volunteerId={volunteer.id}
+					profileId={volunteer.profilId}
+					onSuccess={handleSuccessfulSave}
+					onCancel={handleCancelEdit}
+				/>
+			</Card.Content>
+		{/if}
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">

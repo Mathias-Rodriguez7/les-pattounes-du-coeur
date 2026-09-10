@@ -26,7 +26,7 @@
 
 	// Icônes et couleurs pour l'activité
 	const actifConfig: Record<string, { icon: string; color: string; label: string }> = {
-		ACTIVE: { icon: 'CirclePlay', color: 'text-emerald-600', label: 'Actif' },
+		ACTIVE: { icon: 'CirclePlay', color: 'text-green-600', label: 'Actif' },
 		BREAK: { icon: 'CirclePause', color: 'text-gray-500', label: 'En pause' },
 		STOP: { icon: 'CircleX', color: 'text-red-600', label: 'Arrêté' }
 	};
