@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { District, HostStatus } from '@prisma/client';
+import { District } from '@prisma/client';
 import { createHost, updateHost } from '$lib/server/hosts/mutations';
 import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
 
@@ -26,7 +26,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 		// 🔍 Récupérer les filtres depuis les query params
 		const districtParam = url.searchParams.get('district');
-		const statusParam = url.searchParams.get('status');
 
 		// ✅ Valide les filtres (district optionnel)
 		const districtFilter =
@@ -34,15 +33,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				? (districtParam as District)
 				: undefined;
 
-		const statusFilter =
-			statusParam && Object.values(HostStatus).includes(statusParam as HostStatus)
-				? (statusParam as HostStatus)
-				: undefined;
-
 		// 🏗️ Construire la condition WHERE
 		const whereCondition = {
-			...(districtFilter && { profil: { district: districtFilter } }),
-			...(statusFilter && { status: statusFilter })
+			...(districtFilter && { profil: { district: districtFilter } })
 		};
 
 		// 📊 Récupérer les STATS (avec filtres)
@@ -129,8 +122,25 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			}
 		});
 
+		// ✅ NOUVEAU : Calculer les stats de placements pour chaque host
+		const hostsWithStats = hosts.map((host) => {
+			const long = host.placements.filter((p) => p.type === 'LONG').length;
+			const short = host.placements.filter((p) => p.type === 'SHORT').length;
+
+			const placementStats = {
+				long,
+				short,
+				total: long + short
+			};
+
+			return {
+				...host,
+				placementStats
+			};
+		});
+
 		return {
-			hosts,
+			hosts: hostsWithStats, // ✅ Utilise hostsWithStats au lieu de hosts
 			stats: {
 				totalHosts,
 				incompleteProfiles,
@@ -140,8 +150,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			},
 			isAdmin: true,
 			filters: {
-				district: districtFilter || null,
-				status: statusFilter || null
+				district: districtFilter || null
 			}
 		};
 	} catch (error) {

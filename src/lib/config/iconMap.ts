@@ -26,7 +26,10 @@ import {
 	CircleEllipsis,
 	Phone,
 	Ban,
-	MapPinHouse
+	MapPinHouse,
+	User,
+	Syringe,
+	ChevronDown
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -38,6 +41,7 @@ export const iconMap: Record<string, Component> = {
 	plus: Plus,
 	clipboard: ClipboardList,
 	mail: Mail,
+	user: User,
 	users: Users,
 	news: Newspaper,
 	heart: HeartPlus,
@@ -58,5 +62,7 @@ export const iconMap: Record<string, Component> = {
 	other: CircleEllipsis,
 	phone: Phone,
 	blacklist: Ban,
-	map: MapPinHouse
+	map: MapPinHouse,
+	syringe: Syringe,
+	chevronDown: ChevronDown
 };

@@ -10,6 +10,7 @@ model Profil {
   id            String @id @default(uuid()) @db.Uuid
   firstName     String @map("first_name") @db.VarChar(60)
   lastName      String @map("last_name") @db.VarChar(60)
+  birthDate     DateTime?   @db.Date
   phone         String @unique @db.VarChar(20)
   email         String @db.VarChar(100) @unique
   address       String @map("address") @db.VarChar(100)
@@ -44,18 +45,18 @@ model Host {
   id                    String      @id @default(uuid()) @db.Uuid
   profilId              String      @unique @db.Uuid
   profil                Profil      @relation(fields: [profilId], references: [id], onDelete: Cascade)
-  age                   Int
   type                  HostType?
   actif                 ColabActivity?
-  job                   String      @db.VarChar(255)
-  status                HostStatus
-  isAvailable           Boolean     @default(true) @db.Boolean
+  catAdult              Int?       @map("cat_adult") @db.Integer
+  kittyAndKitten        Boolean     @default(true) @db.Boolean
+  kitten                Int?       @map("kitten") @db.Integer     
+  isAvailable           Boolean     @default(true) @db.Boolean // true if the host is available to take care of cats
   additionalInformation String      @db.Text
   hasAnimalsAtHome      Boolean     @map("is_animals-at-home") @db.Boolean
   numberOfCatsAtHome    Int?
   numberOfDogsAtHome    Int?
   otherAnimalsAtHome    String?
-  space                 Space
+  space                 Int         
   homeDescription       String      @map("home_description") @db.Text
   presence              String      @db.VarChar(255)
   outside               Boolean     @db.Boolean
@@ -65,8 +66,7 @@ model Host {
   socialize             Socialize
   car                   Boolean     @db.Boolean
   babyFeeding           BabyFeeding @map("baby_feeding")
-  stopActivity          String      @db.Text
-  availabilityDuration  String
+  stopActivity          String?      @db.Text
   created_at            DateTime    @default(now())
   updated_at            DateTime    @default(now()) @updatedAt
   placements            Placement[]
@@ -185,6 +185,7 @@ model Placement {
   cat        Cat       @relation(fields: [catId], references: [id])
   hostId     String    @db.Uuid
   host       Host      @relation(fields: [hostId], references: [id])
+  isActive   Boolean   @default(false) @db.Boolean
   type       PlacementType @default(LONG)
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
@@ -278,13 +279,10 @@ enum VolunteerRole {
 // HOST
 enum HostType {
   CLASSIC
+  SOS
+  ADOPT
+  PROPRIO
   RELAY
-}
-
-enum Space {
-  SMALL
-  MEDIUM
-  LARGE
 }
 
 enum Heal {
@@ -292,13 +290,6 @@ enum Heal {
   LIGHT
   HEAVY
   HEAVY_STING
-}
-
-enum HostStatus {
-  FREE
-  CAT_PLACE
-  WAITING
-  WAITING_VALIDATION
 }
 
 enum Socialize {
@@ -367,6 +358,8 @@ enum NewsType {
 
 // PLACEMENT
 enum PlacementType {
+  PROPOSAL
+  TRANSFER
   LONG    
   SHORT  
 }

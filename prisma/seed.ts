@@ -36,9 +36,7 @@ const DISTRICTS = [
 	'MOSSON'
 ] as const;
 
-const HOST_STATUS = ['FREE', 'CAT_PLACE', 'WAITING', 'WAITING_VALIDATION'] as const;
-const HOST_TYPE = ['CLASSIC', 'RELAY'] as const;
-const SPACE = ['SMALL', 'MEDIUM', 'LARGE'] as const;
+const HOST_TYPE = ['CLASSIC', 'SOS', 'ADOPT', 'PROPRIO', 'RELAY'] as const;
 const HEAL = ['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING'] as const;
 const SOCIALIZE = ['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED'] as const;
 const BABY = ['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY'] as const;
@@ -49,6 +47,7 @@ const FORM_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
 const SICKNESS_STATUS = ['ACTIVE', 'TREATED', 'RESOLVED'] as const;
 const CARE_TYPE = ['VACCINE', 'TREATMENT', 'SURGERY', 'OTHER', 'CONTROL', 'STERILIZE'] as const;
+const PLACEMENT_TYPE = ['PROPOSAL', 'TRANSFER', 'LONG', 'SHORT'] as const;
 
 // ---------------------
 // UTILS
@@ -102,6 +101,7 @@ async function main() {
 			data: {
 				firstName: faker.person.firstName().slice(0, 60),
 				lastName: faker.person.lastName().slice(0, 60),
+				birthDate: faker.date.birthdate({ min: 18, max: 70, mode: 'age' }),
 				email: `${faker.string.alphanumeric(8)}_${i}@test.com`,
 				phone: faker.string.numeric(10),
 				address: faker.location.streetAddress().slice(0, 100),
@@ -121,6 +121,7 @@ async function main() {
 		data: {
 			firstName: 'Admin',
 			lastName: 'System',
+			birthDate: new Date('1990-01-01'),
 			email: 'admin@test.com',
 			phone: '0000000001',
 			address: 'Admin address',
@@ -134,6 +135,7 @@ async function main() {
 		data: {
 			firstName: 'Manager',
 			lastName: 'User',
+			birthDate: new Date('1992-05-15'),
 			email: 'manager@test.com',
 			phone: '0000000002',
 			address: 'Manager address',
@@ -147,6 +149,7 @@ async function main() {
 		data: {
 			firstName: 'Communication',
 			lastName: 'User',
+			birthDate: new Date('1995-12-20'),
 			email: 'comm@test.com',
 			phone: '0000000003',
 			address: 'Comm address',
@@ -213,20 +216,20 @@ async function main() {
 		const host = await prisma.host.create({
 			data: {
 				profilId: profils[i].id,
-				age: faker.number.int({ min: 20, max: 70 }),
 				type: faker.helpers.arrayElement(HOST_TYPE),
 				actif: faker.helpers.arrayElement(COLAB_ACTIVITY),
-				job: faker.person.jobTitle(),
-				status: faker.helpers.arrayElement(HOST_STATUS),
+				catAdult: faker.number.int({ min: 1, max: 10 }),
+				kittyAndKitten: randomBool(),
+				kitten: randomBool() ? faker.number.int({ min: 1, max: 10 }) : null,
 				isAvailable: randomBool(),
 				additionalInformation: faker.lorem.sentences(2),
 				hasAnimalsAtHome: randomBool(),
 				numberOfCatsAtHome: faker.number.int({ min: 0, max: 5 }),
 				numberOfDogsAtHome: faker.number.int({ min: 0, max: 3 }),
 				otherAnimalsAtHome: faker.word.noun(),
-				space: faker.helpers.arrayElement(SPACE),
+				space: faker.number.int({ min: 1, max: 999 }),
 				homeDescription: faker.lorem.sentences(2),
-				presence: 'FULL_TIME',
+				presence: faker.lorem.sentence(),
 				outside: randomBool(),
 				outsideDescription: faker.lorem.sentence(),
 				isStockFeed: randomBool(),
@@ -234,8 +237,7 @@ async function main() {
 				socialize: faker.helpers.arrayElement(SOCIALIZE),
 				car: randomBool(),
 				babyFeeding: faker.helpers.arrayElement(BABY),
-				stopActivity: faker.lorem.sentence(),
-				availabilityDuration: 'LONG_TERM'
+				stopActivity: randomBool(0.3) ? faker.lorem.sentence() : null
 			}
 		});
 		hosts.push(host);
@@ -254,7 +256,7 @@ async function main() {
 				name: faker.person.firstName(),
 				sex: faker.helpers.arrayElement(SEX),
 				birthDate: faker.date.birthdate({ min: 1, max: 30, mode: 'age' }),
-				isVisible: randomBool(0.8), // 80% visible
+				isVisible: randomBool(0.8),
 				status: faker.helpers.arrayElement(STATUS),
 				hairLength: faker.helpers.arrayElement(HAIR),
 				color: faker.color.human(),
@@ -327,19 +329,17 @@ async function main() {
 	// ---------------------
 	console.log('📍 Création des placements...');
 	for (const cat of cats.slice(0, 80)) {
-		// ~53% des chats ont un placement
-		// Créer un placement LONG
 		await prisma.placement.create({
 			data: {
 				catId: cat.id,
 				hostId: faker.helpers.arrayElement(hosts).id,
-				type: 'LONG',
+				isActive: randomBool(0.7),
+				type: faker.helpers.arrayElement(PLACEMENT_TYPE),
 				started: faker.date.recent({ days: 180 }),
 				ended: null
 			}
 		});
 
-		// 40% de chance d'avoir aussi un SHORT placement (ancien)
 		if (randomBool(0.4)) {
 			const startDate = faker.date.recent({ days: 365 });
 			const endDate = new Date(startDate);
@@ -349,7 +349,8 @@ async function main() {
 				data: {
 					catId: cat.id,
 					hostId: faker.helpers.arrayElement(hosts).id,
-					type: 'SHORT',
+					isActive: randomBool(0.7),
+					type: faker.helpers.arrayElement(PLACEMENT_TYPE),
 					started: startDate,
 					ended: endDate
 				}

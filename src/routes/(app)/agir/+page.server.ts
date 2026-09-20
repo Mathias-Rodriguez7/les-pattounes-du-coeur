@@ -1,10 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { sosFormSchema } from '$lib/schema/sosForm';
-import { hostFormSchema } from '$lib/schema/hostForm';
-import { volunteerFormSchema } from '$lib/schema/volunteerForm';
-import { colabForm } from '$lib/schema/colabForm.js';
+import { sosFormSchema } from '$lib/schemas/sosForm';
+import { hostFormSchema } from '$lib/schemas/hostForm';
+import { volunteerFormSchema } from '$lib/schemas/volunteerForm';
+import { colabForm } from '$lib/schemas/colabForm.js';
 import prisma from '$lib/server/prisma';
 import { FormStatus, FormType } from '@prisma/client';
 

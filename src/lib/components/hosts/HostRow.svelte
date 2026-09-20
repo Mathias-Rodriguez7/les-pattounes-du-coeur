@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Badge } from '$lib/components/ui/badge';
-	import Icon from '$lib/components/Icon.svelte';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import BooleanIcon from '../icons/BooleanIcon.svelte';
 	import { truncate } from '$lib/utils/string';
 
@@ -10,39 +8,31 @@
 
 	const fullName = $derived(`${host.profil.firstName} ${host.profil.lastName}`);
 	const placementsCount = $derived(host.placements?.length || 0);
-	const location = $derived(
-		host.profil.city === 'Montpellier' && host.profil.district
-			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
-			: host.profil.city !== 'Montpellier'
-				? host.profil.city
-				: '—'
-	);
 
 	// Couleurs pour les types
 	const typesColors: Record<string, { label: string; color: string }> = {
-		CLASSIC: { label: 'Long', color: 'bg-purple-100 text-purple-800' },
-		RELAY: { label: 'Cour', color: 'bg-pink-100 text-pink-800' }
+		CLASSIC: { label: 'Lon', color: 'bg-purple-100 text-purple-800' },
+		SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
+		ADOPT: { label: 'Ado', color: 'bg-green-100 text-green-800' },
+		PROPRIO: { label: 'Pro', color: 'bg-cyan-100 text-cyan-800' },
+		RELAY: { label: 'Rel', color: 'bg-pink-100 text-pink-800' }
 	};
 
-	// Icônes et couleurs pour l'activité
-	const actifConfig: Record<string, { icon: string; color: string; label: string }> = {
-		ACTIVE: { icon: 'CirclePlay', color: 'text-green-600', label: 'Actif' },
-		BREAK: { icon: 'CirclePause', color: 'text-gray-500', label: 'En pause' },
-		STOP: { icon: 'CircleX', color: 'text-red-600', label: 'Arrêté' }
+	// Couleur pour les soins
+	const healColors: Record<string, { label: string; color: string }> = {
+		NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
+		LIGHT: { label: 'Léger', color: 'bg-orange-100 text-orange-800' },
+		HEAVY: { label: 'Lourd', color: 'bg-green-100 text-green-800' },
+		HEAVY_STING: { label: 'Lourd+', color: 'bg-cyan-100 text-cyan-800' }
 	};
 
-	const actifConfig_item = $derived(
-		actifConfig[host.actif] || { icon: 'HelpCircle', color: 'text-gray-500', label: 'Inconnu' }
-	);
-
-	// Labels pour l'espace
-	const spaceLabels: Record<string, string> = {
-		SMALL: 'S',
-		MEDIUM: 'M',
-		LARGE: 'L'
+	// Couleur pour les socia
+	const socializeColors: Record<string, { label: string; color: string }> = {
+		NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
+		FEARFUL: { label: 'Cra', color: 'bg-orange-100 text-orange-800' },
+		WITHOUT_EX: { label: 'XP-', color: 'bg-green-100 text-green-800' },
+		EXPERIENCED: { label: 'XP+', color: 'bg-cyan-100 text-cyan-800' }
 	};
-
-	// Compatibilités
 </script>
 
 <Table.Row
@@ -51,13 +41,6 @@
 		: 'hover:bg-muted/50'} h-16 cursor-pointer transition-colors"
 	{onclick}
 >
-	<!-- Icône Activité -->
-	<Table.Cell>
-		<div title={actifConfig_item.label}>
-			<Icon name={actifConfig_item.icon} class="h-6 w-6 {actifConfig_item.color}" />
-		</div>
-	</Table.Cell>
-
 	<!-- Nom Complet -->
 	<Table.Cell class="font-semibold text-gray-900" title={fullName}>
 		{truncate(fullName, 8)}
@@ -70,14 +53,23 @@
 		</Badge>
 	</Table.Cell>
 
-	<!-- Quartier / Ville -->
-	<Table.Cell class="text-sm text-gray-600" title={location}>
-		{truncate(location, 8)}
+	<!-- animaux dans le foyer -->
+	<Table.Cell class="text-center">
+		<BooleanIcon value={host.hasAnimalsAtHome} />
 	</Table.Cell>
 
-	<!-- Espace -->
+	<!-- Socia -->
+	<Table.Cell class="text-sm">
+		<Badge class={socializeColors[host.socialize]?.color || 'bg-gray-100 text-gray-800'}>
+			{socializeColors[host.socialize]?.label || host.socialize}
+		</Badge>
+	</Table.Cell>
+
+	<!-- Soin -->
 	<Table.Cell class="text-center text-sm">
-		{spaceLabels[host.space] || host.space || '—'}
+		<Badge class={healColors[host.heal]?.color || 'bg-gray-100 text-gray-800'}>
+			{healColors[host.heal]?.label || host.heal}
+		</Badge>
 	</Table.Cell>
 
 	<!-- Nombre de chats en placement -->
@@ -87,7 +79,7 @@
 		</span>
 	</Table.Cell>
 
-	<!-- Icône Jardin -->
+	<!-- Icône exterieur -->
 	<Table.Cell class="text-center">
 		<BooleanIcon value={host.outside} />
 	</Table.Cell>

@@ -28,7 +28,6 @@
 	} = $props();
 
 	let editing = $state(false);
-	let editimg = $state(false);
 
 	function getCurrentPlacement() {
 		if (!cat?.placements) return null;

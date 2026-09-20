@@ -4,6 +4,7 @@
 	type Props = {
 		id?: string;
 		label?: string;
+		name?: string;
 		value?: string | number;
 		type?: string;
 		placeholder?: string;
@@ -15,6 +16,7 @@
 
 	let {
 		id,
+		name = id,
 		label,
 		value = $bindable(),
 		type = 'text',
@@ -44,6 +46,7 @@
 
 	<Input
 		{id}
+		{name}
 		{type}
 		bind:value
 		{placeholder}

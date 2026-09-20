@@ -4,6 +4,7 @@
 	type Props = {
 		id?: string;
 		label?: string;
+		name?: string;
 		value?: string;
 		placeholder?: string;
 		error?: string;
@@ -14,6 +15,7 @@
 
 	let {
 		id,
+		name = id,
 		label,
 		value = $bindable(),
 		placeholder,
@@ -33,7 +35,15 @@
 			{/if}
 		</label>
 	{/if}
-	<Textarea {id} bind:value {placeholder} {disabled} {rows} class={error ? 'border-red-500' : ''} />
+	<Textarea
+		{id}
+		{name}
+		bind:value
+		{placeholder}
+		{disabled}
+		{rows}
+		class={error ? 'border-red-500' : ''}
+	/>
 	{#if error}
 		<p class="mt-1 text-xs text-red-500">{error}</p>
 	{/if}

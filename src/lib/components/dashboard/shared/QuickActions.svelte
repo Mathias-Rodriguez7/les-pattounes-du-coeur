@@ -28,7 +28,7 @@
 				>
 					<div class="flex items-start gap-3 sm:gap-4">
 						<div
-							class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
 							style="background: {getGradientStyle(action.iconTheme)}"
 						>
 							<Icon name={action.icon} iconClass="h-5 w-5 text-white" />

@@ -1,19 +1,4 @@
-export type Cat = {
-	id: string;
-	name: string | null;
-	sex: string | null;
-	birthDate: Date | null;
-	formattedAge: string;
-	ageBadge: string;
-	description: string | null;
-	media: CatMedia[];
-	focalPoint: 'TOP' | 'MID' | 'BOT';
-
-	isOkDog: boolean;
-	isOkCat: boolean;
-	isOkChild: boolean;
-	isOutside: boolean;
-};
+import type { FocalPoint, SexCat, CatStatus, Vaccinate } from '@prisma/client';
 
 export type CatMedia = {
 	picture: string;
@@ -30,9 +15,25 @@ export type CatMedia = {
 	uploadedAt: Date;
 };
 
+export type Cat = {
+	id: string;
+	name: string | null;
+	sex: SexCat | null;
+	birthDate: Date | null;
+	formattedAge: string;
+	ageBadge: string;
+	description: string | null;
+	media: CatMedia[];
+	focalPoint: FocalPoint;
+	isOkDog: boolean;
+	isOkCat: boolean;
+	isOkChild: boolean;
+	isOutside: boolean;
+};
+
 export type CatFull = Cat & {
 	id: string;
-	status: string;
+	status: CatStatus;
 	isVisible: boolean;
 	hairLength: string | null;
 	color: string | null;
@@ -41,7 +42,7 @@ export type CatFull = Cat & {
 	isAlreadySterilized: boolean;
 	sickness: string | null;
 	treatment: string | null;
-	vaccinate: string | null;
+	vaccinate: Vaccinate | null;
 	isFivTest: boolean;
 	isDeworming: boolean;
 	isIdentify: boolean;
@@ -57,7 +58,6 @@ export type CatFull = Cat & {
 		phone: string | null;
 		email: string;
 	} | null;
-
 	referent: {
 		id: string;
 		firstName: string;
@@ -68,4 +68,19 @@ export type CatFull = Cat & {
 	medias?: CatMedia[];
 	focalPointX?: number;
 	focalPointY?: number;
+};
+
+export type CatWithPlacements = {
+	id: string;
+	name: string | null;
+	status: CatStatus;
+	placements?: Array<{
+		id: string;
+		host: {
+			profil: {
+				firstName: string;
+				lastName: string;
+			};
+		};
+	}>;
 };

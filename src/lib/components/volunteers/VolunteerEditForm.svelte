@@ -6,7 +6,6 @@
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
-
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import BlacklistButton from '../buttons/BlacklistButton.svelte';

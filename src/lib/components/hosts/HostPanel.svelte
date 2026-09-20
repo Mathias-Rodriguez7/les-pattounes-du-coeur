@@ -4,24 +4,20 @@
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
-	import {
-		hostStatusLabel,
-		spaceLabel,
-		healLabel,
-		socializeLabel,
-		babyFeedingLabel
-	} from '$lib/types/hosts';
+	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { truncate } from '$lib/utils/string';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import HostEditForm from './HostEditForm.svelte';
+	import { formatAge } from '$lib/utils/age';
+	import PlacementCard from '../PlacementCard.svelte';
+	import * as Accordion from '$lib/components/ui/accordion';
 
 	const { host = $bindable(), isAdmin = false } = $props();
 
 	let isEditing = $state(false);
-	let isSaving = $state(false);
 
 	// 1️⃣ DÉCLARER TOUS LES CHAMPS ÉDITABLES ICI
 	let editData = $state({
@@ -156,6 +152,8 @@
 		isEditing = false;
 	};
 
+	const placementStats = $derived(host?.placementStats || { long: 0, short: 0, total: 0 });
+
 	const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
 		ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
 		BREAK: { label: 'En pause', icon: 'CirclePause', theme: 'break' },
@@ -164,6 +162,9 @@
 
 	const TYPE_COLORS: Record<string, { label: string; color: string }> = {
 		CLASSIC: { label: 'Accueil Long', color: 'bg-purple-100 text-purple-800' },
+		SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
+		ADOPT: { label: 'Adoption', color: 'bg-green-100 text-green-800' },
+		PROPRIO: { label: 'Propriétaire', color: 'bg-cyan-100 text-cyan-800' },
 		RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
 	};
 
@@ -189,6 +190,15 @@
 	const currentStatus = $derived(
 		host?.actif && host.actif in STATUS_CONFIG ? STATUS_CONFIG[host.actif] : STATUS_CONFIG.ACTIVE
 	);
+
+	const getPlacementsByType = (type: string, isActive: boolean) => {
+		return host.placements?.filter((p) => p.type === type && p.isActive === isActive) || [];
+	};
+
+	const activePlacements = $derived(host.placements?.filter((p) => p.isActive) || []);
+	const historicalPlacements = $derived(
+		host.placements?.filter((p) => !p.isActive && (p.type === 'LONG' || p.type === 'SHORT')) || []
+	);
 </script>
 
 {#if host}
@@ -196,7 +206,7 @@
 		{#if !isEditing}
 			<!-- ===== HEADER ===== -->
 			<Card.Header>
-				<div class="flex justify-between gap-8">
+				<section class="flex justify-between gap-8">
 					<!-- Gauche : Statut + Infos -->
 					<div class="flex flex-1 gap-8">
 						<!-- Status Icon -->
@@ -216,13 +226,13 @@
 						</div>
 
 						<!-- Infos personnelles -->
-						<div>
-							<Card.Title class="text-2xl">{fullName}</Card.Title>
-							<Card.Description class="text-sm">
-								{host.age} ans ·
-							</Card.Description>
+						<div class="flex flex-col justify-between">
+							<Card.Title class="text-xl">{fullName}</Card.Title>
 
-							<div class="mt-3 flex items-center gap-2">
+							<div class="flex gap-4">
+								<Card.Description class="text-sm">
+									{formatAge(host.profil.birthDate)}
+								</Card.Description>
 								<Badge
 									variant={host.isAvailable ? 'default' : 'secondary'}
 									class={host.isAvailable
@@ -231,29 +241,43 @@
 								>
 									{host.isAvailable ? '✓ Disponible' : '✗ Non disponible'}
 								</Badge>
-								<Badge variant="outline" class="text-xs">
-									{hostStatusLabel[host.status]}
-								</Badge>
 							</div>
 						</div>
 
 						<!-- Droite : Contact -->
-						<div class="flex items-end gap-6">
-							<div class="flex items-center gap-2">
-								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-								<a
-									href="mailto:{host.profil.email}"
-									class="truncate text-sm text-blue-600 hover:underline"
-									title={host.profil.email}
-								>
-									{truncate(host.profil.email, 28)}
-								</a>
+						<div class="flex flex-col justify-between">
+							<div>
+								<span class="text-sm font-medium">Expérience d'accueil</span>
+								<div class="mt-2 flex gap-2">
+									<Badge class="bg-purple-100 text-xs text-purple-800">
+										🔵 Long: {placementStats.long}
+									</Badge>
+									<Badge class="bg-orange-100 text-xs text-orange-800">
+										🟠 Relais: {placementStats.short}
+									</Badge>
+									<Badge class="bg-blue-100 text-xs text-blue-800">
+										Total: {placementStats.total}
+									</Badge>
+								</div>
 							</div>
-							<div class="flex items-center gap-2">
-								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-								<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
-									{host.profil.phone || '—'}
-								</a>
+
+							<div class="flex items-end gap-6">
+								<div class="flex items-center gap-2">
+									<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
+									<a
+										href="mailto:{host.profil.email}"
+										class="truncate text-sm text-blue-600 hover:underline"
+										title={host.profil.email}
+									>
+										{truncate(host.profil.email, 28)}
+									</a>
+								</div>
+								<div class="flex items-center gap-2">
+									<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
+									<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
+										{host.profil.phone || '—'}
+									</a>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -264,7 +288,7 @@
 							<Pencil class="h-5 w-5" />
 						</Button>
 					{/if}
-				</div>
+				</section>
 			</Card.Header>
 
 			<!-- Contenu principal -->
@@ -272,14 +296,14 @@
 				<Separator />
 
 				<!-- Grille 2 colonnes : Adresse & Infos maison + Capacités -->
-				<div class="grid grid-cols-2 gap-6 lg:grid-cols-3">
+				<section class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 					<!-- Adresse -->
 					<div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
 							<Icon name={SECTION_CONFIG.address.icon} class="h-5 w-5 text-slate-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.address.label}</h4>
 						</div>
-						<div class="ml-6 space-y-2 text-xs">
+						<div class="space-y-2 text-xs">
 							<div>
 								<p class="text-muted-foreground font-medium">Rue</p>
 								<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
@@ -307,20 +331,17 @@
 							<Icon name={SECTION_CONFIG.home.icon} class="h-5 w-5 text-blue-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.home.label}</h4>
 						</div>
-						<div class="ml-6 space-y-2 text-xs">
+						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between">
 								<span class="text-muted-foreground font-medium">Espace</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
-									{spaceLabel[host.space]}
+									{host.space || '—'} m2
 								</Badge>
 							</div>
-							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Présence</span>
-								<span class="font-medium text-gray-900">{host.presence || '—'}</span>
-							</div>
-							<div class="space-y-1 border-t border-blue-100 pt-2">
+
+							<div class="space-y-1">
 								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground font-medium">Jardin</span>
+									<span class="text-muted-foreground font-medium">Exterieur</span>
 									<BooleanIcon value={host.outside} />
 								</div>
 								<div class="flex items-center justify-between">
@@ -332,6 +353,11 @@
 									<BooleanIcon value={host.isStockFeed} />
 								</div>
 							</div>
+							<Separator />
+							<div class="grid items-center gap-2">
+								<span class="text-muted-foreground font-medium">Présence</span>
+								<span class="font-medium text-gray-900">{host.presence || '—'}</span>
+							</div>
 						</div>
 					</div>
 
@@ -341,7 +367,7 @@
 							<Icon name={SECTION_CONFIG.animals.icon} class="h-5 w-5 text-orange-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.animals.label}</h4>
 						</div>
-						<div class="ml-6 space-y-2 text-xs">
+						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
 								<span class="text-muted-foreground font-medium">Présents</span>
 								<BooleanIcon value={host.hasAnimalsAtHome} />
@@ -376,25 +402,25 @@
 					</div>
 
 					<!-- Capacités -->
-					<div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 lg:col-span-2">
+					<div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
 						<div class="mb-3 flex items-center gap-2">
 							<Icon name={SECTION_CONFIG.capacity.icon} class="h-5 w-5 text-indigo-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
 						</div>
-						<div class="ml-6 grid grid-cols-3 gap-3">
-							<div>
-								<p class="text-muted-foreground mb-1 text-xs font-medium">Soins médicaux</p>
+						<div class="grid gap-3">
+							<div class="flex items-center justify-between">
+								<p class="text-muted-foreground mb-1 text-xs font-medium">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{healLabel[host.heal]}
 								</Badge>
 							</div>
-							<div>
+							<div class="flex items-center justify-between">
 								<p class="text-muted-foreground mb-1 text-xs font-medium">Socialisation</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{socializeLabel[host.socialize]}
 								</Badge>
 							</div>
-							<div>
+							<div class="flex items-center justify-between">
 								<p class="text-muted-foreground mb-1 text-xs font-medium">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{babyFeedingLabel[host.babyFeeding]}
@@ -402,26 +428,12 @@
 							</div>
 						</div>
 					</div>
-
-					<!-- Colaboration -->
-					<div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-						<div class="mb-3 flex items-center gap-2">
-							<Icon name={SECTION_CONFIG.availability.icon} class="h-5 w-5 text-emerald-700" />
-							<h4 class="text-sm font-semibold text-gray-900">
-								{SECTION_CONFIG.availability.label}
-							</h4>
-						</div>
-						<div class="ml-6">
-							<p class="text-muted-foreground mb-1 text-xs font-medium">Durée</p>
-							<p class="text-sm font-medium text-gray-900">{host.availabilityDuration || '—'}</p>
-						</div>
-					</div>
-				</div>
+				</section>
 
 				<Separator />
 
 				<!-- Descriptions -->
-				<div class="grid grid-cols-1 gap-6">
+				<section class="grid grid-cols-1 gap-6">
 					{#if host.homeDescription}
 						<div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
 							<div class="mb-3 flex items-center gap-2">
@@ -475,7 +487,106 @@
 							<p class="text-xs text-gray-700">{host.additionalInformation}</p>
 						</div>
 					{/if}
-				</div>
+				</section>
+
+				<Separator />
+
+				<!-- Placement -->
+				<section class="space-y-8">
+					{#if activePlacements.length > 0}
+						<!-- PLACEMENTS ACTIFS -->
+						<div>
+							<h3 class="mb-4 text-lg font-semibold text-gray-900">Placements actifs</h3>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+								<!-- PROPOSAL -->
+								<div class="space-y-3">
+									<h4 class="flex items-center gap-2 text-sm font-semibold text-purple-700">
+										<span class="h-3 w-3 rounded-full bg-purple-500"></span>
+										Proposition
+									</h4>
+									<div class="space-y-2">
+										{#each getPlacementsByType('PROPOSAL', true) as placement (placement.id)}
+											<PlacementCard {placement} type="proposal" />
+										{/each}
+										{#if getPlacementsByType('PROPOSAL', true).length === 0}
+											<p class="text-xs text-gray-500 italic">Aucun</p>
+										{/if}
+									</div>
+								</div>
+
+								<!-- TRANSFER -->
+								<div class="space-y-3">
+									<h4 class="flex items-center gap-2 text-sm font-semibold text-blue-700">
+										<span class="h-3 w-3 rounded-full bg-blue-500"></span>
+										Transfert
+									</h4>
+									<div class="space-y-2">
+										{#each getPlacementsByType('TRANSFER', true) as placement (placement.id)}
+											<PlacementCard {placement} type="transfer" />
+										{/each}
+										{#if getPlacementsByType('TRANSFER', true).length === 0}
+											<p class="text-xs text-gray-500 italic">Aucun</p>
+										{/if}
+									</div>
+								</div>
+
+								<!-- LONG & SHORT -->
+								<div class="space-y-3">
+									<h4 class="flex items-center gap-2 text-sm font-semibold text-green-700">
+										<span class="h-3 w-3 rounded-full bg-green-500"></span>
+										Accueil (Long/Relais)
+									</h4>
+									<div class="space-y-2">
+										{#each host.placements?.filter((p) => (p.type === 'LONG' || p.type === 'SHORT') && p.isActive) || [] as placement (placement.id)}
+											<PlacementCard {placement} type={placement.type.toLowerCase()} />
+										{/each}
+										{#if host.placements?.filter((p) => (p.type === 'LONG' || p.type === 'SHORT') && p.isActive).length === 0}
+											<p class="text-xs text-gray-500 italic">Aucun</p>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<div
+							class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
+						>
+							<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
+							<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
+						</div>
+					{/if}
+				</section>
+				<Separator />
+
+				<!-- HISTORIQUE DES PLACEMENTS -->
+				<section class="mt-6">
+					{#if historicalPlacements.length > 0}
+						<Accordion.Root type="single">
+							<Accordion.Item value="history">
+								<Accordion.Trigger class="py-4 text-lg font-semibold hover:no-underline">
+									<div class="flex items-center gap-2">
+										<Icon name="history" class="h-5 w-5 text-slate-600" />
+										<span>Historique des placements</span>
+										<Badge variant="secondary" class="ml-2">
+											{historicalPlacements.length}
+										</Badge>
+									</div>
+								</Accordion.Trigger>
+								<Accordion.Content>
+									<div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
+										{#each historicalPlacements as placement (placement.id)}
+											<PlacementCard
+												{placement}
+												type={placement.type.toLowerCase()}
+												isHistory={true}
+											/>
+										{/each}
+									</div>
+								</Accordion.Content>
+							</Accordion.Item>
+						</Accordion.Root>
+					{/if}
+				</section>
 			</Card.Content>
 		{:else}
 			<Card.Content class="space-y-6 overflow-y-auto">
@@ -483,9 +594,9 @@
 				<HostEditForm
 					bind:editData
 					hostId={host.id}
+					profileId={host.profilId}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
-					{isSaving}
 				/>
 			</Card.Content>
 		{/if}

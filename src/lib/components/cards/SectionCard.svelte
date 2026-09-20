@@ -1,68 +1,51 @@
 <script lang="ts">
-	import * as Select from '$lib/components/ui/select/index.js';
+	import Icon from '$lib/components/Icon.svelte';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 
-	type SelectOption = {
-		value: string;
-		label: string;
+	type ColorVariant = 'blue' | 'orange' | 'indigo' | 'emerald' | 'red' | 'gray' | 'green';
+
+	type ColorConfig = {
+		border: string;
+		bg: string;
+		icon: string;
 	};
 
 	type Props = {
-		id?: string;
-		label?: string;
-		value?: string;
-		options: SelectOption[];
-		placeholder?: string;
-		error?: string;
-		disabled?: boolean;
-		required?: boolean;
-		size?: 'sm' | 'md' | 'lg';
+		icon: string;
+		title: string;
+		color?: ColorVariant;
+		separator?: boolean;
+		children?: import('svelte').Snippet;
 	};
 
-	let {
-		id,
-		label,
-		value = $bindable(),
-		options,
-		placeholder = 'Sélectionner...',
-		error = '',
-		disabled = false,
-		required = false,
-		size = 'md'
-	}: Props = $props();
+	const { icon, title, color = 'gray', separator = false, children }: Props = $props();
 
-	const selectedLabel = $derived(options.find((o) => o.value === value)?.label ?? placeholder);
-
-	const sizeClasses = {
-		sm: 'text-xs',
-		md: 'text-sm',
-		lg: 'text-base'
+	const colorConfig: Record<ColorVariant, ColorConfig> = {
+		blue: { border: 'border-blue-200', bg: 'bg-blue-50', icon: 'text-blue-700' },
+		orange: { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-700' },
+		indigo: { border: 'border-indigo-200', bg: 'bg-indigo-50', icon: 'text-indigo-700' },
+		emerald: { border: 'border-emerald-200', bg: 'bg-emerald-50', icon: 'text-emerald-700' },
+		red: { border: 'border-red-200', bg: 'bg-red-50', icon: 'text-red-700' },
+		gray: { border: 'border-gray-200', bg: 'bg-gray-50', icon: 'text-slate-700' },
+		green: { border: 'border-green-200', bg: 'bg-green-50', icon: 'text-emerald-700' }
 	};
+
+	const current = $derived(colorConfig[color]);
 </script>
 
-<div class="space-y-2">
-	{#if label}
-		<label for={id} class="text-xs font-medium text-gray-700">
-			{label}
-			{#if required}
-				<span class="text-red-500">*</span>
-			{/if}
-		</label>
-	{/if}
+<div class={`rounded-lg border ${current.border} ${current.bg} p-4`}>
+	<div class="mb-4 flex items-center gap-2">
+		<Icon name={icon} class={`h-5 w-5 ${current.icon}`} />
+		<h4 class="text-sm font-semibold text-gray-900">{title}</h4>
+	</div>
 
-	<Select.Root type="single" bind:value disabled={disabled ?? false}>
-		<Select.Trigger {id} class={sizeClasses[size]}>
-			{selectedLabel}
-		</Select.Trigger>
-		<Select.Content>
-			{#each options as option (option.value)}
-				<Select.Item value={option.value} label={option.label}>
-					{option.label}
-				</Select.Item>
-			{/each}
-		</Select.Content>
-	</Select.Root>
+	<div>
+		{#if children}
+			{@render children()}
+		{/if}
+	</div>
 
-	{#if error}
-		<p class="mt-1 text-xs text-red-500">{error}</p>
+	{#if separator}
+		<Separator class="mt-4" />
 	{/if}
 </div>

@@ -6,8 +6,6 @@ import { z } from 'zod';
 
 export const hostTypeEnum = z.enum(['CLASSIC', 'RELAY']);
 
-export const spaceEnum = z.enum(['SMALL', 'MEDIUM', 'LARGE']);
-
 export const healEnum = z.enum(['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING']);
 
 export const socializeEnum = z.enum(['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED']);
@@ -25,7 +23,9 @@ export const hostStep1Schema = z.object({
 	email: z.email('Email invalide'),
 	address: z.string().min(1, "L'adresse est obligatoire"),
 	age: z.coerce.number().min(18, 'Vous devez être majeur'),
-	job: z.string().min(1, 'Le métier est obligatoire')
+	city: z.string().min(1, 'La ville est obligatoire'),
+	postalCode: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
+	district: z.string().optional()
 });
 
 //
@@ -33,7 +33,7 @@ export const hostStep1Schema = z.object({
 //
 
 export const hostStep2Schema = z.object({
-	space: spaceEnum,
+	space: z.coerce.number().min(0),
 	outside: z.boolean(),
 	outsideDescription: z.string().optional(),
 	hasAnimalsAtHome: z.boolean(),
@@ -75,14 +75,6 @@ export const hostStep4Schema = z.object({
 	]),
 
 	// ⏳ engagement
-	availabilityDuration: z.enum([
-		'LESS_THAN_1_MONTH',
-		'1_TO_3_MONTHS',
-		'3_TO_6_MONTHS',
-		'MORE_THAN_6_MONTHS',
-		'LONG_TERM'
-	]),
-
 	// 💬 motivation
 	motivation: z.string().min(10, 'Merci d’expliquer votre motivation'),
 

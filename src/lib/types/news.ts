@@ -1,5 +1,5 @@
 import type { Cat } from '$lib/types/cat';
-import type { NewsType } from '@prisma/client/client';
+import type { NewsType } from '@prisma/client';
 
 export type News = {
 	id: string;

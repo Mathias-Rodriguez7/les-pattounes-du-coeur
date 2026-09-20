@@ -6,17 +6,14 @@ export const HOST_ACTIF_OPTIONS = [
 
 export const HOST_TYPE_OPTIONS = [
 	{ value: 'CLASSIC', label: 'Accueil Long' },
+	{ value: 'SOS', label: 'SOS' },
+	{ value: 'ADOPT', label: 'Adoption' },
+	{ value: 'PROPRIO', label: 'Propriétaire' },
 	{ value: 'RELAY', label: 'Relais' }
 ] satisfies Array<{ value: string; label: string }>;
 
-export const HOST_SPACE_OPTIONS = [
-	{ value: 'SMALL', label: 'Petit' },
-	{ value: 'MEDIUM', label: 'Moyen' },
-	{ value: 'LARGE', label: 'Grand' }
-] satisfies Array<{ value: string; label: string }>;
-
 export const HOST_HEAL_OPTIONS = [
-	{ value: 'NONE', label: 'Aucun' },
+	{ value: 'NO', label: 'Non' },
 	{ value: 'LIGHT', label: 'Légé' },
 	{ value: 'HEAVY', label: 'Lourd' },
 	{ value: 'HEAVY_STING', label: 'Lourd avec seringue' }
@@ -36,14 +33,8 @@ export const HOST_BABY_FEEDING_OPTIONS = [
 	{ value: 'RELAY', label: 'Relai' }
 ] satisfies Array<{ value: string; label: string }>;
 
-export const HOST_STATUS_OPTIONS = [
-	{ value: 'FREE', label: 'Libre' },
-	{ value: 'CAT_PLACE', label: 'Chat placé' },
-	{ value: 'WAITING', label: 'En attente' },
-	{ value: 'WAITING_VALIDATION', label: 'Attente de validation' }
-] satisfies Array<{ value: string; label: string }>;
-
 export const HOST_SECTION_CONFIG = {
+	profile: { icon: 'user', label: 'Profil' },
 	address: { icon: 'map', label: 'Adresse' },
 	home: { icon: 'house', label: "Zone d'accueil" },
 	animals: { icon: 'paw', label: 'Animaux' },

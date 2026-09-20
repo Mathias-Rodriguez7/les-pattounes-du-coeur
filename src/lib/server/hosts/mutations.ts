@@ -2,6 +2,31 @@ import prisma from '$lib/server/prisma';
 import { z } from 'zod';
 import { createHostSchema, updateHostSchema } from './schemas';
 
+function convertFormData(formData: FormData): Record<string, any> {
+	const data: Record<string, any> = {};
+
+	for (const [key, value] of formData.entries()) {
+		const stringValue = value as string;
+
+		// ✅ UNIQUEMENT les checkboxes
+		if (stringValue === 'on' || stringValue === 'true') {
+			data[key] = true;
+		} else if (stringValue === 'false') {
+			data[key] = false;
+		}
+		// ✅ Convertir les strings vides en null
+		else if (stringValue === '') {
+			data[key] = null;
+		}
+		// ✅ TOUT LE RESTE reste en string
+		else {
+			data[key] = stringValue;
+		}
+	}
+
+	return data;
+}
+
 export async function createHost({ request, locals }: { request: Request; locals: any }) {
 	if (!locals.user || locals.user.role !== 'ADMIN') {
 		return {
@@ -13,31 +38,33 @@ export async function createHost({ request, locals }: { request: Request; locals
 
 	try {
 		const formData = await request.formData();
-		const data = Object.fromEntries(formData);
+		const data = convertFormData(formData);
 
-		// 🔄 Conversion des types
-		const convertedData = {
-			...data,
-			age: data.age ? parseInt(data.age as string) : undefined,
-			numberOfCatsAtHome: data.numberOfCatsAtHome
-				? parseInt(data.numberOfCatsAtHome as string)
-				: undefined,
-			numberOfDogsAtHome: data.numberOfDogsAtHome
-				? parseInt(data.numberOfDogsAtHome as string)
-				: undefined,
-			hasAnimalsAtHome: data.hasAnimalsAtHome === 'on' || data.hasAnimalsAtHome === 'true',
-			outside: data.outside === 'on' || data.outside === 'true',
-			isStockFeed: data.isStockFeed === 'on' || data.isStockFeed === 'true',
-			car: data.car === 'on' || data.car === 'true'
-		};
+		console.log('1️⃣ APRÈS convertFormData:', data);
 
-		// ✅ Validation du schéma
-		const validatedData = createHostSchema.parse(convertedData);
+		// ✅ Validation du schéma - utilise safeParse pour récupérer le type correct
+		const result = createHostSchema.safeParse(data);
+
+		if (!result.success) {
+			const errors = result.error.flatten().fieldErrors;
+			console.error('❌ Erreur Zod:', errors);
+			return {
+				success: false,
+				error: 'Erreur de validation',
+				errors
+			};
+		}
+
+		// ✅ Maintenant validatedData a le bon type
+		const validatedData = result.data; // Type: CreateHostInput (correctement typé)
+
+		console.log('2️⃣ APRÈS Zod validation:', validatedData);
 
 		// 🔍 Vérifier si l'email existe déjà
 		const existingEmail = await prisma.profil.findUnique({
 			where: { email: validatedData.email }
 		});
+		console.log('3️⃣ Vérif email existant:', existingEmail);
 
 		if (existingEmail) {
 			return {
@@ -51,6 +78,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 		const existingPhone = await prisma.profil.findUnique({
 			where: { phone: validatedData.phone }
 		});
+		console.log('4️⃣ Vérif téléphone existant:', existingPhone);
 
 		if (existingPhone) {
 			return {
@@ -61,6 +89,8 @@ export async function createHost({ request, locals }: { request: Request; locals
 		}
 
 		// 📊 Créer le profil et l'hôte ensemble
+		console.log('5️⃣ AVANT création Prisma - validatedData:', validatedData);
+
 		const newHost = await prisma.host.create({
 			data: {
 				profil: {
@@ -75,27 +105,26 @@ export async function createHost({ request, locals }: { request: Request; locals
 						district: validatedData.district || null
 					}
 				},
-				age: validatedData.age,
-				type: validatedData.type || null,
-				job: validatedData.job,
-				status: validatedData.status,
-				actif: validatedData.actif,
+				age: validatedData.age, // ✅ Maintenant c'est un number
+				type: validatedData.type || null, // ✅ Maintenant c'est HostType | null
+				status: validatedData.status, // ✅ Maintenant c'est HostStatus
+				actif: 'ACTIVE',
 				additionalInformation: validatedData.additionalInformation || '',
 				hasAnimalsAtHome: validatedData.hasAnimalsAtHome,
 				numberOfCatsAtHome: validatedData.numberOfCatsAtHome || null,
 				numberOfDogsAtHome: validatedData.numberOfDogsAtHome || null,
 				otherAnimalsAtHome: validatedData.otherAnimalsAtHome || null,
-				space: validatedData.space,
+				space: validatedData.space, // ✅ Maintenant c'est Space
 				homeDescription: validatedData.homeDescription,
 				presence: validatedData.presence,
 				outside: validatedData.outside,
 				outsideDescription: validatedData.outsideDescription || null,
 				isStockFeed: validatedData.isStockFeed,
-				heal: validatedData.heal,
-				socialize: validatedData.socialize,
+				heal: validatedData.heal, // ✅ Maintenant c'est Heal
+				socialize: validatedData.socialize, // ✅ Maintenant c'est Socialize
 				car: validatedData.car,
-				babyFeeding: validatedData.babyFeeding,
-				availabilityDuration: '',
+				babyFeeding: validatedData.babyFeeding, // ✅ Maintenant c'est BabyFeeding
+				availabilityDuration: validatedData.availabilityDuration,
 				stopActivity: ''
 			},
 			include: {
@@ -103,14 +132,19 @@ export async function createHost({ request, locals }: { request: Request; locals
 			}
 		});
 
+		console.log('6️⃣ APRÈS création Prisma - newHost:', newHost);
+
 		return {
 			success: true,
 			message: "Famille d'accueil créée avec succès",
 			data: newHost
 		};
 	} catch (error) {
+		console.error('❌ ERREUR:', error);
+
 		if (error instanceof z.ZodError) {
 			const errors = error.flatten().fieldErrors;
+			console.error('❌ Erreur Zod:', errors);
 			return {
 				success: false,
 				error: 'Erreur de validation',
@@ -130,7 +164,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 export async function updateHost({ request }: { request: Request }) {
 	try {
 		const formData = await request.formData();
-		const data = Object.fromEntries(formData);
+		const data = convertFormData(formData); // ✅ Utilise la même conversion
 
 		const hostId = data.hostId as string;
 
@@ -142,25 +176,19 @@ export async function updateHost({ request }: { request: Request }) {
 			};
 		}
 
-		// 🔄 Conversion des types
-		const convertedData = {
-			...data,
-			hostId: undefined,
-			age: data.age ? parseInt(data.age as string) : undefined,
-			numberOfCatsAtHome: data.numberOfCatsAtHome
-				? parseInt(data.numberOfCatsAtHome as string)
-				: undefined,
-			numberOfDogsAtHome: data.numberOfDogsAtHome
-				? parseInt(data.numberOfDogsAtHome as string)
-				: undefined,
-			hasAnimalsAtHome: data.hasAnimalsAtHome === 'on' || data.hasAnimalsAtHome === 'true',
-			outside: data.outside === 'on' || data.outside === 'true',
-			isStockFeed: data.isStockFeed === 'on' || data.isStockFeed === 'true',
-			car: data.car === 'on' || data.car === 'true'
-		};
+		// ✅ Validation du schéma avec safeParse
+		const result = updateHostSchema.safeParse({ ...data, hostId });
 
-		// ✅ Validation du schéma
-		const validatedData = updateHostSchema.parse({ ...convertedData, hostId });
+		if (!result.success) {
+			const errors = result.error.flatten().fieldErrors;
+			return {
+				success: false,
+				error: 'Erreur de validation',
+				errors
+			};
+		}
+
+		const validatedData = result.data;
 
 		// 🔍 Vérifier que la famille d'accueil existe
 		const existingHost = await prisma.host.findUnique({
@@ -222,7 +250,6 @@ export async function updateHost({ request }: { request: Request }) {
 		const hostUpdateData: any = {};
 		if (validatedData.age !== undefined) hostUpdateData.age = validatedData.age;
 		if (validatedData.type !== undefined) hostUpdateData.type = validatedData.type;
-		if (validatedData.job !== undefined) hostUpdateData.job = validatedData.job;
 		if (validatedData.status !== undefined) hostUpdateData.status = validatedData.status;
 		if (validatedData.actif !== undefined) hostUpdateData.actif = validatedData.actif;
 		if (validatedData.additionalInformation !== undefined)
@@ -249,6 +276,8 @@ export async function updateHost({ request }: { request: Request }) {
 		if (validatedData.car !== undefined) hostUpdateData.car = validatedData.car;
 		if (validatedData.babyFeeding !== undefined)
 			hostUpdateData.babyFeeding = validatedData.babyFeeding;
+		if (validatedData.availabilityDuration !== undefined)
+			hostUpdateData.availabilityDuration = validatedData.availabilityDuration;
 
 		// 🔄 Mettre à jour le profil et l'hôte
 		const updatedHost = await prisma.host.update({
@@ -270,6 +299,8 @@ export async function updateHost({ request }: { request: Request }) {
 			data: updatedHost
 		};
 	} catch (error) {
+		console.error('❌ ERREUR UPDATE:', error);
+
 		if (error instanceof z.ZodError) {
 			const errors = error.flatten().fieldErrors;
 			return {
@@ -283,126 +314,6 @@ export async function updateHost({ request }: { request: Request }) {
 		return {
 			success: false,
 			error: "Erreur lors de la mise à jour de la famille d'accueil",
-			errors: {}
-		};
-	}
-}
-
-export async function deleteHost(hostId: string) {
-	try {
-		// 🔍 Vérifier que la famille d'accueil existe
-		const existingHost = await prisma.host.findUnique({
-			where: { id: hostId },
-			include: { profil: true, placements: true }
-		});
-
-		if (!existingHost) {
-			return {
-				success: false,
-				error: "Famille d'accueil non trouvée",
-				errors: {}
-			};
-		}
-
-		// ⚠️ Vérifier s'il y a des placements actifs
-		const activePlacements = existingHost.placements.filter((p) => !p.ended);
-
-		if (activePlacements.length > 0) {
-			return {
-				success: false,
-				error: `Impossible de supprimer : ${activePlacements.length} chat(s) en placement actif`,
-				errors: {}
-			};
-		}
-
-		// 🗑️ Supprimer les placements
-		await prisma.placement.deleteMany({
-			where: { hostId }
-		});
-
-		// 🗑️ Supprimer l'hôte
-		await prisma.host.delete({
-			where: { id: hostId }
-		});
-
-		// 🗑️ Supprimer le profil
-		await prisma.profil.delete({
-			where: { id: existingHost.profilId }
-		});
-
-		return {
-			success: true,
-			message: "Famille d'accueil supprimée avec succès"
-		};
-	} catch (error) {
-		console.error("Erreur lors de la suppression de la famille d'accueil:", error);
-		return {
-			success: false,
-			error: "Erreur lors de la suppression de la famille d'accueil",
-			errors: {}
-		};
-	}
-}
-
-export async function blacklistHost(hostId: string, email: string, reason: string) {
-	try {
-		// 🔍 Vérifier que la famille d'accueil existe
-		const existingHost = await prisma.host.findUnique({
-			where: { id: hostId },
-			include: { profil: true }
-		});
-
-		if (!existingHost) {
-			return {
-				success: false,
-				error: "Famille d'accueil non trouvée",
-				errors: {}
-			};
-		}
-
-		// 🔍 Vérifier si l'email est déjà blacklisté
-		const existingBlacklist = await prisma.blacklistHistoric.findFirst({
-			where: {
-				email,
-				isBlacklisted: true
-			}
-		});
-
-		if (existingBlacklist) {
-			return {
-				success: false,
-				error: 'Cet email est déjà en liste noire',
-				errors: {}
-			};
-		}
-
-		// 📝 Créer une entrée dans la blacklist
-		await prisma.blacklistHistoric.create({
-			data: {
-				profilId: existingHost.profilId,
-				email,
-				description: reason,
-				isBlacklisted: true
-			}
-		});
-
-		// 🔄 Mettre à jour le statut du host à STOP
-		await prisma.host.update({
-			where: { id: hostId },
-			data: {
-				actif: 'STOP'
-			}
-		});
-
-		return {
-			success: true,
-			message: "Famille d'accueil mise en liste noire avec succès"
-		};
-	} catch (error) {
-		console.error('❌ Erreur lors de la mise en liste noire:', error);
-		return {
-			success: false,
-			error: "Erreur lors de la mise en liste noire de la famille d'accueil",
 			errors: {}
 		};
 	}

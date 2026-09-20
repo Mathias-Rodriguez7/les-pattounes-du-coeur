@@ -21,16 +21,6 @@
 	let currentPage = $state(1);
 	let currentTab = $state('all');
 
-	// 👇 FILTRE CYCLIQUE SUR LE STATUT
-	const statuses = ['ALL', 'FREE', 'CAT_PLACE', 'WAITING', 'WAITING_VALIDATION'];
-	let currentStatusFilterIndex = $state(0);
-
-	const handleStatusHeaderClick = () => {
-		currentStatusFilterIndex = (currentStatusFilterIndex + 1) % statuses.length;
-		currentTab = statuses[currentStatusFilterIndex];
-		currentPage = 1;
-	};
-
 	const handleSelectHost = (hostId: string) => {
 		selectedHostId = hostId;
 	};
@@ -71,8 +61,9 @@
 	]);
 
 	const compatibilityIcons = [
-		{ icon: 'cat', theme: 'cats', title: 'Compatible chats' },
-		{ icon: 'trees', theme: 'fa', title: 'A un jardin' }
+		{ icon: 'syringe', theme: 'activ', title: 'Soin' },
+		{ icon: 'cat', theme: 'cats', title: 'Chat placé' },
+		{ icon: 'trees', theme: 'fa', title: 'Exterieur' }
 	];
 
 	const filteredHosts = $derived(() => {
@@ -161,11 +152,10 @@
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Statut</Table.Head>
 							<Table.Head>Nom</Table.Head>
 							<Table.Head>Rôle</Table.Head>
-							<Table.Head>Quartier</Table.Head>
-							<Table.Head>Espace</Table.Head>
+							<Table.Head>Animaux</Table.Head>
+							<Table.Head>Socia</Table.Head>
 							{#each compatibilityIcons as compat (compat.title)}
 								<Table.Head title={compat.title} class="text-center">
 									<div class="flex justify-center text-white">
@@ -240,5 +230,10 @@
 			{/if}
 		</div>
 	</section>
-	<NewHostDialog bind:open={newHostOpen} />
+	<NewHostDialog
+		bind:open={newHostOpen}
+		onCancel={() => {
+			newHostOpen = false;
+		}}
+	/>
 </main>

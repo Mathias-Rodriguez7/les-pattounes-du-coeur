@@ -2,27 +2,40 @@
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Switch } from '$lib/components/ui/switch/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import Icon from '$lib/components/Icon.svelte';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
+	import InputField from '../fields/InputField.svelte';
+	import SelectField from '../fields/SelectField.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import BlacklistButton from '../buttons/BlacklistButton.svelte';
+	import {
+		HOST_ACTIF_OPTIONS,
+		HOST_TYPE_OPTIONS,
+		HOST_HEAL_OPTIONS,
+		HOST_SOCIALIZE_OPTIONS,
+		HOST_BABY_FEEDING_OPTIONS,
+		HOST_SECTION_CONFIG
+	} from '$lib/constants/host';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import TextareaField from '../fields/TextareaField.svelte';
+	import type { HostEditData } from '$lib/server/hosts/schemas';
 
 	let {
-		editData = $bindable(),
-		hostId,
+		editData = $bindable<HostEditData>(),
+		hostId = '',
+		profileId = '',
 		onSuccess,
-		onCancel,
-		isSaving = false,
-		isDeleting = false
+		onCancel
 	} = $props();
+
+	// États
+	let isSaving = $state(false);
+	let isDeleting = $state(false);
+	let isBlacklisting = $state(false);
 
 	let formErrors = $state({
 		firstName: '',
@@ -34,75 +47,9 @@
 		postalCode: ''
 	});
 
-	let isBlacklisting = $state(false);
-	let selectedDistrict = $state('');
-
-	function handleSelectDistrict(value: string) {
-		selectedDistrict = value;
-		editData.district = value;
-	}
-
-	const ACTIF_OPTIONS = [
-		{ value: 'ACTIVE', label: 'En activité' },
-		{ value: 'BREAK', label: 'En pause' },
-		{ value: 'STOP', label: 'Arrêté' }
-	];
-
-	const TYPE_OPTIONS = [
-		{ value: 'CLASSIC', label: 'Accueil Long' },
-		{ value: 'RELAY', label: 'Relais' }
-	];
-
-	const SPACE_OPTIONS = [
-		{ value: 'SMALL', label: 'Petit' },
-		{ value: 'MEDIUM', label: 'Moyen' },
-		{ value: 'LARGE', label: 'Grand' }
-	];
-
-	const HEAL_OPTIONS = [
-		{ value: 'NONE', label: 'Aucun' },
-		{ value: 'LIGHT', label: 'Légé' },
-		{ value: 'HEAVY', label: 'Lourd' },
-		{ value: 'HEAVY_STING', label: 'Lourd avec seringue' }
-	];
-
-	const SOCIALIZE_OPTIONS = [
-		{ value: 'NO', label: 'Non' },
-		{ value: 'FEARFUL', label: 'Craintive' },
-		{ value: 'WITHOUT_EX', label: 'Sans xp' },
-		{ value: 'EXPERIENCED', label: 'Expérimenté' }
-	];
-
-	const BABY_FEEDING_OPTIONS = [
-		{ value: 'NO', label: 'Non' },
-		{ value: 'WITHOUT_EX', label: 'Sans xp' },
-		{ value: 'EXPERIENCED', label: 'Expérimenté' },
-		{ value: 'RELAY', label: 'Relai' }
-	];
-
-	const STATUS_OPTIONS = [
-		{ value: 'FREE', label: 'Libre' },
-		{ value: 'CAT_PLACE', label: 'Chat placé' },
-		{ value: 'WAITING', label: 'En attente' },
-		{ value: 'WAITING_VALIDATION', label: 'Attente de validation' }
-	];
-
-	const SECTION_CONFIG = {
-		address: { icon: 'map', label: 'Adresse' },
-		home: { icon: 'house', label: "Zone d'accueil" },
-		animals: { icon: 'paw', label: 'Animaux' },
-		capacity: { icon: 'heart', label: 'Capacités' },
-		availability: { icon: 'Handshake', label: 'Colaboration' },
-		homeDescription: { icon: 'house', label: 'Description du domicile' },
-		outsideDescription: { icon: 'trees', label: 'Description du jardin' },
-		stopActivity: { icon: 'CircleX', label: "Raison d'arrêt" },
-		additionalInformation: { icon: 'plus', label: 'Infos additionnelles' }
-	};
-
 	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
 		isSaving = true;
 
-		// Ajouter l'ID du bénévole
 		formData.append('hostId', hostId || '');
 
 		return async ({ result, update }) => {
@@ -120,6 +67,7 @@
 			isSaving = false;
 		};
 	};
+
 	const handleCancelClick = () => {
 		console.log('❌ Édition annulée');
 		if (onCancel) {
@@ -141,480 +89,427 @@
 		}
 	};
 
-	// Derived states for select display
-	const actifLabel = $derived(
-		ACTIF_OPTIONS.find((o) => o.value === editData.actif)?.label ?? 'Sélectionner...'
+	let districtOptions = $derived(
+		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
 	);
-	const typeLabel = $derived(
-		TYPE_OPTIONS.find((o) => o.value === editData.type)?.label ?? 'Sélectionner...'
-	);
-	const spaceLabel = $derived(
-		SPACE_OPTIONS.find((o) => o.value === editData.space)?.label ?? 'Sélectionner...'
-	);
-	const healLabel = $derived(
-		HEAL_OPTIONS.find((o) => o.value === editData.heal)?.label ?? 'Sélectionner...'
-	);
-	const socializeLabel = $derived(
-		SOCIALIZE_OPTIONS.find((o) => o.value === editData.socialize)?.label ?? 'Sélectionner...'
-	);
-	const babyFeedingLabel = $derived(
-		BABY_FEEDING_OPTIONS.find((o) => o.value === editData.babyFeeding)?.label ?? 'Sélectionner...'
-	);
-	const statusLabel = $derived(
-		STATUS_OPTIONS.find((o) => o.value === editData.status)?.label ?? 'Sélectionner...'
-	);
+
+	const sectionColors = {
+		profile: 'emerald',
+		address: 'gray',
+		home: 'blue',
+		animals: 'orange',
+		capacity: 'indigo',
+		availability: 'emerald',
+		homeDescription: 'blue',
+		outsideDescription: 'green',
+		stopActivity: 'red',
+		additionalInformation: 'gray'
+	} as const satisfies Record<keyof typeof HOST_SECTION_CONFIG, string>;
 </script>
 
 <form method="POST" action="?/updateHost" use:enhance={handleUpdateEnhance} class="space-y-6">
-	<section class="grid grid-cols-5 gap-4">
-		<!-- Col : Statuts -->
-		<div class="col-span-1 grid grid-cols-1 gap-4">
-			<div>
-				<label for="actif" class="text-xs font-medium text-gray-700">Statut activité</label>
-				<Select.Root type="single" bind:value={editData.actif}>
-					<Select.Trigger>
-						{actifLabel}
-					</Select.Trigger>
-					<Select.Content>
-						{#each ACTIF_OPTIONS as option (option.value)}
-							<Select.Item value={option.value} label={option.label}>
-								{option.label}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+	<!-- 🔑 HIDDEN INPUTS -->
+	<input type="hidden" name="hostId" value={hostId} />
+
+	<div class="flex justify-end">
+		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
+			<X class="h-5 w-5" />
+		</Button>
+	</div>
+
+	<!-- 📋 SECTION 1: Statuts et Infos Personnelles -->
+	<SectionCard
+		icon={HOST_SECTION_CONFIG.profile.icon}
+		title={HOST_SECTION_CONFIG.profile.label}
+		color={sectionColors.profile}
+	>
+		<section class="grid grid-cols-4 gap-4">
+			<div class="grid gap-2">
+				<SelectField
+					id="actif"
+					name="actif"
+					label="Statut activité"
+					bind:value={editData.actif}
+					options={HOST_ACTIF_OPTIONS}
+					size="sm"
+					required
+				/>
+
+				<SelectField
+					id="type"
+					name="type"
+					label="Type d'accueil"
+					bind:value={editData.type}
+					options={HOST_TYPE_OPTIONS}
+					size="sm"
+					required
+				/>
 			</div>
 
-			<div>
-				<label for="type" class="text-xs font-medium text-gray-700">Type d'accueil</label>
-				<Select.Root type="single" bind:value={editData.type}>
-					<Select.Trigger>
-						{typeLabel}
-					</Select.Trigger>
-					<Select.Content>
-						{#each TYPE_OPTIONS as option (option.value)}
-							<Select.Item value={option.value} label={option.label}>
-								{option.label}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</div>
-		</div>
-
-		<!-- Grille : Infos personnelles -->
-		<div class="col-span-2 grid grid-cols-2 gap-4">
-			<div>
-				<label for="firstName" class="text-xs font-medium text-gray-700">Prénom *</label>
-				<Input
+			<div class="col-span-2 grid grid-cols-2 gap-4">
+				<InputField
+					id="firstName"
+					name="firstName"
+					label="Prénom"
 					bind:value={editData.firstName}
-					placeholder="Prénom"
-					class={formErrors.firstName ? 'border-red-500' : ''}
+					placeholder="Jean"
+					error={formErrors.firstName}
+					required
+					size="sm"
 				/>
-				{#if formErrors.firstName}
-					<p class="mt-1 text-xs text-red-500">{formErrors.firstName}</p>
-				{/if}
-			</div>
 
-			<div>
-				<label for="lastName" class="text-xs font-medium text-gray-700">Nom *</label>
-				<Input
+				<InputField
+					id="lastName"
+					name="lastName"
+					label="Nom"
 					bind:value={editData.lastName}
-					placeholder="Nom"
-					class={formErrors.lastName ? 'border-red-500' : ''}
+					placeholder="Dupont"
+					error={formErrors.lastName}
+					required
+					size="sm"
 				/>
-				{#if formErrors.lastName}
-					<p class="mt-1 text-xs text-red-500">{formErrors.lastName}</p>
-				{/if}
-			</div>
 
-			<div>
-				<label for="isAvailable" class="text-xs font-medium text-gray-700">Disponibilité</label>
-				<div class="flex items-center justify-start pt-2">
-					<Switch
-						id="isAvailable"
-						checked={editData.isAvailable ?? false}
-						onCheckedChange={(value) => (editData.isAvailable = value)}
-					/>
+				<div class="flex items-end">
+					<div class="w-full space-y-2">
+						<label for="isAvailable" class="text-xs font-medium text-gray-700">Disponibilité</label>
+						<div class="flex items-center gap-2">
+							<Switch
+								id="isAvailable"
+								checked={editData.isAvailable ?? false}
+								onCheckedChange={(value) => (editData.isAvailable = value)}
+							/>
+							<input
+								type="hidden"
+								name="isAvailable"
+								value={editData.isAvailable ? 'true' : 'false'}
+							/>
+							<span class="text-xs text-gray-600">
+								{editData.isAvailable ? '✓ Disponible' : '✗ Indisponible'}
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
 
-			<div>
-				<label for="status" class="text-xs font-medium text-gray-700">Etat</label>
-				<Select.Root type="single" bind:value={editData.status}>
-					<Select.Trigger>
-						{statusLabel}
-					</Select.Trigger>
-					<Select.Content>
-						{#each STATUS_OPTIONS as option (option.value)}
-							<Select.Item value={option.value} label={option.label}>
-								{option.label}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</div>
-		</div>
+			<div class="grid gap-2">
+				<InputField
+					id="email"
+					name="email"
+					label="Email"
+					type="email"
+					bind:value={editData.email}
+					placeholder="jean@example.com"
+					error={formErrors.email}
+					required
+					size="sm"
+				/>
 
-		<!-- Col : Contact -->
-		<div class="col-span-2 grid grid-cols-1 gap-4">
-			<div class="flex justify-end">
-				<Button variant="ghost" size="icon" onclick={handleCancel}>
-					<X class="h-5 w-5" />
-				</Button>
+				<InputField
+					id="phone"
+					name="phone"
+					label="Téléphone"
+					bind:value={editData.phone}
+					placeholder="06 12 34 56 78"
+					error={formErrors.phone}
+					required
+					size="sm"
+				/>
 			</div>
-			<div class="flex items-end gap-4">
-				<div>
-					<label for="email" class="text-xs font-medium text-gray-700">Email *</label>
-					<Input
-						bind:value={editData.email}
-						type="email"
-						placeholder="email@example.com"
-						class={formErrors.email ? 'border-red-500' : ''}
-					/>
-					{#if formErrors.email}
-						<p class="mt-1 text-xs text-red-500">{formErrors.email}</p>
-					{/if}
-				</div>
-
-				<div class="w-28">
-					<label for="phone" class="text-xs font-medium text-gray-700">Téléphone *</label>
-					<Input
-						bind:value={editData.phone}
-						placeholder="06 12 34 56 78"
-						class={formErrors.phone ? 'border-red-500' : ''}
-					/>
-					{#if formErrors.phone}
-						<p class="mt-1 text-xs text-red-500">{formErrors.phone}</p>
-					{/if}
-				</div>
-			</div>
-		</div>
-	</section>
+		</section>
+	</SectionCard>
 
 	<Separator />
-	<section class="grid grid-cols-3 gap-4">
-		<!-- Col : Adresse -->
-		<div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-			<div class="mb-4 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.address.icon} class="h-5 w-5 text-slate-700" />
-				<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.address.label}</h4>
-			</div>
 
-			<div class="grid grid-cols-1 gap-4">
-				<div>
-					<label for="address" class="text-xs font-medium text-gray-700">Rue *</label>
-					<Input
-						bind:value={editData.address}
-						placeholder="Adresse"
-						class={formErrors.address ? 'border-red-500' : ''}
-					/>
-					{#if formErrors.address}
-						<p class="mt-1 text-xs text-red-500">{formErrors.address}</p>
-					{/if}
-				</div>
+	<!-- 📍 SECTION 2: Adresse, Zone d'accueil, Animaux -->
+	<section class="grid grid-cols-3 gap-4">
+		<!-- Adresse -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.address.icon}
+			title={HOST_SECTION_CONFIG.address.label}
+			color={sectionColors.address}
+		>
+			<div class="space-y-4">
+				<InputField
+					id="address"
+					name="address"
+					label="Rue"
+					bind:value={editData.address}
+					placeholder="Adresse"
+					error={formErrors.address}
+					required
+					size="sm"
+				/>
 
 				<div class="flex gap-4">
 					<div>
-						<label for="city" class="text-xs font-medium text-gray-700">Ville *</label>
-						<Input
+						<InputField
+							id="city"
+							name="city"
+							label="Ville"
 							bind:value={editData.city}
 							placeholder="Ville"
-							class={formErrors.city ? 'border-red-500' : ''}
+							error={formErrors.city}
+							required
+							size="sm"
 						/>
-						{#if formErrors.city}
-							<p class="mt-1 text-xs text-red-500">{formErrors.city}</p>
-						{/if}
 					</div>
 
 					<div>
-						<label for="postalCode" class="text-xs font-medium text-gray-700">Code postal *</label>
-						<Input
+						<InputField
+							id="postalCode"
+							name="postalCode"
+							label="Code postal"
 							bind:value={editData.postalCode}
 							placeholder="75000"
-							class={formErrors.postalCode ? 'border-red-500' : ''}
+							error={formErrors.postalCode}
+							required
+							size="sm"
 						/>
-						{#if formErrors.postalCode}
-							<p class="mt-1 text-xs text-red-500">{formErrors.postalCode}</p>
-						{/if}
 					</div>
 				</div>
+
+				<SelectField
+					id="district"
+					name="district"
+					label="Quartier"
+					bind:value={editData.district}
+					options={districtOptions}
+					size="sm"
+				/>
+			</div>
+		</SectionCard>
+
+		<!-- Zone d'accueil -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.home.icon}
+			title={HOST_SECTION_CONFIG.home.label}
+			color={sectionColors.home}
+		>
+			<div class="space-y-4">
+				<InputField
+					id="space"
+					name="space"
+					label="Espace en m2"
+					bind:value={editData.space}
+					placeholder="60"
+					required
+					size="sm"
+				/>
+
+				<TextareaField
+					id="presence"
+					name="presence"
+					label="Présence"
+					bind:value={editData.presence}
+					placeholder="Présence"
+				/>
 
 				<div class="space-y-2">
-					<label for="district-select" class="text-sm font-medium text-gray-700">Quartier</label>
-					<Select.Root
-						type="single"
-						value={selectedDistrict}
-						onValueChange={handleSelectDistrict}
-						disabled={isSaving || isDeleting || isBlacklisting}
-					>
-						<Select.Trigger id="district-select">
-							{Object.entries(DISTRICT_LABELS).find(([k]) => k === selectedDistrict)?.[1] ||
-								'Sélectionner'}
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(DISTRICT_LABELS) as [key, label] (key)}
-								<Select.Item value={key} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<label class="flex items-center gap-2">
+						<input
+							type="checkbox"
+							name="outside"
+							bind:checked={editData.outside}
+							value="true"
+							class="h-4 w-4 rounded border-gray-300"
+						/>
+						<span class="text-xs font-medium text-gray-700">Exterieur</span>
+					</label>
+					<input type="hidden" name="outside" value={editData.outside ? 'true' : 'false'} />
+
+					<label class="flex items-center gap-2">
+						<input
+							type="checkbox"
+							name="car"
+							bind:checked={editData.car}
+							value="true"
+							class="h-4 w-4 rounded border-gray-300"
+						/>
+						<span class="text-xs font-medium text-gray-700">Voiture</span>
+					</label>
+					<input type="hidden" name="car" value={editData.car ? 'true' : 'false'} />
+
+					<label class="flex items-center gap-2">
+						<input
+							type="checkbox"
+							name="isStockFeed"
+							bind:checked={editData.isStockFeed}
+							value="true"
+							class="h-4 w-4 rounded border-gray-300"
+						/>
+						<span class="text-xs font-medium text-gray-700">Stock</span>
+					</label>
+					<input type="hidden" name="isStockFeed" value={editData.isStockFeed ? 'true' : 'false'} />
 				</div>
 			</div>
-		</div>
+		</SectionCard>
 
-		<!-- Col : Zone d'accueil -->
-		<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-			<div class="mb-4 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.home.icon} class="h-5 w-5 text-blue-700" />
-				<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.home.label}</h4>
-			</div>
-
+		<!-- Animaux -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.animals.icon}
+			title={HOST_SECTION_CONFIG.animals.label}
+			color={sectionColors.animals}
+		>
 			<div class="space-y-4">
-				<div class="grid grid-cols-1 gap-4">
-					<div>
-						<label for="space" class="text-xs font-medium text-gray-700">Espace</label>
-						<Select.Root type="single" bind:value={editData.space}>
-							<Select.Trigger>
-								{spaceLabel}
-							</Select.Trigger>
-							<Select.Content>
-								{#each SPACE_OPTIONS as option (option.value)}
-									<Select.Item value={option.value} label={option.label}>
-										{option.label}
-									</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					</div>
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						name="hasAnimalsAtHome"
+						bind:checked={editData.hasAnimalsAtHome}
+						value="true"
+						class="h-4 w-4 rounded border-gray-300"
+					/>
+					<span class="text-xs font-medium text-gray-700">Animaux au domicile</span>
+				</label>
+				<input
+					type="hidden"
+					name="hasAnimalsAtHome"
+					value={editData.hasAnimalsAtHome ? 'true' : 'false'}
+				/>
 
-					<div>
-						<label for="presence" class="text-xs font-medium text-gray-700">Présence</label>
-						<Input bind:value={editData.presence} placeholder="75000" />
-					</div>
-
-					<div class="flex items-end">
-						<label class="flex items-center gap-2">
-							<input
-								type="checkbox"
-								bind:checked={editData.outside}
-								class="h-4 w-4 rounded border-gray-300"
-							/>
-							<span class="text-xs font-medium text-gray-700">Jardin</span>
-						</label>
-					</div>
-
-					<div class="flex items-end">
-						<label class="flex items-center gap-2">
-							<input
-								type="checkbox"
-								bind:checked={editData.car}
-								class="h-4 w-4 rounded border-gray-300"
-							/>
-							<span class="text-xs font-medium text-gray-700">Voiture</span>
-						</label>
-					</div>
-
-					<div class="flex items-end">
-						<label class="flex items-center gap-2">
-							<input
-								type="checkbox"
-								bind:checked={editData.isStockFeed}
-								class="h-4 w-4 rounded border-gray-300"
-							/>
-							<span class="text-xs font-medium text-gray-700">Stock</span>
-						</label>
-					</div>
+				<div class="grid grid-cols-2 gap-2">
+					<label class="text-xs font-medium text-gray-700">Chats</label>
+					<InputField
+						id="numberOfCatsAtHome"
+						name="numberOfCatsAtHome"
+						bind:value={editData.numberOfCatsAtHome}
+						placeholder="0"
+						size="sm"
+					/>
 				</div>
-			</div>
-		</div>
 
-		<!-- Col : Animaux -->
-		<div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
-			<div class="mb-3 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.animals.icon} class="h-5 w-5 text-orange-700" />
-				<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.animals.label}</h4>
-			</div>
-
-			<div class="space-y-4">
-				<div class="grid grid-cols-1 gap-4">
-					<div class="flex items-end">
-						<label class="flex items-center gap-2">
-							<input
-								type="checkbox"
-								bind:checked={editData.hasAnimalsAtHome}
-								class="h-4 w-4 rounded border-gray-300"
-							/>
-							<span class="text-xs font-medium text-gray-700">Animaux dans le domicile</span>
-						</label>
-					</div>
-
-					<div class="grid grid-cols-2 items-center">
-						<label for="numberOfCatsAtHome" class="text-xs font-medium text-gray-700">Chats</label>
-						<Input bind:value={editData.numberOfCatsAtHome} placeholder="3" />
-					</div>
-
-					<div class="grid grid-cols-2 items-center">
-						<label for="numberOfDogsAtHome" class="text-xs font-medium text-gray-700">Chiens</label>
-						<Input bind:value={editData.numberOfDogsAtHome} placeholder="3" />
-					</div>
-
-					<div class="grid grid-cols-1 items-center gap-2">
-						<label for="otherAnimalsAtHome" class="text-xs font-medium text-gray-700">Autres</label>
-						<Textarea bind:value={editData.otherAnimalsAtHome} placeholder="Autres" />
-					</div>
+				<div class="grid grid-cols-2 gap-2">
+					<label class="text-xs font-medium text-gray-700">Chiens</label>
+					<InputField
+						id="numberOfDogsAtHome"
+						name="numberOfDogsAtHome"
+						bind:value={editData.numberOfDogsAtHome}
+						placeholder="0"
+						size="sm"
+					/>
 				</div>
+
+				<TextareaField
+					id="otherAnimalsAtHome"
+					name="otherAnimalsAtHome"
+					label="Autres"
+					bind:value={editData.otherAnimalsAtHome}
+					placeholder="Autres animaux..."
+				/>
 			</div>
-		</div>
+		</SectionCard>
 	</section>
+
 	<Separator />
 
-	<!-- Grille : Capacités -->
+	<!-- 💪 SECTION 3: Capacités et Disponibilité -->
 	<section class="grid grid-cols-3 gap-4">
-		<div class="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-			<div class="mb-4 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.capacity.icon} class="h-5 w-5 text-indigo-700" />
-				<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
-			</div>
+		<div class="col-span-2">
+			<SectionCard
+				icon={HOST_SECTION_CONFIG.capacity.icon}
+				title={HOST_SECTION_CONFIG.capacity.label}
+				color={sectionColors.capacity}
+			>
+				<div class="grid grid-cols-3 gap-4">
+					<SelectField
+						id="heal"
+						name="heal"
+						label="Soins médicaux"
+						bind:value={editData.heal}
+						options={HOST_HEAL_OPTIONS}
+						size="sm"
+					/>
 
-			<div class="ml-6 grid grid-cols-3 gap-4">
-				<div>
-					<label for="heal" class="text-xs font-medium text-gray-700">Soins médicaux</label>
-					<Select.Root type="single" bind:value={editData.heal}>
-						<Select.Trigger>
-							{healLabel}
-						</Select.Trigger>
-						<Select.Content>
-							{#each HEAL_OPTIONS as option (option.value)}
-								<Select.Item value={option.value} label={option.label}>
-									{option.label}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<SelectField
+						id="socialize"
+						name="socialize"
+						label="Socialisation"
+						bind:value={editData.socialize}
+						options={HOST_SOCIALIZE_OPTIONS}
+						size="sm"
+					/>
+
+					<SelectField
+						id="babyFeeding"
+						name="babyFeeding"
+						label="Biberonnage"
+						bind:value={editData.babyFeeding}
+						options={HOST_BABY_FEEDING_OPTIONS}
+						size="sm"
+					/>
 				</div>
-
-				<div>
-					<label for="socialize" class="text-xs font-medium text-gray-700">Socialisation</label>
-					<Select.Root type="single" bind:value={editData.socialize}>
-						<Select.Trigger>
-							{socializeLabel}
-						</Select.Trigger>
-						<Select.Content>
-							{#each SOCIALIZE_OPTIONS as option (option.value)}
-								<Select.Item value={option.value} label={option.label}>
-									{option.label}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-
-				<div>
-					<label for="babyFeeding" class="text-xs font-medium text-gray-700">Nourrissage</label>
-					<Select.Root type="single" bind:value={editData.babyFeeding}>
-						<Select.Trigger>
-							{babyFeedingLabel}
-						</Select.Trigger>
-						<Select.Content>
-							{#each BABY_FEEDING_OPTIONS as option (option.value)}
-								<Select.Item value={option.value} label={option.label}>
-									{option.label}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-span-1 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-			<div class="mb-3 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.availability.icon} class="h-5 w-5 text-emerald-700" />
-				<h4 class="text-sm font-semibold text-gray-900">
-					{SECTION_CONFIG.availability.label}
-				</h4>
-			</div>
-			<div>
-				<label for="availabilityDuration" class="text-xs font-medium text-gray-700"
-					>Durée de collaboration</label
-				>
-				<Input bind:value={editData.availabilityDuration} placeholder="75000" />
-			</div>
+			</SectionCard>
 		</div>
 	</section>
+
 	<Separator />
 
-	<section class="grid grid-cols-1 gap-4">
-		<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-			<div class="mb-3 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.homeDescription.icon} class="h-5 w-5 text-blue-700" />
-				<h4 class="text-sm font-semibold text-gray-900">
-					{SECTION_CONFIG.homeDescription.label}
-				</h4>
-			</div>
-			<div class="ml-6">
-				<Textarea bind:value={editData.homeDescription} placeholder="Décrivez votre domicile..." />
-			</div>
-		</div>
+	<!-- 📝 SECTION 4: Descriptions -->
+	<section class="space-y-4">
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.homeDescription.icon}
+			title={HOST_SECTION_CONFIG.homeDescription.label}
+			color={sectionColors.homeDescription}
+		>
+			<TextareaField
+				id="homeDescription"
+				name="homeDescription"
+				bind:value={editData.homeDescription}
+				placeholder="Décrivez votre domicile..."
+			/>
+		</SectionCard>
 
 		{#if editData.outside}
-			<div class="rounded-lg border border-green-200 bg-green-50 p-4">
-				<div class="mb-3 flex items-center gap-2">
-					<Icon name={SECTION_CONFIG.outsideDescription.icon} class="h-5 w-5 text-emerald-700" />
-					<h4 class="text-sm font-semibold text-gray-900">
-						{SECTION_CONFIG.outsideDescription.label}
-					</h4>
-				</div>
-				<div class="ml-6">
-					<Textarea
-						bind:value={editData.outsideDescription}
-						placeholder="Décrivez votre jardin..."
-					/>
-				</div>
-			</div>
+			<SectionCard
+				icon={HOST_SECTION_CONFIG.outsideDescription.icon}
+				title={HOST_SECTION_CONFIG.outsideDescription.label}
+				color={sectionColors.outsideDescription}
+			>
+				<TextareaField
+					id="outsideDescription"
+					name="outsideDescription"
+					bind:value={editData.outsideDescription}
+					placeholder="Décrivez votre jardin..."
+				/>
+			</SectionCard>
 		{/if}
 
-		<!-- Infos additionnelles -->
 		{#if editData.actif === 'STOP'}
-			<div class="rounded-lg border border-red-200 bg-red-50 p-4">
-				<div class="mb-4 flex items-center gap-2">
-					<Icon name={SECTION_CONFIG.stopActivity.icon} class="h-5 w-5 text-red-700" />
-					<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.stopActivity.label}</h4>
-				</div>
-
-				<div class="ml-6">
-					<Textarea
-						bind:value={editData.stopActivity}
-						placeholder="Expliquez la raison de l'arrêt..."
-					/>
-				</div>
-			</div>
+			<SectionCard
+				icon={HOST_SECTION_CONFIG.stopActivity.icon}
+				title={HOST_SECTION_CONFIG.stopActivity.label}
+				color={sectionColors.stopActivity}
+			>
+				<TextareaField
+					id="stopActivity"
+					name="stopActivity"
+					bind:value={editData.stopActivity}
+					placeholder="Raison de l'arrêt..."
+				/>
+			</SectionCard>
 
 			<Separator />
 		{/if}
 
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-			<div class="mb-4 flex items-center gap-2">
-				<Icon name={SECTION_CONFIG.additionalInformation.icon} class="h-5 w-5 text-slate-700" />
-				<h4 class="text-sm font-semibold text-gray-900">
-					{SECTION_CONFIG.additionalInformation.label}
-				</h4>
-			</div>
-
-			<div class="ml-6">
-				<Textarea
-					bind:value={editData.additionalInformation}
-					placeholder="Informations additionnelles..."
-				/>
-			</div>
-		</div>
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.additionalInformation.icon}
+			title={HOST_SECTION_CONFIG.additionalInformation.label}
+			color={sectionColors.additionalInformation}
+		>
+			<TextareaField
+				id="additionalInformation"
+				name="additionalInformation"
+				bind:value={editData.additionalInformation}
+				placeholder="Informations additionnelles..."
+			/>
+		</SectionCard>
 	</section>
+
 	<Separator />
 
-	<!-- ✅ BOUTONS UPDATE + DELETE -->
+	<!-- ✅ SECTION 5: Actions (Boutons) -->
 	<section class="flex justify-between">
 		<div class="flex gap-4">
-			<!-- ✅ BLACKLIST BUTTON -->
 			<BlacklistButton
 				{profileId}
 				firstName={editData.firstName}
@@ -624,12 +519,11 @@
 				{isSaving}
 				{isDeleting}
 				showBlacklist={true}
-				actionName="?/blacklistVolunteer"
+				actionName="?/blacklistHost"
 				buttonLabel="Ajouter à la liste noire"
 				onSuccess={handleBlacklisted}
 			/>
 
-			<!-- ✅ DeleteButton -->
 			<DeleteButton
 				{profileId}
 				firstName={editData.firstName}
@@ -637,11 +531,11 @@
 				{isDeleting}
 				{isSaving}
 				showDelete={true}
-				deleteConfirmMessage="Êtes-vous sûr de vouloir supprimer ce bénévole ?"
-				actionName="?/deleteVolunteer"
+				deleteConfirmMessage="Êtes-vous sûr de vouloir supprimer cette famille d'accueil ?"
 				onSuccess={handleDeleted}
 			/>
 		</div>
+
 		<SaveCancelButtons onCancel={handleCancelClick} {isSaving} />
 	</section>
 </form>

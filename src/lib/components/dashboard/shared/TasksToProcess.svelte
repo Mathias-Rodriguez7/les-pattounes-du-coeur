@@ -44,7 +44,7 @@
 						{#each group.tasks as task (task.label)}
 							<a
 								href={task.href || '#'}
-								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg border border-transparent px-3 py-3 transition-all hover:shadow-md sm:px-4 sm:py-4"
+								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg border border-transparent px-2 py-2 transition-all hover:shadow-md"
 							>
 								<div class="flex items-center justify-between gap-2">
 									<p class="text-xs font-semibold">{task.label}</p>

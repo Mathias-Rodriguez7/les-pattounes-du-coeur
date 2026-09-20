@@ -20,7 +20,7 @@
 		FORM_TYPE_LABELS,
 		FORM_TYPES,
 		STATUS_CONFIG
-	} from '$lib/types/volunteer';
+	} from '$lib/types/';
 	import type { Form } from '@prisma/client';
 
 	const {
