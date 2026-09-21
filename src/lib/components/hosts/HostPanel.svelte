@@ -4,6 +4,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
+	import type { HostFull, HostEditData } from '$lib/types/';
+	import type { ColabActivity, HostType, Heal, Socialize, BabyFeeding } from '@prisma/client';
 	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -15,15 +17,16 @@
 	import PlacementCard from '../PlacementCard.svelte';
 	import * as Accordion from '$lib/components/ui/accordion';
 
-	const { host = $bindable(), isAdmin = false } = $props();
+	const { host = $bindable<HostFull | undefined>(), isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 
 	// 1️⃣ DÉCLARER TOUS LES CHAMPS ÉDITABLES ICI
-	let editData = $state({
+	let editData = $state<HostEditData>({
 		// Profil
 		firstName: '',
 		lastName: '',
+		birthDate: new Date(),
 		email: '',
 		phone: '',
 		district: '',
@@ -32,15 +35,12 @@
 		postalCode: '',
 
 		// Host spécifiques
-		age: 0,
-		job: '',
-		actif: '',
-		type: '',
-		status: '',
+		actif: 'ACTIVE' as ColabActivity,
+		type: 'CLASSIC' as HostType,
 		isAvailable: false,
 
 		// Zone d'accueil
-		space: '',
+		space: 0,
 		presence: '',
 		outside: false,
 		car: false,
@@ -53,14 +53,13 @@
 		otherAnimalsAtHome: '',
 
 		// Capacités
-		heal: '',
-		socialize: '',
-		babyFeeding: '',
+		heal: 'NO' as Heal,
+		socialize: 'NO' as Socialize,
+		babyFeeding: 'NO' as BabyFeeding,
 
 		// Descriptions et durée
 		homeDescription: '',
 		outsideDescription: '',
-		availabilityDuration: '',
 		stopActivity: '',
 		additionalInformation: ''
 	});
@@ -72,17 +71,15 @@
 		editData = {
 			firstName: host.profil.firstName,
 			lastName: host.profil.lastName,
+			birthDate: host.profil.birthDate ? new Date(host.profil.birthDate) : new Date(),
 			email: host.profil.email,
 			phone: host.profil.phone,
 			district: host.profil.district || '',
 			address: host.profil.address,
 			city: host.profil.city,
 			postalCode: host.profil.postalCode,
-			age: host.age,
-			job: host.job,
 			actif: host.actif || '',
 			type: host.type || '',
-			status: host.status,
 			isAvailable: host.isAvailable,
 			space: host.space,
 			presence: host.presence,
@@ -113,6 +110,7 @@
 		// Profil
 		host.profil.firstName = editData.firstName;
 		host.profil.lastName = editData.lastName;
+		host.profil.birthDate = editData.birthDate;
 		host.profil.email = editData.email;
 		host.profil.phone = editData.phone;
 		host.profil.district = editData.district;
@@ -121,11 +119,8 @@
 		host.profil.postalCode = editData.postalCode;
 
 		// Host
-		host.age = editData.age;
-		host.job = editData.job;
 		host.actif = editData.actif;
 		host.type = editData.type;
-		host.status = editData.status;
 		host.isAvailable = editData.isAvailable;
 		host.space = editData.space;
 		host.presence = editData.presence;
@@ -192,12 +187,28 @@
 	);
 
 	const getPlacementsByType = (type: string, isActive: boolean) => {
-		return host.placements?.filter((p) => p.type === type && p.isActive === isActive) || [];
+		return (
+			host?.placements?.filter(
+				(p: (typeof host.placements)[number]) => p.type === type && p.isActive === isActive
+			) || []
+		);
 	};
 
-	const activePlacements = $derived(host.placements?.filter((p) => p.isActive) || []);
+	const activePlacements = $derived(
+		host?.placements?.filter((p: (typeof host.placements)[number]) => p.isActive) || []
+	);
+
 	const historicalPlacements = $derived(
-		host.placements?.filter((p) => !p.isActive && (p.type === 'LONG' || p.type === 'SHORT')) || []
+		host?.placements?.filter(
+			(p: (typeof host.placements)[number]) =>
+				!p.isActive && (p.type === 'LONG' || p.type === 'SHORT')
+		) || []
+	);
+	const longShortActivePlacements = $derived(
+		host?.placements?.filter(
+			(p: (typeof host.placements)[number]) =>
+				(p.type === 'LONG' || p.type === 'SHORT') && p.isActive
+		) || []
 	);
 </script>
 
@@ -407,23 +418,23 @@
 							<Icon name={SECTION_CONFIG.capacity.icon} class="h-5 w-5 text-indigo-700" />
 							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
 						</div>
-						<div class="grid gap-3">
+						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground mb-1 text-xs font-medium">Soins</p>
+								<p class="text-muted-foreground text-xs font-medium">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{healLabel[host.heal]}
+									{healLabel[host.heal as Heal]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground mb-1 text-xs font-medium">Socialisation</p>
+								<p class="text-muted-foreground text-xs font-medium">Socialisation</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{socializeLabel[host.socialize]}
+									{socializeLabel[host.socialize as Socialize]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground mb-1 text-xs font-medium">Biberonnage</p>
+								<p class="text-muted-foreground text-xs font-medium">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{babyFeedingLabel[host.babyFeeding]}
+									{babyFeedingLabel[host.babyFeeding as BabyFeeding]}
 								</Badge>
 							</div>
 						</div>
@@ -537,10 +548,10 @@
 										Accueil (Long/Relais)
 									</h4>
 									<div class="space-y-2">
-										{#each host.placements?.filter((p) => (p.type === 'LONG' || p.type === 'SHORT') && p.isActive) || [] as placement (placement.id)}
+										{#each longShortActivePlacements as placement (placement.id)}
 											<PlacementCard {placement} type={placement.type.toLowerCase()} />
 										{/each}
-										{#if host.placements?.filter((p) => (p.type === 'LONG' || p.type === 'SHORT') && p.isActive).length === 0}
+										{#if longShortActivePlacements.length === 0}
 											<p class="text-xs text-gray-500 italic">Aucun</p>
 										{/if}
 									</div>

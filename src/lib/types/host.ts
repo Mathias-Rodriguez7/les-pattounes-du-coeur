@@ -10,14 +10,20 @@ export type HostFull = Prisma.HostGetPayload<{
 			};
 		};
 	};
-}>;
+}> & {
+	// ✅ Force le typage des enums
+	heal: Heal;
+	socialize: Socialize;
+	babyFeeding: BabyFeeding;
+	actif: ColabActivity;
+	type: HostType;
+};
 
 export type HostEditData = {
 	// Infos personnelles
 	firstName: string;
 	lastName: string;
 	birthDate: Date;
-	formattedAge: string;
 	email: string;
 	phone: string;
 
@@ -35,6 +41,7 @@ export type HostEditData = {
 	homeDescription: string;
 	isStockFeed: boolean;
 	car: boolean;
+	additionalInformation: string;
 
 	// Animaux
 	hasAnimalsAtHome: boolean;
@@ -51,10 +58,6 @@ export type HostEditData = {
 	type?: HostType;
 	actif?: ColabActivity;
 	isAvailable: boolean;
-
-	// Autres
-	availabilityDuration: string;
-	additionalInformation: string;
 	stopActivity: string;
 };
 

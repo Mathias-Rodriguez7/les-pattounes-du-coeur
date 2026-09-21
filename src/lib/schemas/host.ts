@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const hostTypeEnum = z.enum(['CLASSIC', 'RELAY']);
+export const hostTypeEnum = z.enum(['CLASSIC', 'SOS', 'ADOPT', 'PROPRIO']);
 
 export const healEnum = z.enum(['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING']);
 
@@ -8,11 +8,15 @@ export const socializeEnum = z.enum(['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED
 
 export const babyFeedingEnum = z.enum(['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY']);
 
+// ✅ Convertir les strings en dates
+const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
+
 export const createHostSchema = z
 	.object({
 		// Profil
 		firstName: z.string().min(1, 'Le prénom est obligatoire').max(60),
 		lastName: z.string().min(1, 'Le nom est obligatoire').max(60),
+		birthDate: stringToDate,
 		email: z.string().email('Email invalide'),
 		phone: z
 			.string()
@@ -24,7 +28,6 @@ export const createHostSchema = z
 		district: z.string().optional(),
 
 		// Host basiques
-		age: z.coerce.number().min(18, 'Vous devez être majeur').max(120),
 		type: hostTypeEnum,
 		space: z.coerce.number().min(0),
 		homeDescription: z.string().min(10, 'Description minimale 10 caractères').max(500), // ✅ Ajoute max
@@ -83,4 +86,4 @@ export const createHostSchema = z
 		}
 	});
 
-export type CreateHostSchema = z.infer<typeof createHostSchema>;
+export type CreateHostSchema2 = z.infer<typeof createHostSchema>;

@@ -168,8 +168,8 @@ export const actions: Actions = {
 		return result;
 	},
 
-	updateHost: async ({ request }) => {
-		const result = await updateHost({ request });
+	updateHost: async ({ request, locals }) => {
+		const result = await updateHost({ request, locals });
 		if (!result.success) {
 			return fail(400, result);
 		}

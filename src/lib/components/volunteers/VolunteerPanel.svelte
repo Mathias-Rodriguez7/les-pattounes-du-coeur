@@ -34,6 +34,7 @@
 	let editData = $state({
 		firstName: '',
 		lastName: '',
+		birthDate: new Date(),
 		email: '',
 		phone: '',
 		district: '',
@@ -102,6 +103,7 @@
 	const prepareEditData = (volunteer: VolunteerWithRelations) => ({
 		firstName: volunteer.profil.firstName,
 		lastName: volunteer.profil.lastName,
+		birthDate: volunteer.profil.birthDate ? new Date(volunteer.profil.birthDate) : new Date(),
 		email: volunteer.profil.email,
 		phone: volunteer.profil.phone || '',
 		district: volunteer.profil.district || '',

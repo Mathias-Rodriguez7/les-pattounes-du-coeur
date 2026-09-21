@@ -8,8 +8,11 @@
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import CheckboxField from '../fields/CheckboxField.svelte';
+	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
+	import SwitchField from '../fields/SwitchField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import {
@@ -26,9 +29,10 @@
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
-	// Profil fields
+	// ✅ Profil fields
 	let firstName = $state('');
 	let lastName = $state('');
+	let birthDate = $state<Date | undefined>(undefined);
 	let email = $state('');
 	let phone = $state('');
 	let address = $state('');
@@ -36,9 +40,10 @@
 	let postalCode = $state('34000');
 	let selectedDistrict = $state<string>('');
 
-	// Host fields
-	let age = $state('');
+	// ✅ Host fields
+	let actif = $state('ACTIVE');
 	let selectedType = $state<string>('CLASSIC');
+	let isAvailable = $state(true);
 	let space = $state('');
 	let homeDescription = $state('');
 	let presence = $state('');
@@ -53,7 +58,6 @@
 	let heal = $state<string>('NO');
 	let socialize = $state<string>('NO');
 	let babyFeeding = $state<string>('NO');
-	let availabilityDuration = $state('');
 	let additionalInformation = $state('');
 
 	const districtOptions = $derived(
@@ -69,7 +73,6 @@
 		home: 'blue',
 		animals: 'orange',
 		capacity: 'indigo',
-		availability: 'emerald',
 		homeDescription: 'blue',
 		outsideDescription: 'green',
 		stopActivity: 'red',
@@ -82,10 +85,9 @@
 			// Profil
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
+			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
 			email: email.trim(),
 			phone: phone.trim(),
-			age: age ? parseInt(age) : undefined,
-			job: job.trim(),
 
 			// Adresse
 			address: address.trim(),
@@ -95,11 +97,13 @@
 
 			// Zone d'accueil
 			type: selectedType,
-			space: space,
-			presence: presence.trim(),
-			outside,
-			car,
-			isStockFeed,
+			space: space ? parseInt(space) : null,
+			presence: presence.trim() || undefined,
+			outside: outside,
+			car: car,
+			isStockFeed: isStockFeed,
+			homeDescription: homeDescription?.trim() || '',
+			outsideDescription: outsideDescription?.trim() || undefined,
 
 			// Animaux
 			hasAnimalsAtHome,
@@ -108,14 +112,13 @@
 			otherAnimalsAtHome: otherAnimalsAtHome?.trim() || undefined,
 
 			// Capacités
-			heal: heal,
-			socialize: socialize,
-			babyFeeding: babyFeeding,
-			availabilityDuration: availabilityDuration.trim(),
+			heal,
+			socialize,
+			babyFeeding,
 
-			// Descriptions
-			homeDescription: homeDescription?.trim() || '',
-			outsideDescription: outsideDescription.trim() || undefined,
+			// Statut
+			actif: actif,
+			isAvailable,
 			additionalInformation: additionalInformation.trim() || ''
 		};
 
@@ -137,16 +140,18 @@
 	function resetForm() {
 		firstName = '';
 		lastName = '';
+		birthDate = undefined;
 		email = '';
 		phone = '';
 		address = '';
 		city = 'Montpellier';
 		postalCode = '34000';
 		selectedDistrict = '';
-		age = '';
-		job = '';
+		actif = 'ACTIVE';
 		selectedType = 'CLASSIC';
-		space = 'MEDIUM';
+		actif = 'ACTIVE';
+		isAvailable = true;
+		space = '';
 		homeDescription = '';
 		presence = '';
 		hasAnimalsAtHome = false;
@@ -160,17 +165,18 @@
 		heal = 'NO';
 		socialize = 'NO';
 		babyFeeding = 'NO';
-		availabilityDuration = '';
 		additionalInformation = '';
 		fieldErrors = {};
 	}
 
 	// ✅ HANDLER USE:ENHANCE
 	const handleEnhance: SubmitFunction = () => {
-		if (!validateForm()) {
-			return async () => {};
+		const isValid = validateForm();
+		if (!isValid) {
+			return async () => {}; // Doit bloquer
 		}
 
+		console.log('✅ Validation réussie - Soumission autorisée');
 		isSubmitting = true;
 
 		return async ({ result, update }) => {
@@ -197,10 +203,11 @@
 	};
 
 	const handleCancelClick = () => {
-		console.log('❌ Édition annulée');
+		console.log('❌ Création annulée');
 		if (onCancel) {
 			onCancel();
 		}
+		resetForm();
 	};
 </script>
 
@@ -221,9 +228,21 @@
 				title="Informations Personnelles"
 				color={sectionColors.profile}
 			>
-				<div class="space-y-4">
-					<!-- ROW 1: Prénom & Nom -->
-					<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+				<section class="grid grid-cols-4 gap-4">
+					<!-- ROW 1: Prénom & Nom & Email & Téléphone -->
+					<div class="grid gap-2">
+						<SelectField
+							id="type"
+							name="type"
+							label="Type d'accueil"
+							bind:value={selectedType}
+							options={HOST_TYPE_OPTIONS}
+							size="sm"
+							disabled={isSubmitting}
+						/>
+					</div>
+
+					<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
 						<InputField
 							id="firstName"
 							name="firstName"
@@ -248,6 +267,28 @@
 							disabled={isSubmitting}
 						/>
 
+						<DatePicker
+							name="birthDate"
+							value={birthDate}
+							onSelect={(date) => (birthDate = date)}
+							label="Date de naissance"
+							error={getFieldError(fieldErrors, 'birthDate')}
+						/>
+
+						<SwitchField
+							id="isAvailable"
+							name="isAvailable"
+							label="Disponibilité"
+							checked={isAvailable ?? false}
+							checkedLabel="✓ Disponible"
+							uncheckedLabel="✗ Indisponible"
+							onChange={(value) => (isAvailable = value)}
+							disabled={isSubmitting}
+						/>
+					</div>
+
+					<!-- ROW 2: Date de naissance -->
+					<div class="grid gap-2">
 						<InputField
 							id="email"
 							name="email"
@@ -273,40 +314,13 @@
 							disabled={isSubmitting}
 						/>
 					</div>
-
-					<!-- ROW 2: Âge & Profession -->
-					<div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-						<InputField
-							id="age"
-							name="age"
-							label="Âge"
-							type="number"
-							bind:value={age}
-							placeholder="30"
-							error={getFieldError(fieldErrors, 'age')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<SelectField
-							id="type"
-							name="type"
-							label="Type d'accueil"
-							bind:value={selectedType}
-							options={HOST_TYPE_OPTIONS}
-							size="sm"
-							required
-							disabled={isSubmitting}
-						/>
-					</div>
-				</div>
+				</section>
 			</SectionCard>
 
 			<Separator />
 
 			<!-- 📍 SECTION 2: Adresse & Zone -->
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+			<div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
 				<!-- Adresse -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.address.icon}
@@ -326,31 +340,29 @@
 							disabled={isSubmitting}
 						/>
 
-						<div class="grid grid-cols-2 gap-4">
-							<InputField
-								id="city"
-								name="city"
-								label="Ville"
-								bind:value={city}
-								placeholder="Montpellier"
-								error={getFieldError(fieldErrors, 'city')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
+						<InputField
+							id="city"
+							name="city"
+							label="Ville"
+							bind:value={city}
+							placeholder="Montpellier"
+							error={getFieldError(fieldErrors, 'city')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
 
-							<InputField
-								id="postalCode"
-								name="postalCode"
-								label="Code Postal"
-								bind:value={postalCode}
-								placeholder="34000"
-								error={getFieldError(fieldErrors, 'postalCode')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
-						</div>
+						<InputField
+							id="postalCode"
+							name="postalCode"
+							label="Code Postal"
+							bind:value={postalCode}
+							placeholder="34000"
+							error={getFieldError(fieldErrors, 'postalCode')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
 
 						<SelectField
 							id="district"
@@ -374,11 +386,41 @@
 						<InputField
 							id="space"
 							name="space"
-							label="m2"
+							label="Espace (m²)"
+							type="number"
 							bind:value={space}
 							placeholder="60"
+							error={getFieldError(fieldErrors, 'space')}
 							required
 							size="sm"
+							disabled={isSubmitting}
+						/>
+
+						<!-- ✅ CHECKBOXES REMPLACÉES -->
+						<CheckboxField
+							id="outside"
+							name="outside"
+							label="Extérieur"
+							checked={outside}
+							onChange={(value) => (outside = value)}
+							disabled={isSubmitting}
+						/>
+
+						<CheckboxField
+							id="car"
+							name="car"
+							label="Voiture"
+							checked={car}
+							onChange={(value) => (car = value)}
+							disabled={isSubmitting}
+						/>
+
+						<CheckboxField
+							id="isStockFeed"
+							name="isStockFeed"
+							label="Nourriture au stock"
+							checked={isStockFeed}
+							onChange={(value) => (isStockFeed = value)}
 							disabled={isSubmitting}
 						/>
 
@@ -391,44 +433,6 @@
 							error={getFieldError(fieldErrors, 'presence')}
 							disabled={isSubmitting}
 						/>
-
-						<div class="space-y-2">
-							<label class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									bind:checked={outside}
-									disabled={isSubmitting}
-									value="true"
-									class="h-4 w-4 rounded border-gray-300"
-								/>
-								<span class="text-xs font-medium text-gray-700">Accès à l'extérieur</span>
-							</label>
-							<input type="hidden" name="outside" value={outside ? 'true' : 'false'} />
-
-							<label class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									bind:checked={car}
-									disabled={isSubmitting}
-									value="true"
-									class="h-4 w-4 rounded border-gray-300"
-								/>
-								<span class="text-xs font-medium text-gray-700">Transport en voiture</span>
-							</label>
-							<input type="hidden" name="car" value={car ? 'true' : 'false'} />
-
-							<label class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									bind:checked={isStockFeed}
-									disabled={isSubmitting}
-									value="true"
-									class="h-4 w-4 rounded border-gray-300"
-								/>
-								<span class="text-xs font-medium text-gray-700">Nourriture en stock</span>
-							</label>
-							<input type="hidden" name="isStockFeed" value={isStockFeed ? 'true' : 'false'} />
-						</div>
 					</div>
 				</SectionCard>
 
@@ -439,20 +443,14 @@
 					color={sectionColors.animals}
 				>
 					<div class="space-y-4">
-						<label class="flex items-center gap-2">
-							<input
-								type="checkbox"
-								bind:checked={hasAnimalsAtHome}
-								disabled={isSubmitting}
-								value="true"
-								class="h-4 w-4 rounded border-gray-300"
-							/>
-							<span class="text-xs font-medium text-gray-700">Animaux à la maison</span>
-						</label>
-						<input
-							type="hidden"
+						<!-- ✅ CHECKBOX REMPLACÉE -->
+						<CheckboxField
+							id="hasAnimalsAtHome"
 							name="hasAnimalsAtHome"
-							value={hasAnimalsAtHome ? 'true' : 'false'}
+							label="Animaux à la maison"
+							checked={hasAnimalsAtHome}
+							onChange={(value) => (hasAnimalsAtHome = value)}
+							disabled={isSubmitting}
 						/>
 
 						{#if hasAnimalsAtHome}
@@ -489,74 +487,49 @@
 						{/if}
 					</div>
 				</SectionCard>
-			</div>
 
-			<Separator />
-
-			<!-- 💪 SECTION 3: Capacités -->
-			<section class="grid grid-cols-3 gap-4">
-				<div class="col-span-2">
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.capacity.icon}
-						title="Capacités"
-						color={sectionColors.capacity}
-					>
-						<div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-							<SelectField
-								id="heal"
-								name="heal"
-								label="Soins"
-								bind:value={heal}
-								options={HOST_HEAL_OPTIONS}
-								size="sm"
-								required
-								disabled={isSubmitting}
-							/>
-
-							<SelectField
-								id="socialize"
-								name="socialize"
-								label="Socialisation"
-								bind:value={socialize}
-								options={HOST_SOCIALIZE_OPTIONS}
-								size="sm"
-								required
-								disabled={isSubmitting}
-							/>
-
-							<SelectField
-								id="babyFeeding"
-								name="babyFeeding"
-								label="Biberonage"
-								bind:value={babyFeeding}
-								options={HOST_BABY_FEEDING_OPTIONS}
-								size="sm"
-								required
-								disabled={isSubmitting}
-							/>
-						</div>
-					</SectionCard>
-				</div>
-				<div class="col-span-1">
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.availability.icon}
-						title={HOST_SECTION_CONFIG.availability.label}
-						color={sectionColors.availability}
-					>
-						<InputField
-							id="availabilityDuration"
-							name="availabilityDuration"
-							label="Durée disponibilité"
-							bind:value={availabilityDuration}
-							placeholder="1 mois, 3 mois..."
-							error={getFieldError(fieldErrors, 'availabilityDuration')}
-							required
+				<!-- Capacités -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.capacity.icon}
+					title="Capacités"
+					color={sectionColors.capacity}
+				>
+					<div class="grid grid-cols-1 gap-4">
+						<SelectField
+							id="heal"
+							name="heal"
+							label="Soins"
+							bind:value={heal}
+							options={HOST_HEAL_OPTIONS}
 							size="sm"
+							required
 							disabled={isSubmitting}
 						/>
-					</SectionCard>
-				</div>
-			</section>
+
+						<SelectField
+							id="socialize"
+							name="socialize"
+							label="Socialisation"
+							bind:value={socialize}
+							options={HOST_SOCIALIZE_OPTIONS}
+							size="sm"
+							required
+							disabled={isSubmitting}
+						/>
+
+						<SelectField
+							id="babyFeeding"
+							name="babyFeeding"
+							label="Biberonage"
+							bind:value={babyFeeding}
+							options={HOST_BABY_FEEDING_OPTIONS}
+							size="sm"
+							required
+							disabled={isSubmitting}
+						/>
+					</div>
+				</SectionCard>
+			</div>
 
 			<Separator />
 

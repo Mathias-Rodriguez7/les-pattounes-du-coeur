@@ -51,7 +51,7 @@ model Host {
   kittyAndKitten        Boolean     @default(true) @db.Boolean
   kitten                Int?       @map("kitten") @db.Integer     
   isAvailable           Boolean     @default(true) @db.Boolean // true if the host is available to take care of cats
-  additionalInformation String      @db.Text
+  additionalInformation String?      @db.Text
   hasAnimalsAtHome      Boolean     @map("is_animals-at-home") @db.Boolean
   numberOfCatsAtHome    Int?
   numberOfDogsAtHome    Int?

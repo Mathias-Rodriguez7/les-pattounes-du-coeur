@@ -1,6 +1,6 @@
 export const HOST_ACTIF_OPTIONS = [
-	{ value: 'ACTIVE', label: 'En activité' },
-	{ value: 'BREAK', label: 'En pause' },
+	{ value: 'ACTIVE', label: 'Activite' },
+	{ value: 'BREAK', label: 'Pause' },
 	{ value: 'STOP', label: 'Arrêté' }
 ] satisfies Array<{ value: string; label: string }>;
 
@@ -39,7 +39,6 @@ export const HOST_SECTION_CONFIG = {
 	home: { icon: 'house', label: "Zone d'accueil" },
 	animals: { icon: 'paw', label: 'Animaux' },
 	capacity: { icon: 'heart', label: 'Capacités' },
-	availability: { icon: 'Handshake', label: 'Colaboration' },
 	homeDescription: { icon: 'house', label: 'Description du domicile' },
 	outsideDescription: { icon: 'trees', label: 'Description du jardin' },
 	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt" },

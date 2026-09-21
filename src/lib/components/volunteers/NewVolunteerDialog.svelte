@@ -78,9 +78,7 @@
 	const handleEnhance: SubmitFunction = () => {
 		// ✅ Valide avant de soumettre
 		if (!validateForm()) {
-			return async () => {
-				// Ne pas soumettre si erreurs
-			};
+			return async () => {};
 		}
 
 		isSubmitting = true;

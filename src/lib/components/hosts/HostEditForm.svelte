@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
@@ -9,6 +8,9 @@
 	import { X } from '@lucide/svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
+	import SwitchField from '../fields/SwitchField.svelte';
+	import TextareaField from '../fields/TextareaField.svelte';
+	import CheckboxField from '../fields/CheckboxField.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import BlacklistButton from '../buttons/BlacklistButton.svelte';
@@ -21,8 +23,8 @@
 		HOST_SECTION_CONFIG
 	} from '$lib/constants/host';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import TextareaField from '../fields/TextareaField.svelte';
 	import type { HostEditData } from '$lib/server/hosts/schemas';
+	import DatePicker from '../fields/DatePicker.svelte';
 
 	let {
 		editData = $bindable<HostEditData>(),
@@ -146,7 +148,7 @@
 				/>
 			</div>
 
-			<div class="col-span-2 grid grid-cols-2 gap-4">
+			<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
 				<InputField
 					id="firstName"
 					name="firstName"
@@ -169,26 +171,24 @@
 					size="sm"
 				/>
 
-				<div class="flex items-end">
-					<div class="w-full space-y-2">
-						<label for="isAvailable" class="text-xs font-medium text-gray-700">Disponibilité</label>
-						<div class="flex items-center gap-2">
-							<Switch
-								id="isAvailable"
-								checked={editData.isAvailable ?? false}
-								onCheckedChange={(value) => (editData.isAvailable = value)}
-							/>
-							<input
-								type="hidden"
-								name="isAvailable"
-								value={editData.isAvailable ? 'true' : 'false'}
-							/>
-							<span class="text-xs text-gray-600">
-								{editData.isAvailable ? '✓ Disponible' : '✗ Indisponible'}
-							</span>
-						</div>
-					</div>
-				</div>
+				<DatePicker
+					name="birthDate"
+					value={editData.birthDate}
+					onSelect={(date) => {
+						editData.birthDate = date;
+					}}
+					label="Date d'anniversaire"
+				/>
+
+				<SwitchField
+					id="isAvailable"
+					name="isAvailable"
+					label="Disponibilité"
+					checked={editData.isAvailable ?? false}
+					checkedLabel="✓ Disponible"
+					uncheckedLabel="✗ Indisponible"
+					onChange={(value) => (editData.isAvailable = value)}
+				/>
 			</div>
 
 			<div class="grid gap-2">
@@ -221,7 +221,7 @@
 	<Separator />
 
 	<!-- 📍 SECTION 2: Adresse, Zone d'accueil, Animaux -->
-	<section class="grid grid-cols-3 gap-4">
+	<section class="grid grid-cols-4 gap-4">
 		<!-- Adresse -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.address.icon}
@@ -240,32 +240,30 @@
 					size="sm"
 				/>
 
-				<div class="flex gap-4">
-					<div>
-						<InputField
-							id="city"
-							name="city"
-							label="Ville"
-							bind:value={editData.city}
-							placeholder="Ville"
-							error={formErrors.city}
-							required
-							size="sm"
-						/>
-					</div>
+				<div>
+					<InputField
+						id="city"
+						name="city"
+						label="Ville"
+						bind:value={editData.city}
+						placeholder="Ville"
+						error={formErrors.city}
+						required
+						size="sm"
+					/>
+				</div>
 
-					<div>
-						<InputField
-							id="postalCode"
-							name="postalCode"
-							label="Code postal"
-							bind:value={editData.postalCode}
-							placeholder="75000"
-							error={formErrors.postalCode}
-							required
-							size="sm"
-						/>
-					</div>
+				<div>
+					<InputField
+						id="postalCode"
+						name="postalCode"
+						label="Code postal"
+						bind:value={editData.postalCode}
+						placeholder="75000"
+						error={formErrors.postalCode}
+						required
+						size="sm"
+					/>
 				</div>
 
 				<SelectField
@@ -296,6 +294,32 @@
 					size="sm"
 				/>
 
+				<div class="space-y-2">
+					<CheckboxField
+						id="outside"
+						name="outside"
+						label="Extérieur"
+						checked={editData.outside}
+						onChange={(value) => (editData.outside = value)}
+					/>
+
+					<CheckboxField
+						id="car"
+						name="car"
+						label="Voiture"
+						checked={editData.car}
+						onChange={(value) => (editData.car = value)}
+					/>
+
+					<CheckboxField
+						id="isStockFeed"
+						name="isStockFeed"
+						label="Stock"
+						checked={editData.isStockFeed}
+						onChange={(value) => (editData.isStockFeed = value)}
+					/>
+				</div>
+
 				<TextareaField
 					id="presence"
 					name="presence"
@@ -303,44 +327,6 @@
 					bind:value={editData.presence}
 					placeholder="Présence"
 				/>
-
-				<div class="space-y-2">
-					<label class="flex items-center gap-2">
-						<input
-							type="checkbox"
-							name="outside"
-							bind:checked={editData.outside}
-							value="true"
-							class="h-4 w-4 rounded border-gray-300"
-						/>
-						<span class="text-xs font-medium text-gray-700">Exterieur</span>
-					</label>
-					<input type="hidden" name="outside" value={editData.outside ? 'true' : 'false'} />
-
-					<label class="flex items-center gap-2">
-						<input
-							type="checkbox"
-							name="car"
-							bind:checked={editData.car}
-							value="true"
-							class="h-4 w-4 rounded border-gray-300"
-						/>
-						<span class="text-xs font-medium text-gray-700">Voiture</span>
-					</label>
-					<input type="hidden" name="car" value={editData.car ? 'true' : 'false'} />
-
-					<label class="flex items-center gap-2">
-						<input
-							type="checkbox"
-							name="isStockFeed"
-							bind:checked={editData.isStockFeed}
-							value="true"
-							class="h-4 w-4 rounded border-gray-300"
-						/>
-						<span class="text-xs font-medium text-gray-700">Stock</span>
-					</label>
-					<input type="hidden" name="isStockFeed" value={editData.isStockFeed ? 'true' : 'false'} />
-				</div>
 			</div>
 		</SectionCard>
 
@@ -351,50 +337,80 @@
 			color={sectionColors.animals}
 		>
 			<div class="space-y-4">
-				<label class="flex items-center gap-2">
-					<input
-						type="checkbox"
-						name="hasAnimalsAtHome"
-						bind:checked={editData.hasAnimalsAtHome}
-						value="true"
-						class="h-4 w-4 rounded border-gray-300"
-					/>
-					<span class="text-xs font-medium text-gray-700">Animaux au domicile</span>
-				</label>
-				<input
-					type="hidden"
+				<CheckboxField
+					id="hasAnimalsAtHome"
 					name="hasAnimalsAtHome"
-					value={editData.hasAnimalsAtHome ? 'true' : 'false'}
+					label="Animaux au domicile"
+					checked={editData.hasAnimalsAtHome}
+					onChange={(value) => (editData.hasAnimalsAtHome = value)}
 				/>
 
-				<div class="grid grid-cols-2 gap-2">
-					<label class="text-xs font-medium text-gray-700">Chats</label>
-					<InputField
-						id="numberOfCatsAtHome"
-						name="numberOfCatsAtHome"
-						bind:value={editData.numberOfCatsAtHome}
-						placeholder="0"
-						size="sm"
-					/>
-				</div>
+				{#if editData.hasAnimalsAtHome}
+					<div class="grid grid-cols-2 gap-2">
+						<label class="text-xs font-medium text-gray-700">Chats</label>
+						<InputField
+							id="numberOfCatsAtHome"
+							name="numberOfCatsAtHome"
+							bind:value={editData.numberOfCatsAtHome}
+							placeholder="0"
+							size="sm"
+						/>
+					</div>
 
-				<div class="grid grid-cols-2 gap-2">
-					<label class="text-xs font-medium text-gray-700">Chiens</label>
-					<InputField
-						id="numberOfDogsAtHome"
-						name="numberOfDogsAtHome"
-						bind:value={editData.numberOfDogsAtHome}
-						placeholder="0"
-						size="sm"
-					/>
-				</div>
+					<div class="grid grid-cols-2 gap-2">
+						<label class="text-xs font-medium text-gray-700">Chiens</label>
+						<InputField
+							id="numberOfDogsAtHome"
+							name="numberOfDogsAtHome"
+							bind:value={editData.numberOfDogsAtHome}
+							placeholder="0"
+							size="sm"
+						/>
+					</div>
 
-				<TextareaField
-					id="otherAnimalsAtHome"
-					name="otherAnimalsAtHome"
-					label="Autres"
-					bind:value={editData.otherAnimalsAtHome}
-					placeholder="Autres animaux..."
+					<TextareaField
+						id="otherAnimalsAtHome"
+						name="otherAnimalsAtHome"
+						label="Autres"
+						bind:value={editData.otherAnimalsAtHome}
+						placeholder="Autres animaux..."
+					/>
+				{/if}
+			</div>
+		</SectionCard>
+
+		<!-- Capacités -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.capacity.icon}
+			title={HOST_SECTION_CONFIG.capacity.label}
+			color={sectionColors.capacity}
+		>
+			<div class="grid grid-cols-1 gap-4">
+				<SelectField
+					id="heal"
+					name="heal"
+					label="Soins médicaux"
+					bind:value={editData.heal}
+					options={HOST_HEAL_OPTIONS}
+					size="sm"
+				/>
+
+				<SelectField
+					id="socialize"
+					name="socialize"
+					label="Socialisation"
+					bind:value={editData.socialize}
+					options={HOST_SOCIALIZE_OPTIONS}
+					size="sm"
+				/>
+
+				<SelectField
+					id="babyFeeding"
+					name="babyFeeding"
+					label="Biberonnage"
+					bind:value={editData.babyFeeding}
+					options={HOST_BABY_FEEDING_OPTIONS}
+					size="sm"
 				/>
 			</div>
 		</SectionCard>
@@ -402,49 +418,7 @@
 
 	<Separator />
 
-	<!-- 💪 SECTION 3: Capacités et Disponibilité -->
-	<section class="grid grid-cols-3 gap-4">
-		<div class="col-span-2">
-			<SectionCard
-				icon={HOST_SECTION_CONFIG.capacity.icon}
-				title={HOST_SECTION_CONFIG.capacity.label}
-				color={sectionColors.capacity}
-			>
-				<div class="grid grid-cols-3 gap-4">
-					<SelectField
-						id="heal"
-						name="heal"
-						label="Soins médicaux"
-						bind:value={editData.heal}
-						options={HOST_HEAL_OPTIONS}
-						size="sm"
-					/>
-
-					<SelectField
-						id="socialize"
-						name="socialize"
-						label="Socialisation"
-						bind:value={editData.socialize}
-						options={HOST_SOCIALIZE_OPTIONS}
-						size="sm"
-					/>
-
-					<SelectField
-						id="babyFeeding"
-						name="babyFeeding"
-						label="Biberonnage"
-						bind:value={editData.babyFeeding}
-						options={HOST_BABY_FEEDING_OPTIONS}
-						size="sm"
-					/>
-				</div>
-			</SectionCard>
-		</div>
-	</section>
-
-	<Separator />
-
-	<!-- 📝 SECTION 4: Descriptions -->
+	<!-- 📝 SECTION 3: Descriptions -->
 	<section class="space-y-4">
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.homeDescription.icon}
@@ -507,7 +481,7 @@
 
 	<Separator />
 
-	<!-- ✅ SECTION 5: Actions (Boutons) -->
+	<!-- ✅ SECTION 4: Actions (Boutons) -->
 	<section class="flex justify-between">
 		<div class="flex gap-4">
 			<BlacklistButton

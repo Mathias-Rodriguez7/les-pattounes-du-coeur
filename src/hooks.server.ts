@@ -1,6 +1,19 @@
 import type { Handle } from '@sveltejs/kit';
+import type { VolunteerRole } from '@prisma/client';
 import prisma from '$lib/server/prisma';
 
+// ✅ Définir le type de l'utilisateur
+export interface AppUser {
+	id: string;
+	role: VolunteerRole;
+	profil: {
+		firstName: string;
+		lastName: string;
+		email: string;
+	};
+}
+
+// ✅ Utiliser app.d.ts à la place
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('session');
 
