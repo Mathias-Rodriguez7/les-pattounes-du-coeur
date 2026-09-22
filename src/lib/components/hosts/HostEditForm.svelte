@@ -23,7 +23,6 @@
 		HOST_SECTION_CONFIG
 	} from '$lib/constants/host';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import type { HostEditData } from '$lib/server/hosts/schemas';
 	import DatePicker from '../fields/DatePicker.svelte';
 
 	let {
@@ -101,7 +100,6 @@
 		home: 'blue',
 		animals: 'orange',
 		capacity: 'indigo',
-		availability: 'emerald',
 		homeDescription: 'blue',
 		outsideDescription: 'green',
 		stopActivity: 'red',

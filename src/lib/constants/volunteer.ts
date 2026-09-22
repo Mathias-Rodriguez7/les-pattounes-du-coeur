@@ -9,3 +9,10 @@ export const VOLUNTEER_ROLE_OPTIONS = [
 	{ value: 'MANAGER', label: 'Manager' },
 	{ value: 'COMMUNICATION', label: 'Communication' }
 ] satisfies Array<{ value: string; label: string }>;
+
+export const VOLUNTEER_SECTION_CONFIG = {
+	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	address: { icon: 'map', label: 'Adresse', color: 'gray' },
+	cats: { icon: 'cat', label: 'Chats en gestion', color: 'orange' },
+	forms: { icon: 'clipboard', label: 'Formulaires assignés', color: 'green' }
+} as const;

@@ -21,7 +21,9 @@
 		FORM_TYPES,
 		STATUS_CONFIG
 	} from '$lib/types/';
+	import { VOLUNTEER_SECTION_CONFIG } from '$lib/constants/volunteer';
 	import type { Form } from '@prisma/client';
+	import SectionCard from '../cards/SectionCard.svelte';
 
 	const {
 		volunteer,
@@ -222,104 +224,117 @@
 			<!-- Contenu principal -->
 			<Card.Content class="grid grid-cols-1 gap-6">
 				<Separator />
-				<div class="space-y-6">
-					<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
-					<div class="grid grid-cols-3 gap-x-6 gap-y-2">
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Adresse</p>
-							<p class="text-sm font-semibold">{volunteer.profil.address || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Ville</p>
-							<p class="text-sm font-semibold">{volunteer.profil.city || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Code postal</p>
-							<p class="text-sm font-semibold">{volunteer.profil.postalCode || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Quartier</p>
-							<p class="text-sm font-semibold">
-								{DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS] ||
-									volunteer.profil.district ||
-									'-'}
-							</p>
+				<SectionCard
+					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+					title={VOLUNTEER_SECTION_CONFIG.address.label}
+					color={VOLUNTEER_SECTION_CONFIG.address.color}
+				>
+					<div class="space-y-6">
+						<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
+						<div class="grid grid-cols-3 gap-x-6 gap-y-2">
+							<div>
+								<p class="text-muted-foreground text-sm font-medium">Adresse</p>
+								<p class="text-sm font-semibold">{volunteer.profil.address || '-'}</p>
+							</div>
+							<div>
+								<p class="text-muted-foreground text-sm font-medium">Ville</p>
+								<p class="text-sm font-semibold">{volunteer.profil.city || '-'}</p>
+							</div>
+							<div>
+								<p class="text-muted-foreground text-sm font-medium">Code postal</p>
+								<p class="text-sm font-semibold">{volunteer.profil.postalCode || '-'}</p>
+							</div>
+							<div>
+								<p class="text-muted-foreground text-sm font-medium">Quartier</p>
+								<p class="text-sm font-semibold">
+									{DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS] ||
+										volunteer.profil.district ||
+										'-'}
+								</p>
+							</div>
 						</div>
 					</div>
-				</div>
-
+				</SectionCard>
 				<Separator />
 
 				<!-- Chats et Formulaires -->
-				<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+				<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 					<!-- CHATS EN GESTION -->
-					<div>
-						<h4 class="mb-4 text-base font-semibold text-gray-900">Chats en gestion</h4>
-						<Table.Root class="min-h-125">
-							<Table.Header>
-								<Table.Row>
-									<Table.Head>Chat</Table.Head>
-									<Table.Head>Statut</Table.Head>
-									<Table.Head>FA</Table.Head>
-								</Table.Row>
-							</Table.Header>
-							<Table.Body>
-								{#each paginatedCats as cat (cat.catId)}
+					<div class="col-span-2 grid">
+						<SectionCard
+							icon={VOLUNTEER_SECTION_CONFIG.cats.icon}
+							title={VOLUNTEER_SECTION_CONFIG.cats.label}
+							color={VOLUNTEER_SECTION_CONFIG.cats.color}
+						>
+							<Table.Root class="min-h-125">
+								<Table.Header>
 									<Table.Row>
-										<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
-										<Table.Cell>
-											<Badge class={getBadgeClass(cat.catStatus)}>
-												{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
-											</Badge>
-										</Table.Cell>
-										<Table.Cell>
-											{#if cat.hasPlacement}
-												<span class="font-semibold text-gray-900">
-													{cat.hostFirstName}
-													{cat.hostLastName}
-												</span>
-											{:else}
-												<span class="text-gray-400">-</span>
-											{/if}
-										</Table.Cell>
+										<Table.Head>Chat</Table.Head>
+										<Table.Head>Statut</Table.Head>
+										<Table.Head>FA</Table.Head>
 									</Table.Row>
-								{/each}
-							</Table.Body>
-						</Table.Root>
+								</Table.Header>
+								<Table.Body>
+									{#each paginatedCats as cat (cat.catId)}
+										<Table.Row>
+											<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
+											<Table.Cell>
+												<Badge class={getBadgeClass(cat.catStatus)}>
+													{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
+												</Badge>
+											</Table.Cell>
+											<Table.Cell>
+												{#if cat.hasPlacement}
+													<span class="font-semibold text-gray-900">
+														{cat.hostFirstName}
+														{cat.hostLastName}
+													</span>
+												{:else}
+													<span class="text-gray-400">-</span>
+												{/if}
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
 
-						<!-- Pagination -->
-						<div class="mt-4 flex justify-center">
-							<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
-								{#snippet children({ pages, currentPage: cp })}
-									<Pagination.Content>
-										<Pagination.Item>
-											<Pagination.Previous />
-										</Pagination.Item>
-										{#each pages as page (page.key)}
-											{#if page.type === 'ellipsis'}
-												<Pagination.Item>
-													<Pagination.Ellipsis />
-												</Pagination.Item>
-											{:else}
-												<Pagination.Item>
-													<Pagination.Link {page} isActive={cp === page.value}>
-														{page.value}
-													</Pagination.Link>
-												</Pagination.Item>
-											{/if}
-										{/each}
-										<Pagination.Item>
-											<Pagination.Next />
-										</Pagination.Item>
-									</Pagination.Content>
-								{/snippet}
-							</Pagination.Root>
-						</div>
+							<!-- Pagination -->
+							<div class="mt-4 flex justify-center">
+								<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
+									{#snippet children({ pages, currentPage: cp })}
+										<Pagination.Content>
+											<Pagination.Item>
+												<Pagination.Previous />
+											</Pagination.Item>
+											{#each pages as page (page.key)}
+												{#if page.type === 'ellipsis'}
+													<Pagination.Item>
+														<Pagination.Ellipsis />
+													</Pagination.Item>
+												{:else}
+													<Pagination.Item>
+														<Pagination.Link {page} isActive={cp === page.value}>
+															{page.value}
+														</Pagination.Link>
+													</Pagination.Item>
+												{/if}
+											{/each}
+											<Pagination.Item>
+												<Pagination.Next />
+											</Pagination.Item>
+										</Pagination.Content>
+									{/snippet}
+								</Pagination.Root>
+							</div>
+						</SectionCard>
 					</div>
 
 					<!-- FORMULAIRES ASSIGNÉS -->
-					<div>
-						<h4 class="mb-4 text-base font-semibold text-gray-900">Formulaires assignés</h4>
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.forms.icon}
+						title={VOLUNTEER_SECTION_CONFIG.forms.label}
+						color={VOLUNTEER_SECTION_CONFIG.forms.color}
+					>
 						<div class="space-y-2">
 							{#each FORM_TYPES as type (type)}
 								<div
@@ -343,7 +358,7 @@
 								</div>
 							{/each}
 						</div>
-					</div>
+					</SectionCard>
 				</div>
 			</Card.Content>
 		{:else}

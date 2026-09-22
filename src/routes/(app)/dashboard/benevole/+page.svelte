@@ -176,7 +176,6 @@
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Statut</Table.Head>
 							<Table.Head>Nom</Table.Head>
 							<Table.Head
 								class="hover:bg-muted cursor-pointer transition-colors"
