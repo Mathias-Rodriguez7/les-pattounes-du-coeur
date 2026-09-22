@@ -43,7 +43,6 @@
 
 		// Zone d'accueil
 		space: 0,
-		presence: '',
 		outside: false,
 		car: false,
 		isStockFeed: false,
@@ -59,8 +58,14 @@
 		socialize: 'NO' as Socialize,
 		babyFeeding: 'NO' as BabyFeeding,
 
-		// Descriptions et durée
+		// Cat
+		catAdult: 0,
+		kittyAndKitten: false,
+		kitten: 0,
+
+		// Descriptions
 		homeDescription: '',
+		presence: '',
 		outsideDescription: '',
 		stopActivity: '',
 		additionalInformation: ''
@@ -71,6 +76,7 @@
 		if (!host) return;
 
 		editData = {
+			// Profil
 			firstName: host.profil.firstName,
 			lastName: host.profil.lastName,
 			birthDate: host.profil.birthDate ? new Date(host.profil.birthDate) : new Date(),
@@ -80,24 +86,38 @@
 			address: host.profil.address,
 			city: host.profil.city,
 			postalCode: host.profil.postalCode,
+
+			// Host spécifiques
 			actif: host.actif || '',
 			type: host.type || '',
 			isAvailable: host.isAvailable,
+
+			// Zone d'accueil
 			space: host.space,
-			presence: host.presence,
 			outside: host.outside,
 			car: host.car,
 			isStockFeed: host.isStockFeed,
+
+			// Animaux
 			hasAnimalsAtHome: host.hasAnimalsAtHome,
 			numberOfCatsAtHome: host.numberOfCatsAtHome || 0,
 			numberOfDogsAtHome: host.numberOfDogsAtHome || 0,
 			otherAnimalsAtHome: host.otherAnimalsAtHome || '',
+
+			// Capacités
 			heal: host.heal,
 			socialize: host.socialize,
 			babyFeeding: host.babyFeeding,
+
+			// Cat
+			catAdult: host.catAdult || 0,
+			kittyAndKitten: host.kittyAndKitten,
+			kitten: host.kitten || 0,
+
+			// Descriptions
 			homeDescription: host.homeDescription,
+			presence: host.presence,
 			outsideDescription: host.outsideDescription || '',
-			availabilityDuration: host.availabilityDuration,
 			stopActivity: host.stopActivity,
 			additionalInformation: host.additionalInformation
 		};
@@ -138,7 +158,6 @@
 		host.babyFeeding = editData.babyFeeding;
 		host.homeDescription = editData.homeDescription;
 		host.outsideDescription = editData.outsideDescription;
-		host.availabilityDuration = editData.availabilityDuration;
 		host.stopActivity = editData.stopActivity;
 		host.additionalInformation = editData.additionalInformation;
 
@@ -165,18 +184,6 @@
 		RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
 	};
 
-	const SECTION_CONFIG = {
-		address: { icon: 'map', label: 'Adresse' },
-		home: { icon: 'house', label: "Zone d'acceuil" },
-		animals: { icon: 'paw', label: 'Animaux' },
-		capacity: { icon: 'heart', label: 'Capacités' },
-		availability: { icon: 'Handshake', label: 'Colaboration' },
-		homeDescription: { icon: 'house', label: 'Description du domicile' },
-		outsideDescription: { icon: 'trees', label: 'Description du jardin' },
-		stopActivity: { icon: 'CircleX', label: "Raison d'arrêt" },
-		additionalInformation: { icon: 'plus', label: 'Infos additionnelles' }
-	};
-
 	// États dérivés
 	const fullName = $derived(host ? `${host.profil.firstName} ${host.profil.lastName}` : '');
 	const location = $derived(
@@ -184,6 +191,7 @@
 			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
 			: host?.profil.city || '—'
 	);
+
 	const currentStatus = $derived(
 		host?.actif && host.actif in STATUS_CONFIG ? STATUS_CONFIG[host.actif] : STATUS_CONFIG.ACTIVE
 	);
@@ -213,18 +221,6 @@
 				(p.type === 'LONG' || p.type === 'SHORT') && p.isActive
 		) || []
 	);
-
-	const sectionColors = {
-		profile: 'emerald',
-		address: 'gray',
-		home: 'blue',
-		animals: 'orange',
-		capacity: 'indigo',
-		homeDescription: 'blue',
-		outsideDescription: 'green',
-		stopActivity: 'red',
-		additionalInformation: 'gray'
-	} as const satisfies Record<keyof typeof HOST_SECTION_CONFIG, string>;
 </script>
 
 {#if host}
@@ -269,43 +265,6 @@
 								</Badge>
 							</div>
 						</div>
-
-						<!-- Droite : Contact -->
-						<div class="flex flex-col justify-between">
-							<div>
-								<span class="text-sm font-medium">Expérience d'accueil</span>
-								<div class="mt-2 flex gap-2">
-									<Badge class="bg-purple-100 text-xs text-purple-800">
-										🔵 Long: {placementStats.long}
-									</Badge>
-									<Badge class="bg-orange-100 text-xs text-orange-800">
-										🟠 Relais: {placementStats.short}
-									</Badge>
-									<Badge class="bg-blue-100 text-xs text-blue-800">
-										Total: {placementStats.total}
-									</Badge>
-								</div>
-							</div>
-
-							<div class="flex items-end gap-6">
-								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-									<a
-										href="mailto:{host.profil.email}"
-										class="truncate text-sm text-blue-600 hover:underline"
-										title={host.profil.email}
-									>
-										{truncate(host.profil.email, 28)}
-									</a>
-								</div>
-								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-									<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
-										{host.profil.phone || '—'}
-									</a>
-								</div>
-							</div>
-						</div>
 					</div>
 
 					<!-- Bouton édition -->
@@ -320,54 +279,104 @@
 			<!-- Contenu principal -->
 			<Card.Content class="space-y-6 overflow-y-auto">
 				<Separator />
-
-				<!-- Grille 2 colonnes : Adresse & Infos maison + Capacités -->
-				<section class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-					<!-- Adresse -->
+				<section class="grid grid-cols-5 gap-4">
+					<!-- Experience -->
 					<SectionCard
-						icon={HOST_SECTION_CONFIG.address.icon}
-						title={HOST_SECTION_CONFIG.address.label}
-						color={sectionColors.address}
+						icon={HOST_SECTION_CONFIG.Experience.icon}
+						title={HOST_SECTION_CONFIG.Experience.label}
+						color={HOST_SECTION_CONFIG.Experience.color}
 					>
-						<div class="mb-3 flex items-center gap-2">
-							<Icon name={SECTION_CONFIG.address.icon} class="h-5 w-5 text-slate-700" />
-							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.address.label}</h4>
-						</div>
-						<div class="space-y-2 text-xs">
+						<!-- Experience -->
+						<div class="col-span-1 flex flex-col justify-between">
 							<div>
-								<p class="text-muted-foreground font-medium">Rue</p>
-								<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
-							</div>
-							<div class="grid grid-cols-2 gap-2">
-								<div>
-									<p class="text-muted-foreground font-medium">Ville</p>
-									<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
+								<div class="ml-6 grid gap-4">
+									<Badge class="bg-purple-100 text-xs text-purple-800">
+										🔵 Long: {placementStats.long}
+									</Badge>
+									<Badge class="bg-orange-100 text-xs text-orange-800">
+										🟠 Relais: {placementStats.short}
+									</Badge>
+									<Badge class="bg-blue-100 text-xs text-blue-800">
+										Total: {placementStats.total}
+									</Badge>
 								</div>
-								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
-									<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
-								</div>
-							</div>
-							<div>
-								<p class="text-muted-foreground font-medium">Quartier</p>
-								<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
 							</div>
 						</div>
 					</SectionCard>
 
+					<div class="col-span-4 grid grid-cols-2 gap-4">
+						<!-- Adresse -->
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.address.icon}
+							title={HOST_SECTION_CONFIG.address.label}
+							color={HOST_SECTION_CONFIG.address.color}
+						>
+							<div class="grid gap-4">
+								<div class="col-span-2 ml-6 gap-4 space-y-2 text-sm">
+									<div>
+										<p class="text-muted-foreground font-medium">Rue</p>
+										<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
+									</div>
+									<div class="flex gap-4">
+										<div>
+											<p class="text-muted-foreground font-medium">Ville</p>
+											<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
+										</div>
+										<div>
+											<p class="text-muted-foreground font-medium">CP</p>
+											<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
+										</div>
+
+										<div>
+											<p class="text-muted-foreground font-medium">Quartier</p>
+											<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
+										</div>
+									</div>
+								</div>
+							</div>
+						</SectionCard>
+
+						<!-- Contact -->
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.contact.icon}
+							title={HOST_SECTION_CONFIG.contact.label}
+							color={HOST_SECTION_CONFIG.contact.color}
+						>
+							<div class="ml-6 grid gap-4">
+								<div class="flex items-center gap-2">
+									<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
+									<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
+										{host.profil.phone || '—'}
+									</a>
+								</div>
+
+								<div class="flex items-center gap-2">
+									<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
+									<a
+										href="mailto:{host.profil.email}"
+										class="truncate text-sm text-blue-600 hover:underline"
+										title={host.profil.email}
+									>
+										{truncate(host.profil.email, 28)}
+									</a>
+								</div>
+							</div>
+						</SectionCard>
+					</div>
+				</section>
+				<Separator />
+
+				<!-- Grille 2 colonnes : Adresse & Infos maison + Capacités -->
+				<section class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 					<!-- Zone d'accueil -->
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.home.icon}
 						title={HOST_SECTION_CONFIG.home.label}
-						color={sectionColors.home}
+						color={HOST_SECTION_CONFIG.home.color}
 					>
-						<div class="mb-3 flex items-center gap-2">
-							<Icon name={SECTION_CONFIG.home.icon} class="h-5 w-5 text-blue-700" />
-							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.home.label}</h4>
-						</div>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Espace</span>
+								<span class="items-centern flex gap-1 text-sm">Espace</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
 									{host.space || '—'} m2
 								</Badge>
@@ -375,22 +384,17 @@
 
 							<div class="space-y-1">
 								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground font-medium">Exterieur</span>
+									<span class="items-centern flex gap-1 text-sm">Exterieur</span>
 									<BooleanIcon value={host.outside} />
 								</div>
 								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground font-medium">Voiture</span>
+									<span class="items-centern flex gap-1 text-sm">Voiture</span>
 									<BooleanIcon value={host.car} />
 								</div>
 								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground font-medium">Stock</span>
+									<span class="items-centern flex gap-1 text-sm">Stock</span>
 									<BooleanIcon value={host.isStockFeed} />
 								</div>
-							</div>
-							<Separator />
-							<div class="grid items-center gap-2">
-								<span class="text-muted-foreground font-medium">Présence</span>
-								<span class="font-medium text-gray-900">{host.presence || '—'}</span>
 							</div>
 						</div>
 					</SectionCard>
@@ -399,34 +403,30 @@
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.animals.icon}
 						title={HOST_SECTION_CONFIG.animals.label}
-						color={sectionColors.animals}
+						color={HOST_SECTION_CONFIG.animals.color}
 					>
-						<div class="mb-3 flex items-center gap-2">
-							<Icon name={SECTION_CONFIG.animals.icon} class="h-5 w-5 text-orange-700" />
-							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.animals.label}</h4>
-						</div>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-								<span class="text-muted-foreground font-medium">Présents</span>
+								<span class="text-muted-foreground font-medium">Animeaux dans le foyer</span>
 								<BooleanIcon value={host.hasAnimalsAtHome} />
 							</div>
 							{#if host.hasAnimalsAtHome}
 								<div class="space-y-1">
 									<div class="flex items-center justify-between">
-										<span class="flex items-center gap-1">🐱 Chats</span>
+										<span class="items-centern flex gap-1 text-sm">🐱 Chats</span>
 										<Badge variant="outline" class="h-fit text-xs">
 											{host.numberOfCatsAtHome || 0}
 										</Badge>
 									</div>
 									<div class="flex items-center justify-between">
-										<span class="flex items-center gap-1">🐕 Chiens</span>
+										<span class="items-centern flex gap-1 text-sm">🐕 Chiens</span>
 										<Badge variant="outline" class="h-fit text-xs">
 											{host.numberOfDogsAtHome || 0}
 										</Badge>
 									</div>
 									{#if host.otherAnimalsAtHome}
 										<div class="flex items-center justify-between">
-											<span class="flex items-center gap-1">🐾 Autres</span>
+											<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
 											<Badge variant="outline" class="h-fit text-xs">
 												{host.otherAnimalsAtHome}
 											</Badge>
@@ -443,29 +443,52 @@
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.capacity.icon}
 						title={HOST_SECTION_CONFIG.capacity.label}
-						color={sectionColors.capacity}
+						color={HOST_SECTION_CONFIG.capacity.color}
 					>
-						<div class="mb-3 flex items-center gap-2">
-							<Icon name={SECTION_CONFIG.capacity.icon} class="h-5 w-5 text-indigo-700" />
-							<h4 class="text-sm font-semibold text-gray-900">{SECTION_CONFIG.capacity.label}</h4>
-						</div>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground text-xs font-medium">Soins</p>
+								<p class="text-muted-foregroundfont-medium">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{healLabel[host.heal as Heal]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground text-xs font-medium">Socialisation</p>
+								<p class="text-muted-foreground font-medium">Socialisation</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{socializeLabel[host.socialize as Socialize]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground text-xs font-medium">Biberonnage</p>
+								<p class="text-muted-foreground font-medium">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{babyFeedingLabel[host.babyFeeding as BabyFeeding]}
+								</Badge>
+							</div>
+						</div>
+					</SectionCard>
+
+					<!-- Type de chat -->
+					<SectionCard
+						icon={HOST_SECTION_CONFIG.cat.icon}
+						title={HOST_SECTION_CONFIG.cat.label}
+						color={HOST_SECTION_CONFIG.cat.color}
+					>
+						<div class="space-y-3">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground font-medium">Chat adulte</span>
+								<Badge class="bg-blue-100 text-xs text-blue-800">
+									{host.catAdult || '—'}
+								</Badge>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground font-medium">Chatte avec portée</span>
+								<BooleanIcon value={host.kittyAndKitten} />
+							</div>
+
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground font-medium">Chaton</span>
+								<Badge class="bg-blue-100 text-xs text-blue-800">
+									{host.kitten || '—'}
 								</Badge>
 							</div>
 						</div>
@@ -480,14 +503,19 @@
 						<SectionCard
 							icon={HOST_SECTION_CONFIG.homeDescription.icon}
 							title={HOST_SECTION_CONFIG.homeDescription.label}
-							color={sectionColors.homeDescription}
+							color={HOST_SECTION_CONFIG.homeDescription.color}
 						>
-							<div class="mb-3 flex items-center gap-2">
-								<h4 class="text-sm font-semibold text-gray-900">
-									{SECTION_CONFIG.homeDescription.label}
-								</h4>
-							</div>
-							<p class="text-xs text-gray-700">{host.homeDescription}</p>
+							<p class="text-sm text-gray-700">{host.homeDescription}</p>
+						</SectionCard>
+					{/if}
+
+					{#if host.presence}
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.presence.icon}
+							title={HOST_SECTION_CONFIG.presence.label}
+							color={HOST_SECTION_CONFIG.presence.color}
+						>
+							<p class="text-sm text-gray-700">{host.presence}</p>
 						</SectionCard>
 					{/if}
 
@@ -495,14 +523,9 @@
 						<SectionCard
 							icon={HOST_SECTION_CONFIG.outsideDescription.icon}
 							title={HOST_SECTION_CONFIG.outsideDescription.label}
-							color={sectionColors.outsideDescription}
+							color={HOST_SECTION_CONFIG.outsideDescription.color}
 						>
-							<div class="mb-3 flex items-center gap-2">
-								<h4 class="text-sm font-semibold text-gray-900">
-									{SECTION_CONFIG.outsideDescription.label}
-								</h4>
-							</div>
-							<p class="text-xs text-gray-700">{host.outsideDescription}</p>
+							<p class="text-sm text-gray-700">{host.outsideDescription}</p>
 						</SectionCard>
 					{/if}
 
@@ -510,14 +533,9 @@
 						<SectionCard
 							icon={HOST_SECTION_CONFIG.stopActivity.icon}
 							title={HOST_SECTION_CONFIG.stopActivity.label}
-							color={sectionColors.stopActivity}
+							color={HOST_SECTION_CONFIG.stopActivity.color}
 						>
-							<div class="mb-3 flex items-center gap-2">
-								<h4 class="text-sm font-semibold text-gray-900">
-									{SECTION_CONFIG.stopActivity.label}
-								</h4>
-							</div>
-							<p class="text-xs text-gray-700">{host.stopActivity}</p>
+							<p class="text-sm text-gray-700">{host.stopActivity}</p>
 						</SectionCard>
 					{/if}
 
@@ -525,14 +543,9 @@
 						<SectionCard
 							icon={HOST_SECTION_CONFIG.additionalInformation.icon}
 							title={HOST_SECTION_CONFIG.additionalInformation.label}
-							color={sectionColors.additionalInformation}
+							color={HOST_SECTION_CONFIG.additionalInformation.color}
 						>
-							<div class="mb-3 flex items-center gap-2">
-								<h4 class="text-sm font-semibold text-gray-900">
-									{SECTION_CONFIG.additionalInformation.label}
-								</h4>
-							</div>
-							<p class="text-xs text-gray-700">{host.additionalInformation}</p>
+							<p class="text-sm text-gray-700">{host.additionalInformation}</p>
 						</SectionCard>
 					{/if}
 				</section>

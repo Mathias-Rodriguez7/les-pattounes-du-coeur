@@ -11,6 +11,7 @@ export const VOLUNTEER_ROLE_OPTIONS = [
 ] satisfies Array<{ value: string; label: string }>;
 
 export const VOLUNTEER_SECTION_CONFIG = {
+	statuts: { icon: 'user', label: 'Statuts', color: 'emerald' },
 	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
 	address: { icon: 'map', label: 'Adresse', color: 'gray' },
 	cats: { icon: 'cat', label: 'Chats en gestion', color: 'orange' },

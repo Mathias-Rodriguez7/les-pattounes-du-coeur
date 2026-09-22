@@ -22,6 +22,7 @@
 		HOST_BABY_FEEDING_OPTIONS,
 		HOST_SECTION_CONFIG
 	} from '$lib/constants/host';
+	import type { HostEditData } from '$types/host';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 
@@ -93,18 +94,6 @@
 	let districtOptions = $derived(
 		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
 	);
-
-	const sectionColors = {
-		profile: 'emerald',
-		address: 'gray',
-		home: 'blue',
-		animals: 'orange',
-		capacity: 'indigo',
-		homeDescription: 'blue',
-		outsideDescription: 'green',
-		stopActivity: 'red',
-		additionalInformation: 'gray'
-	} as const satisfies Record<keyof typeof HOST_SECTION_CONFIG, string>;
 </script>
 
 <form method="POST" action="?/updateHost" use:enhance={handleUpdateEnhance} class="space-y-6">
@@ -118,13 +107,14 @@
 	</div>
 
 	<!-- 📋 SECTION 1: Statuts et Infos Personnelles -->
-	<SectionCard
-		icon={HOST_SECTION_CONFIG.profile.icon}
-		title={HOST_SECTION_CONFIG.profile.label}
-		color={sectionColors.profile}
-	>
-		<section class="grid grid-cols-4 gap-4">
-			<div class="grid gap-2">
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Statu -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.statuts.icon}
+			title={HOST_SECTION_CONFIG.statuts.label}
+			color={HOST_SECTION_CONFIG.statuts.color}
+		>
+			<div class="grid grid-cols-2 gap-4">
 				<SelectField
 					id="actif"
 					name="actif"
@@ -144,8 +134,25 @@
 					size="sm"
 					required
 				/>
-			</div>
 
+				<SwitchField
+					id="isAvailable"
+					name="isAvailable"
+					label="Disponibilité"
+					checked={editData.isAvailable ?? false}
+					checkedLabel="✓ Disponible"
+					uncheckedLabel="✗ Indisponible"
+					onChange={(value) => (editData.isAvailable = value)}
+				/>
+			</div>
+		</SectionCard>
+
+		<!-- Profil -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.profile.icon}
+			title={HOST_SECTION_CONFIG.profile.label}
+			color={HOST_SECTION_CONFIG.profile.color}
+		>
 			<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
 				<InputField
 					id="firstName"
@@ -177,18 +184,71 @@
 					}}
 					label="Date d'anniversaire"
 				/>
-
-				<SwitchField
-					id="isAvailable"
-					name="isAvailable"
-					label="Disponibilité"
-					checked={editData.isAvailable ?? false}
-					checkedLabel="✓ Disponible"
-					uncheckedLabel="✗ Indisponible"
-					onChange={(value) => (editData.isAvailable = value)}
-				/>
 			</div>
+		</SectionCard>
+	</section>
 
+	<Separator />
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Adresse -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.address.icon}
+			title={HOST_SECTION_CONFIG.address.label}
+			color={HOST_SECTION_CONFIG.address.color}
+		>
+			<div class="space-y-4">
+				<InputField
+					id="address"
+					name="address"
+					label="Rue"
+					bind:value={editData.address}
+					placeholder="Adresse"
+					error={formErrors.address}
+					required
+					size="sm"
+				/>
+
+				<div class="flex gap-4">
+					<InputField
+						id="city"
+						name="city"
+						label="Ville"
+						bind:value={editData.city}
+						placeholder="Ville"
+						error={formErrors.city}
+						required
+						size="sm"
+					/>
+
+					<InputField
+						id="postalCode"
+						name="postalCode"
+						label="Code postal"
+						bind:value={editData.postalCode}
+						placeholder="75000"
+						error={formErrors.postalCode}
+						required
+						size="sm"
+					/>
+
+					<SelectField
+						id="district"
+						name="district"
+						label="Quartier"
+						bind:value={editData.district}
+						options={districtOptions}
+						size="sm"
+					/>
+				</div>
+			</div>
+		</SectionCard>
+
+		<!-- Contact -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.contact.icon}
+			title={HOST_SECTION_CONFIG.contact.label}
+			color={HOST_SECTION_CONFIG.contact.color}
+		>
 			<div class="grid gap-2">
 				<InputField
 					id="email"
@@ -213,73 +273,18 @@
 					size="sm"
 				/>
 			</div>
-		</section>
-	</SectionCard>
+		</SectionCard>
+	</section>
 
 	<Separator />
 
 	<!-- 📍 SECTION 2: Adresse, Zone d'accueil, Animaux -->
 	<section class="grid grid-cols-4 gap-4">
-		<!-- Adresse -->
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.address.icon}
-			title={HOST_SECTION_CONFIG.address.label}
-			color={sectionColors.address}
-		>
-			<div class="space-y-4">
-				<InputField
-					id="address"
-					name="address"
-					label="Rue"
-					bind:value={editData.address}
-					placeholder="Adresse"
-					error={formErrors.address}
-					required
-					size="sm"
-				/>
-
-				<div>
-					<InputField
-						id="city"
-						name="city"
-						label="Ville"
-						bind:value={editData.city}
-						placeholder="Ville"
-						error={formErrors.city}
-						required
-						size="sm"
-					/>
-				</div>
-
-				<div>
-					<InputField
-						id="postalCode"
-						name="postalCode"
-						label="Code postal"
-						bind:value={editData.postalCode}
-						placeholder="75000"
-						error={formErrors.postalCode}
-						required
-						size="sm"
-					/>
-				</div>
-
-				<SelectField
-					id="district"
-					name="district"
-					label="Quartier"
-					bind:value={editData.district}
-					options={districtOptions}
-					size="sm"
-				/>
-			</div>
-		</SectionCard>
-
 		<!-- Zone d'accueil -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.home.icon}
 			title={HOST_SECTION_CONFIG.home.label}
-			color={sectionColors.home}
+			color={HOST_SECTION_CONFIG.home.color}
 		>
 			<div class="space-y-4">
 				<InputField
@@ -317,14 +322,6 @@
 						onChange={(value) => (editData.isStockFeed = value)}
 					/>
 				</div>
-
-				<TextareaField
-					id="presence"
-					name="presence"
-					label="Présence"
-					bind:value={editData.presence}
-					placeholder="Présence"
-				/>
 			</div>
 		</SectionCard>
 
@@ -332,7 +329,7 @@
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.animals.icon}
 			title={HOST_SECTION_CONFIG.animals.label}
-			color={sectionColors.animals}
+			color={HOST_SECTION_CONFIG.animals.color}
 		>
 			<div class="space-y-4">
 				<CheckboxField
@@ -381,7 +378,7 @@
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.capacity.icon}
 			title={HOST_SECTION_CONFIG.capacity.label}
-			color={sectionColors.capacity}
+			color={HOST_SECTION_CONFIG.capacity.color}
 		>
 			<div class="grid grid-cols-1 gap-4">
 				<SelectField
@@ -412,6 +409,45 @@
 				/>
 			</div>
 		</SectionCard>
+
+		<!-- Chat -->
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.cat.icon}
+			title={HOST_SECTION_CONFIG.cat.label}
+			color={HOST_SECTION_CONFIG.cat.color}
+		>
+			<div class="grid grid-cols-1 gap-4">
+				<div class="grid grid-cols-2 gap-2">
+					<label class="text-xs font-medium text-gray-700">Chat adulte</label>
+					<InputField
+						id="catAdult"
+						name="catAdult"
+						bind:value={editData.catAdult}
+						placeholder="0"
+						size="sm"
+					/>
+				</div>
+
+				<CheckboxField
+					id="kittyAndKitten"
+					name="kittyAndKitten"
+					label="Chatte avec portée"
+					checked={editData.kittyAndKitten}
+					onChange={(value) => (editData.kittyAndKitten = value)}
+				/>
+
+				<div class="grid grid-cols-2 gap-2">
+					<label class="text-xs font-medium text-gray-700">Chaton</label>
+					<InputField
+						id="kitten"
+						name="kitten"
+						bind:value={editData.kitten}
+						placeholder="0"
+						size="sm"
+					/>
+				</div>
+			</div>
+		</SectionCard>
 	</section>
 
 	<Separator />
@@ -421,7 +457,7 @@
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.homeDescription.icon}
 			title={HOST_SECTION_CONFIG.homeDescription.label}
-			color={sectionColors.homeDescription}
+			color={HOST_SECTION_CONFIG.homeDescription.color}
 		>
 			<TextareaField
 				id="homeDescription"
@@ -431,11 +467,25 @@
 			/>
 		</SectionCard>
 
+		<SectionCard
+			icon={HOST_SECTION_CONFIG.presence.icon}
+			title={HOST_SECTION_CONFIG.presence.label}
+			color={HOST_SECTION_CONFIG.presence.color}
+		>
+			<TextareaField
+				id="presence"
+				name="presence"
+				label="Présence"
+				bind:value={editData.presence}
+				placeholder="Présence"
+			/>
+		</SectionCard>
+
 		{#if editData.outside}
 			<SectionCard
 				icon={HOST_SECTION_CONFIG.outsideDescription.icon}
 				title={HOST_SECTION_CONFIG.outsideDescription.label}
-				color={sectionColors.outsideDescription}
+				color={HOST_SECTION_CONFIG.outsideDescription.color}
 			>
 				<TextareaField
 					id="outsideDescription"
@@ -450,7 +500,7 @@
 			<SectionCard
 				icon={HOST_SECTION_CONFIG.stopActivity.icon}
 				title={HOST_SECTION_CONFIG.stopActivity.label}
-				color={sectionColors.stopActivity}
+				color={HOST_SECTION_CONFIG.stopActivity.color}
 			>
 				<TextareaField
 					id="stopActivity"
@@ -466,7 +516,7 @@
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.additionalInformation.icon}
 			title={HOST_SECTION_CONFIG.additionalInformation.label}
-			color={sectionColors.additionalInformation}
+			color={HOST_SECTION_CONFIG.additionalInformation.color}
 		>
 			<TextareaField
 				id="additionalInformation"

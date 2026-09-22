@@ -20,7 +20,12 @@ export type HostFull = Prisma.HostGetPayload<{
 };
 
 export type HostEditData = {
-	// Infos personnelles
+	// Statut
+	type?: HostType;
+	actif?: ColabActivity;
+	isAvailable: boolean;
+
+	// Profil
 	firstName: string;
 	lastName: string;
 	birthDate: Date;
@@ -35,13 +40,9 @@ export type HostEditData = {
 
 	// Domicile
 	space: number;
-	presence: string;
 	outside: boolean;
-	outsideDescription?: string;
-	homeDescription: string;
 	isStockFeed: boolean;
 	car: boolean;
-	additionalInformation: string;
 
 	// Animaux
 	hasAnimalsAtHome: boolean;
@@ -54,11 +55,17 @@ export type HostEditData = {
 	socialize: Socialize;
 	babyFeeding: BabyFeeding;
 
-	// Statut
-	type?: HostType;
-	actif?: ColabActivity;
-	isAvailable: boolean;
-	stopActivity: string;
+	// Cat
+	catAdult: number;
+	kittyAndKitten: boolean;
+	kitten: number;
+
+	// Descriptions
+	homeDescription: string;
+	presence: string;
+	outsideDescription?: string;
+	stopActivity?: string;
+	additionalInformation?: string;
 };
 
 export type HostEditFormProps = {

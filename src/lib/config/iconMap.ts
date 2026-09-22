@@ -29,7 +29,10 @@ import {
 	MapPinHouse,
 	User,
 	Syringe,
-	ChevronDown
+	ChevronDown,
+	Clock,
+	Star,
+	BicepsFlexed
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -64,5 +67,8 @@ export const iconMap: Record<string, Component> = {
 	blacklist: Ban,
 	map: MapPinHouse,
 	syringe: Syringe,
-	chevronDown: ChevronDown
+	chevronDown: ChevronDown,
+	clock: Clock,
+	star: Star,
+	biceps: BicepsFlexed
 };

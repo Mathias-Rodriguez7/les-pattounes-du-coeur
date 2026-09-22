@@ -34,13 +34,18 @@ export const HOST_BABY_FEEDING_OPTIONS = [
 ] satisfies Array<{ value: string; label: string }>;
 
 export const HOST_SECTION_CONFIG = {
-	profile: { icon: 'user', label: 'Profil' },
-	address: { icon: 'map', label: 'Adresse' },
-	home: { icon: 'house', label: "Zone d'accueil" },
-	animals: { icon: 'paw', label: 'Animaux' },
-	capacity: { icon: 'heart', label: 'Capacités' },
-	homeDescription: { icon: 'house', label: 'Description du domicile' },
-	outsideDescription: { icon: 'trees', label: 'Description du jardin' },
-	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt" },
-	additionalInformation: { icon: 'plus', label: 'Infos additionnelles' }
+	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
+	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	Experience: { icon: 'star', label: 'Expérience', color: 'amber' },
+	address: { icon: 'map', label: 'Adresse', color: 'gray' },
+	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
+	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
+	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
+	capacity: { icon: 'biceps', label: 'Capacités', color: 'indigo' },
+	cat: { icon: 'cat', label: 'Type de chats', color: 'fuchsia' },
+	homeDescription: { icon: 'house', label: 'Description du domicile', color: 'blue' },
+	presence: { icon: 'clock', label: 'Présence à domicile', color: 'indigo' },
+	outsideDescription: { icon: 'trees', label: 'Description du jardin', color: 'green' },
+	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt", color: 'red' },
+	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' }
 } as const;

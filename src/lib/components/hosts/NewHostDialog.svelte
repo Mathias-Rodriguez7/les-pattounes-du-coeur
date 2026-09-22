@@ -40,24 +40,36 @@
 	let postalCode = $state('34000');
 	let selectedDistrict = $state<string>('');
 
-	// ✅ Host fields
+	// Host spécifiques
 	let actif = $state('ACTIVE');
 	let selectedType = $state<string>('CLASSIC');
 	let isAvailable = $state(true);
+
+	// Zone d'accueil
 	let space = $state('');
-	let homeDescription = $state('');
-	let presence = $state('');
+	let outside = $state(false);
+	let car = $state(false);
+	let isStockFeed = $state(false);
+
+	// Animaux
 	let hasAnimalsAtHome = $state(false);
 	let numberOfCatsAtHome = $state('');
 	let numberOfDogsAtHome = $state('');
 	let otherAnimalsAtHome = $state('');
-	let outside = $state(false);
-	let outsideDescription = $state('');
-	let isStockFeed = $state(false);
-	let car = $state(false);
+
+	// Capacités
 	let heal = $state<string>('NO');
 	let socialize = $state<string>('NO');
 	let babyFeeding = $state<string>('NO');
+
+	// Cat
+	let catAdult = $state('');
+	let kittyAndKitten = $state(false);
+	let kitten = $state('');
+
+	let homeDescription = $state('');
+	let presence = $state('');
+	let outsideDescription = $state('');
 	let additionalInformation = $state('');
 
 	const districtOptions = $derived(
@@ -66,18 +78,6 @@
 			label
 		}))
 	);
-
-	const sectionColors = {
-		profile: 'emerald',
-		address: 'gray',
-		home: 'blue',
-		animals: 'orange',
-		capacity: 'indigo',
-		homeDescription: 'blue',
-		outsideDescription: 'green',
-		stopActivity: 'red',
-		additionalInformation: 'gray'
-	} as const satisfies Record<keyof typeof HOST_SECTION_CONFIG, string>;
 
 	// ✅ VALIDATION CÔTÉ CLIENT
 	function validateForm(): boolean {
@@ -88,22 +88,21 @@
 			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
 			email: email.trim(),
 			phone: phone.trim(),
-
-			// Adresse
 			address: address.trim(),
 			city: city.trim(),
 			postalCode: postalCode.trim(),
 			district: selectedDistrict || undefined,
 
-			// Zone d'accueil
+			// Statut
 			type: selectedType,
+			actif: actif,
+			isAvailable,
+
+			// Zone d'accueil
 			space: space ? parseInt(space) : null,
-			presence: presence.trim() || undefined,
 			outside: outside,
 			car: car,
 			isStockFeed: isStockFeed,
-			homeDescription: homeDescription?.trim() || '',
-			outsideDescription: outsideDescription?.trim() || undefined,
 
 			// Animaux
 			hasAnimalsAtHome,
@@ -116,10 +115,16 @@
 			socialize,
 			babyFeeding,
 
-			// Statut
-			actif: actif,
-			isAvailable,
-			additionalInformation: additionalInformation.trim() || ''
+			// Cat
+			catAdult: numberOfCatsAtHome ? parseInt(numberOfCatsAtHome) : null,
+			kittyAndKitten,
+			Kitten: numberOfCatsAtHome ? parseInt(numberOfCatsAtHome) : null,
+
+			// Descriptions
+			homeDescription: homeDescription?.trim() || '',
+			outsideDescription: outsideDescription?.trim() || undefined,
+			additionalInformation: additionalInformation.trim() || '',
+			presence: presence.trim() || undefined
 		};
 
 		const result = createHostSchema.safeParse(formData);
@@ -138,6 +143,7 @@
 	}
 
 	function resetForm() {
+		// Profil
 		firstName = '';
 		lastName = '';
 		birthDate = undefined;
@@ -147,25 +153,40 @@
 		city = 'Montpellier';
 		postalCode = '34000';
 		selectedDistrict = '';
+
+		// Host spécifiques
 		actif = 'ACTIVE';
 		selectedType = 'CLASSIC';
-		actif = 'ACTIVE';
 		isAvailable = true;
+
+		// Zone d'accueil
 		space = '';
-		homeDescription = '';
-		presence = '';
+		outside = false;
+		car = false;
+		isStockFeed = false;
+
+		// Animaux
 		hasAnimalsAtHome = false;
 		numberOfCatsAtHome = '';
 		numberOfDogsAtHome = '';
 		otherAnimalsAtHome = '';
-		outside = false;
-		outsideDescription = '';
-		isStockFeed = false;
-		car = false;
+
+		// Capacités
 		heal = 'NO';
 		socialize = 'NO';
 		babyFeeding = 'NO';
+
+		// Cat
+		catAdult = '';
+		kittyAndKitten = false;
+		kitten = '';
+
+		// Descriptions
+		homeDescription = '';
+		presence = '';
+		outsideDescription = '';
 		additionalInformation = '';
+
 		fieldErrors = {};
 	}
 
@@ -223,14 +244,15 @@
 
 		<form method="POST" action="?/createHost" use:enhance={handleEnhance} class="space-y-6">
 			<!-- 📋 SECTION 1: Identité & Contact -->
-			<SectionCard
-				icon={HOST_SECTION_CONFIG.profile.icon}
-				title="Informations Personnelles"
-				color={sectionColors.profile}
-			>
-				<section class="grid grid-cols-4 gap-4">
-					<!-- ROW 1: Prénom & Nom & Email & Téléphone -->
-					<div class="grid gap-2">
+
+			<section class="grid grid-cols-2 gap-4">
+				<!-- Statu -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.statuts.icon}
+					title={HOST_SECTION_CONFIG.statuts.label}
+					color={HOST_SECTION_CONFIG.statuts.color}
+				>
+					<div class="grid grid-cols-2 gap-4">
 						<SelectField
 							id="type"
 							name="type"
@@ -240,8 +262,26 @@
 							size="sm"
 							disabled={isSubmitting}
 						/>
-					</div>
 
+						<SwitchField
+							id="isAvailable"
+							name="isAvailable"
+							label="Disponibilité"
+							checked={isAvailable ?? false}
+							checkedLabel="✓ Disponible"
+							uncheckedLabel="✗ Indisponible"
+							onChange={(value) => (isAvailable = value)}
+							disabled={isSubmitting}
+						/>
+					</div>
+				</SectionCard>
+
+				<!-- Profil -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.profile.icon}
+					title={HOST_SECTION_CONFIG.profile.label}
+					color={HOST_SECTION_CONFIG.profile.color}
+				>
 					<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
 						<InputField
 							id="firstName"
@@ -274,20 +314,74 @@
 							label="Date de naissance"
 							error={getFieldError(fieldErrors, 'birthDate')}
 						/>
+					</div>
+				</SectionCard>
+			</section>
+			<Separator />
 
-						<SwitchField
-							id="isAvailable"
-							name="isAvailable"
-							label="Disponibilité"
-							checked={isAvailable ?? false}
-							checkedLabel="✓ Disponible"
-							uncheckedLabel="✗ Indisponible"
-							onChange={(value) => (isAvailable = value)}
+			<section class="grid grid-cols-2 gap-4">
+				<!-- Adresse -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.address.icon}
+					title={HOST_SECTION_CONFIG.address.label}
+					color={HOST_SECTION_CONFIG.address.color}
+				>
+					<div class="space-y-4">
+						<InputField
+							id="address"
+							name="address"
+							label="Rue"
+							bind:value={address}
+							placeholder="123 rue de la Paix"
+							error={getFieldError(fieldErrors, 'address')}
+							required
+							size="sm"
 							disabled={isSubmitting}
 						/>
-					</div>
+						<div class="flex gap-4">
+							<InputField
+								id="city"
+								name="city"
+								label="Ville"
+								bind:value={city}
+								placeholder="Montpellier"
+								error={getFieldError(fieldErrors, 'city')}
+								required
+								size="sm"
+								disabled={isSubmitting}
+							/>
 
-					<!-- ROW 2: Date de naissance -->
+							<InputField
+								id="postalCode"
+								name="postalCode"
+								label="Code Postal"
+								bind:value={postalCode}
+								placeholder="34000"
+								error={getFieldError(fieldErrors, 'postalCode')}
+								required
+								size="sm"
+								disabled={isSubmitting}
+							/>
+
+							<SelectField
+								id="district"
+								name="district"
+								label="Quartier"
+								bind:value={selectedDistrict}
+								options={districtOptions}
+								size="sm"
+								disabled={isSubmitting}
+							/>
+						</div>
+					</div>
+				</SectionCard>
+
+				<!-- Contact -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.contact.icon}
+					title={HOST_SECTION_CONFIG.contact.label}
+					color={HOST_SECTION_CONFIG.contact.color}
+				>
 					<div class="grid gap-2">
 						<InputField
 							id="email"
@@ -314,73 +408,17 @@
 							disabled={isSubmitting}
 						/>
 					</div>
-				</section>
-			</SectionCard>
-
+				</SectionCard>
+			</section>
 			<Separator />
 
 			<!-- 📍 SECTION 2: Adresse & Zone -->
 			<div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
-				<!-- Adresse -->
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.address.icon}
-					title="Adresse"
-					color={sectionColors.address}
-				>
-					<div class="space-y-4">
-						<InputField
-							id="address"
-							name="address"
-							label="Rue"
-							bind:value={address}
-							placeholder="123 rue de la Paix"
-							error={getFieldError(fieldErrors, 'address')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<InputField
-							id="city"
-							name="city"
-							label="Ville"
-							bind:value={city}
-							placeholder="Montpellier"
-							error={getFieldError(fieldErrors, 'city')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<InputField
-							id="postalCode"
-							name="postalCode"
-							label="Code Postal"
-							bind:value={postalCode}
-							placeholder="34000"
-							error={getFieldError(fieldErrors, 'postalCode')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<SelectField
-							id="district"
-							name="district"
-							label="Quartier"
-							bind:value={selectedDistrict}
-							options={districtOptions}
-							size="sm"
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
-
 				<!-- Zone d'accueil -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.home.icon}
-					title="Zone d'Accueil"
-					color={sectionColors.home}
+					title={HOST_SECTION_CONFIG.home.label}
+					color={HOST_SECTION_CONFIG.home.color}
 				>
 					<div class="space-y-4">
 						<InputField
@@ -423,24 +461,14 @@
 							onChange={(value) => (isStockFeed = value)}
 							disabled={isSubmitting}
 						/>
-
-						<TextareaField
-							id="presence"
-							name="presence"
-							label="Présence à domicile"
-							bind:value={presence}
-							placeholder="Tout le jour, Soir/WE, etc."
-							error={getFieldError(fieldErrors, 'presence')}
-							disabled={isSubmitting}
-						/>
 					</div>
 				</SectionCard>
 
 				<!-- Animaux -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.animals.icon}
-					title="Animaux"
-					color={sectionColors.animals}
+					title={HOST_SECTION_CONFIG.animals.label}
+					color={HOST_SECTION_CONFIG.animals.color}
 				>
 					<div class="space-y-4">
 						<!-- ✅ CHECKBOX REMPLACÉE -->
@@ -491,8 +519,8 @@
 				<!-- Capacités -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.capacity.icon}
-					title="Capacités"
-					color={sectionColors.capacity}
+					title={HOST_SECTION_CONFIG.capacity.label}
+					color={HOST_SECTION_CONFIG.capacity.color}
 				>
 					<div class="grid grid-cols-1 gap-4">
 						<SelectField
@@ -529,6 +557,51 @@
 						/>
 					</div>
 				</SectionCard>
+
+				<!-- Chat -->
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.cat.icon}
+					title={HOST_SECTION_CONFIG.cat.label}
+					color={HOST_SECTION_CONFIG.cat.color}
+				>
+					<div class="space-y-4">
+						<InputField
+							id="catAdult"
+							name="catAdult"
+							label="Chat adulte"
+							type="number"
+							bind:value={catAdult}
+							placeholder="3"
+							error={getFieldError(fieldErrors, 'catAdult')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
+
+						<!-- ✅ CHECKBOXES REMPLACÉES -->
+						<CheckboxField
+							id="kittyAndKitten"
+							name="kittyAndKitten"
+							label="Chatte avec portée"
+							checked={kittyAndKitten}
+							onChange={(value) => (kittyAndKitten = value)}
+							disabled={isSubmitting}
+						/>
+
+						<InputField
+							id="kitten"
+							name="kitten"
+							label="Chat Chaton"
+							type="number"
+							bind:value={kitten}
+							placeholder="4"
+							error={getFieldError(fieldErrors, 'kitten')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
+					</div>
+				</SectionCard>
 			</div>
 
 			<Separator />
@@ -538,7 +611,7 @@
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.homeDescription.icon}
 					title={HOST_SECTION_CONFIG.homeDescription.label}
-					color={sectionColors.homeDescription}
+					color={HOST_SECTION_CONFIG.homeDescription.color}
 				>
 					<TextareaField
 						id="homeDescription"
@@ -551,11 +624,27 @@
 					/>
 				</SectionCard>
 
+				<SectionCard
+					icon={HOST_SECTION_CONFIG.presence.icon}
+					title={HOST_SECTION_CONFIG.presence.label}
+					color={HOST_SECTION_CONFIG.presence.color}
+				>
+					<TextareaField
+						id="presence"
+						name="presence"
+						label="Présence"
+						bind:value={presence}
+						placeholder="Décrivez la présence sur une semaine"
+						error={getFieldError(fieldErrors, 'presence')}
+						disabled={isSubmitting}
+					/>
+				</SectionCard>
+
 				{#if outside}
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.outsideDescription.icon}
 						title={HOST_SECTION_CONFIG.outsideDescription.label}
-						color={sectionColors.outsideDescription}
+						color={HOST_SECTION_CONFIG.outsideDescription.color}
 					>
 						<TextareaField
 							id="outsideDescription"
@@ -572,7 +661,7 @@
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.additionalInformation.icon}
 					title={HOST_SECTION_CONFIG.additionalInformation.label}
-					color={sectionColors.additionalInformation}
+					color={HOST_SECTION_CONFIG.additionalInformation.color}
 				>
 					<TextareaField
 						id="additionalInformation"

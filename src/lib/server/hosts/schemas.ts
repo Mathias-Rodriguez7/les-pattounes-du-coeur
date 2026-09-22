@@ -28,6 +28,11 @@ const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
 
 export const createHostSchema = z.object({
+	// Statut
+	type: hostTypeEnum.nullable(), // ✅ Cast vers HostType
+	actif: colabActivityEnum.default(ColabActivity.ACTIVE), // ✅ Cast vers ColabActivity
+	isAvailable: stringToBoolean.default(true),
+
 	// PROFIL
 	firstName: z.string().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().min(1, 'Le nom est obligatoire'),
@@ -47,13 +52,9 @@ export const createHostSchema = z.object({
 		.int()
 		.min(10)
 		.positive("L'espace doit être un nombre positif d'au moins 10 m²"),
-	presence: z.string().default(''),
 	outside: stringToBoolean.default(false),
-	outsideDescription: z.string().optional().nullable(),
-	homeDescription: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
 	isStockFeed: stringToBoolean.default(false),
 	car: stringToBoolean.default(false),
-	additionalInformation: z.string().optional().nullable(),
 
 	// Animaux
 	hasAnimalsAtHome: stringToBoolean.default(false),
@@ -66,11 +67,17 @@ export const createHostSchema = z.object({
 	socialize: socializeEnum, // ✅ Cast vers Socialize
 	babyFeeding: babyFeedingEnum, // ✅ Cast vers BabyFeeding
 
-	// Statut
-	type: hostTypeEnum.nullable(), // ✅ Cast vers HostType
-	actif: colabActivityEnum.default(ColabActivity.ACTIVE), // ✅ Cast vers ColabActivity
-	isAvailable: stringToBoolean.default(true),
-	stopActivity: z.string().optional()
+	// Cat
+	catAdult: z.coerce.number().int().min(0).default(0),
+	kittyAndKitten: z.coerce.boolean().default(false),
+	kitten: z.coerce.number().int().min(0).default(0),
+
+	// Descriptions
+	homeDescription: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+	presence: z.string().default(''),
+	outsideDescription: z.string().optional().nullable(),
+	stopActivity: z.string().optional(),
+	additionalInformation: z.string().optional().nullable()
 });
 
 export const updateHostSchema = createHostSchema.partial().extend({
