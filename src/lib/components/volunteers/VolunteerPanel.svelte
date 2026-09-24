@@ -12,8 +12,10 @@
 	import { truncate } from '$lib/utils/string';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
+	import { formatAge } from '$lib/utils/age';
 	import {
 		type VolunteerWithRelations,
+		type VolunteerEditData,
 		type FormType,
 		type CatVolunteerWithRelations,
 		FORM_TYPE_CONFIG,
@@ -22,8 +24,9 @@
 		STATUS_CONFIG
 	} from '$lib/types/';
 	import { VOLUNTEER_SECTION_CONFIG } from '$lib/constants/volunteer';
-	import type { Form } from '@prisma/client';
+	import type { ColabActivity, VolunteerRole, Form } from '@prisma/client';
 	import SectionCard from '../cards/SectionCard.svelte';
+	import { formatDate } from '$lib/utils/date';
 
 	const {
 		volunteer,
@@ -33,7 +36,7 @@
 	let isEditing = $state(false);
 	let currentPage = $state(1);
 
-	let editData = $state({
+	let editData = $state<VolunteerEditData>({
 		firstName: '',
 		lastName: '',
 		birthDate: new Date(),
@@ -41,10 +44,14 @@
 		phone: '',
 		district: '',
 		address: '',
-		actif: '',
-		role: '',
 		city: '',
-		postalCode: ''
+		postalCode: '',
+
+		// Volunteer spécifiques
+		actif: 'ACTIVE' as ColabActivity,
+		role: 'MANAGER' as VolunteerRole,
+		breakStart: null,
+		breakEnd: null
 	});
 
 	const PAGE_SIZE = 10;
@@ -70,6 +77,22 @@
 		SOCIALIZE: 'bg-sky-100 text-sky-800',
 		FREE: 'bg-orange-100 text-orange-800'
 	};
+
+	const adoptedCatsCount = $derived(
+		volunteer?.cats?.filter(
+			(catVolunteer: CatVolunteerWithRelations) => catVolunteer.cat.status === 'ADOPTED'
+		).length ?? 0
+	);
+
+	const fullName = $derived(
+		volunteer ? `${volunteer.profil.firstName} ${volunteer.profil.lastName}` : ''
+	);
+
+	const location = $derived(
+		volunteer?.profil.district
+			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			: volunteer?.profil.city || '—'
+	);
 
 	const getBadgeClass = (status: string) =>
 		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
@@ -102,23 +125,24 @@
 		return counts;
 	});
 
-	const prepareEditData = (volunteer: VolunteerWithRelations) => ({
-		firstName: volunteer.profil.firstName,
-		lastName: volunteer.profil.lastName,
-		birthDate: volunteer.profil.birthDate ? new Date(volunteer.profil.birthDate) : new Date(),
-		email: volunteer.profil.email,
-		phone: volunteer.profil.phone || '',
-		district: volunteer.profil.district || '',
-		address: volunteer.profil.address || '',
-		city: volunteer.profil.city || '',
-		postalCode: volunteer.profil.postalCode || '',
-		actif: volunteer.actif || '',
-		role: volunteer.role
-	});
-
 	const startEditing = () => {
 		if (!volunteer) return;
-		editData = prepareEditData(volunteer);
+		editData = {
+			firstName: volunteer.profil.firstName,
+			lastName: volunteer.profil.lastName,
+			birthDate: volunteer.profil.birthDate ? new Date(volunteer.profil.birthDate) : new Date(),
+			email: volunteer.profil.email,
+			phone: volunteer.profil.phone || '',
+			district: volunteer.profil.district || '',
+			address: volunteer.profil.address || '',
+			city: volunteer.profil.city || '',
+			postalCode: volunteer.profil.postalCode || '',
+			actif: volunteer.actif || 'ACTIVE',
+			breakStart: volunteer.breakStart ? new Date(volunteer.breakStart) : null,
+			breakEnd: volunteer.breakEnd ? new Date(volunteer.breakEnd) : null,
+			role: volunteer.role
+		};
+
 		isEditing = true;
 	};
 
@@ -156,58 +180,63 @@
 		{#if !isEditing}
 			<!-- ===== HEADER AFFICHAGE ===== -->
 			<Card.Header>
-				<div class="flex justify-between">
-					<div class="flex gap-6">
-						<div class="flex items-center gap-6">
-							<div class="grid grid-cols-1 gap-2">
-								{#key volunteer?.actif}
-									<Icon
-										name={currentStatus.icon}
-										withWrapper={true}
-										wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
-										style="background: {getGradientStyle(currentStatus.theme)}"
-										iconClass="h-5 w-5"
-									/>
-								{/key}
-								<span class="text-muted-foreground text-xs">{currentStatus.label}</span>
-							</div>
-							<div class="flex-1">
-								<Card.Title class="text-xl">
-									{volunteer.profil.firstName}
-									{volunteer.profil.lastName}
-								</Card.Title>
+				<div class="flex h-25 justify-between">
+					<div class="flex gap-8">
+						<!-- Status Icon -->
+						<div class="flex flex-col items-center justify-around">
+							{#key volunteer?.actif}
+								<Icon
+									name={currentStatus.icon}
+									withWrapper={true}
+									wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+									style="background: {getGradientStyle(currentStatus.theme)}"
+									iconClass="h-5 w-5"
+								/>
+							{/key}
+							<Badge class={roleColors[volunteer.role] || 'bg-gray-100 text-gray-800'}>
+								{truncate(volunteer.role, 5)}
+							</Badge>
+						</div>
 
-								<div class="mt-2 flex items-center gap-2">
-									<Badge class={roleColors[volunteer.role] || 'bg-gray-100 text-gray-800'}>
-										{truncate(volunteer.role, 5)}
-									</Badge>
-								</div>
+						<div class="flex flex-col justify-around">
+							<Card.Title class="text-2xl">{fullName}</Card.Title>
+
+							<div class="flex gap-4">
+								<Card.Description class="text-xl">
+									{formatAge(volunteer.profil.birthDate)}
+								</Card.Description>
+
+								{#if volunteer.profil.host}
+									<div title="Ce bénévole est aussi FA">
+										<Icon name="star" iconClass="h-6 w-6 text-amber-500 fill-amber-500" />
+									</div>
+								{/if}
 							</div>
 						</div>
-						<!-- Contact Info avec icones -->
-						<div class="flex gap-6">
-							<!-- Email -->
-							<div class="flex items-end gap-2">
-								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-								<a
-									href="mailto:{volunteer.profil.email}"
-									class="truncate text-sm text-blue-600 hover:underline"
-									title={volunteer.profil.email}
+						<!-- PAUSE / BREAK -->
+						<div>
+							{#if volunteer.actif === 'BREAK' && (volunteer.breakStart || volunteer.breakEnd)}
+								<SectionCard
+									icon={VOLUNTEER_SECTION_CONFIG.pause.icon}
+									title={VOLUNTEER_SECTION_CONFIG.pause.label}
+									color={VOLUNTEER_SECTION_CONFIG.pause.color}
 								>
-									{truncate(volunteer.profil.email, 28)}
-								</a>
-							</div>
-
-							<!-- Phone -->
-							<div class="flex items-end gap-2">
-								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-								<a
-									href="tel:{volunteer.profil.phone}"
-									class="text-sm text-blue-600 hover:underline"
-								>
-									{volunteer.profil.phone || '—'}
-								</a>
-							</div>
+									<div class="ml-6 grid gap-4">
+										<div class="text-sm">
+											{#if volunteer.breakStart}
+												<p class="font-medium text-gray-900">
+													Début: {formatDate(new Date(volunteer.breakStart))}
+												</p>
+											{/if}
+											{#if volunteer.breakEnd}
+												<p class="font-medium text-gray-900">
+													Fin: {formatDate(new Date(volunteer.breakEnd))}
+												</p>
+											{/if}
+										</div>
+									</div>
+								</SectionCard>
+							{:else}{/if}
 						</div>
 					</div>
 					<!-- Boutons d'édition -->
@@ -222,43 +251,105 @@
 			</Card.Header>
 
 			<!-- Contenu principal -->
+
 			<Card.Content class="grid grid-cols-1 gap-6">
 				<Separator />
-				<SectionCard
-					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
-					title={VOLUNTEER_SECTION_CONFIG.address.label}
-					color={VOLUNTEER_SECTION_CONFIG.address.color}
-				>
-					<div class="space-y-6">
-						<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
-						<div class="grid grid-cols-3 gap-x-6 gap-y-2">
-							<div>
-								<p class="text-muted-foreground text-sm font-medium">Adresse</p>
-								<p class="text-sm font-semibold">{volunteer.profil.address || '-'}</p>
-							</div>
-							<div>
-								<p class="text-muted-foreground text-sm font-medium">Ville</p>
-								<p class="text-sm font-semibold">{volunteer.profil.city || '-'}</p>
-							</div>
-							<div>
-								<p class="text-muted-foreground text-sm font-medium">Code postal</p>
-								<p class="text-sm font-semibold">{volunteer.profil.postalCode || '-'}</p>
-							</div>
-							<div>
-								<p class="text-muted-foreground text-sm font-medium">Quartier</p>
-								<p class="text-sm font-semibold">
-									{DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS] ||
-										volunteer.profil.district ||
-										'-'}
-								</p>
+				<section class="grid grid-cols-8 gap-4">
+					<!-- Experience -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.Experience.icon}
+						title={VOLUNTEER_SECTION_CONFIG.Experience.label}
+						color={VOLUNTEER_SECTION_CONFIG.Experience.color}
+						class="col-span-2"
+					>
+						<div>
+							<div class="ml-6 grid gap-4">
+								<!-- Nombre total de chats gérés -->
+								<div class="flex justify-between">
+									<span class="text-muted-foreground text-xs font-medium">Chats gérés</span>
+									<Badge class="bg-blue-100 text-sm font-bold text-blue-800">
+										{catList.length}
+									</Badge>
+								</div>
+
+								<!-- Nombre de chats adoptés -->
+								<div class="flex justify-between">
+									<span class="text-muted-foreground text-xs font-medium">Adoptions</span>
+									<Badge class="bg-green-100 text-sm font-bold text-green-800">
+										{adoptedCatsCount}
+									</Badge>
+								</div>
 							</div>
 						</div>
-					</div>
-				</SectionCard>
+					</SectionCard>
+
+					<!-- Adresse -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+						title={VOLUNTEER_SECTION_CONFIG.address.label}
+						color={VOLUNTEER_SECTION_CONFIG.address.color}
+						class="col-span-3"
+					>
+						<div class="grid gap-4">
+							<div class="col-span-2 ml-6 gap-4 space-y-2 text-sm">
+								<div>
+									<p class="text-muted-foreground font-medium">Rue</p>
+									<p class="font-medium text-gray-900">{volunteer.profil.address || '—'}</p>
+								</div>
+								<div class="flex gap-4">
+									<div>
+										<p class="text-muted-foreground font-medium">Ville</p>
+										<p class="font-medium text-gray-900">{volunteer.profil.city || '—'}</p>
+									</div>
+									<div>
+										<p class="text-muted-foreground font-medium">CP</p>
+										<p class="font-medium text-gray-900">{volunteer.profil.postalCode || '—'}</p>
+									</div>
+
+									<div>
+										<p class="text-muted-foreground font-medium">Quartier</p>
+										<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
+									</div>
+								</div>
+							</div>
+						</div>
+					</SectionCard>
+
+					<!-- Contact -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
+						title={VOLUNTEER_SECTION_CONFIG.contact.label}
+						color={VOLUNTEER_SECTION_CONFIG.contact.color}
+						class="col-span-3"
+					>
+						<div class="ml-6 grid gap-4">
+							<div class="flex items-center gap-2">
+								<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+								<a
+									href="tel:{volunteer.profil.phone}"
+									class="text-sm text-blue-600 hover:underline"
+								>
+									{volunteer.profil.phone || '—'}
+								</a>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+								<a
+									href="mailto:{volunteer.profil.email}"
+									class="truncate text-sm text-blue-600 hover:underline"
+									title={volunteer.profil.email}
+								>
+									{truncate(volunteer.profil.email, 28)}
+								</a>
+							</div>
+						</div>
+					</SectionCard>
+				</section>
 				<Separator />
 
 				<!-- Chats et Formulaires -->
-				<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+				<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 					<!-- CHATS EN GESTION -->
 					<div class="col-span-2 grid">
 						<SectionCard

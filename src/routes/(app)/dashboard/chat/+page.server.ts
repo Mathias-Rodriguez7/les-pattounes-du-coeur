@@ -10,140 +10,190 @@ import {
 	validateDates
 } from '$lib/server/placements';
 
-export type PageData = {
-    cats: ReturnType<typeof mapCatFull>[];
-    stats: {
-        total: number;
-        withVolunteer: number;
-        withHost: number;
-        withoutHost: number;
-        incomplete: number;
-    };
-    hosts: Array<{ id: string; firstName: string; lastName: string }>;
-    volunteers: Array<{ id: string; role: string; firstName: string; lastName: string }>;
-    isAdmin: boolean;
-};
-
 export const load: PageServerLoad = async ({ locals }) => {
-    // ✅ Vérifier que l'user existe
-    if (!locals.user) {
-        redirect(302, '/');
-    }
+	// ✅ Vérifier que l'user existe
+	if (!locals.user) {
+		redirect(302, '/');
+	}
 
-    try {
-        const volunteerId = locals.user.id;
+	try {
+		const volunteerId = locals.user.id;
 
-        // ✅ Récupérer TOUS les chats avec leurs relations
-        const cats = await prisma.cat.findMany({
-            include: {
-                media: true,
-                placements: {
-                    include: { host: { include: { profil: true } } }
-                },
-                volunteers: {
-                    include: { volunteer: { include: { profil: true } } }
-                }
-            },
-            orderBy: { created_at: 'desc' }
-        });
+		// ✅ Récupérer TOUS les chats avec leurs relations
+		const cats = await prisma.cat.findMany({
+			select: {
+				id: true,
+				catNumber: true,
+				name: true,
+				sex: true, // ✅ OBLIGATOIRE (enum sans ?)
+				birthDate: true,
+				isVisible: true,
+				status: true, // ✅ OBLIGATOIRE (enum sans ?)
+				hairLength: true,
+				color: true,
+				origin: true,
+				isSterilize: true,
+				isAlreadySterilized: true,
+				vaccinate: true,
+				isFivTest: true,
+				isDeworming: true,
+				description: true,
+				isOkCat: true,
+				isOkDog: true,
+				isOkChild: true,
+				isOutside: true,
+				isIdentify: true,
+				chipId: true,
+				created_at: true,
+				updated_at: true,
+				// Relations
+				media: {
+					select: {
+						id: true,
+						picture: true,
+						focalPointX: true,
+						focalPointY: true
+					}
+				},
+				placements: {
+					select: {
+						id: true,
+						hostId: true,
+						type: true,
+						isActive: true, // ✅ Changed from "status" to "isActive"
+						started: true, // ✅ Changed from "startedDate" to "started"
+						ended: true, // ✅ Changed from "endedDate" to "ended"
+						host: {
+							select: {
+								id: true,
+								profil: {
+									select: {
+										firstName: true,
+										lastName: true
+									}
+								}
+							}
+						}
+					}
+				},
+				volunteers: {
+					select: {
+						volunteerId: true,
+						volunteer: {
+							select: {
+								id: true,
+								role: true,
+								profil: {
+									select: {
+										firstName: true,
+										lastName: true
+									}
+								}
+							}
+						}
+					}
+				},
+				sicknesses: {
+					select: {
+						id: true,
+						name: true,
+						description: true,
+						treatment: true,
+						status: true
+					}
+				}
+			},
+			orderBy: { created_at: 'desc' }
+		});
 
-        // ✅ Mapper les chats
-        const mapped = cats.map(mapCatFull);
+		// ✅ Mapper les chats
+		const mapped = cats.map(mapCatFull);
 
-        // Début de l'année
-        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+		// Début de l'année
+		const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
-        // ✅ Stats en parallèle
-        const [
-            managedByUser,
-            incompleteProfiles,
-            visibleCats,
-            socializingCats,
-            adoptedThisYear
-        ] = await Promise.all([
-            // 1️⃣ Chats sous ma gestion
-            prisma.cat.count({
-                where: {
-                    volunteers: {
-                        some: {
-                            volunteerId: volunteerId
-                        }
-                    }
-                }
-            }),
+		// ✅ Stats en parallèle
+		const [managedByUser, incompleteProfiles, visibleCats, socializingCats, adoptedThisYear] =
+			await Promise.all([
+				// 1️⃣ Chats sous ma gestion
+				prisma.cat.count({
+					where: {
+						volunteers: {
+							some: {
+								volunteerId: volunteerId
+							}
+						}
+					}
+				}),
 
-            // 2️⃣ Profils incomplets
-            prisma.cat.count({
-                where: {
-                    OR: [
-                        { isOkCat: false },
-                        { isOkDog: false },
-                        { isOutside: false }
-                    ]
-                }
-            }),
+				// 2️⃣ Profils incomplets
+				prisma.cat.count({
+					where: {
+						OR: [{ isOkCat: false }, { isOkDog: false }, { isOutside: false }]
+					}
+				}),
 
-            // 3️⃣ Chats visibles
-            prisma.cat.count({
-                where: {
-                    isVisible: true
-                }
-            }),
+				// 3️⃣ Chats visibles
+				prisma.cat.count({
+					where: {
+						isVisible: true
+					}
+				}),
 
-            // 4️⃣ Chats en socialisation
-            prisma.cat.count({
-                where: {
-                    status: 'SOCIALIZE'  // À adapter selon ton enum
-                }
-            }),
+				// 4️⃣ Chats en socialisation
+				prisma.cat.count({
+					where: {
+						status: 'SOCIALIZE' // À adapter selon ton enum
+					}
+				}),
 
-            // 5️⃣ Chats adoptés cette année
-            prisma.cat.count({
-                where: {
-                    status: 'ADOPTED',  // À adapter selon ton enum
-                    updated_at: {
-                        gte: yearStart
-                    }
-                }
-            })
-        ]);
+				// 5️⃣ Chats adoptés cette année
+				prisma.cat.count({
+					where: {
+						status: 'ADOPTED', // À adapter selon ton enum
+						updated_at: {
+							gte: yearStart
+						}
+					}
+				})
+			]);
 
-        const hosts = await prisma.host.findMany({
-            include: { profil: true }
-        });
+		const hosts = await prisma.host.findMany({
+			include: { profil: true }
+		});
 
-        const volunteers = await prisma.volunteer.findMany({
-            include: { profil: true }
-        });
+		const volunteers = await prisma.volunteer.findMany({
+			include: { profil: true }
+		});
 
-        const isAdmin = locals.user.role === 'ADMIN';
+		const isAdmin = locals.user.role === 'ADMIN';
 
-        return {
-            cats: mapped,
-            stats: {
-                managedByUser,
-                incompleteProfiles,
-                visibleCats,
-                socializingCats,
-                adoptedThisYear
-            },
-            hosts: hosts.map((h) => ({
-                id: h.id,
-                firstName: h.profil.firstName,
-                lastName: h.profil.lastName
-            })),
-            volunteers: volunteers.map((v) => ({
-                id: v.id,
-                role: v.role,
-                firstName: v.profil.firstName,
-                lastName: v.profil.lastName
-            })),
-            isAdmin
-        };
-    } catch (err) {
-        console.error('Erreur dans load dashboard:', err);
-        throw error(500, 'Erreur lors du chargement du dashboard');
-    }
+		return {
+			cats: mapped,
+			stats: {
+				managedByUser,
+				incompleteProfiles,
+				visibleCats,
+				socializingCats,
+				adoptedThisYear
+			},
+			hosts: hosts.map((h) => ({
+				id: h.id,
+				firstName: h.profil.firstName,
+				lastName: h.profil.lastName
+			})),
+			volunteers: volunteers.map((v) => ({
+				id: v.id,
+				role: v.role,
+				firstName: v.profil.firstName,
+				lastName: v.profil.lastName
+			})),
+			isAdmin
+		};
+	} catch (err) {
+		console.error('Erreur dans load dashboard:', err);
+		throw error(500, 'Erreur lors du chargement du dashboard');
+	}
 };
 
 export const actions: Actions = {

@@ -18,6 +18,7 @@
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
 	import SectionCard from '../cards/SectionCard.svelte';
+	import { formatDate } from '$lib/utils/date';
 
 	const { host = $bindable<HostFull | undefined>(), isAdmin = false } = $props();
 
@@ -38,6 +39,8 @@
 
 		// Host spécifiques
 		actif: 'ACTIVE' as ColabActivity,
+		breakStart: null,
+		breakEnd: null,
 		type: 'CLASSIC' as HostType,
 		isAvailable: false,
 
@@ -89,6 +92,8 @@
 
 			// Host spécifiques
 			actif: host.actif || '',
+			breakStart: host.breakStart ? new Date(host.breakStart) : null,
+			breakEnd: host.breakEnd ? new Date(host.breakEnd) : null,
 			type: host.type || '',
 			isAvailable: host.isAvailable,
 
@@ -142,6 +147,8 @@
 
 		// Host
 		host.actif = editData.actif;
+		host.breakStart = editData.breakStart;
+		host.breakEnd = editData.breakEnd;
 		host.type = editData.type;
 		host.isAvailable = editData.isAvailable;
 		host.space = editData.space;
@@ -186,6 +193,7 @@
 
 	// États dérivés
 	const fullName = $derived(host ? `${host.profil.firstName} ${host.profil.lastName}` : '');
+
 	const location = $derived(
 		host?.profil.district
 			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
@@ -228,16 +236,15 @@
 		{#if !isEditing}
 			<!-- ===== HEADER ===== -->
 			<Card.Header>
-				<section class="flex justify-between gap-8">
-					<!-- Gauche : Statut + Infos -->
-					<div class="flex flex-1 gap-8">
+				<section class="flex h-25 justify-between">
+					<div class="flex gap-8">
 						<!-- Status Icon -->
-						<div class="flex flex-col items-center gap-4">
+						<div class="flex flex-col items-center justify-around">
 							{#key host?.actif}
 								<Icon
 									name={currentStatus.icon}
 									withWrapper={true}
-									wrapperClass="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+									wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
 									style="background: {getGradientStyle(currentStatus.theme)}"
 									iconClass="h-6 w-6"
 								/>
@@ -249,10 +256,10 @@
 
 						<!-- Infos personnelles -->
 						<div class="flex flex-col justify-between">
-							<Card.Title class="text-xl">{fullName}</Card.Title>
+							<Card.Title class="text-2xl">{fullName}</Card.Title>
 
 							<div class="flex gap-4">
-								<Card.Description class="text-sm">
+								<Card.Description class="text-xl">
 									{formatAge(host.profil.birthDate)}
 								</Card.Description>
 								<Badge
@@ -263,8 +270,38 @@
 								>
 									{host.isAvailable ? '✓ Disponible' : '✗ Non disponible'}
 								</Badge>
+
+								{#if host.profil.volunteer}
+									<div title="Cette FA est aussi bénévole">
+										<Icon name="star" iconClass="h-6 w-6 text-amber-500 fill-amber-500" />
+									</div>
+								{/if}
 							</div>
 						</div>
+
+						<!-- PAUSE / BREAK -->
+						{#if host.actif === 'BREAK' && (host.breakStart || host.breakEnd)}
+							<SectionCard
+								icon={HOST_SECTION_CONFIG.pause.icon}
+								title={HOST_SECTION_CONFIG.pause.label}
+								color={HOST_SECTION_CONFIG.pause.color}
+							>
+								<div class="ml-6 grid gap-4">
+									<div class="text-sm">
+										{#if host.breakStart}
+											<p class="font-medium text-gray-900">
+												Début: {formatDate(new Date(host.breakStart))}
+											</p>
+										{/if}
+										{#if host.breakEnd}
+											<p class="font-medium text-gray-900">
+												Fin: {formatDate(new Date(host.breakEnd))}
+											</p>
+										{/if}
+									</div>
+								</div>
+							</SectionCard>
+						{:else}{/if}
 					</div>
 
 					<!-- Bouton édition -->

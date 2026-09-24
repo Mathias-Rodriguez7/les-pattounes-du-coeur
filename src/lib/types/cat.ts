@@ -1,4 +1,4 @@
-import type { FocalPoint, SexCat, CatStatus, Vaccinate } from '@prisma/client';
+import type { SexCat, CatStatus, Vaccinate } from '@prisma/client';
 
 export type CatMedia = {
 	picture: string;
@@ -17,6 +17,7 @@ export type CatMedia = {
 
 export type Cat = {
 	id: string;
+	catNumber: string;
 	name: string | null;
 	sex: SexCat | null;
 	birthDate: Date | null;
@@ -24,7 +25,8 @@ export type Cat = {
 	ageBadge: string;
 	description: string | null;
 	media: CatMedia[];
-	focalPoint: FocalPoint;
+	focalPointX: number | null;
+	focalPointY: number | null;
 	isOkDog: boolean;
 	isOkCat: boolean;
 	isOkChild: boolean;
@@ -33,6 +35,7 @@ export type Cat = {
 
 export type CatFull = Cat & {
 	id: string;
+	catNumber: string;
 	status: CatStatus;
 	isVisible: boolean;
 	hairLength: string | null;
@@ -47,7 +50,7 @@ export type CatFull = Cat & {
 	isDeworming: boolean;
 	isIdentify: boolean;
 	chipId: string | null;
-	placement: {
+	placements: {
 		startedDate: Date | null;
 		endedDate: Date | null;
 	};

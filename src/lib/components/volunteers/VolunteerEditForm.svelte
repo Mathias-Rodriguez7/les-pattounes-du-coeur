@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { VolunteerEditFormProps } from '$lib/types/volunteer';
-	import { VOLUNTEER_STATUS_OPTIONS, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import type { VolunteerEditData } from '$lib/types/volunteer';
+	import {
+		VOLUNTEER_STATUS_OPTIONS,
+		VOLUNTEER_ROLE_OPTIONS,
+		VOLUNTEER_SECTION_CONFIG
+	} from '$lib/constants/volunteer';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
@@ -11,23 +15,39 @@
 	import BlacklistButton from '../buttons/BlacklistButton.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
-	import HiddenVolunteerFields from './HiddenVolunteerFields.svelte';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import DatePicker from '../fields/DatePicker.svelte';
+	import DateRangePicker from '../fields/DateRangePicker.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { X } from '@lucide/svelte';
 
 	let {
-		editData = $bindable(),
+		editData = $bindable<VolunteerEditData>(),
 		volunteerId,
 		profileId,
 		onSuccess,
 		onCancel
-	}: VolunteerEditFormProps = $props();
+	} = $props();
 
 	// États
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
 	let isBlacklisting = $state(false);
 
+	let formErrors = $state({
+		firstName: '',
+		lastName: '',
+		email: '',
+		phone: '',
+		address: '',
+		city: '',
+		postalCode: ''
+	});
+
+	// ✅ DERIVED : Afficher DateRangePicker si statut = 'BREAK'
+	let showBreakDateRange = $derived(editData.actif === 'BREAK');
+
 	// Dérivés
-	let isDisabled = $derived(isSaving || isDeleting || isBlacklisting);
 	let districtOptions = $derived(
 		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
 	);
@@ -36,36 +56,16 @@
 	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
 		isSaving = true;
 
-		console.log('📤 volunteerId avant envoi:', volunteerId);
 		formData.append('volunteerId', volunteerId || '');
 
 		return async ({ result, update }) => {
-			console.log('📥 Réponse du serveur:', result);
-
 			if (result.type === 'success') {
-				console.log('✅ Données retournées:', result.data);
-
-				// 🔑 IMPORTANT: Mettre à jour editData avec les données du serveur
-				if (result.data?.data?.volunteer) {
-					const updated = result.data.data.volunteer;
-					editData.firstName = updated.profil?.firstName || editData.firstName;
-					editData.lastName = updated.profil?.lastName || editData.lastName;
-					editData.email = updated.profil?.email || editData.email;
-					editData.phone = updated.profil?.phone || editData.phone;
-					editData.address = updated.profil?.address || editData.address;
-					editData.city = updated.profil?.city || editData.city;
-					editData.postalCode = updated.profil?.postalCode || editData.postalCode;
-					editData.district = updated.profil?.district || editData.district;
-					editData.actif = updated.actif || editData.actif;
-					editData.role = updated.role || editData.role;
-
-					console.log('✅ editData mis à jour:', editData);
+				toast.success('la Bénévole mis à jour avec succès ! ✅');
+				if (onSuccess) {
+					onSuccess();
 				}
-
-				toast.success('Bénévole mis à jour avec succès ! ✅');
-				onSuccess?.();
 			} else if (result.type === 'failure') {
-				console.error('❌ Erreur mise à jour:', result.data);
+				console.error('Erreur mise à jour:', result.data);
 				toast.error(result.data?.error || 'Erreur lors de la mise à jour');
 			}
 
@@ -76,132 +76,207 @@
 
 	const handleCancelClick = () => {
 		console.log('❌ Édition annulée');
-		onCancel?.();
+		if (onCancel) {
+			onCancel();
+		}
 	};
 
 	const handleDeleted = () => {
 		isDeleting = false;
-		onSuccess?.();
+		if (onSuccess) {
+			onSuccess();
+		}
 	};
 
 	const handleBlacklisted = () => {
 		isBlacklisting = false;
-		onSuccess?.();
+		if (onSuccess) {
+			onSuccess();
+		}
+	};
+
+	// ✅ Handler pour la plage de dates
+	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
+		editData.breakStartDate = dates.start;
+		editData.breakEndDate = dates.end;
 	};
 </script>
 
 <!-- ✅ FORMULAIRE UPDATE -->
 <form method="POST" action="?/updateVolunteer" use:enhance={handleUpdateEnhance} class="space-y-6">
-	<!-- 🔑 COMPOSANT HIDDEN FIELDS -->
-	<HiddenVolunteerFields {editData} />
-	<!-- SECTION 1: CONTACT -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Contact</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			<InputField
-				id="firstname-input"
-				label="Prénom"
-				bind:value={editData.firstName}
-				placeholder="Jean"
-				disabled={isDisabled}
-				required
-			/>
-
-			<InputField
-				id="lastname-input"
-				label="Nom"
-				bind:value={editData.lastName}
-				placeholder="Dupont"
-				disabled={isDisabled}
-				required
-			/>
-
-			<InputField
-				id="email-input"
-				label="Email"
-				type="email"
-				bind:value={editData.email}
-				placeholder="jean@example.com"
-				disabled={isDisabled}
-				required
-			/>
-
-			<InputField
-				id="phone-input"
-				label="Téléphone"
-				type="tel"
-				bind:value={editData.phone}
-				placeholder="06 12 34 56 78"
-				disabled={isDisabled}
-			/>
-		</div>
+	<div class="flex justify-end">
+		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
+			<X class="h-5 w-5" />
+		</Button>
 	</div>
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Statu -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
+			title={VOLUNTEER_SECTION_CONFIG.statuts.label}
+			color={VOLUNTEER_SECTION_CONFIG.statuts.color}
+		>
+			<div class="grid grid-cols-2 gap-4">
+				<SelectField
+					id="actif"
+					name="actif"
+					label="Statut activité"
+					bind:value={editData.actif}
+					options={VOLUNTEER_STATUS_OPTIONS}
+					size="sm"
+					required
+				/>
 
+				<SelectField
+					id="role"
+					name="role"
+					label="Rôle"
+					bind:value={editData.role}
+					options={VOLUNTEER_ROLE_OPTIONS}
+					size="sm"
+					required
+				/>
+
+				<!-- ✅ AFFICHAGE CONDITIONNEL : DateRangePicker apparaît si statut = 'BREAK' -->
+				{#if showBreakDateRange}
+					<div class="col-span-2">
+						<DateRangePicker
+							startValue={editData.breakStart}
+							endValue={editData.breakEnd}
+							startName="breakStart"
+							endName="breakEnd"
+							label="Période de congé"
+							onSelect={handleBreakDateRangeSelect}
+						/>
+					</div>
+				{/if}
+			</div>
+		</SectionCard>
+
+		<!-- Profil -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
+			title={VOLUNTEER_SECTION_CONFIG.profile.label}
+			color={VOLUNTEER_SECTION_CONFIG.profile.color}
+		>
+			<div class="grid grid-cols-2 gap-4">
+				<InputField
+					id="firstName"
+					name="firstName"
+					label="Prénom"
+					bind:value={editData.firstName}
+					error={formErrors.firstName}
+					size="sm"
+					required
+				/>
+
+				<InputField
+					id="lastName"
+					name="lastName"
+					label="Nom"
+					bind:value={editData.lastName}
+					error={formErrors.lastName}
+					size="sm"
+					required
+				/>
+
+				<DatePicker
+					name="birthDate"
+					value={editData.birthDate}
+					onSelect={(date) => (editData.birthDate = date)}
+					label="Date de naissance"
+				/>
+			</div>
+		</SectionCard>
+	</section>
 	<Separator />
 
-	<!-- SECTION 2: STATUT ET RÔLE -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Statut et Rôle</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-			<SelectField
-				id="status-select"
-				label="Statut"
-				bind:value={editData.actif}
-				options={VOLUNTEER_STATUS_OPTIONS}
-				disabled={isDisabled}
-				required
-			/>
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Adresse -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+			title={VOLUNTEER_SECTION_CONFIG.address.label}
+			color={VOLUNTEER_SECTION_CONFIG.address.color}
+		>
+			<div class="space-y-4">
+				<InputField
+					id="address"
+					name="address"
+					label="Rue"
+					bind:value={editData.address}
+					placeholder="Adresse"
+					error={formErrors.address}
+					required
+					size="sm"
+				/>
 
-			<SelectField
-				id="role-select"
-				label="Rôle"
-				bind:value={editData.role}
-				options={VOLUNTEER_ROLE_OPTIONS}
-				disabled={isDisabled}
-				required
-			/>
-		</div>
-	</div>
+				<div class="flex gap-4">
+					<InputField
+						id="city"
+						name="city"
+						label="Ville"
+						bind:value={editData.city}
+						placeholder="Ville"
+						error={formErrors.city}
+						required
+						size="sm"
+					/>
 
-	<Separator />
+					<InputField
+						id="postalCode"
+						name="postalCode"
+						label="Code postal"
+						bind:value={editData.postalCode}
+						placeholder="75000"
+						error={formErrors.postalCode}
+						required
+						size="sm"
+					/>
 
-	<!-- SECTION 3: LOCALISATION -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Localisation</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			<InputField
-				id="address-input"
-				label="Adresse"
-				bind:value={editData.address}
-				placeholder="123 rue de la Paix"
-				disabled={isDisabled}
-			/>
+					<SelectField
+						id="district"
+						name="district"
+						label="Quartier"
+						bind:value={editData.district}
+						options={districtOptions}
+						size="sm"
+					/>
+				</div>
+			</div>
+		</SectionCard>
 
-			<InputField
-				id="city-input"
-				label="Ville"
-				bind:value={editData.city}
-				placeholder="Paris"
-				disabled={isDisabled}
-			/>
+		<!-- Contact -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
+			title={VOLUNTEER_SECTION_CONFIG.contact.label}
+			color={VOLUNTEER_SECTION_CONFIG.contact.color}
+		>
+			<div class="grid gap-2">
+				<InputField
+					id="phone"
+					name="phone"
+					label="Téléphone"
+					bind:value={editData.phone}
+					placeholder="06 12 34 56 78"
+					error={formErrors.phone}
+					required
+					size="sm"
+				/>
 
-			<InputField
-				id="postalcode-input"
-				label="Code postal"
-				bind:value={editData.postalCode}
-				placeholder="75001"
-				disabled={isDisabled}
-			/>
-
-			<SelectField
-				id="district-select"
-				label="Quartier"
-				bind:value={editData.district}
-				options={districtOptions}
-				disabled={isDisabled}
-			/>
-		</div>
-	</div>
+				<InputField
+					id="email"
+					name="email"
+					label="Email"
+					type="email"
+					bind:value={editData.email}
+					placeholder="jean@example.com"
+					error={formErrors.email}
+					required
+					size="sm"
+				/>
+			</div>
+		</SectionCard>
+	</section>
 
 	<Separator />
 

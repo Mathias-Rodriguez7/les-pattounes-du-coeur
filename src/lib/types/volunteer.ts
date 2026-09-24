@@ -1,6 +1,4 @@
-import type { Volunteer, Form, Profil, ColabActivity } from '@prisma/client';
-
-export type StatusType = 'ACTIVE' | 'BREAK' | 'STOP';
+import type { Volunteer, VolunteerRole, Form, Profil, ColabActivity } from '@prisma/client';
 
 export type SelectOption = {
 	value: string;
@@ -14,16 +12,24 @@ export type VolunteerEditFormState = {
 };
 
 export type VolunteerEditData = {
+	// Statut
+	actif: ColabActivity;
+	role: VolunteerRole;
+	breakStart?: Date | null;
+	breakEnd?: Date | null;
+
+	// Profil
 	firstName: string;
 	lastName: string;
+	birthDate: Date;
 	email: string;
 	phone: string;
-	district: string;
+
+	// Adresse
 	address: string;
-	city: string;
 	postalCode: string;
-	actif: StatusType | ColabActivity;
-	role: string;
+	city: string;
+	district?: string;
 };
 
 export type VolunteerEditFormProps = {
@@ -60,6 +66,8 @@ export type VolunteerWithRelations = Omit<Volunteer, 'actif'> & {
 	profil: Profil;
 	cats: CatVolunteerWithRelations[];
 	assignedForms: Form[];
+	breakStart?: Date | null;
+	breakEnd?: Date | null;
 };
 
 export type CatVolunteerExtended = {

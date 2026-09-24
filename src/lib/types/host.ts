@@ -23,6 +23,8 @@ export type HostEditData = {
 	// Statut
 	type?: HostType;
 	actif?: ColabActivity;
+	breakStart?: Date | null;
+	breakEnd?: Date | null;
 	isAvailable: boolean;
 
 	// Profil

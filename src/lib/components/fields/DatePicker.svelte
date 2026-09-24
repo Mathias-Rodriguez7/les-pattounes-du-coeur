@@ -32,16 +32,25 @@
 	const id = crypto.getRandomValues(new Uint8Array(4)).reduce((acc, x) => acc + x.toString(16), '');
 
 	let open = $state(false);
-	let calendarValue = $state<CalendarDateType | undefined>(
-		value ? new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate()) : undefined
-	);
-
+	let calendarValue = $state<CalendarDateType | undefined>();
 	let hiddenValue = $state<string>('');
 
+	// ✅ REACTIVE : Met à jour calendarValue si value change
+	$effect(() => {
+		if (value) {
+			calendarValue = new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate());
+		} else {
+			calendarValue = undefined;
+		}
+	});
+
+	// ✅ Sync la valeur hidden avec calendarValue
 	$effect(() => {
 		if (calendarValue) {
 			const date = calendarValue.toDate(getLocalTimeZone());
 			hiddenValue = date.toISOString().split('T')[0]; // ✅ Format YYYY-MM-DD
+		} else {
+			hiddenValue = '';
 		}
 	});
 
@@ -83,6 +92,7 @@
 				captionLayout="dropdown"
 				onValueChange={handleValueChange}
 				maxValue={today(getLocalTimeZone())}
+				locale="fr"
 			/>
 		</Popover.Content>
 	</Popover.Root>

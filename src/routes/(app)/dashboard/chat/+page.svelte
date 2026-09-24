@@ -4,6 +4,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import NewCatDialog from '$lib/components/cats/NewCatDialog.svelte';
@@ -21,44 +22,45 @@
 	let newCatOpen = $state(false);
 	let currentPage = $state(1);
 	let currentTab = $state('all');
-    
-    const handleSelectCat = (catId: string) => {
-        selectedCatId = catId;
-    };
+	let searchQuery = $state('');
+
+	const handleSelectCat = (catId: string) => {
+		selectedCatId = catId;
+	};
 	const PAGE_SIZE = 10;
 
 	const statCards = $derived([
-    {
-        label: 'Chats sous ma gestion',
-        value: stats.managedByUser,
-        icon: 'cat',
-        theme: 'cats'
-    },
-    {
-        label: 'Profils de chat incomplets',
-        value: stats.incompleteProfiles,
-        icon: 'alert',
-        theme: 'dog'
-    },
-    {
-        label: 'Chats visibles',
-        value: stats.visibleCats,
-        icon: 'Eye',
-        theme: 'fa'
-    },
-    {
-        label: 'En socialisation',
-        value: stats.socializingCats,
-        icon: 'heart',
-        theme: 'socializing'
-    },
-    {
-        label: 'Adoptés cette année',
-        value: stats.adoptedThisYear,
-        icon: 'heart',
-        theme: 'adoptions'
-    }
-]);
+		{
+			label: 'Chats sous ma gestion',
+			value: stats.managedByUser,
+			icon: 'cat',
+			theme: 'cats'
+		},
+		{
+			label: 'Profils de chat incomplets',
+			value: stats.incompleteProfiles,
+			icon: 'alert',
+			theme: 'dog'
+		},
+		{
+			label: 'Chats visibles',
+			value: stats.visibleCats,
+			icon: 'Eye',
+			theme: 'fa'
+		},
+		{
+			label: 'En socialisation',
+			value: stats.socializingCats,
+			icon: 'heart',
+			theme: 'socializing'
+		},
+		{
+			label: 'Adoptés cette année',
+			value: stats.adoptedThisYear,
+			icon: 'heart',
+			theme: 'adoptions'
+		}
+	]);
 
 	const compatibilityIcons = [
 		{ icon: 'dog', theme: 'volunteers', title: 'Compatible avec les chiens' },
@@ -67,17 +69,34 @@
 		{ icon: 'trees', theme: 'fa', title: 'Nécessite un jardin' }
 	];
 
+	// ✅ NEW: Filtrer par tab ET par recherche
 	const filteredCats = $derived(() => {
+		let filtered = [];
+
+		// 1️⃣ Filtre par tab
 		switch (currentTab) {
 			case 'with_fa':
-				return cats.filter((c) => c.currentHost !== null);
+				filtered = cats.filter((c) => c.currentHost !== null);
+				break;
 			case 'without_fa':
-				return cats.filter((c) => c.currentHost === null && c.status !== 'ADOPTED');
+				filtered = cats.filter((c) => c.currentHost === null && c.status !== 'ADOPTED');
+				break;
 			case 'adopted':
-				return cats.filter((c) => c.status === 'ADOPTED');
+				filtered = cats.filter((c) => c.status === 'ADOPTED');
+				break;
 			default:
-				return cats;
+				filtered = cats;
 		}
+
+		// 2️⃣ Filtre par recherche (sur le nom et l'ID)
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			filtered = filtered.filter(
+				(c) => c.name.toLowerCase().includes(query) || c.catNumber.toLowerCase().includes(query)
+			);
+		}
+
+		return filtered;
 	});
 
 	const paginatedCats = $derived(
@@ -86,7 +105,15 @@
 
 	function onTabChange(tab: string) {
 		currentTab = tab;
-		currentPage = 1;
+		currentPage = 1; // ✅ Reset à la page 1
+		searchQuery = ''; // ✅ Reset la recherche aussi
+	}
+
+	// ✅ NEW: Reset la page quand on cherche
+	function handleSearch(e: Event) {
+		const target = e.target as HTMLInputElement;
+		searchQuery = target.value;
+		currentPage = 1; // Revenir à la page 1
 	}
 </script>
 
@@ -113,7 +140,7 @@
 	</section>
 
 	<!-- Tableau + Panel détail -->
-	<section class="grid  grid-cols-1 gap-4 lg:grid-cols-5">
+	<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
 		<!-- Tableau -->
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
@@ -124,6 +151,16 @@
 				</Button>
 			</Card.Header>
 			<Card.Content>
+				<div class="mb-4 text-end">
+					<Input
+						type="text"
+						placeholder="Chercher un chat..."
+						bind:value={searchQuery}
+						onchange={handleSearch}
+						class="w-1/3"
+					/>
+				</div>
+
 				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="min-w-full">
 					<Tabs.List class="bg-muted grid grid-cols-5 gap-2 p-1">
 						<Tabs.Trigger value="all" class="relative">
@@ -150,9 +187,9 @@
 								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
 							{/if}
 						</Tabs.Trigger>
-						<Tabs.Trigger value="adopted" class="relative">
+						<Tabs.Trigger value="free" class="relative">
 							Libre
-							{#if currentTab === 'adopted'}
+							{#if currentTab === 'free'}
 								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-2xl"></div>
 							{/if}
 						</Tabs.Trigger>
@@ -182,13 +219,25 @@
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
-							{#each paginatedCats as cat (cat.id)}
-								<CatRow 
-									{cat} 
-									onclick={() => handleSelectCat(cat.id)}
-									isSelected={selectedCatId === cat.id}
-								/>
-							{/each}
+							{#if paginatedCats.length > 0}
+								{#each paginatedCats as cat (cat.id)}
+									<CatRow
+										{cat}
+										onclick={() => handleSelectCat(cat.id)}
+										isSelected={selectedCatId === cat.id}
+									/>
+								{/each}
+							{:else}
+								<Table.Row>
+									<Table.Cell class="col-span-9 py-8 text-center text-gray-500">
+										{#if searchQuery}
+											Aucun chat trouvé pour "{searchQuery}"
+										{:else}
+											Aucun chat dans cette catégorie
+										{/if}
+									</Table.Cell>
+								</Table.Row>
+							{/if}
 						</Table.Body>
 					</Table.Root>
 

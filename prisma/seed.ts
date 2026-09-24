@@ -62,6 +62,41 @@ function getLocalPdf() {
 	return '/pdf/newsletter.pdf';
 }
 
+// ✅ NOUVELLE FONCTION : Générer un catNumber unique avec regex CJJMMnnn
+function generateCatNumber(sequenceNumber: number): string {
+	// Date aléatoire pour plus de réalisme
+	const randomDate = faker.date.recent({ days: 365 });
+	const day = String(randomDate.getDate()).padStart(2, '0');
+	const month = String(randomDate.getMonth() + 1).padStart(2, '0');
+	const sequence = String(sequenceNumber).padStart(3, '0');
+
+	return `C${day}${month}${sequence}`;
+}
+
+// ✅ NOUVELLE FONCTION : Générer des dates de break
+function generateBreakDates(breakProbability = 0.3) {
+	if (!randomBool(breakProbability)) {
+		return { breakStart: null, breakEnd: null };
+	}
+
+	// Break a commencé il y a 1-60 jours
+	const breakStart = faker.date.recent({ days: 60 });
+
+	// Break se termine dans 1-90 jours (à partir d'aujourd'hui)
+	const breakEnd = new Date();
+	breakEnd.setDate(breakEnd.getDate() + faker.number.int({ min: 1, max: 90 }));
+
+	return { breakStart, breakEnd };
+}
+
+// ✅ NOUVELLE FONCTION : Générer des focalPoints pour les images
+function generateFocalPoint() {
+	return {
+		focalPointX: faker.number.int({ min: 0, max: 100 }),
+		focalPointY: faker.number.int({ min: 0, max: 100 })
+	};
+}
+
 // ---------------------
 // MAIN
 // ---------------------
@@ -127,7 +162,7 @@ async function main() {
 			address: 'Admin address',
 			city: 'Montpellier',
 			postalCode: '34000',
-			district: 'CENTRE_VILLE' // ✅ NOUVEAU
+			district: 'CENTRE_VILLE'
 		}
 	});
 
@@ -141,7 +176,7 @@ async function main() {
 			address: 'Manager address',
 			city: 'Montpellier',
 			postalCode: '34000',
-			district: 'PORT_MARIANNE' // ✅ NOUVEAU
+			district: 'PORT_MARIANNE'
 		}
 	});
 
@@ -155,12 +190,12 @@ async function main() {
 			address: 'Comm address',
 			city: 'Montpellier',
 			postalCode: '34000',
-			district: 'MOSSON' // ✅ NOUVEAU
+			district: 'MOSSON'
 		}
 	});
 
 	// ---------------------
-	// 🔐 FIXED VOLUNTEERS (3 + 27)
+	// 🙋 VOLUNTEERS (3 + 27)
 	// ---------------------
 	console.log('🙋 Création de 30 volunteers...');
 	const admin = await prisma.volunteer.create({
@@ -168,6 +203,8 @@ async function main() {
 			password: await hashPassword('admin123'),
 			role: 'ADMIN',
 			actif: 'ACTIVE',
+			breakStart: null,
+			breakEnd: null,
 			profilId: adminProfil.id
 		}
 	});
@@ -177,6 +214,8 @@ async function main() {
 			password: await hashPassword('manager123'),
 			role: 'MANAGER',
 			actif: 'ACTIVE',
+			breakStart: null,
+			breakEnd: null,
 			profilId: managerProfil.id
 		}
 	});
@@ -186,6 +225,8 @@ async function main() {
 			password: await hashPassword('comm123'),
 			role: 'COMMUNICATION',
 			actif: 'ACTIVE',
+			breakStart: null,
+			breakEnd: null,
 			profilId: commProfil.id
 		}
 	});
@@ -194,11 +235,17 @@ async function main() {
 
 	// 27 autres volunteers aléatoires
 	for (let i = 0; i < 27; i++) {
+		const actif = faker.helpers.arrayElement(COLAB_ACTIVITY);
+		const breakDates =
+			actif === 'BREAK' ? generateBreakDates(1.0) : { breakStart: null, breakEnd: null };
+
 		const volunteer = await prisma.volunteer.create({
 			data: {
 				password: await hashPassword('password'),
 				role: faker.helpers.arrayElement(VOLUNTEER_ROLE),
-				actif: faker.helpers.arrayElement(COLAB_ACTIVITY),
+				actif: actif,
+				breakStart: breakDates.breakStart,
+				breakEnd: breakDates.breakEnd,
 				profilId: profils[i].id
 			}
 		});
@@ -206,18 +253,68 @@ async function main() {
 	}
 
 	// ---------------------
-	// 🏠 HOSTS (80)
+	// 🏠 HOSTS (80) - dont certains sont aussi volunteers
 	// ---------------------
 	console.log('🏠 Création de 80 hosts...');
 	const hosts = [];
 
-	for (let i = 27; i < 107; i++) {
-		// 27 à 106 (80 hosts)
+	// ✅ Créer 10 hosts qui sont AUSSI volunteers
+	console.log('  → 10 hosts qui sont aussi volunteers...');
+	for (let i = 0; i < 10; i++) {
+		// On prend les 10 premiers volunteers (hors admin/manager/comm)
+		const volunteer = volunteers[3 + i]; // volunteers[3] à volunteers[12]
+
+		const actif = faker.helpers.arrayElement(COLAB_ACTIVITY);
+		const breakDates =
+			actif === 'BREAK' ? generateBreakDates(1.0) : { breakStart: null, breakEnd: null };
+
+		const host = await prisma.host.create({
+			data: {
+				profilId: volunteer.profilId, // ✅ Utilise le profilId du volunteer
+				type: faker.helpers.arrayElement(HOST_TYPE),
+				actif: actif,
+				breakStart: breakDates.breakStart,
+				breakEnd: breakDates.breakEnd,
+				catAdult: faker.number.int({ min: 1, max: 10 }),
+				kittyAndKitten: randomBool(),
+				kitten: randomBool() ? faker.number.int({ min: 1, max: 10 }) : null,
+				isAvailable: randomBool(),
+				additionalInformation: faker.lorem.sentences(2),
+				hasAnimalsAtHome: randomBool(),
+				numberOfCatsAtHome: faker.number.int({ min: 0, max: 5 }),
+				numberOfDogsAtHome: faker.number.int({ min: 0, max: 3 }),
+				otherAnimalsAtHome: faker.word.noun(),
+				space: faker.number.int({ min: 1, max: 999 }),
+				homeDescription: faker.lorem.sentences(2),
+				presence: faker.lorem.sentence(),
+				outside: randomBool(),
+				outsideDescription: faker.lorem.sentence(),
+				isStockFeed: randomBool(),
+				heal: faker.helpers.arrayElement(HEAL),
+				socialize: faker.helpers.arrayElement(SOCIALIZE),
+				car: randomBool(),
+				babyFeeding: faker.helpers.arrayElement(BABY),
+				stopActivity: randomBool(0.3) ? faker.lorem.sentence() : null
+			}
+		});
+		hosts.push(host);
+	}
+
+	// ✅ Créer 70 hosts normaux (profils restants)
+	console.log('  → 70 hosts sans rôle volunteer...');
+	for (let i = 37; i < 107; i++) {
+		// 37 = 27 (volunteers) + 10 (volunteer-hosts)
+		const actif = faker.helpers.arrayElement(COLAB_ACTIVITY);
+		const breakDates =
+			actif === 'BREAK' ? generateBreakDates(1.0) : { breakStart: null, breakEnd: null };
+
 		const host = await prisma.host.create({
 			data: {
 				profilId: profils[i].id,
 				type: faker.helpers.arrayElement(HOST_TYPE),
-				actif: faker.helpers.arrayElement(COLAB_ACTIVITY),
+				actif: actif,
+				breakStart: breakDates.breakStart,
+				breakEnd: breakDates.breakEnd,
 				catAdult: faker.number.int({ min: 1, max: 10 }),
 				kittyAndKitten: randomBool(),
 				kitten: randomBool() ? faker.number.int({ min: 1, max: 10 }) : null,
@@ -248,12 +345,14 @@ async function main() {
 	// ---------------------
 	console.log('🐱 Création de 150 chats...');
 	const cats = [];
-	const FOCAL_POINT = ['TOP', 'MID', 'BOT'] as const;
 
 	for (let i = 0; i < 150; i++) {
+		const focalPoint = generateFocalPoint();
+
 		const cat = await prisma.cat.create({
 			data: {
 				name: faker.person.firstName(),
+				catNumber: generateCatNumber(i + 1), // ✅ Génère CJJMMnnn
 				sex: faker.helpers.arrayElement(SEX),
 				birthDate: faker.date.birthdate({ min: 1, max: 30, mode: 'age' }),
 				isVisible: randomBool(0.8),
@@ -273,9 +372,14 @@ async function main() {
 				isOutside: randomBool(),
 				isIdentify: randomBool(0.6),
 				chipId: randomBool(0.8) ? faker.string.alphanumeric(10) : null,
-				focalPoint: faker.helpers.arrayElement(FOCAL_POINT),
 				media: {
-					create: [{ picture: randomImage(i) }]
+					create: [
+						{
+							picture: randomImage(i),
+							focalPointX: focalPoint.focalPointX, // ✅ FocalPoint dans MediaCat
+							focalPointY: focalPoint.focalPointY // ✅ FocalPoint dans MediaCat
+						}
+					]
 				}
 			}
 		});
@@ -468,9 +572,9 @@ async function main() {
 	console.log(`
         📊 Statistiques :
         - 150 Profils (avec districts)
-        - 30 Volunteers
-        - 80 Hosts
-        - 150 Chats
+        - 30 Volunteers (avec breakStart/breakEnd si BREAK)
+        - 80 Hosts (avec breakStart/breakEnd si BREAK)
+        - 150 Chats (avec catNumber unique CJJMMnnn)
         - ~80 Placements
         - ~100 Soins
         - 30 News

@@ -25,6 +25,7 @@
 	import type { HostEditData } from '$types/host';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
+	import DateRangePicker from '../fields/DateRangePicker.svelte';
 
 	let {
 		editData = $bindable<HostEditData>(),
@@ -91,9 +92,15 @@
 		}
 	};
 
+	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
+		editData.breakStartDate = dates.start;
+		editData.breakEndDate = dates.end;
+	};
+
 	let districtOptions = $derived(
 		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
 	);
+	let showBreakDateRange = $derived(editData.actif === 'BREAK');
 </script>
 
 <form method="POST" action="?/updateHost" use:enhance={handleUpdateEnhance} class="space-y-6">
@@ -134,6 +141,19 @@
 					size="sm"
 					required
 				/>
+
+				{#if showBreakDateRange}
+					<div class="col-span-2">
+						<DateRangePicker
+							startValue={editData.breakStart}
+							endValue={editData.breakEnd}
+							startName="breakStart"
+							endName="breakEnd"
+							label="Période de congé"
+							onSelect={handleBreakDateRangeSelect}
+						/>
+					</div>
+				{/if}
 
 				<SwitchField
 					id="isAvailable"
@@ -251,6 +271,17 @@
 		>
 			<div class="grid gap-2">
 				<InputField
+					id="phone"
+					name="phone"
+					label="Téléphone"
+					bind:value={editData.phone}
+					placeholder="06 12 34 56 78"
+					error={formErrors.phone}
+					required
+					size="sm"
+				/>
+
+				<InputField
 					id="email"
 					name="email"
 					label="Email"
@@ -258,17 +289,6 @@
 					bind:value={editData.email}
 					placeholder="jean@example.com"
 					error={formErrors.email}
-					required
-					size="sm"
-				/>
-
-				<InputField
-					id="phone"
-					name="phone"
-					label="Téléphone"
-					bind:value={editData.phone}
-					placeholder="06 12 34 56 78"
-					error={formErrors.phone}
 					required
 					size="sm"
 				/>

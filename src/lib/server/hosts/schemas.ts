@@ -29,8 +29,10 @@ const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean
 
 export const createHostSchema = z.object({
 	// Statut
-	type: hostTypeEnum.nullable(), // ✅ Cast vers HostType
-	actif: colabActivityEnum.default(ColabActivity.ACTIVE), // ✅ Cast vers ColabActivity
+	type: hostTypeEnum.nullable(),
+	actif: colabActivityEnum.default(ColabActivity.ACTIVE),
+	breakStart: stringToDate.optional(),
+	breakEnd: stringToDate.optional(),
 	isAvailable: stringToBoolean.default(true),
 
 	// PROFIL
@@ -44,7 +46,7 @@ export const createHostSchema = z.object({
 	address: z.string().min(1, "L'adresse est obligatoire"),
 	city: z.string().min(1, 'La ville est obligatoire'),
 	postalCode: z.string().min(5, 'Code postal invalide'),
-	district: districtEnum.nullable().optional(), // ✅ Cast vers District
+	district: districtEnum.nullable().optional(),
 
 	// HOST - Domicile
 	space: z.coerce
@@ -63,9 +65,9 @@ export const createHostSchema = z.object({
 	otherAnimalsAtHome: z.string().nullable().optional(),
 
 	// Capacités
-	heal: healEnum, // ✅ Cast vers Heal
-	socialize: socializeEnum, // ✅ Cast vers Socialize
-	babyFeeding: babyFeedingEnum, // ✅ Cast vers BabyFeeding
+	heal: healEnum,
+	socialize: socializeEnum,
+	babyFeeding: babyFeedingEnum,
 
 	// Cat
 	catAdult: z.coerce.number().int().min(0).default(0),

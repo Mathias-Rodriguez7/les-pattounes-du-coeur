@@ -36,6 +36,7 @@ export const HOST_BABY_FEEDING_OPTIONS = [
 export const HOST_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
 	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	pause: { icon: 'CirclePause', label: 'Pause', color: 'pink' },
 	Experience: { icon: 'star', label: 'Expérience', color: 'amber' },
 	address: { icon: 'map', label: 'Adresse', color: 'gray' },
 	contact: { icon: 'phone', label: 'Contact', color: 'sky' },

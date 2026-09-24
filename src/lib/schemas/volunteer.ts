@@ -1,82 +1,44 @@
 import { z } from 'zod';
 import { District, VolunteerRole, ColabActivity } from '@prisma/client';
 
+// ✅ Convertir les enums Prisma en arrays pour z.enum()
+const districtEnum = z
+	.enum(Object.values(District) as [string, ...string[]])
+	.transform((val) => val as District);
+const colabActivityEnum = z
+	.enum(Object.values(ColabActivity) as [string, ...string[]])
+	.transform((val) => val as ColabActivity);
+const roleEnum = z
+	.enum(Object.values(VolunteerRole) as [string, ...string[]])
+	.transform((val) => val as VolunteerRole);
+
+// ✅ Convertir les strings en dates
+const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
+
 // ✅ Schéma de création
 export const createVolunteerSchema = z.object({
-	firstName: z
-		.string()
-		.min(2, 'Le prénom doit contenir au moins 2 caractères')
-		.max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
-	lastName: z
-		.string()
-		.min(2, 'Le nom doit contenir au moins 2 caractères')
-		.max(50, 'Le nom ne peut pas dépasser 50 caractères'),
-	email: z.string().email('Email invalide').max(100, 'Email trop long'),
-	phone: z
-		.string()
-		.regex(/^\+?[0-9\s\-()]{10,}$/, 'Numéro de téléphone invalide')
-		.max(20),
-	address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères").max(100),
-	city: z.string().min(2, 'La ville doit contenir au moins 2 caractères').max(50),
-	postalCode: z.string().regex(/^[0-9]{5}$/, 'Code postal invalide (5 chiffres)'),
-	district: z
-		.enum(Object.values(District) as [string, ...string[]])
-		.optional()
-		.nullable(),
-	role: z.enum(Object.values(VolunteerRole) as [string, ...string[]]).default('MANAGER')
+	role: roleEnum,
+	actif: colabActivityEnum.default(ColabActivity.ACTIVE),
+	breakStart: stringToDate.optional(),
+	breakEnd: stringToDate.optional(),
+
+	// PROFIL
+	firstName: z.string().min(1, 'Le prénom est obligatoire'),
+	lastName: z.string().min(1, 'Le nom est obligatoire'),
+	birthDate: stringToDate,
+	email: z.email('Email invalide'),
+	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
+
+	// Adresse
+	address: z.string().min(1, "L'adresse est obligatoire"),
+	city: z.string().min(1, 'La ville est obligatoire'),
+	postalCode: z.string().min(5, 'Code postal invalide'),
+	district: districtEnum.nullable().optional()
 });
 
 // ✅ Schéma de mise à jour (tout optionnel sauf l'ID)
-export const updateVolunteerSchema = z.object({
-	volunteerId: z.string().uuid('ID invalide'),
-	firstName: z
-		.string()
-		.min(2, 'Le prénom doit contenir au moins 2 caractères')
-		.max(50)
-		.optional()
-		.nullable(),
-	lastName: z
-		.string()
-		.min(2, 'Le nom doit contenir au moins 2 caractères')
-		.max(50)
-		.optional()
-		.nullable(),
-	email: z.string().email('Email invalide').max(100).optional().nullable(),
-	phone: z
-		.string()
-		.regex(/^\+?[0-9\s\-()]{10,}$/, 'Numéro de téléphone invalide')
-		.max(20)
-		.optional()
-		.nullable(),
-	address: z
-		.string()
-		.min(5, "L'adresse doit contenir au moins 5 caractères")
-		.max(100)
-		.optional()
-		.nullable(),
-	city: z
-		.string()
-		.min(2, 'La ville doit contenir au moins 2 caractères')
-		.max(50)
-		.optional()
-		.nullable(),
-	postalCode: z
-		.string()
-		.regex(/^[0-9]{5}$/, 'Code postal invalide (5 chiffres)')
-		.optional()
-		.nullable(),
-	district: z
-		.enum(Object.values(District) as [string, ...string[]])
-		.optional()
-		.or(z.literal('')),
-	role: z
-		.enum(Object.values(VolunteerRole) as [string, ...string[]])
-		.optional()
-		.nullable(),
-	actif: z
-		.enum(Object.values(ColabActivity) as [string, ...string[]])
-		.optional()
-		.nullable()
+export const updateVolunteerSchema = createVolunteerSchema.partial().extend({
+	volunteerId: z.uuid('ID invalide')
 });
 
 // ✅ Schéma de suppression

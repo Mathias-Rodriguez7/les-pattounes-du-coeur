@@ -23,7 +23,7 @@
 		isAdmin = false
 	}: {
 		cat: CatFull | null;
-		hosts: any[]; // ou ton type Prisma complet
+		hosts: any[];
 		volunteers: any[];
 		isAdmin?: boolean;
 	} = $props();
@@ -37,7 +37,6 @@
 </script>
 
 {#if cat}
-	<!-- Card qui chevauche avec le Header -->
 	<Card.Root class="relative col-span-1 overflow-auto">
 		{#if editing}
 			<CatEditForm {cat} {hosts} {volunteers} {isAdmin} onCancel={() => (editing = false)} />
@@ -50,8 +49,8 @@
 						<Card.Description>
 							{cat.ageBadge} · {getLabel(sexLabel, cat.sex)}
 						</Card.Description>
-						<span>ID</span>
-						<span>{cat.id}</span>
+						<span>Num de suivi:</span>
+						<span>{cat.catNumber}</span>
 					</div>
 					<!-- FA & référent -->
 					<div>

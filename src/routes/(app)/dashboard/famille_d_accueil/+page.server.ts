@@ -99,7 +99,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const hosts = await prisma.host.findMany({
 			where: whereCondition,
 			include: {
-				profil: true,
+				profil: {
+					include: {
+						volunteer: true
+					}
+				},
 				placements: {
 					include: {
 						cat: {

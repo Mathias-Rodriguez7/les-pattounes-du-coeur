@@ -5,6 +5,7 @@ import { formatAge, getAgeBadge } from '$lib/utils/age';
 export function mapCat(cat: PrismaCatWithMedia): Cat {
 	return {
 		id: cat.id,
+		catNumber: cat.catNumber,
 		name: cat.name ?? 'Sans nom',
 		birthDate: cat.birthDate ?? null,
 		sex: cat.sex,
@@ -16,7 +17,8 @@ export function mapCat(cat: PrismaCatWithMedia): Cat {
 		isOkChild: cat.isOkChild ?? false,
 		isOutside: cat.isOutside ?? false,
 		media: cat.media.filter((m) => m.picture !== null).map((m) => ({ picture: m.picture! })),
-		focalPoint: (cat.focalPoint as 'TOP' | 'MID' | 'BOT') ?? 'MID'
+		focalPointX: cat.focalPointX ?? null,
+		focalPointY: cat.focalPointY ?? null
 	};
 }
 
@@ -26,6 +28,7 @@ export function mapCatFull(cat: PrismaCatFull): CatFull {
 
 	return {
 		id: cat.id,
+		catNumber: cat.catNumber,
 		name: cat.name ?? 'Sans nom',
 		birthDate: cat.birthDate ?? null,
 		sex: cat.sex,
@@ -37,7 +40,8 @@ export function mapCatFull(cat: PrismaCatFull): CatFull {
 		isOkChild: cat.isOkChild ?? false,
 		isOutside: cat.isOutside ?? false,
 		media: cat.media.filter((m) => m.picture !== null).map((m) => ({ picture: m.picture! })),
-		focalPoint: (cat.focalPoint as 'TOP' | 'MID' | 'BOT') ?? 'MID',
+		focalPointX: cat.focalPointX ?? null,
+		focalPointY: cat.focalPointY ?? null,
 
 		status: cat.status,
 		isVisible: cat.isVisible,

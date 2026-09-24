@@ -1,212 +1,296 @@
 import prisma from '$lib/server/prisma';
-import { District, VolunteerRole, ColabActivity } from '@prisma/client';
-import { createVolunteerSchema, updateVolunteerSchema } from '$lib/schemas/volunteer';
-import { ZodError } from 'zod';
+import {
+	createVolunteerSchema,
+	updateVolunteerSchema,
+	type CreateVolunteerInput,
+	type UpdateVolunteerInput
+} from '$lib/schemas/volunteer';
 
-interface PrismaErrorWithCode {
-	code?: string;
-	meta?: {
-		target?: string[];
-	};
-}
+const PROFIL_FIELDS = [
+	'firstName',
+	'lastName',
+	'birthDate',
+	'email',
+	'phone',
+	'address',
+	'city',
+	'postalCode',
+	'district'
+] as const;
 
-export const createVolunteer = async ({ request, locals }: any) => {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
-		return { success: false, error: 'Non autorisé' };
+const VOLUNTEER_FIELDS = ['role', 'actif', 'breakStart', 'breakEnd'] as const;
+
+function convertFormData(formData: FormData): Record<string, string | null> {
+	const data: Record<string, string | null> = {};
+
+	for (const [key, value] of formData.entries()) {
+		data[key] = (value as string) || null;
 	}
 
-	const formData = await request.formData();
-	const data = {
-		firstName: formData.get('firstName')?.toString().trim(),
-		lastName: formData.get('lastName')?.toString().trim(),
-		email: formData.get('email')?.toString().trim(),
-		phone: formData.get('phone')?.toString().trim(),
-		address: formData.get('address')?.toString().trim(),
-		city: formData.get('city')?.toString().trim(),
-		postalCode: formData.get('postalCode')?.toString().trim(),
-		district: formData.get('district')?.toString().trim(),
-		role: formData.get('role')?.toString().trim() || 'MANAGER'
-	};
+	return data;
+}
+
+async function checkEmailUniqueness(email: string, excludeId?: string): Promise<boolean> {
+	const existing = await prisma.host.findFirst({
+		where: {
+			profil: { email }
+		}
+	});
+	return existing ? excludeId !== existing.id : false;
+}
+
+async function checkPhoneUniqueness(phone: string, excludeId?: string): Promise<boolean> {
+	const existing = await prisma.host.findFirst({
+		where: {
+			profil: { phone }
+		}
+	});
+	return existing ? excludeId !== existing.id : false;
+}
+
+// ✅ Helper pour construire les données du Host
+function buildVolunteerData(data: CreateVolunteerInput | UpdateVolunteerInput) {
+	return VOLUNTEER_FIELDS.reduce(
+		(acc, field) => {
+			if (field in data && data[field as keyof typeof data] !== undefined) {
+				acc[field] = data[field as keyof typeof data];
+			}
+			return acc;
+		},
+		{} as Record<string, unknown>
+	);
+}
+
+// ✅ Helper pour construire les données du Profil
+function buildProfilData(data: CreateVolunteerInput | UpdateVolunteerInput) {
+	return PROFIL_FIELDS.reduce(
+		(acc, field) => {
+			if (field in data && data[field as keyof typeof data] !== undefined) {
+				acc[field] = data[field as keyof typeof data];
+			}
+			return acc;
+		},
+		{} as Record<string, unknown>
+	);
+}
+
+export async function createVolunteer({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!locals.user || locals.user.role !== 'ADMIN') {
+		return {
+			success: false,
+			error: 'Non autorisé',
+			errors: {}
+		};
+	}
 
 	try {
-		const validatedData = createVolunteerSchema.parse(data);
+		const formData = await request.formData();
+		const data = convertFormData(formData);
 
-		const profil = await prisma.profil.create({
-			data: {
-				firstName: validatedData.firstName,
-				lastName: validatedData.lastName,
-				email: validatedData.email,
-				phone: validatedData.phone,
-				address: validatedData.address,
-				city: validatedData.city,
-				postalCode: validatedData.postalCode,
-				...(validatedData.district && { district: validatedData.district as District })
-			}
-		});
+		// Valider les données
+		const result = createVolunteerSchema.safeParse(data);
 
-		const volunteer = await prisma.volunteer.create({
-			data: {
-				profilId: profil.id,
-				password: 'TempPassword123!',
-				role: validatedData.role as VolunteerRole,
-				actif: 'ACTIVE'
-			},
-			include: {
-				profil: true,
-				cats: true,
-				assignedForms: true
-			}
-		});
-
-		// ✅ RETOURNER le volunteer créé
-		return {
-			success: true,
-			data: { volunteer }
-		};
-	} catch (error) {
-		if (error instanceof ZodError) {
+		if (!result.success) {
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: error.issues.map((issue) => ({
-					path: issue.path,
-					message: issue.message
-				}))
+				errors: result.error.flatten().fieldErrors
 			};
 		}
 
-		const prismaError = error as PrismaErrorWithCode;
-		if (prismaError.code === 'P2002') {
-			const field = prismaError.meta?.target?.[0] || 'données';
-			return { success: false, error: `Ce ${field} est déjà utilisé` };
+		const validatedData: CreateVolunteerInput = result.data;
+
+		// 🔍 Vérifier l'email
+		const emailExists = await checkEmailUniqueness(validatedData.email);
+		if (emailExists) {
+			return {
+				success: false,
+				error: 'Cet email est déjà utilisé',
+				errors: { email: ['Email déjà utilisé'] }
+			};
 		}
 
-		console.error('Erreur création volunteer:', error);
-		return { success: false, error: 'Erreur lors de la création' };
+		// 🔍 Vérifier le téléphone
+		const phoneExists = await checkPhoneUniqueness(validatedData.phone);
+		if (phoneExists) {
+			return {
+				success: false,
+				error: 'Cet téléphone est déjà utilisé',
+				errors: { phone: ['Téléphone déjà utilisé'] }
+			};
+		}
+
+		const newVolunteer = await prisma.volunteer.create({
+			data: {
+				role: validatedData.role,
+				actif: validatedData.actif,
+				breakStart: validatedData.breakStart,
+				breakEnd: validatedData.breakEnd,
+
+				// Créer le profil associé
+				profil: {
+					create: {
+						firstName: validatedData.firstName,
+						lastName: validatedData.lastName,
+						birthDate: validatedData.birthDate,
+						email: validatedData.email,
+						phone: validatedData.phone,
+						address: validatedData.address,
+						city: validatedData.city,
+						postalCode: validatedData.postalCode,
+						district: validatedData.district
+					}
+				}
+			},
+			include: { profil: true }
+		});
+
+		return {
+			success: true,
+			message: 'Bénévole créé avec succès',
+			data: newVolunteer,
+			errors: {}
+		};
+	} catch (error) {
+		console.error('Erreur création Bénévole:', error);
+		return {
+			success: false,
+			error: 'Erreur lors de la création',
+			errors: {}
+		};
 	}
-};
+}
 
-export const updateVolunteer = async ({ request }: any) => {
-	const formData = await request.formData();
-	const volunteerId = formData.get('volunteerId')?.toString().trim();
-
-	console.log('📝 updateVolunteer - volunteerId reçu:', volunteerId);
-
-	const data = {
-		volunteerId,
-		firstName: formData.get('firstName')?.toString().trim(),
-		lastName: formData.get('lastName')?.toString().trim(),
-		email: formData.get('email')?.toString().trim(),
-		phone: formData.get('phone')?.toString().trim(),
-		address: formData.get('address')?.toString().trim(),
-		city: formData.get('city')?.toString().trim(),
-		postalCode: formData.get('postalCode')?.toString().trim(),
-		district: formData.get('district')?.toString().trim() || undefined,
-		actif: formData.get('actif')?.toString().trim(),
-		role: formData.get('role')?.toString().trim()
-	};
+export async function updateVolunteer({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!locals.user) {
+		return {
+			success: false,
+			error: 'Non autorisé',
+			errors: {}
+		};
+	}
 
 	try {
-		const validatedData = updateVolunteerSchema.parse(data);
+		const formData = await request.formData();
+		const data = convertFormData(formData);
 
-		console.log('✅ Données validées:', validatedData);
+		const volunteerId = data.volunteerId as string;
 
-		// 🔑 IMPORTANT: volunteerId est l'ID du VOLUNTEER, pas du PROFIL
+		if (!volunteerId) {
+			return {
+				success: false,
+				error: 'ID du bénévole manquant',
+				errors: {}
+			};
+		}
+
+		// ✅ Vérifier que c'est un ADMIN ou le bénévole lui-même
+		const isAdmin = locals.user.role === 'ADMIN';
+		const isOwnProfile = locals.user.id === volunteerId;
+
+		if (!isAdmin && !isOwnProfile) {
+			return {
+				success: false,
+				error: 'Non autorisé',
+				errors: {}
+			};
+		}
+
+		// Valider les données
+		const result = updateVolunteerSchema.safeParse(data);
+
+		if (!result.success) {
+			return {
+				success: false,
+				error: 'Erreur de validation',
+				errors: result.error.flatten().fieldErrors
+			};
+		}
+
+		const validatedData: UpdateVolunteerInput = result.data;
+
 		const existingVolunteer = await prisma.volunteer.findUnique({
-			where: { id: validatedData.volunteerId },
+			where: { id: volunteerId },
 			include: { profil: true }
 		});
 
 		if (!existingVolunteer) {
-			console.error('❌ Volunteer non trouvé:', validatedData.volunteerId);
-			return { success: false, error: 'Bénévole non trouvé' };
-		}
-
-		console.log('✅ Volunteer trouvé:', existingVolunteer.id);
-
-		// ✅ Vérifier le téléphone (utiliser profilId pour vérifier l'unicité)
-		if (validatedData.phone) {
-			const phoneExists = await prisma.profil.findFirst({
-				where: {
-					phone: validatedData.phone,
-					id: { not: existingVolunteer.profilId } // Comparer avec profilId
-				}
-			});
-
-			if (phoneExists) {
-				console.error('❌ Téléphone déjà utilisé');
-				return { success: false, error: 'Ce numéro de téléphone est déjà utilisé' };
-			}
-		}
-
-		// 🔄 Mettre à jour le PROFIL
-		const profilUpdateData: any = {};
-		if (validatedData.firstName) profilUpdateData.firstName = validatedData.firstName;
-		if (validatedData.lastName) profilUpdateData.lastName = validatedData.lastName;
-		if (validatedData.email) profilUpdateData.email = validatedData.email;
-		if (validatedData.phone) profilUpdateData.phone = validatedData.phone;
-		if (validatedData.address) profilUpdateData.address = validatedData.address;
-		if (validatedData.city) profilUpdateData.city = validatedData.city;
-		if (validatedData.postalCode) profilUpdateData.postalCode = validatedData.postalCode;
-		if (validatedData.district) profilUpdateData.district = validatedData.district as District;
-
-		console.log('📝 Mise à jour profil avec:', profilUpdateData);
-
-		await prisma.profil.update({
-			where: { id: existingVolunteer.profilId },
-			data: profilUpdateData
-		});
-
-		console.log('✅ Profil mis à jour');
-
-		// 🔄 Mettre à jour le VOLUNTEER
-		const volunteerUpdateData: any = {};
-		if (validatedData.role) volunteerUpdateData.role = validatedData.role as VolunteerRole;
-		if (validatedData.actif) volunteerUpdateData.actif = validatedData.actif as ColabActivity;
-
-		console.log('📝 Mise à jour volunteer avec:', volunteerUpdateData);
-
-		const updatedVolunteer = await prisma.volunteer.update({
-			where: { id: validatedData.volunteerId }, // ✅ Utiliser l'ID du volunteer
-			data: volunteerUpdateData,
-			include: {
-				profil: true,
-				cats: true,
-				assignedForms: true
-			}
-		});
-
-		console.log('✅ Volunteer mis à jour:', updatedVolunteer.id);
-		console.log('📊 updatedVolunteer.profil:', updatedVolunteer.profil);
-		console.log('📊 updatedVolunteer.profil.firstName:', updatedVolunteer.profil?.firstName);
-
-		// ✅ RETOURNER le volunteer mis à jour
-		return {
-			success: true,
-			data: { volunteer: updatedVolunteer }
-		};
-	} catch (error) {
-		console.error('❌ Erreur updateVolunteer:', error);
-
-		if (error instanceof ZodError) {
-			console.error('📋 Erreurs Zod:', error.issues);
 			return {
 				success: false,
-				error: 'Erreur de validation',
-				errors: error.issues.map((issue) => ({
-					path: issue.path.join('.'),
-					message: issue.message
-				}))
+				error: 'Bénévole non trouvé',
+				errors: {}
 			};
 		}
 
-		const prismaError = error as PrismaErrorWithCode;
-		if (prismaError.code === 'P2002') {
-			const field = prismaError.meta?.target?.[0] || 'données';
-			return { success: false, error: `Ce ${field} est déjà utilisé` };
+		const emailChanged =
+			validatedData.email && validatedData.email !== existingVolunteer.profil.email;
+		const phoneChanged =
+			validatedData.phone && validatedData.phone !== existingVolunteer.profil.phone;
+
+		if (emailChanged || phoneChanged) {
+			const [emailExists, phoneExists] = await Promise.all([
+				emailChanged
+					? checkEmailUniqueness(validatedData.email!, volunteerId)
+					: Promise.resolve(false),
+				phoneChanged
+					? checkPhoneUniqueness(validatedData.phone!, volunteerId)
+					: Promise.resolve(false)
+			]);
+
+			if (emailExists) {
+				return {
+					success: false,
+					error: 'Cet email est déjà utilisé',
+					errors: { email: ['Email déjà utilisé'] }
+				};
+			}
+
+			if (phoneExists) {
+				return {
+					success: false,
+					error: 'Ce numéro de téléphone est déjà utilisé',
+					errors: { phone: ['Téléphone déjà utilisé'] }
+				};
+			}
 		}
 
-		console.error('Erreur mise à jour volunteer:', error);
-		return { success: false, error: 'Erreur lors de la mise à jour du bénévole' };
+		const volunteerData = buildVolunteerData(validatedData);
+		const profilData = buildProfilData(validatedData);
+
+		const updatedVolunteer = await prisma.volunteer.update({
+			where: { id: volunteerId },
+			data: {
+				...volunteerData,
+				...(Object.keys(profilData).length > 0 && {
+					profil: { update: profilData }
+				})
+			},
+			include: { profil: true }
+		});
+
+		return {
+			success: true,
+			message: 'Bénévole mis à jour avec succès',
+			data: updatedVolunteer
+		};
+	} catch (error) {
+		console.error('❌ ERREUR UPDATE:', error);
+		return {
+			success: false,
+			error: 'Erreur lors de la mise à jour du bénévole',
+			errors: {}
+		};
 	}
-};
+}

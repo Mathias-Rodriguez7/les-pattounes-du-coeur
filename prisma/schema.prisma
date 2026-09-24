@@ -34,6 +34,10 @@ model Volunteer {
   actif         ColabActivity?
   profilId      String         @unique @db.Uuid
   profil        Profil         @relation(fields: [profilId], references: [id], onDelete: Cascade)
+
+  breakStart    DateTime?
+  breakEnd      DateTime?
+
   created_at    DateTime       @default(now())
   updated_at    DateTime       @default(now()) @updatedAt
   cats          CatVolunteer[]
@@ -50,7 +54,7 @@ model Host {
   catAdult              Int?       @map("cat_adult") @db.Integer
   kittyAndKitten        Boolean     @default(true) @db.Boolean
   kitten                Int?       @map("kitten") @db.Integer     
-  isAvailable           Boolean     @default(true) @db.Boolean // true if the host is available to take care of cats
+  isAvailable           Boolean     @default(true) @db.Boolean
   additionalInformation String?      @db.Text
   hasAnimalsAtHome      Boolean     @map("is_animals-at-home") @db.Boolean
   numberOfCatsAtHome    Int?
@@ -67,6 +71,10 @@ model Host {
   car                   Boolean     @db.Boolean
   babyFeeding           BabyFeeding @map("baby_feeding")
   stopActivity          String?      @db.Text
+
+  breakStart            DateTime?
+  breakEnd              DateTime?
+
   created_at            DateTime    @default(now())
   updated_at            DateTime    @default(now()) @updatedAt
   placements            Placement[]
@@ -85,6 +93,7 @@ model BlacklistHistoric {
 
 model Cat {
   id                  String      @id @default(uuid()) @db.Uuid
+  catNumber           String      @unique  @db.VarChar(8)
   name                String?     @db.VarChar(255)
   sex                 SexCat
   birthDate           DateTime?   @db.Date
@@ -104,8 +113,7 @@ model Cat {
   isOkChild           Boolean?    @default(false) @db.Boolean
   isOutside           Boolean?    @default(false) @db.Boolean
   isIdentify          Boolean     @default(false) @db.Boolean
-  chipId              String?     @db.VarChar(255)
-  focalPoint          FocalPoint? @default(MID)
+  chipId              String?     @db.VarChar(255)         
 
   created_at          DateTime       @default(now())
   updated_at          DateTime       @default(now()) @updatedAt
@@ -137,13 +145,15 @@ model Sickness {
 }
 
 model MediaCat {
-  id         String   @id @default(uuid()) @db.Uuid
-  catId      String   @db.Uuid
-  cat        Cat      @relation(fields: [catId], references: [id])
-  picture    String?  @db.VarChar(255)
-  fille      String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  catId       String   @db.Uuid
+  cat         Cat      @relation(fields: [catId], references: [id])
+  picture     String?  @db.VarChar(255)
+  focalPointX Int?        @db.Integer
+  focalPointY Int?        @db.Integer
+  fille       String?  @db.VarChar(255)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 }
 
 model News {
@@ -317,6 +327,7 @@ enum CatStatus {
   SOCIALIZE
   ADOPTED
   FREE
+  DEAD
 }
 
 enum HairLength {
@@ -329,12 +340,6 @@ enum Vaccinate {
   YES
   NO
   PARTIAL
-}
-
-enum FocalPoint {
-  TOP
-  MID
-  BOT
 }
 
 // CARE 

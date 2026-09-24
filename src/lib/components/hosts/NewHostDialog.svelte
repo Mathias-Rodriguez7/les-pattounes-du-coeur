@@ -363,15 +363,17 @@
 								disabled={isSubmitting}
 							/>
 
-							<SelectField
-								id="district"
-								name="district"
-								label="Quartier"
-								bind:value={selectedDistrict}
-								options={districtOptions}
-								size="sm"
-								disabled={isSubmitting}
-							/>
+							{#if city.toLowerCase() === 'montpellier'}
+								<SelectField
+									id="district"
+									name="district"
+									label="Quartier"
+									bind:value={selectedDistrict}
+									options={districtOptions}
+									size="sm"
+									disabled={isSubmitting}
+								/>
+							{/if}
 						</div>
 					</div>
 				</SectionCard>
@@ -412,7 +414,7 @@
 			</section>
 			<Separator />
 
-			<!-- 📍 SECTION 2: Adresse & Zone -->
+			<!-- 📍 SECTION 2 -->
 			<div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
 				<!-- Zone d'accueil -->
 				<SectionCard

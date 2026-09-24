@@ -9,6 +9,7 @@
 	const fullName = $derived(`${volunteer.profil.firstName} ${volunteer.profil.lastName}`);
 	const catsCount = $derived(volunteer.cats.length);
 	const formsCount = $derived(volunteer.assignedForms.length);
+	const isDistrict = $derived(volunteer.profil.city === 'Montpellier' && volunteer.profil.district);
 	const location = $derived(
 		volunteer.profil.city === 'Montpellier' && volunteer.profil.district
 			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
@@ -17,12 +18,20 @@
 				: '—'
 	);
 
+	const locationBadgeClass = $derived(
+		isDistrict
+			? 'bg-amber-100 text-amber-800' // Quartier
+			: 'bg-emerald-100 text-emerald-800' // Ville
+	);
+
 	// Couleurs pour les rôles
 	const roleColors: Record<string, string> = {
 		ADMIN: 'bg-red-100 text-red-800',
 		MANAGER: 'bg-blue-100 text-blue-800',
 		COMMUNICATION: 'bg-purple-100 text-purple-800'
 	};
+
+	const locationLabel = $derived(isDistrict ? '📍 Quartier' : '🌍 Ville');
 </script>
 
 <Table.Row
@@ -40,8 +49,11 @@
 		</Badge>
 	</Table.Cell>
 
+	<!-- ✅ Location badge avec couleur dynamique -->
 	<Table.Cell class="text-sm text-gray-600" title={location}>
-		{truncate(location, 10)}
+		<Badge class={locationBadgeClass} title={locationLabel}>
+			{truncate(location, 6)}
+		</Badge>
 	</Table.Cell>
 
 	<Table.Cell class="text-center">

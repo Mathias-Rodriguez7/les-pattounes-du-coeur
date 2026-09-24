@@ -4,20 +4,25 @@
 	import type { FlattenedErrors } from '$lib/utils/zodErrors';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
+	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import DatePicker from '../fields/DatePicker.svelte';
+	import InputField from '../fields/InputField.svelte';
+	import SelectField from '../fields/SelectField.svelte';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
 
-	let { open = $bindable(false) } = $props();
+	let { open = $bindable(false), onCancel } = $props();
+	let isSaving = $state(false);
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
 	let firstName = $state('');
 	let lastName = $state('');
+	let birthDate = $state<Date | undefined>(undefined);
 	let email = $state('');
 	let phone = $state('');
 	let address = $state('');
@@ -25,12 +30,6 @@
 	let postalCode = $state('');
 	let selectedDistrict = $state<string>('');
 	let selectedRole = $state<string>('MANAGER');
-
-	const roleOptions = [
-		{ value: 'ADMIN', label: 'Admin' },
-		{ value: 'MANAGER', label: 'Manager' },
-		{ value: 'COMMUNICATION', label: 'Communication' }
-	];
 
 	const districtOptions = Object.entries(DISTRICT_LABELS).map(([key, label]) => ({
 		value: key,
@@ -42,12 +41,13 @@
 		const result = createVolunteerSchema.safeParse({
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
+			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
 			email: email.trim(),
 			phone: phone.trim(),
 			address: address.trim(),
 			city: city.trim(),
 			postalCode: postalCode.trim(),
-			district: selectedDistrict.trim() !== '' ? selectedDistrict : undefined,
+			district: selectedDistrict || undefined,
 			role: selectedRole
 		});
 
@@ -64,6 +64,7 @@
 	function resetForm() {
 		firstName = '';
 		lastName = '';
+		birthDate = undefined;
 		email = '';
 		phone = '';
 		address = '';
@@ -106,11 +107,19 @@
 			isSubmitting = false;
 		};
 	};
+
+	const handleCancelClick = () => {
+		console.log('❌ Création annulée');
+		if (onCancel) {
+			onCancel();
+		}
+		resetForm();
+	};
 </script>
 
 <!-- Template -->
 <Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content class="max-h-[90vh] max-w-2xl overflow-y-auto">
+	<Dialog.Content size="md" class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Créer un nouveau bénévole</Dialog.Title>
 			<Dialog.Description>
@@ -119,199 +128,164 @@
 		</Dialog.Header>
 
 		<form method="POST" action="?/createVolunteer" use:enhance={handleEnhance} class="space-y-6">
-			<!-- ROW 1 -->
-			<div class="grid grid-cols-2 gap-4">
-				<div class="grid gap-3">
-					<Label for="firstName">Prénom *</Label>
-					<Input
+			<!-- Profil -->
+			<SectionCard
+				icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
+				title={VOLUNTEER_SECTION_CONFIG.profile.label}
+				color={VOLUNTEER_SECTION_CONFIG.profile.color}
+			>
+				<div class="grid grid-cols-2 gap-4">
+					<InputField
 						id="firstName"
 						name="firstName"
+						label="Prénom"
 						bind:value={firstName}
-						type="text"
-						disabled={isSubmitting}
 						placeholder="Jean"
-						class={getFieldError(fieldErrors, 'firstName') ? 'border-red-500' : ''}
+						error={getFieldError(fieldErrors, 'firstName')}
+						required
+						size="sm"
+						disabled={isSubmitting}
 					/>
-					{#if getFieldError(fieldErrors, 'firstName')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'firstName')}</p>
-					{/if}
-				</div>
 
-				<div class="grid gap-3">
-					<Label for="lastName">Nom *</Label>
-					<Input
+					<InputField
 						id="lastName"
 						name="lastName"
+						label="Nom"
 						bind:value={lastName}
-						type="text"
-						disabled={isSubmitting}
 						placeholder="Dupont"
-						class={getFieldError(fieldErrors, 'lastName') ? 'border-red-500' : ''}
-					/>
-					{#if getFieldError(fieldErrors, 'lastName')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'lastName')}</p>
-					{/if}
-				</div>
-			</div>
-
-			<!-- ROW 2 -->
-			<div class="grid grid-cols-2 gap-4">
-				<div class="grid gap-3">
-					<Label for="email">Email *</Label>
-					<Input
-						id="email"
-						name="email"
-						bind:value={email}
-						type="email"
+						error={getFieldError(fieldErrors, 'lastName')}
+						required
+						size="sm"
 						disabled={isSubmitting}
-						placeholder="jean@example.com"
-						class={getFieldError(fieldErrors, 'email') ? 'border-red-500' : ''}
 					/>
-					{#if getFieldError(fieldErrors, 'email')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'email')}</p>
-					{/if}
-				</div>
 
-				<div class="grid gap-3">
-					<Label for="phone">Téléphone *</Label>
-					<Input
-						id="phone"
-						name="phone"
-						bind:value={phone}
-						type="tel"
-						disabled={isSubmitting}
-						placeholder="06 12 34 56 78"
-						class={getFieldError(fieldErrors, 'phone') ? 'border-red-500' : ''}
+					<DatePicker
+						name="birthDate"
+						value={birthDate}
+						onSelect={(date) => (birthDate = date)}
+						label="Date de naissance"
+						error={getFieldError(fieldErrors, 'birthDate')}
 					/>
-					{#if getFieldError(fieldErrors, 'phone')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'phone')}</p>
-					{/if}
 				</div>
-			</div>
+			</SectionCard>
+			<Separator />
 
-			<!-- ROW 3 -->
-			<section class="grid grid-cols-1 gap-4">
-				<div class="grid gap-3">
-					<Label for="address">Adresse *</Label>
-					<Input
-						id="address"
-						name="address"
-						bind:value={address}
-						type="text"
-						disabled={isSubmitting}
-						placeholder="123 rue de la Paix"
-						class={getFieldError(fieldErrors, 'address') ? 'border-red-500' : ''}
-					/>
-					{#if getFieldError(fieldErrors, 'address')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'address')}</p>
-					{/if}
-				</div>
-
-				<div class="grid grid-cols-2 gap-4">
-					<div class="grid gap-3">
-						<Label for="city">Ville *</Label>
-						<Input
-							id="city"
-							name="city"
-							bind:value={city}
-							type="text"
+			<section class="grid grid-cols-2 gap-4">
+				<!-- Adresse -->
+				<SectionCard
+					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+					title={VOLUNTEER_SECTION_CONFIG.address.label}
+					color={VOLUNTEER_SECTION_CONFIG.address.color}
+				>
+					<div class="space-y-4">
+						<InputField
+							id="address"
+							name="address"
+							label="Rue"
+							bind:value={address}
+							placeholder="123 rue de la Paix"
+							error={getFieldError(fieldErrors, 'address')}
+							required
+							size="sm"
 							disabled={isSubmitting}
-							placeholder="Montpellier"
-							class={getFieldError(fieldErrors, 'city') ? 'border-red-500' : ''}
 						/>
-						{#if getFieldError(fieldErrors, 'city')}
-							<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'city')}</p>
+						<div class="flex gap-4">
+							<InputField
+								id="city"
+								name="city"
+								label="Ville"
+								bind:value={city}
+								placeholder="Montpellier"
+								error={getFieldError(fieldErrors, 'city')}
+								required
+								size="sm"
+								disabled={isSubmitting}
+							/>
+
+							<InputField
+								id="postalCode"
+								name="postalCode"
+								label="Code Postal"
+								bind:value={postalCode}
+								placeholder="34000"
+								error={getFieldError(fieldErrors, 'postalCode')}
+								required
+								size="sm"
+								disabled={isSubmitting}
+							/>
+						</div>
+						{#if city.toLowerCase() === 'montpellier'}
+							<SelectField
+								id="district"
+								name="district"
+								label="Quartier"
+								bind:value={selectedDistrict}
+								options={districtOptions}
+								size="sm"
+								disabled={isSubmitting}
+							/>
 						{/if}
 					</div>
+				</SectionCard>
 
-					<div class="grid gap-3">
-						<Label for="postalCode">Code Postal *</Label>
-						<Input
-							id="postalCode"
-							name="postalCode"
-							bind:value={postalCode}
-							type="text"
+				<!-- Contact -->
+				<SectionCard
+					icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
+					title={VOLUNTEER_SECTION_CONFIG.contact.label}
+					color={VOLUNTEER_SECTION_CONFIG.contact.color}
+				>
+					<div class="grid gap-2">
+						<InputField
+							id="email"
+							name="email"
+							label="Email"
+							type="email"
+							bind:value={email}
+							placeholder="jean@example.com"
+							error={getFieldError(fieldErrors, 'email')}
+							required
+							size="sm"
 							disabled={isSubmitting}
-							placeholder="34000"
-							maxlength={5}
-							class={getFieldError(fieldErrors, 'postalCode') ? 'border-red-500' : ''}
 						/>
-						{#if getFieldError(fieldErrors, 'postalCode')}
-							<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'postalCode')}</p>
-						{/if}
+
+						<InputField
+							id="phone"
+							name="phone"
+							label="Téléphone"
+							bind:value={phone}
+							placeholder="06 12 34 56 78"
+							error={getFieldError(fieldErrors, 'phone')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
 					</div>
-				</div>
-
-				<!-- Quartier / District -->
-				<div class="grid gap-3">
-					<Label for="district">Quartier</Label>
-					<Select.Root type="single" bind:value={selectedDistrict} disabled={isSubmitting}>
-						<Select.Trigger
-							id="district"
-							class={getFieldError(fieldErrors, 'district') ? 'border-red-500' : ''}
-						>
-							{districtOptions.find((o) => o.value === selectedDistrict)?.label ||
-								'Sélectionner un quartier'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label="Aucun" />
-							{#each districtOptions as option (option.value)}
-								<Select.Item value={option.value} label={option.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="district" value={selectedDistrict} />
-					{#if getFieldError(fieldErrors, 'district')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'district')}</p>
-					{/if}
-				</div>
-
-				<!-- Rôle -->
-				<div class="grid gap-3">
-					<Label for="role">Rôle</Label>
-					<Select.Root type="single" bind:value={selectedRole} disabled={isSubmitting}>
-						<Select.Trigger
-							id="role"
-							class={getFieldError(fieldErrors, 'role') ? 'border-red-500' : ''}
-						>
-							{roleOptions.find((o) => o.value === selectedRole)?.label || 'Sélectionner un rôle'}
-						</Select.Trigger>
-						<Select.Content>
-							{#each roleOptions as option (option.value)}
-								<Select.Item value={option.value} label={option.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<input type="hidden" name="role" value={selectedRole} />
-					{#if getFieldError(fieldErrors, 'role')}
-						<p class="text-xs text-red-500">{getFieldError(fieldErrors, 'role')}</p>
-					{/if}
-				</div>
+				</SectionCard>
 			</section>
+			<Separator />
+
+			<!-- Statu -->
+			<SectionCard
+				icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
+				title={VOLUNTEER_SECTION_CONFIG.statuts.label}
+				color={VOLUNTEER_SECTION_CONFIG.statuts.color}
+			>
+				<SelectField
+					id="selectedRole"
+					name="selectedRole"
+					label="Sélectionner un rôle"
+					bind:value={selectedRole}
+					options={VOLUNTEER_ROLE_OPTIONS}
+					size="sm"
+					disabled={isSubmitting}
+				/>
+			</SectionCard>
+
+			<Separator />
 
 			<!-- BUTTONS -->
-			<div class="grid grid-cols-2 gap-4">
-				<Button
-					type="button"
-					variant="outline"
-					disabled={isSubmitting}
-					onclick={() => {
-						open = false;
-						resetForm();
-					}}
-				>
-					Annuler
-				</Button>
-
-				<Button type="submit" disabled={isSubmitting} variant="default">
-					{#if isSubmitting}
-						<span class="mr-2">⏳</span>
-						Création en cours...
-					{:else}
-						<span class="mr-2">✓</span>
-						Créer le bénévole
-					{/if}
-				</Button>
+			<div>
+				<SaveCancelButtons onCancel={handleCancelClick} {isSaving} />
 			</div>
 		</form>
 	</Dialog.Content>

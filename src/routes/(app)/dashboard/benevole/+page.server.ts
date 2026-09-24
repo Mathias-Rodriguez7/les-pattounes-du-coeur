@@ -63,12 +63,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				}
 			}),
 
-			// 2. Profils incomplets
+			// 2. Profils incomplets (FIXE: pas de duplication)
 			prisma.volunteer.count({
 				where: {
 					...whereCondition,
 					profil: {
-						...(districtFilter && { district: districtFilter }),
 						OR: [{ firstName: '' }, { lastName: '' }, { phone: '' }, { email: '' }, { address: '' }]
 					}
 				}
@@ -105,7 +104,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const volunteers = await prisma.volunteer.findMany({
 			where: whereCondition,
 			include: {
-				profil: true,
+				profil: {
+					include: {
+						host: true
+					}
+				},
 				cats: {
 					include: {
 						cat: {
@@ -161,50 +164,70 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
 	createVolunteer: async ({ request, locals }) => {
-		const result = await createVolunteer({ request, locals });
-		if (!result.success) {
-			return fail(400, result);
+		try {
+			const result = await createVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur création bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-		return result;
 	},
 
-	updateVolunteer: async ({ request }) => {
-		const result = await updateVolunteer({ request });
-		if (!result.success) {
-			return fail(400, result);
+	updateVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await updateVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur mise à jour bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-		return result;
 	},
 
 	deleteProfile: async ({ request }) => {
-		const data = await request.formData();
-		const profileId = data.get('profileId') as string;
+		try {
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
 
-		if (!profileId) {
-			return {
-				success: false,
-				error: 'ID manquant'
-			};
+			if (!profileId) {
+				return fail(400, {
+					success: false,
+					error: 'ID manquant'
+				});
+			}
+
+			return await deleteProfile(profileId);
+		} catch (error) {
+			console.error('Erreur suppression profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-
-		return await deleteProfile(profileId);
 	},
 
 	blacklistProfile: async ({ request, locals }) => {
-		// ✅ Vérifier les permissions
-		if (!locals.user || locals.user.role !== 'ADMIN') {
-			return fail(403, { error: 'Non autorisé' });
+		try {
+			// ✅ Vérifier les permissions
+			if (!locals.user || locals.user.role !== 'ADMIN') {
+				return fail(403, { success: false, error: 'Non autorisé' });
+			}
+
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
+			const email = data.get('email') as string;
+			const description = data.get('description') as string;
+
+			if (!profileId || !email) {
+				return fail(400, { success: false, error: 'Données manquantes' });
+			}
+
+			return await blacklistProfile(profileId, email, description || '');
+		} catch (error) {
+			console.error('Erreur blacklist profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-
-		const data = await request.formData();
-		const profileId = data.get('profileId') as string;
-		const email = data.get('email') as string;
-		const description = data.get('description') as string;
-
-		if (!profileId || !email) {
-			return fail(400, { error: 'Données manquantes' });
-		}
-
-		return await blacklistProfile(profileId, email, description || '');
 	}
 };
