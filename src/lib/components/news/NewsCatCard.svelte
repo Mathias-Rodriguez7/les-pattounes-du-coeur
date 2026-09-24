@@ -12,7 +12,7 @@
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
 	<div class="flex justify-center">
-		<img src={news.image} alt={news.title} class="object-fit size-60" />
+		<img src="/img/news/cat.news.png" alt={news.title} class="object-fit size-60" />
 	</div>
 	<Card.Header class="flex items-center justify-between">
 		<Card.Title class="text-lg">{news.title}</Card.Title>

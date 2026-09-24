@@ -1,7 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
-import { mapCatFull } from '$lib/mappers/cats';
 import {
 	PlacementError,
 	OverlapError,
@@ -21,93 +20,32 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		// ✅ Récupérer TOUS les chats avec leurs relations
 		const cats = await prisma.cat.findMany({
-			select: {
-				id: true,
-				catNumber: true,
-				name: true,
-				sex: true, // ✅ OBLIGATOIRE (enum sans ?)
-				birthDate: true,
-				isVisible: true,
-				status: true, // ✅ OBLIGATOIRE (enum sans ?)
-				hairLength: true,
-				color: true,
-				origin: true,
-				isSterilize: true,
-				isAlreadySterilized: true,
-				vaccinate: true,
-				isFivTest: true,
-				isDeworming: true,
-				description: true,
-				isOkCat: true,
-				isOkDog: true,
-				isOkChild: true,
-				isOutside: true,
-				isIdentify: true,
-				chipId: true,
-				created_at: true,
-				updated_at: true,
-				// Relations
-				media: {
-					select: {
-						id: true,
-						picture: true,
-						focalPointX: true,
-						focalPointY: true
-					}
-				},
+			include: {
+				// ← CHANGE `select` en `include`
+				media: true,
 				placements: {
-					select: {
-						id: true,
-						hostId: true,
-						type: true,
-						isActive: true, // ✅ Changed from "status" to "isActive"
-						started: true, // ✅ Changed from "startedDate" to "started"
-						ended: true, // ✅ Changed from "endedDate" to "ended"
+					include: {
 						host: {
-							select: {
-								id: true,
-								profil: {
-									select: {
-										firstName: true,
-										lastName: true
-									}
-								}
+							include: {
+								profil: true
 							}
 						}
 					}
 				},
 				volunteers: {
-					select: {
-						volunteerId: true,
+					include: {
 						volunteer: {
-							select: {
-								id: true,
-								role: true,
-								profil: {
-									select: {
-										firstName: true,
-										lastName: true
-									}
-								}
+							include: {
+								profil: true
 							}
 						}
 					}
 				},
-				sicknesses: {
-					select: {
-						id: true,
-						name: true,
-						description: true,
-						treatment: true,
-						status: true
-					}
-				}
+				sicknesses: true // ← SIMPLE, pas de `select`
 			},
 			orderBy: { created_at: 'desc' }
 		});
-
 		// ✅ Mapper les chats
-		const mapped = cats.map(mapCatFull);
 
 		// Début de l'année
 		const yearStart = new Date(new Date().getFullYear(), 0, 1);
@@ -169,7 +107,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const isAdmin = locals.user.role === 'ADMIN';
 
 		return {
-			cats: mapped,
+			cats,
 			stats: {
 				managedByUser,
 				incompleteProfiles,
@@ -254,8 +192,14 @@ export const actions: Actions = {
 					origin: str('origin'),
 					isSterilize: bool('isSterilize'),
 					isAlreadySterilized: bool('isAlreadySterilized'),
-					sickness: str('sickness'),
-					treatment: str('treatment'),
+					sicknesses: {
+						name: str('sickness'),
+						description: str('sicknessDescription'),
+						treatment: str('treatment'),
+						startDate: str('startDate'),
+						endDate: str('endDate'),
+						status: str('status')
+					},
 					vaccinate: (str('vaccinate') as any) ?? null,
 					isFivTest: bool('isFivTest'),
 					isDeworming: bool('isDeworming'),

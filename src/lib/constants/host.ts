@@ -50,3 +50,28 @@ export const HOST_SECTION_CONFIG = {
 	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt", color: 'red' },
 	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' }
 } as const;
+
+// Couleurs pour les types
+export const typesColors: Record<string, { label: string; color: string }> = {
+	CLASSIC: { label: 'Lon', color: 'bg-purple-100 text-purple-800' },
+	SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
+	ADOPT: { label: 'Ado', color: 'bg-green-100 text-green-800' },
+	PROPRIO: { label: 'Pro', color: 'bg-cyan-100 text-cyan-800' },
+	RELAY: { label: 'Rel', color: 'bg-pink-100 text-pink-800' }
+};
+
+// Couleur pour les soins
+export const healColors: Record<string, { label: string; color: string }> = {
+	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
+	LIGHT: { label: 'Léger', color: 'bg-orange-100 text-orange-800' },
+	HEAVY: { label: 'Lourd', color: 'bg-green-100 text-green-800' },
+	HEAVY_STING: { label: 'Lourd+', color: 'bg-cyan-100 text-cyan-800' }
+};
+
+// Couleur pour les socia
+export const socializeColors: Record<string, { label: string; color: string }> = {
+	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
+	FEARFUL: { label: 'Cra', color: 'bg-orange-100 text-orange-800' },
+	WITHOUT_EX: { label: 'XP-', color: 'bg-green-100 text-green-800' },
+	EXPERIENCED: { label: 'XP+', color: 'bg-cyan-100 text-cyan-800' }
+};

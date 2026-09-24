@@ -20,3 +20,10 @@ export const VOLUNTEER_SECTION_CONFIG = {
 	cats: { icon: 'cat', label: 'Chats en gestion', color: 'orange' },
 	forms: { icon: 'clipboard', label: 'Formulaires assignés', color: 'green' }
 } as const;
+
+// Couleurs pour les rôles
+export const roleColors: Record<string, string> = {
+	ADMIN: 'bg-red-100 text-red-800',
+	MANAGER: 'bg-blue-100 text-blue-800',
+	COMMUNICATION: 'bg-purple-100 text-purple-800'
+};

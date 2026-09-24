@@ -62,13 +62,6 @@
 		}
 	]);
 
-	const compatibilityIcons = [
-		{ icon: 'dog', theme: 'volunteers', title: 'Compatible avec les chiens' },
-		{ icon: 'cat', theme: 'cats', title: 'Compatible avec les chats' },
-		{ icon: 'baby', theme: 'baby', title: 'Compatible avec les enfants' },
-		{ icon: 'trees', theme: 'fa', title: 'Nécessite un jardin' }
-	];
-
 	// ✅ NEW: Filtrer par tab ET par recherche
 	const filteredCats = $derived(() => {
 		let filtered = [];
@@ -199,23 +192,11 @@
 						<Table.Header>
 							<Table.Row>
 								<Table.Head>Photo</Table.Head>
+								<Table.Head>Num</Table.Head>
 								<Table.Head>Nom</Table.Head>
 								<Table.Head>Sexe</Table.Head>
 								<Table.Head>Âge</Table.Head>
-								<Table.Head>Statut</Table.Head>
-								{#each compatibilityIcons as compat (compat.title)}
-									<Table.Head title={compat.title} class="text-center">
-										<div class="flex justify-center text-white">
-											<Icon
-												name={compat.icon}
-												withWrapper={true}
-												wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
-												style="background: {getGradientStyle(compat.theme)}"
-												iconClass="h-5 w-5"
-											/>
-										</div>
-									</Table.Head>
-								{/each}
+								<Table.Head>Maladie</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>

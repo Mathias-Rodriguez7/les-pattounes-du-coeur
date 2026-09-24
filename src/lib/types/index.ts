@@ -25,7 +25,6 @@ export type {
 	CatStatus,
 	HairLength,
 	Vaccinate,
-	FocalPoint,
 	CareType,
 	NewsType,
 	PlacementType,
@@ -40,7 +39,6 @@ export type {
 	VolunteerWithRelations,
 	VolunteerEditData,
 	CatVolunteerWithRelations,
-	StatusType,
 	VolunteerEditFormState
 } from './volunteer';
 

@@ -6,7 +6,6 @@ import type {
 	Socialize,
 	BabyFeeding
 } from '@prisma/client';
-import type { StatusType } from './volunteer';
 
 export const hostTypeLabel: Record<HostType, string> = {
 	CLASSIC: 'Accueil Long',
@@ -63,20 +62,21 @@ export const FORM_TYPE_LABELS: Record<FormType, string> = {
 
 export const FORM_TYPES: FormType[] = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'];
 
-export const STATUS_CONFIG: Record<StatusType, { icon: string; label: string; theme: string }> = {
-	ACTIVE: {
-		icon: 'CirclePlay',
-		label: 'En activité',
-		theme: 'activ'
-	},
-	BREAK: {
-		icon: 'CirclePause',
-		label: 'En pause',
-		theme: 'break'
-	},
-	STOP: {
-		icon: 'CircleX',
-		label: 'Arrêté',
-		theme: 'stop'
-	}
-} as const;
+export const STATUS_CONFIG: Record<ColabActivity, { icon: string; label: string; theme: string }> =
+	{
+		ACTIVE: {
+			icon: 'CirclePlay',
+			label: 'En activité',
+			theme: 'activ'
+		},
+		BREAK: {
+			icon: 'CirclePause',
+			label: 'En pause',
+			theme: 'break'
+		},
+		STOP: {
+			icon: 'CircleX',
+			label: 'Arrêté',
+			theme: 'stop'
+		}
+	} as const;

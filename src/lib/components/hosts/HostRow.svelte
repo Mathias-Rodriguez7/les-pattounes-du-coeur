@@ -3,36 +3,12 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import BooleanIcon from '../icons/BooleanIcon.svelte';
 	import { truncate } from '$lib/utils/string';
+	import { typesColors, healColors, socializeColors } from '$lib/constants/host';
 
 	const { host, isSelected = false, onclick } = $props();
 
 	const fullName = $derived(`${host.profil.firstName} ${host.profil.lastName}`);
 	const placementsCount = $derived(host.placements?.length || 0);
-
-	// Couleurs pour les types
-	const typesColors: Record<string, { label: string; color: string }> = {
-		CLASSIC: { label: 'Lon', color: 'bg-purple-100 text-purple-800' },
-		SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
-		ADOPT: { label: 'Ado', color: 'bg-green-100 text-green-800' },
-		PROPRIO: { label: 'Pro', color: 'bg-cyan-100 text-cyan-800' },
-		RELAY: { label: 'Rel', color: 'bg-pink-100 text-pink-800' }
-	};
-
-	// Couleur pour les soins
-	const healColors: Record<string, { label: string; color: string }> = {
-		NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
-		LIGHT: { label: 'Léger', color: 'bg-orange-100 text-orange-800' },
-		HEAVY: { label: 'Lourd', color: 'bg-green-100 text-green-800' },
-		HEAVY_STING: { label: 'Lourd+', color: 'bg-cyan-100 text-cyan-800' }
-	};
-
-	// Couleur pour les socia
-	const socializeColors: Record<string, { label: string; color: string }> = {
-		NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
-		FEARFUL: { label: 'Cra', color: 'bg-orange-100 text-orange-800' },
-		WITHOUT_EX: { label: 'XP-', color: 'bg-green-100 text-green-800' },
-		EXPERIENCED: { label: 'XP+', color: 'bg-cyan-100 text-cyan-800' }
-	};
 </script>
 
 <Table.Row

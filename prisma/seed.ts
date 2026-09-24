@@ -19,7 +19,7 @@ const prisma = new PrismaClient({ adapter });
 // ENUMS
 // ---------------------
 const SEX = ['MALE', 'FEMALE', 'UNKNOWN'] as const;
-const STATUS = ['AVAILABLE', 'SOCIALIZE', 'ADOPTED', 'FREE'] as const;
+const STATUS = ['AVAILABLE', 'SOCIALIZE', 'ADOPTED', 'FREE', 'DEAD'] as const;
 const HAIR = ['SHORT', 'MEDIUM', 'LONG'] as const;
 const VACCINATE = ['YES', 'NO', 'PARTIAL'] as const;
 
@@ -391,9 +391,11 @@ async function main() {
 	// 🤒 SICKNESSES
 	// ---------------------
 	console.log('🤒 Création des maladies...');
-	for (const cat of cats.slice(0, 50)) {
-		// ~33% des chats
-		if (randomBool(0.6)) {
+	for (const cat of cats.slice(0, 150)) {
+		// Chaque chat peut avoir 0, 1, 2 ou 3 maladies
+		const sicknesCount = faker.number.int({ min: 0, max: 5 });
+
+		for (let i = 0; i < sicknesCount; i++) {
 			await prisma.sickness.create({
 				data: {
 					catId: cat.id,

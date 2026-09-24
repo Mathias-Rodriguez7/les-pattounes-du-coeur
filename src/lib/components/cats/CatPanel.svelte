@@ -15,6 +15,9 @@
 		getLabel
 	} from '$lib/utils/catHelpers';
 	import CatEditForm from './CatEditForm.svelte';
+	import { getAgeBadge, formatAge } from '$lib/utils/age';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
 
 	const {
 		cat,
@@ -43,22 +46,37 @@
 		{:else}
 			<!-- MODE LECTURE -->
 			<Card.Header>
-				<div class="flex flex-row items-start justify-between">
-					<div>
-						<Card.Title class="text-xl">{cat.name}</Card.Title>
+				<section class="flex h-35 justify-between">
+					<div class="flex flex-col justify-around">
+						<Card.Title class="text-2xl">{cat.name}</Card.Title>
 						<Card.Description>
-							{cat.ageBadge} · {getLabel(sexLabel, cat.sex)}
+							{getAgeBadge(cat.birthDate)} · {getLabel(sexLabel, cat.sex)}
 						</Card.Description>
-						<span>Num de suivi:</span>
-						<span>{cat.catNumber}</span>
+						<div>
+							<span>Num de suivi:</span>
+							<span>{cat.catNumber}</span>
+						</div>
+						<!-- Statut & visibilité -->
+						<div class="flex gap-4">
+							<Badge variant="outline">{statusLabel[cat.status] ?? cat.status}</Badge>
+							{#if cat.isVisible}
+								<Badge class="bg-green-100 text-green-700">Visible</Badge>
+							{:else}
+								<Badge class="bg-red-100 text-red-700">Masqué</Badge>
+							{/if}
+						</div>
 					</div>
 					<!-- FA & référent -->
-					<div>
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.volunteers.icon}
+						title={CAT_SECTION_CONFIG.volunteers.label}
+						color={CAT_SECTION_CONFIG.volunteers.color}
+					>
 						<div class="grid grid-cols-2 gap-1 text-sm">
 							<span class="text-muted-foreground">Bénévole</span>
 							<span>
-								{#if cat.referent}
-									{cat.referent.firstName} {cat.referent.lastName}
+								{#if cat.volunteer}
+									{cat.volunteer.firstName} {cat.volunteer.lastName}
 								{:else}
 									<span class="text-muted-foreground">—</span>
 								{/if}
@@ -73,7 +91,7 @@
 							</span>
 							<span>Note Placement</span>
 						</div>
-					</div>
+					</SectionCard>
 
 					<div class="flex flex-col">
 						<Button
@@ -96,114 +114,140 @@
 							<Camera class="W-5 h-5" />
 						</Button>
 					</div>
-				</div>
-
-				<!-- Statut & visibilité -->
-				<div class="flex gap-4">
-					<Badge variant="outline">{statusLabel[cat.status] ?? cat.status}</Badge>
-					{#if cat.isVisible}
-						<Badge class="bg-green-100 text-green-700">Visible</Badge>
-					{:else}
-						<Badge class="bg-red-100 text-red-700">Masqué</Badge>
-					{/if}
-				</div>
+				</section>
 			</Card.Header>
 
 			<Card.Content class="flex flex-col gap-4 text-sm">
 				<Separator />
 
-				<div class="grid grid-cols-2 gap-6">
-					<!-- Infos physiques -->
-					<div>
-						<p class="mb-2 text-base font-medium">Infos physiques</p>
-						<div class="grid grid-cols-2 gap-2 text-sm">
-							<span class="text-muted-foreground">Âge</span>
-							<span>{cat.formattedAge}</span>
-							<span class="text-muted-foreground">Couleur</span>
-							<span>{cat.color ?? '—'}</span>
-							<span class="text-muted-foreground">Poil</span>
-							<span>{getLabel(hairLabel, cat.hairLength)}</span>
-							<span class="text-muted-foreground">Origine</span>
-							<span>{cat.origin ?? '—'}</span>
+				<div class="grid grid-cols-3 gap-4">
+					<!-- Profil -->
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.profile.icon}
+						title={CAT_SECTION_CONFIG.profile.label}
+						color={CAT_SECTION_CONFIG.profile.color}
+					>
+						<div class="space-y-1">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Âge</span>
+								<span>{formatAge(cat.birthDate)}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Couleur</span>
+								<span>{cat.color ?? '—'}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Poil</span>
+								<span>{getLabel(hairLabel, cat.hairLength)}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Origine</span>
+								<span>{cat.origin ?? '—'}</span>
+							</div>
 						</div>
-					</div>
+					</SectionCard>
 
 					<!-- Compatibilités -->
-					<div>
-						<p class="mb-2 text-base font-medium">Compatibilités</p>
-						<div class="grid grid-cols-2 gap-2 text-sm">
-							<span class="text-muted-foreground">Chien</span>
-							<div class="flex justify-start">
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.compatibility.icon}
+						title={CAT_SECTION_CONFIG.compatibility.label}
+						color={CAT_SECTION_CONFIG.compatibility.color}
+					>
+						<div class="space-y-1">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Chien</span>
+
 								<BooleanIcon value={cat.isOkDog} />
 							</div>
-							<span class="text-muted-foreground">Chat</span>
-							<div class="flex justify-start">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Chat</span>
+
 								<BooleanIcon value={cat.isOkCat} />
 							</div>
-							<span class="text-muted-foreground">Enfant</span>
-							<div class="flex justify-start">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Enfant</span>
+
 								<BooleanIcon value={cat.isOkChild} />
 							</div>
-							<span class="text-muted-foreground">Jardin</span>
-							<div class="flex justify-start">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Jardin</span>
+
 								<BooleanIcon value={cat.isOutside} />
 							</div>
 						</div>
-					</div>
+					</SectionCard>
+
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.host.icon}
+						title={CAT_SECTION_CONFIG.host.label}
+						color={CAT_SECTION_CONFIG.host.color}
+					></SectionCard>
 				</div>
 
 				<Separator />
 
 				<!-- Santé -->
-				<div class="grid grid-cols-1 gap-4">
-					<div>
-						<p class="mb-2 text-base font-medium">Santé</p>
-						<section class="grid grid-cols-2 gap-6">
-							<div class="grid grid-cols-2 gap-2 text-sm">
-								<span class="text-muted-foreground">Vaccin</span>
-								<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>
-								<span class="text-muted-foreground">Test FIV</span>
-								<div class="flex justify-start">
-									<BooleanIcon value={cat.isFivTest} />
-								</div>
-								<span class="text-muted-foreground">Vermifuge</span>
-								<div class="flex justify-start">
-									<BooleanIcon value={cat.isDeworming} />
-								</div>
+				<SectionCard
+					icon={CAT_SECTION_CONFIG.health.icon}
+					title={CAT_SECTION_CONFIG.health.label}
+					color={CAT_SECTION_CONFIG.health.color}
+				>
+					<section class="grid grid-cols-2 gap-6">
+						<div class="grid grid-cols-2 gap-2 text-sm">
+							<span class="text-muted-foreground">Vaccin</span>
+							<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>
+							<span class="text-muted-foreground">Test FIV</span>
+							<div class="flex justify-start">
+								<BooleanIcon value={cat.isFivTest} />
 							</div>
-							<div class="grid grid-cols-2 gap-2 text-sm">
-								<span class="text-muted-foreground">Stérilisé·e</span>
-								<div class="flex justify-start">
-									<BooleanIcon value={cat.isSterilize || cat.isAlreadySterilized} />
-								</div>
-								<span class="text-muted-foreground">Identifié·e</span>
-								<div class="flex justify-start">
-									<BooleanIcon value={cat.isIdentify} />
-								</div>
-								<span class="text-muted-foreground">Puce</span>
-								<span>{cat.chipId ?? '—'}</span>
+							<span class="text-muted-foreground">Vermifuge</span>
+							<div class="flex justify-start">
+								<BooleanIcon value={cat.isDeworming} />
 							</div>
-						</section>
-					</div>
+						</div>
+						<div class="grid grid-cols-2 gap-2 text-sm">
+							<span class="text-muted-foreground">Stérilisé·e</span>
+							<div class="flex justify-start">
+								<BooleanIcon value={cat.isSterilize || cat.isAlreadySterilized} />
+							</div>
+							<span class="text-muted-foreground">Identifié·e</span>
+							<div class="flex justify-start">
+								<BooleanIcon value={cat.isIdentify} />
+							</div>
+							<span class="text-muted-foreground">Puce</span>
+							<span>{cat.chipId ?? '—'}</span>
+						</div>
+					</section>
+				</SectionCard>
+
+				<Separator />
+
+				<SectionCard
+					icon={CAT_SECTION_CONFIG.sicknesses.icon}
+					title={CAT_SECTION_CONFIG.sicknesses.label}
+					color={CAT_SECTION_CONFIG.sicknesses.color}
+				>
 					<div class="grid grid-cols-2 gap-4">
 						<div>
 							<span class="mb-2 text-base font-medium">Maladie</span>
-							<span class="ml-4 block">{cat.sickness ?? '—'}</span>
+							<span class="ml-4 block">{cat.sicknesses.name ?? '—'}</span>
 						</div>
 						<div>
 							<span class="mb-2 text-base font-medium">Traitement</span>
-							<span class="ml-4 block">{cat.treatment ?? '—'}</span>
+							<span class="ml-4 block">{cat.sicknesses.treatment ?? '—'}</span>
 						</div>
 					</div>
-				</div>
-				<Separator />
+				</SectionCard>
 
 				<!-- Description -->
 				{#if cat.description}
-					<div>
-						<p class="mb-2 text-base font-medium">Description</p>
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.description.icon}
+						title={CAT_SECTION_CONFIG.description.label}
+						color={CAT_SECTION_CONFIG.description.color}
+					>
 						<p class="text-muted-foreground text-sm">{cat.description}</p>
-					</div>
+					</SectionCard>
 				{/if}
 			</Card.Content>
 		{/if}
