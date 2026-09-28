@@ -41,7 +41,6 @@
 		</Badge>
 	</Table.Cell>
 
-	<!-- ✅ Location badge avec couleur dynamique -->
 	<Table.Cell class="text-sm text-gray-600" title={location}>
 		<Badge class={locationBadgeClass} title={locationLabel}>
 			{truncate(location, 6)}

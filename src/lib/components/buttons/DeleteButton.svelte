@@ -11,29 +11,35 @@
 	} from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Trash2 } from '@lucide/svelte';
-	import { toast } from 'svelte-sonner'; // ✅ AJOUTE
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
-		profileId?: string;
+		entityId?: string;
 		firstName?: string;
 		lastName?: string;
-		isDeleting?: boolean; // ✅ BINDABLE
+		isDeleting?: boolean;
 		isSaving?: boolean;
 		deleteLabel?: string;
 		deleteConfirmMessage?: string;
 		showDelete?: boolean;
+		actionName?: string; // ✅ ex: '?/deleteProfile' ou '?/deleteCat'
+		fieldName?: string; // ✅ ex: 'profileId' ou 'catId'
+		successMessage?: string;
 		onSuccess?: () => void;
 	}
 
 	let {
-		profileId,
+		entityId,
 		firstName = '',
 		lastName = '',
-		isDeleting = $bindable(false), // ✅ BINDABLE!
+		isDeleting = $bindable(false),
 		isSaving = false,
 		deleteLabel = 'Supprimer',
 		deleteConfirmMessage = 'Êtes-vous sûr ? Cette action est irréversible.',
 		showDelete = false,
+		actionName = '?/deleteProfile',
+		fieldName = 'profileId',
+		successMessage = 'Supprimé avec succès ! ✅',
 		onSuccess
 	}: Props = $props();
 
@@ -43,16 +49,15 @@
 		showDeleteDialog = true;
 	};
 
-	// ✅ ENHANCE POUR DELETE
 	const handleDeleteEnhance: SubmitFunction = () => {
-		isDeleting = true; // ✅ START LOADING
+		isDeleting = true;
 
 		return async ({ result, update }) => {
 			console.log('📥 Réponse delete:', result);
 
 			if (result.type === 'success') {
 				console.log('✅ Supprimé avec succès');
-				toast.success('Bénévole supprimé! ✅');
+				toast.success(successMessage);
 				showDeleteDialog = false;
 				if (onSuccess) {
 					onSuccess();
@@ -63,14 +68,13 @@
 			}
 
 			await update();
-			isDeleting = false; // ✅ END LOADING
+			isDeleting = false;
 		};
 	};
 </script>
 
 <div>
 	{#if showDelete}
-		<!-- ✅ BOUTON POUR OUVRIR LE DIALOG -->
 		<Button
 			type="button"
 			variant="destructive"
@@ -88,21 +92,19 @@
 	{/if}
 </div>
 
-<!-- ✅ DIALOG DE CONFIRMATION DELETE -->
 <Dialog bind:open={showDeleteDialog}>
 	<DialogContent class="max-w-sm">
 		<DialogHeader>
-			<DialogTitle class="text-destructive"
-				>Vous êtes sur le point de supprimer <strong>{firstName} {lastName}</strong></DialogTitle
-			>
+			<DialogTitle class="text-destructive">
+				Vous êtes sur le point de supprimer <strong>{firstName} {lastName}</strong>
+			</DialogTitle>
 			<DialogDescription class="pt-2">
 				{deleteConfirmMessage}
 			</DialogDescription>
 		</DialogHeader>
 
-		<!-- ✅ FORM DELETE -->
-		<form method="POST" action="?/deleteProfile" use:enhance={handleDeleteEnhance}>
-			<input type="hidden" name="profileId" value={profileId} />
+		<form method="POST" action={actionName} use:enhance={handleDeleteEnhance}>
+			<input type="hidden" name={fieldName} value={entityId} />
 
 			<DialogFooter class="flex gap-2">
 				<Button

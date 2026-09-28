@@ -26,13 +26,12 @@ export const CAT_VACCINATE = [
 
 export const CAT_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
-	volunteers: { icon: 'user', label: 'Bénévoles', color: 'emerald' },
-	host: { icon: 'house', label: 'FA', color: 'blue' },
+	relations: { icon: 'users', label: 'Relations', color: 'emerald' },
 	health: { icon: 'cat', label: 'Santé', color: 'fuchsia' },
-	sicknesses: { icon: 'bandage', label: 'Maladies', color: 'red' },
+	sicknesses: { icon: 'syringe', label: 'Maladies', color: 'lime' },
 	placements: { icon: 'house', label: 'Accueil', color: 'blue' },
 	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
 	compatibility: { icon: 'paw', label: 'Compatibilité', color: 'orange' },
 	description: { icon: 'plus', label: 'Description', color: 'gray' },
-	adoptions: { icon: 'Heart', label: 'Adoptions', color: 'red' }
+	adoptions: { icon: 'heart', label: 'Adoptions', color: 'green' }
 } as const;

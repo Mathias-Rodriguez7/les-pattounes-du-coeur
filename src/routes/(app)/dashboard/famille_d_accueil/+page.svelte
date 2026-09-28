@@ -12,7 +12,7 @@
 
 	const { data } = $props();
 
-	const hosts = $derived(data.hosts);
+	let hosts = $derived(data.hosts);
 	const stats = $derived(data.stats);
 
 	let selectedHostId = $state<string | null>(null);
@@ -219,15 +219,7 @@
 
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
-			{#if selectedHost}
-				<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
-			{:else}
-				<Card.Root class="flex h-full items-center justify-center">
-					<Card.Content class="text-muted-foreground text-center">
-						Sélectionnez une famille d'accueil pour voir les détails
-					</Card.Content>
-				</Card.Root>
-			{/if}
+			<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
 		</div>
 	</section>
 	<NewHostDialog

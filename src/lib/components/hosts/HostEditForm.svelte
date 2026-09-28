@@ -567,7 +567,7 @@
 			/>
 
 			<DeleteButton
-				{profileId}
+				entityId={profileId}
 				firstName={editData.firstName}
 				lastName={editData.lastName}
 				{isDeleting}

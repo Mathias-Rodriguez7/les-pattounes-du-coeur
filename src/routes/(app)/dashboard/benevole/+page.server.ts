@@ -210,7 +210,6 @@ export const actions: Actions = {
 
 	blacklistProfile: async ({ request, locals }) => {
 		try {
-			// ✅ Vérifier les permissions
 			if (!locals.user || locals.user.role !== 'ADMIN') {
 				return fail(403, { success: false, error: 'Non autorisé' });
 			}

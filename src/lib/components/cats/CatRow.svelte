@@ -26,7 +26,7 @@
 	const sexIcon = getSexIcon(cat.sex);
 
 	// Récupère les maladies actives
-	const activeSicknesses = cat.sicknesses.filter((s) => s.status === 'ACTIVE');
+	const activeSicknesses = cat.sicknesses.filter((s) => s.status !== 'RESOLVED');
 </script>
 
 <Table.Row

@@ -178,7 +178,7 @@ async function getAdminTasks() {
 		prisma.cat.count({
 			where: {
 				status: { in: ['AVAILABLE', 'SOCIALIZE'] },
-				placements: { none: { ended: null } }
+				placements: { none: { endDate: null } }
 			}
 		}),
 		// 2. FA - FA actives sans chat

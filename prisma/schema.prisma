@@ -113,7 +113,7 @@ model Cat {
   isOkChild           Boolean?    @default(false) @db.Boolean
   isOutside           Boolean?    @default(false) @db.Boolean
   isIdentify          Boolean     @default(false) @db.Boolean
-  chipId              String?     @db.VarChar(255)         
+  chipId              String?     @unique@db.VarChar(255)         
 
   created_at          DateTime       @default(now())
   updated_at          DateTime       @default(now()) @updatedAt
@@ -190,17 +190,17 @@ model CatVolunteer {
 }
 
 model Placement {
-  id         String    @id @default(uuid()) @db.Uuid
-  catId      String    @db.Uuid
-  cat        Cat       @relation(fields: [catId], references: [id])
-  hostId     String    @db.Uuid
-  host       Host      @relation(fields: [hostId], references: [id])
-  isActive   Boolean   @default(false) @db.Boolean
-  type       PlacementType @default(LONG)
-  started    DateTime? @db.Date
-  ended      DateTime? @db.Date
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  id            String    @id @default(uuid()) @db.Uuid
+  catId         String    @db.Uuid
+  cat           Cat       @relation(fields: [catId], references: [id])
+  hostId        String    @db.Uuid
+  host          Host      @relation(fields: [hostId], references: [id])
+  status        ColabActivity
+  type          PlacementType @default(LONG)
+  startDate     DateTime? @db.Date
+  endDate       DateTime? @db.Date
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now()) @updatedAt
 }
 
 model Adoption {

@@ -54,77 +54,6 @@
 		breakEnd: null
 	});
 
-	const PAGE_SIZE = 10;
-
-	const catList = $derived(
-		volunteer?.cats?.map((catVolunteer: CatVolunteerWithRelations) => {
-			const placement = catVolunteer.cat.placements?.[0];
-			return {
-				catId: catVolunteer.catId,
-				catName: catVolunteer.cat.name,
-				catStatus: catVolunteer.cat.status,
-				hostFirstName: placement?.host.profil.firstName || null,
-				hostLastName: placement?.host.profil.lastName || null,
-				placementId: placement?.id || null,
-				hasPlacement: !!placement
-			};
-		}) ?? []
-	);
-
-	const statusColors = {
-		AVAILABLE: 'bg-emerald-100 text-emerald-800',
-		ADOPTED: 'bg-rose-100 text-rose-800',
-		SOCIALIZE: 'bg-sky-100 text-sky-800',
-		FREE: 'bg-orange-100 text-orange-800'
-	};
-
-	const adoptedCatsCount = $derived(
-		volunteer?.cats?.filter(
-			(catVolunteer: CatVolunteerWithRelations) => catVolunteer.cat.status === 'ADOPTED'
-		).length ?? 0
-	);
-
-	const fullName = $derived(
-		volunteer ? `${volunteer.profil.firstName} ${volunteer.profil.lastName}` : ''
-	);
-
-	const location = $derived(
-		volunteer?.profil.district
-			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
-			: volunteer?.profil.city || '—'
-	);
-
-	const getBadgeClass = (status: string) =>
-		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
-
-	const paginatedCats = $derived(
-		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-	);
-
-	const currentStatus = $derived(
-		volunteer?.actif && volunteer.actif in STATUS_CONFIG
-			? STATUS_CONFIG[volunteer.actif]
-			: STATUS_CONFIG.ACTIVE
-	);
-
-	const formCounts = $derived.by(() => {
-		const counts: Record<FormType, number> = {
-			ADOPTION: 0,
-			VOLUNTEER: 0,
-			HOST: 0,
-			COLAB: 0,
-			ALERT: 0,
-			OTHER: 0
-		};
-
-		const forms = volunteer?.assignedForms ?? [];
-		FORM_TYPES.forEach((type) => {
-			counts[type] = forms.filter((f: Form) => (f.type as FormType) === type).length;
-		});
-
-		return counts;
-	});
-
 	const startEditing = () => {
 		if (!volunteer) return;
 		editData = {
@@ -167,6 +96,77 @@
 
 		isEditing = false;
 	};
+
+	const PAGE_SIZE = 10;
+
+	const catList = $derived(
+		volunteer?.cats?.map((catVolunteer: CatVolunteerWithRelations) => {
+			const placement = catVolunteer.cat.placements?.[0];
+			return {
+				catId: catVolunteer.catId,
+				catName: catVolunteer.cat.name,
+				catStatus: catVolunteer.cat.status,
+				hostFirstName: placement?.host.profil.firstName || null,
+				hostLastName: placement?.host.profil.lastName || null,
+				placementId: placement?.id || null,
+				hasPlacement: !!placement
+			};
+		}) ?? []
+	);
+
+	const adoptedCatsCount = $derived(
+		volunteer?.cats?.filter(
+			(catVolunteer: CatVolunteerWithRelations) => catVolunteer.cat.status === 'ADOPTED'
+		).length ?? 0
+	);
+
+	const fullName = $derived(
+		volunteer ? `${volunteer.profil.firstName} ${volunteer.profil.lastName}` : ''
+	);
+
+	const location = $derived(
+		volunteer?.profil.district
+			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			: volunteer?.profil.city || '—'
+	);
+
+	const paginatedCats = $derived(
+		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+	);
+
+	const currentStatus = $derived(
+		volunteer?.actif && volunteer.actif in STATUS_CONFIG
+			? STATUS_CONFIG[volunteer.actif]
+			: STATUS_CONFIG.ACTIVE
+	);
+
+	const statusColors = {
+		AVAILABLE: 'bg-emerald-100 text-emerald-800',
+		ADOPTED: 'bg-rose-100 text-rose-800',
+		SOCIALIZE: 'bg-sky-100 text-sky-800',
+		FREE: 'bg-orange-100 text-orange-800'
+	};
+
+	const formCounts = $derived.by(() => {
+		const counts: Record<FormType, number> = {
+			ADOPTION: 0,
+			VOLUNTEER: 0,
+			HOST: 0,
+			COLAB: 0,
+			ALERT: 0,
+			OTHER: 0
+		};
+
+		const forms = volunteer?.assignedForms ?? [];
+		FORM_TYPES.forEach((type) => {
+			counts[type] = forms.filter((f: Form) => (f.type as FormType) === type).length;
+		});
+
+		return counts;
+	});
+
+	const getBadgeClass = (status: string) =>
+		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
 
 	const roleColors: Record<string, string> = {
 		ADMIN: 'bg-red-100 text-red-800',

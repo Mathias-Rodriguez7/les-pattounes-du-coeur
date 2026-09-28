@@ -13,7 +13,8 @@
 
 	const { data } = $props();
 
-	const cats = $derived(data.cats);
+	let cats = $derived(data.cats);
+
 	const stats = $derived(data.stats);
 
 	let selectedCatId = $state<string | null>(null);
@@ -271,4 +272,9 @@
 </main>
 
 <!-- Dialog nouveau chat -->
-<NewCatDialog bind:open={newCatOpen} />
+<NewCatDialog
+	bind:open={newCatOpen}
+	onCancel={() => {
+		newCatOpen = false;
+	}}
+/>

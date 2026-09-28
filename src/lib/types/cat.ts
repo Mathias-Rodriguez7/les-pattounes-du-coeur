@@ -1,5 +1,17 @@
-// types/cat.ts
-import type { Prisma, SexCat, CatStatus, HairLength, Vaccinate } from '@prisma/client';
+import type {
+	Prisma,
+	SexCat,
+	CatStatus,
+	HairLength,
+	Vaccinate,
+	Sickness,
+	Placement,
+	Volunteer,
+	Adoption,
+	Care,
+	Media,
+	News
+} from '@prisma/client';
 
 // ✅ Types Prisma avec relations
 export type CatFull = Prisma.CatGetPayload<{
@@ -9,15 +21,28 @@ export type CatFull = Prisma.CatGetPayload<{
 		cares: true;
 		volunteers: {
 			include: {
-				volunteer: true;
+				volunteer: {
+					include: {
+						profil: true;
+					};
+				};
 			};
 		};
 		placements: {
 			include: {
-				host: true;
+				host: {
+					include: {
+						profil: true;
+					};
+				};
 			};
 		};
-		adoption: true;
+		adoptions: {
+			include: {
+				profil: true;
+			};
+		};
+
 		news: true;
 	};
 }> & {
@@ -30,7 +55,8 @@ export type CatFull = Prisma.CatGetPayload<{
 
 // ✅ Type pour l'édition
 export type CatEditData = {
-	name: string;
+	catNumber: string;
+	name: string | null;
 	sex: SexCat;
 	birthDate: Date | null;
 	description: string | null;
@@ -60,6 +86,14 @@ export type CatEditData = {
 	// Visibilité
 	isVisible: boolean;
 	status: CatStatus;
+
+	sicknesses?: Sickness[];
+	placements?: Placement[];
+	volunteers?: Volunteer[];
+	adoptions?: Adoption[];
+	cares?: Care[];
+	media?: Media[];
+	news?: News[];
 };
 
 // ✅ Type pour les props du formulaire

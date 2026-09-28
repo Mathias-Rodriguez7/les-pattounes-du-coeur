@@ -1,8 +1,24 @@
-import type { Volunteer, VolunteerRole, Form, Profil, ColabActivity } from '@prisma/client';
+import type { Prisma, Volunteer, VolunteerRole, Form, Profil, ColabActivity } from '@prisma/client';
 
 export type SelectOption = {
 	value: string;
 	label: string;
+};
+
+export type VolunteerFull = Prisma.VolunteerGetPayload<{
+	include: {
+		profil: true;
+		cats: {
+			include: {
+				cat: true;
+			};
+		};
+		assignedForms: true;
+	};
+}> & {
+	// ✅ Force le typage des enums
+	actif: ColabActivity;
+	role: VolunteerRole;
 };
 
 export type VolunteerEditFormState = {

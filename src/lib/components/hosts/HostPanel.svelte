@@ -175,8 +175,6 @@
 		isEditing = false;
 	};
 
-	const placementStats = $derived(host?.placementStats || { long: 0, short: 0, total: 0 });
-
 	const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
 		ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
 		BREAK: { label: 'En pause', icon: 'CirclePause', theme: 'break' },
@@ -204,13 +202,7 @@
 		host?.actif && host.actif in STATUS_CONFIG ? STATUS_CONFIG[host.actif] : STATUS_CONFIG.ACTIVE
 	);
 
-	const getPlacementsByType = (type: string, isActive: boolean) => {
-		return (
-			host?.placements?.filter(
-				(p: (typeof host.placements)[number]) => p.type === type && p.isActive === isActive
-			) || []
-		);
-	};
+	const placementStats = $derived(host?.placementStats || { long: 0, short: 0, total: 0 });
 
 	const activePlacements = $derived(
 		host?.placements?.filter((p: (typeof host.placements)[number]) => p.isActive) || []
@@ -229,6 +221,14 @@
 				(p.type === 'LONG' || p.type === 'SHORT') && p.isActive
 		) || []
 	);
+
+	const getPlacementsByType = (type: string, isActive: boolean) => {
+		return (
+			host?.placements?.filter(
+				(p: (typeof host.placements)[number]) => p.type === type && p.isActive === isActive
+			) || []
+		);
+	};
 </script>
 
 {#if host}

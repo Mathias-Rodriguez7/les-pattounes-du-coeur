@@ -12,7 +12,7 @@
 
 	const { data } = $props();
 
-	const volunteers = $derived(data.volunteers);
+	let volunteers = $derived(data.volunteers);
 	const stats = $derived(data.stats);
 
 	let selectedVolunteerId = $state<string | null>(null);
@@ -249,16 +249,13 @@
 
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
-			{#if selectedVolunteer}
-				<VolunteerPanel volunteer={selectedVolunteer} isAdmin={data.isAdmin} />
-			{:else}
-				<Card.Root class="flex h-full items-center justify-center">
-					<Card.Content class="text-muted-foreground text-center">
-						Sélectionnez un bénévole pour voir les détails
-					</Card.Content>
-				</Card.Root>
-			{/if}
+			<VolunteerPanel volunteer={selectedVolunteer} isAdmin={data.isAdmin} />
 		</div>
 	</section>
-	<NewVolunteerDialog bind:open={newVolunteerOpen} />
+	<NewVolunteerDialog
+		bind:open={newVolunteerOpen}
+		onCancel={() => {
+			newVolunteerOpen = false;
+		}}
+	/>
 </main>

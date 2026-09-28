@@ -165,50 +165,69 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
 	createHost: async ({ request, locals }) => {
-		const result = await createHost({ request, locals });
-		if (!result.success) {
-			return fail(400, result);
+		try {
+			const result = await createHost({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur création bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-		return result;
 	},
 
 	updateHost: async ({ request, locals }) => {
-		const result = await updateHost({ request, locals });
-		if (!result.success) {
-			return fail(400, result);
+		try {
+			const result = await updateHost({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error("Erreur mise à jour famille d'accueil:", error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-		return result;
 	},
 
 	deleteProfile: async ({ request }) => {
-		const data = await request.formData();
-		const profileId = data.get('profileId') as string;
+		try {
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
 
-		if (!profileId) {
-			return {
-				success: false,
-				error: 'ID manquant'
-			};
+			if (!profileId) {
+				return fail(400, {
+					success: false,
+					error: 'ID manquant'
+				});
+			}
+
+			return await deleteProfile(profileId);
+		} catch (error) {
+			console.error('Erreur suppression profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-
-		return await deleteProfile(profileId);
 	},
 
 	blacklistProfile: async ({ request, locals }) => {
-		// ✅ Vérifier les permissions
-		if (!locals.user || locals.user.role !== 'ADMIN') {
-			return fail(403, { error: 'Non autorisé' });
+		try {
+			if (!locals.user || locals.user.role !== 'ADMIN') {
+				return fail(403, { success: false, error: 'Non autorisé' });
+			}
+
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
+			const email = data.get('email') as string;
+			const description = data.get('description') as string;
+
+			if (!profileId || !email) {
+				return fail(400, { success: false, error: 'Données manquantes' });
+			}
+
+			return await blacklistProfile(profileId, email, description || '');
+		} catch (error) {
+			console.error('Erreur blacklist profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
-
-		const data = await request.formData();
-		const profileId = data.get('profileId') as string;
-		const email = data.get('email') as string;
-		const description = data.get('description') as string;
-
-		if (!profileId || !email) {
-			return fail(400, { error: 'Données manquantes' });
-		}
-
-		return await blacklistProfile(profileId, email, description || '');
 	}
 };

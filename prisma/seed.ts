@@ -435,14 +435,15 @@ async function main() {
 	// ---------------------
 	console.log('📍 Création des placements...');
 	for (const cat of cats.slice(0, 80)) {
+		const actif = faker.helpers.arrayElement(COLAB_ACTIVITY);
 		await prisma.placement.create({
 			data: {
 				catId: cat.id,
 				hostId: faker.helpers.arrayElement(hosts).id,
-				isActive: randomBool(0.7),
+				status: actif,
 				type: faker.helpers.arrayElement(PLACEMENT_TYPE),
-				started: faker.date.recent({ days: 180 }),
-				ended: null
+				startDate: faker.date.recent({ days: 180 }),
+				endDate: null
 			}
 		});
 
@@ -455,10 +456,10 @@ async function main() {
 				data: {
 					catId: cat.id,
 					hostId: faker.helpers.arrayElement(hosts).id,
-					isActive: randomBool(0.7),
+					status: actif,
 					type: faker.helpers.arrayElement(PLACEMENT_TYPE),
-					started: startDate,
-					ended: endDate
+					startDate: startDate,
+					endDate: endDate
 				}
 			});
 		}
@@ -511,14 +512,30 @@ async function main() {
 	// 🐾 ADOPTIONS
 	// ---------------------
 	console.log('🐾 Création des adoptions...');
-	for (const cat of cats.slice(0, 30)) {
-		// ~20% des chats sont adoptés
+
+	// Les 40 derniers profils sont les adoptants
+	const adoptants = profils.slice(110, 150);
+
+	for (let i = 0; i < Math.min(30, adoptants.length); i++) {
+		const adoptedCat = cats[i];
+		const adoptant = adoptants[i];
+
+		// ✅ Update le statut du chat à ADOPTED
+		await prisma.cat.update({
+			where: { id: adoptedCat.id },
+			data: { status: 'ADOPTED' }
+		});
+
 		await prisma.adoption.create({
 			data: {
-				catId: cat.id,
-				profilId: profils[107 + faker.number.int({ min: 0, max: 39 })].id // Profils adoptants
+				catId: adoptedCat.id,
+				profilId: adoptant.id // ✅ adoptant.id est bien un UUID string
 			}
 		});
+
+		console.log(
+			`✅ Chat "${adoptedCat.name}" adopté par ${adoptant.firstName} ${adoptant.lastName}`
+		);
 	}
 
 	// ---------------------
