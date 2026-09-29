@@ -75,3 +75,16 @@ export const socializeColors: Record<string, { label: string; color: string }> =
 	WITHOUT_EX: { label: 'XP-', color: 'bg-green-100 text-green-800' },
 	EXPERIENCED: { label: 'XP+', color: 'bg-cyan-100 text-cyan-800' }
 };
+
+export const statusColors: Record<string, { label: string; color: string }> = {
+	ACTIVE: { label: 'Actif', color: 'bg-green-100 text-green-800' },
+	BREAK: { label: 'Inactif', color: 'bg-gray-100 text-gray-800' },
+	STOP: { label: 'En pause', color: 'bg-red-100 text-red-800' }
+};
+
+export const babyFeedingColors: Record<string, { label: string; color: string }> = {
+	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
+	WITHOUT_EX: { label: 'Sans xp', color: 'bg-purple-100 text-purple-800' },
+	EXPERIENCED: { label: 'Expérimenté', color: 'bg-pink-100 text-pink-800' },
+	RELAY: { label: 'Relais', color: 'bg-blue-100 text-blue-800' }
+};

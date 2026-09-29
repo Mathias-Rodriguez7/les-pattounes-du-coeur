@@ -76,7 +76,7 @@
 			{#snippet child({ props })}
 				<Button {...props} variant="outline" class="w-full justify-between font-normal">
 					{#if calendarValue}
-						{format(calendarValue.toDate(getLocalTimeZone()), 'dd MMMM yyyy', { locale: fr })}
+						{format(calendarValue.toDate(getLocalTimeZone()), 'dd. MM. yyyy', { locale: fr })}
 					{:else}
 						Sélectionner une date
 					{/if}

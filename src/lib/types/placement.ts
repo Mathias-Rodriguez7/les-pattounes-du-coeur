@@ -1,10 +1,10 @@
 import type { Placement } from '@prisma/client';
-import type { Cat } from './cat';
-import type { HostFull } from './host';
+import type { CatFull } from './cat';
+import type { HostBasic } from './host';
 
 export type PlacementFull = Placement & {
-	cat?: Cat | null;
-	host?: HostFull;
+	cat?: CatFull | null;
+	host?: HostBasic;
 };
 
 export type PlacementStats = {

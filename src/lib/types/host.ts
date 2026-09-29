@@ -70,6 +70,12 @@ export type HostEditData = {
 	additionalInformation?: string;
 };
 
+export type HostBasic = Prisma.HostGetPayload<{
+	include: {
+		profil: true;
+	};
+}>;
+
 export type HostEditFormProps = {
 	editData: HostEditData;
 	hostId?: string;
@@ -93,3 +99,6 @@ export type HostCreateInput = Omit<HostEditData, 'email' | 'phone' | 'firstName'
 };
 
 export type HostUpdateInput = Partial<HostEditData>;
+
+// Fix: liste de hosts pour les tableaux
+export type HostFullList = HostFull[];

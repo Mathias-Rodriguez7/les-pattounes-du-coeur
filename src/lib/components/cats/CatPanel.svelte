@@ -89,7 +89,8 @@
 			isIdentify: cat.isIdentify ?? false,
 			chipId: cat.chipId ?? '',
 
-			sicknesses: cat.sicknesses ?? []
+			sicknesses: cat.sicknesses ?? [],
+			placements: cat.placements ?? []
 		};
 
 		isEditing = true;
@@ -514,6 +515,7 @@
 				<CatEditForm
 					bind:editData
 					catId={cat.id}
+					hosts={hosts ?? []}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>

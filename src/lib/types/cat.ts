@@ -5,13 +5,14 @@ import type {
 	HairLength,
 	Vaccinate,
 	Sickness,
-	Placement,
 	Volunteer,
 	Adoption,
 	Care,
 	Media,
 	News
 } from '@prisma/client';
+import type { PlacementFull } from './placement';
+import type { HostBasic } from '$lib/types/host';
 
 // ✅ Types Prisma avec relations
 export type CatFull = Prisma.CatGetPayload<{
@@ -88,7 +89,7 @@ export type CatEditData = {
 	status: CatStatus;
 
 	sicknesses?: Sickness[];
-	placements?: Placement[];
+	placements?: PlacementFull[];
 	volunteers?: Volunteer[];
 	adoptions?: Adoption[];
 	cares?: Care[];
@@ -100,6 +101,7 @@ export type CatEditData = {
 export type CatEditFormProps = {
 	editData: CatEditData;
 	catId?: string;
+	hosts?: HostBasic[];
 	onSuccess?: () => void;
 	onCancel?: () => void;
 };

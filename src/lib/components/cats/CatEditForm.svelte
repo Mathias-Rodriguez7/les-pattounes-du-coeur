@@ -24,10 +24,21 @@
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import SicknessEditForm from '../sickness/SicknessEditForm.svelte';
 	import { sicknessStatus } from '$lib/constants/sickness';
-	import type { SicknessStatus } from '@prisma/client';
+	import type { SicknessStatus, PlacementStatus } from '@prisma/client';
 	import { formatDateNum } from '$lib/utils/date';
+	import PlacementCreateForm from '../placements/PlacementCreateForm.svelte';
+	import { PLACEMENT_STATUS } from '$lib/constants/placement';
+	import type { HostBasic } from '$lib/types/host';
+	import type { CatEditFormProps } from '$lib/types/cat';
+	import PlacementEditForm from '../placements/PlacementEditForm.svelte';
 
-	let { editData = $bindable<CatEditData>(), catId = '', onSuccess, onCancel } = $props();
+	let {
+		editData = $bindable<CatEditData>(),
+		catId = '',
+		hosts = [] as HostBasic[],
+		onSuccess,
+		onCancel
+	} = $props();
 
 	// États
 	let isSaving = $state(false);
@@ -86,7 +97,7 @@
 	</div>
 
 	<!-- 📋 SECTION 1: Statuts + Profil -->
-	<section class="grid grid-cols-3 gap-4">
+	<section class="grid grid-cols-4 gap-4">
 		<!-- Statuts -->
 		<SectionCard
 			icon={CAT_SECTION_CONFIG.statuts.icon}
@@ -114,6 +125,110 @@
 					uncheckedLabel="✗ Masqué"
 					onChange={(value) => (editData.isVisible = value)}
 				/>
+			</div>
+		</SectionCard>
+
+		<SectionCard
+			icon={CAT_SECTION_CONFIG.relations.icon}
+			title={CAT_SECTION_CONFIG.relations.label}
+			color={CAT_SECTION_CONFIG.relations.color}
+			class="col-span-3"
+		>
+			<div class="mb-4 flex justify-end">
+				<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
+			</div>
+
+			<div class="grid grid-cols-3 gap-4">
+				<!-- Volunteer -->
+				<div class="space-y-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA proposé/transfer</span>
+					{#each (editData.placements ?? []).filter((p) => p.type === 'PROPOSAL') as placement (placement.id)}
+						<div class="flex justify-between rounded border border-sky-500 bg-sky-100 p-3">
+							<div class="flex flex-col">
+								<span class="text-muted-foreground block text-xs">
+									{PLACEMENT_STATUS[placement.status as PlacementStatus]}
+								</span>
+								<span class="font-medium">
+									{placement.host?.profil?.firstName}
+									{placement.host?.profil?.lastName}
+								</span>
+							</div>
+
+							<div class="mt-2 flex justify-end">
+								<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+							</div>
+						</div>
+					{/each}
+				</div>
+				<!-- Colonne LONG -->
+				<div class="space-y-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA Classique</span>
+					{#each (editData.placements ?? []).filter((p) => p.type === 'LONG') as placement (placement.id)}
+						<div class="flex justify-between rounded border border-sky-500 bg-sky-100 p-3">
+							<div class="flex flex-col">
+								<span class="text-muted-foreground block text-xs">
+									{PLACEMENT_STATUS[placement.status as PlacementStatus]}
+								</span>
+								<span class="font-medium">
+									{placement.host?.profil?.firstName}
+									{placement.host?.profil?.lastName}
+								</span>
+
+								<div class="flex gap-2 pt-2">
+									<div>
+										<span class="text-muted-foreground block text-xs">Début</span>
+										<span class="text-xs">{formatDateNum(placement.startDate)}</span>
+									</div>
+									{#if placement.endDate}
+										<div>
+											<span class="text-muted-foreground block text-xs">Fin</span>
+											<span class="text-xs">{formatDateNum(placement.endDate)}</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+
+							<div class="mt-2 flex justify-end">
+								<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Colonne SHORT -->
+				<div class="space-y-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA Relais</span>
+					{#each (editData.placements ?? []).filter((p) => p.type === 'SHORT') as placement (placement.id)}
+						<div class="flex justify-between rounded border border-amber-500 bg-amber-100 p-3">
+							<div class="flex flex-col">
+								<span class="text-muted-foreground block text-xs">
+									{PLACEMENT_STATUS[placement.status as PlacementStatus]}
+								</span>
+								<span class="font-medium">
+									{placement.host?.profil?.firstName}
+									{placement.host?.profil?.lastName}
+								</span>
+
+								<div class="flex gap-2 pt-2">
+									<div>
+										<span class="text-muted-foreground block text-xs">Début</span>
+										<span class="text-xs">{formatDateNum(placement.startDate)}</span>
+									</div>
+									{#if placement.endDate}
+										<div>
+											<span class="text-muted-foreground block text-xs">Fin</span>
+											<span class="text-xs">{formatDateNum(placement.endDate)}</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+
+							<div class="mt-2 flex">
+								<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+							</div>
+						</div>
+					{/each}
+				</div>
 			</div>
 		</SectionCard>
 	</section>
@@ -289,7 +404,7 @@
 				<CheckboxField
 					id="isIdentify"
 					name="isIdentify"
-					label="Identifié (puce/tatouage)"
+					label="Identifié"
 					checked={editData.isIdentify}
 					onChange={(value) => (editData.isIdentify = value)}
 				/>
