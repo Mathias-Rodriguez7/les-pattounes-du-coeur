@@ -30,9 +30,8 @@ export async function createPlacement(input: CreatePlacementInput) {
 				hostId,
 				type,
 				status,
-				startedDate: startedDate ?? new Date(),
-				endedDate: endedDate ?? null,
-				notes: notes ?? ''
+				startDate: startedDate ?? new Date(),
+				endDate: endedDate ?? null
 			},
 			include: {
 				cat: true,
@@ -53,6 +52,80 @@ export async function createPlacement(input: CreatePlacementInput) {
 			data: null
 		};
 	}
+}
+
+// ==========================================
+// CREATE MULTIPLE - Proposer un chat à plusieurs FA
+// Même type/status/notes pour tous, pas de dates
+// (les dates seront renseignées lors de l'update
+// quand une FA confirme le placement)
+// ==========================================
+interface CreatePlacementsInput {
+	catId: string;
+	hostIds: string[];
+	type: string;
+	status: string;
+}
+
+export async function createPlacements(input: CreatePlacementsInput) {
+	const { catId, hostIds, type, status, notes } = input;
+
+	if (!catId || hostIds.length === 0) {
+		return {
+			success: false,
+			error: 'catId ou hostIds manquant',
+			data: null
+		};
+	}
+
+	const results = [];
+	const errors: Array<{ hostId: string; error?: string; errors?: unknown }> = [];
+
+	for (const hostId of hostIds) {
+		const placementInput = {
+			catId,
+			hostId,
+			type,
+			status,
+			startDate: null,
+			endDate: null
+		} as CreatePlacementInput;
+
+		const result = await createPlacement(placementInput);
+
+		if (!result.success) {
+			errors.push({ hostId, error: result.error, errors: result.errors });
+		} else {
+			results.push(result.data);
+		}
+	}
+
+	if (results.length === 0) {
+		return {
+			success: false,
+			error: 'Aucun placement créé',
+			errors,
+			data: null
+		};
+	}
+
+	if (errors.length > 0) {
+		return {
+			success: true,
+			message: `${results.length} placement(s) créé(s), ${errors.length} échec(s)`,
+			data: results,
+			partialErrors: errors
+		};
+	}
+
+	return {
+		success: true,
+		message:
+			results.length > 1
+				? `${results.length} placements créés avec succès`
+				: 'Placement créé avec succès',
+		data: results
+	};
 }
 
 // ==========================================

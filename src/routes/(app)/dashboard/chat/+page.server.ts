@@ -4,12 +4,13 @@ import prisma from '$lib/server/prisma';
 import { createCat, updateCat } from '$lib/server/cats/mutations';
 import { deleteProfile } from '$lib/server/mutations';
 import {
-	createPlacement,
+	createPlacements,
 	updatePlacement,
 	deletePlacement
 } from '$lib/server/placements/mutations';
-import type { CreatePlacementInput, UpdatePlacementInput } from '$lib/server/placements/schemas';
+import type { UpdatePlacementInput } from '$lib/server/placements/schemas';
 import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
+import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -114,7 +115,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	// ==========================================
-	// ACTION: Chat
+	// ACTION: Cat
 	// ==========================================
 	createCat: async ({ request, locals }) => {
 		try {
@@ -165,17 +166,21 @@ export const actions: Actions = {
 		try {
 			const formData = await request.formData();
 
-			const input = {
-				catId: formData.get('catId')?.toString() ?? '',
-				hostId: formData.get('hostId')?.toString() ?? '',
-				type: formData.get('type')?.toString() ?? '',
-				status: formData.get('status')?.toString() ?? '',
-				startedDate: formData.get('startedDate')?.toString() || null,
-				endedDate: formData.get('endedDate')?.toString() || null,
-				notes: formData.get('notes')?.toString() || ''
-			};
+			const catId = formData.get('catId')?.toString() ?? '';
+			const hostIds = formData.getAll('hostIds').map((v) => v.toString());
+			const type = formData.get('type')?.toString() ?? '';
+			const status = formData.get('status')?.toString() ?? '';
+			const notes = formData.get('notes')?.toString() || '';
 
-			const result = await createPlacement(input as CreatePlacementInput);
+			if (!catId) {
+				return fail(400, { success: false, error: 'catId manquant' });
+			}
+
+			if (hostIds.length === 0) {
+				return fail(400, { success: false, error: 'Aucun hôte sélectionné' });
+			}
+
+			const result = await createPlacements({ catId, hostIds, type, status, notes });
 
 			if (!result.success) {
 				return fail(400, result);
@@ -279,6 +284,35 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteSickness:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: CatVolunteer
+	// ==========================================
+	assignCatVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await createCatVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur assignCatVolunteer:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	removeCatVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur removeCatVolunteer:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}

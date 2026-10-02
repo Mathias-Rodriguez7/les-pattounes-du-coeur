@@ -1,5 +1,5 @@
 export const HOST_ACTIF_OPTIONS = [
-	{ value: 'ACTIVE', label: 'Activite' },
+	{ value: 'ACTIVE', label: 'Actif' },
 	{ value: 'BREAK', label: 'Pause' },
 	{ value: 'STOP', label: 'Arrêté' }
 ] satisfies Array<{ value: string; label: string }>;
@@ -78,8 +78,8 @@ export const socializeColors: Record<string, { label: string; color: string }> =
 
 export const statusColors: Record<string, { label: string; color: string }> = {
 	ACTIVE: { label: 'Actif', color: 'bg-green-100 text-green-800' },
-	BREAK: { label: 'Inactif', color: 'bg-gray-100 text-gray-800' },
-	STOP: { label: 'En pause', color: 'bg-red-100 text-red-800' }
+	BREAK: { label: 'Pause', color: 'bg-gray-100 text-gray-800' },
+	STOP: { label: 'Arrêté', color: 'bg-red-100 text-red-800' }
 };
 
 export const babyFeedingColors: Record<string, { label: string; color: string }> = {

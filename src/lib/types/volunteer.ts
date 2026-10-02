@@ -95,3 +95,11 @@ export type CatVolunteerExtended = {
 	placementId: string | null;
 	hasPlacement: boolean;
 };
+
+export type VolunteerBasic = {
+	id: string;
+	profil: {
+		firstName: string;
+		lastName: string;
+	};
+};

@@ -25,14 +25,14 @@ export const columns: ColumnDef[] = [
 	{
 		id: 'name',
 		header: 'Nom',
-		accessor: (row) => `${truncate(row.profil.firstName, 20)}. ${truncate(row.profil.lastName, 1)}`,
+		accessor: (row) => `${truncate(row.profil.firstName, 20)} ${truncate(row.profil.lastName, 1)}.`,
 		sortable: true,
 		filter: { type: 'text' }
 	},
 	{
 		id: 'city',
 		header: 'Ville',
-		accessor: (row) => row.profil?.city ?? '—',
+		accessor: (row) => `${truncate(row.profil?.city ?? '—', 4)}...`,
 		sortable: true,
 		filter: { type: 'text' }
 	},
@@ -65,7 +65,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'isAvailable',
-		header: 'Disponible',
+		header: 'Dispo',
 		accessor: (row) => row.isAvailable,
 		filter: { type: 'boolean' }
 	},
@@ -83,13 +83,13 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'isStockFeed',
-		header: 'Stock nourriture',
+		header: 'Stock',
 		accessor: (row) => row.isStockFeed,
 		filter: { type: 'boolean' }
 	},
 	{
 		id: 'socialize',
-		header: 'Sociabilisation',
+		header: 'Socia',
 		accessor: (row) => row.socialize,
 		filter: {
 			type: 'select',
@@ -107,7 +107,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'babyFeeding',
-		header: 'Alimentation bébés',
+		header: 'Biberonage',
 		accessor: (row) => row.babyFeeding,
 		filter: {
 			type: 'select',

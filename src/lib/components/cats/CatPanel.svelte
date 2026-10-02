@@ -11,10 +11,10 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import {
 		statusLabel,
-		sexLabel,
 		hairLabel,
 		vaccinateLabel,
-		getLabel
+		getLabel,
+		getSexIcon
 	} from '$lib/utils/catHelpers';
 	import CatEditForm from './CatEditForm.svelte';
 	import { getAgeBadge, formatAge } from '$lib/utils/age';
@@ -90,7 +90,8 @@
 			chipId: cat.chipId ?? '',
 
 			sicknesses: cat.sicknesses ?? [],
-			placements: cat.placements ?? []
+			placements: cat.placements ?? [],
+			volunteers: cat.volunteers ?? []
 		};
 
 		isEditing = true;
@@ -146,8 +147,18 @@
 		return cat.placements.filter(
 			(p) =>
 				(p.type === 'LONG' && (p.status === 'ACTIVE' || p.status === 'BREAK')) ||
-				(p.type === 'SHORT' && p.status === 'ACTIVE')
+				(p.type === 'SHORT' && p.status === 'ACTIVE') ||
+				(p.type === 'PROPOSAL' && p.status === 'ACTIVE') ||
+				(p.type === 'TRANSFER' && p.status === 'ACTIVE')
 		);
+	});
+
+	const activeProposalPlacement = $derived.by(() => {
+		return activePlacements.find((p) => p.type === 'PROPOSAL') ?? null;
+	});
+
+	const activeTransferPlacement = $derived.by(() => {
+		return activePlacements.find((p) => p.type === 'TRANSFER') ?? null;
 	});
 
 	const activeLongPlacement = $derived.by(() => {
@@ -157,128 +168,42 @@
 	const activeShortPlacement = $derived.by(() => {
 		return activePlacements.find((p) => p.type === 'SHORT') ?? null;
 	});
+
+	const sexIcon = $derived(cat ? getSexIcon(cat.sex) : null);
 </script>
 
 {#if cat}
-	<Card.Root class="relative col-span-1 overflow-auto">
+	<Card.Root>
 		{#if !isEditing}
 			<Card.Header>
 				<section class="flex justify-between gap-6">
-					<div class="flex flex-col justify-around">
+					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">{cat.name}</Card.Title>
-						<Card.Description>
-							{getAgeBadge(cat.birthDate)} · {getLabel(sexLabel, cat.sex)}
+						<Card.Description class="ga-2 flex">
+							{getAgeBadge(cat.birthDate)} ·
+							{#if sexIcon}
+								<div title={sexIcon.label}>
+									<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
+								</div>
+							{/if}
 						</Card.Description>
 						<div>
 							<span>Num de suivi:</span>
 							<span>{cat.catNumber}</span>
 						</div>
 						<div class="flex gap-4">
-							<Badge variant="outline">{statusLabel[cat.status] ?? cat.status}</Badge>
+							<Badge variant="outline" class="text-sm"
+								>{statusLabel[cat.status] ?? cat.status}</Badge
+							>
 							{#if cat.isVisible}
-								<Badge class="bg-green-100 text-green-700">Visible</Badge>
+								<Badge class="bg-green-100 text-sm text-green-700">Visible</Badge>
 							{:else}
-								<Badge class="bg-red-100 text-red-700">Masqué</Badge>
+								<Badge class="bg-red-100 text-sm text-red-700">Masqué</Badge>
 							{/if}
 						</div>
 					</div>
 
-					<SectionCard
-						icon={CAT_SECTION_CONFIG.relations.icon}
-						title={CAT_SECTION_CONFIG.relations.label}
-						color={CAT_SECTION_CONFIG.relations.color}
-						class="flex-1"
-					>
-						<div class="ml-6 grid grid-cols-3 gap-4 text-sm">
-							<div>
-								<span class="text-muted-foreground block text-xs">Bénévole(s)</span>
-								{#if assignedVolunteers.length > 0}
-									<div class="space-y-1">
-										{#each assignedVolunteers as volunteer, i (i)}
-											<p>{volunteer.firstName} {truncate(volunteer.lastName, 1)}.</p>
-										{/each}
-									</div>
-								{:else}
-									<p class="text-muted-foreground">Aucun bénévole assigné</p>
-								{/if}
-							</div>
-
-							<div>
-								<span class="text-muted-foreground block text-xs">
-									FA (Classic)
-									{#if activeLongPlacement?.status === 'BREAK'}
-										<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
-									{/if}
-								</span>
-								{#if activeLongPlacement}
-									<div>
-										<p>
-											{activeLongPlacement.host.profil.firstName}
-											{activeLongPlacement.host.profil.lastName}
-										</p>
-										{#if activeLongPlacement.host.profil.phone}
-											<a
-												href={`tel:${activeLongPlacement.host.profil.phone}`}
-												class="hover:text-primary text-xs text-blue-500 underline"
-											>
-												{activeLongPlacement.host.profil.phone}
-											</a>
-										{/if}
-										{#if activeLongPlacement.host.profil.email}
-											<a
-												href={`mailto:${activeLongPlacement.host.profil.email}`}
-												class="hover:text-primary block text-xs text-blue-500 underline"
-											>
-												{activeLongPlacement.host.profil.email}
-											</a>
-										{/if}
-										<p class="hover:text-primary block text-xs">
-											{activeLongPlacement.host.profil.address}
-											{activeLongPlacement.host.profil.city}
-										</p>
-									</div>
-								{:else}
-									<p class="text-muted-foreground">Aucune</p>
-								{/if}
-							</div>
-
-							<div>
-								{#if activeShortPlacement}
-									<div>
-										<span class="text-muted-foreground block text-xs">FA (Relais)</span>
-										<div>
-											<p>
-												{activeShortPlacement.host.profil.firstName}
-												{activeShortPlacement.host.profil.lastName}
-											</p>
-											{#if activeShortPlacement.host.profil.phone}
-												<a
-													href={`tel:${activeShortPlacement.host.profil.phone}`}
-													class="hover:text-primary text-xs text-blue-500 underline"
-												>
-													{activeShortPlacement.host.profil.phone}
-												</a>
-											{/if}
-											{#if activeShortPlacement.host.profil.email}
-												<a
-													href={`mailto:${activeShortPlacement.host.profil.email}`}
-													class="hover:text-primary block text-xs text-blue-500 underline"
-												>
-													{activeShortPlacement.host.profil.email}
-												</a>
-											{/if}
-											<p class="hover:text-primary block text-xs">
-												{activeShortPlacement.host.profil.address}
-												{activeShortPlacement.host.profil.city}
-											</p>
-										</div>
-									</div>
-								{/if}
-							</div>
-						</div>
-					</SectionCard>
-
-					<div class="flex flex-col gap-2">
+					<div class="grid gap-2">
 						{#if isAdmin}
 							<Button variant="ghost" size="icon" onclick={startEditing}>
 								<Pencil class="h-5 w-5" />
@@ -301,6 +226,290 @@
 			<Card.Content class="flex flex-col gap-4 text-sm">
 				<Separator />
 
+				<section class="grid gap-6">
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.relations.icon}
+						title={CAT_SECTION_CONFIG.relations.label}
+						color={CAT_SECTION_CONFIG.relations.color}
+					>
+						<div class="grid gap-4">
+							<div class="ml-2 grid grid-cols-2 gap-2 text-sm">
+								<div>
+									<div>
+										<span class="text-muted-foreground block text-xs">Bénévole(s)</span>
+										{#if assignedVolunteers.length > 0}
+											<div class="flex gap-2 space-y-1">
+												{#each assignedVolunteers as volunteer, i (i)}
+													<p>{volunteer.firstName} {truncate(volunteer.lastName, 1)}.</p>
+												{/each}
+											</div>
+										{:else}
+											<p class="text-muted-foreground">Aucun bénévole assigné</p>
+										{/if}
+									</div>
+								</div>
+
+								<div class="flex gap-2">
+									{#if activeProposalPlacement}
+										<div>
+											<span class="text-muted-foreground block text-xs">FA (Proposition)</span>
+											<div class="rounded border border-amber-500 bg-amber-100 p-2">
+												<p>
+													{activeProposalPlacement.host.profil.firstName}
+													{truncate(activeProposalPlacement.host.profil.lastName, 1)}.
+												</p>
+											</div>
+										</div>
+									{/if}
+									{#if activeTransferPlacement}
+										<div>
+											<span class="text-muted-foreground block text-xs">FA (Transfer)</span>
+											<div class="rounded border border-amber-500 bg-amber-100 p-2">
+												<p>
+													{activeTransferPlacement.host.profil.firstName}
+													{truncate(activeTransferPlacement.host.profil.lastName, 1)}.
+												</p>
+											</div>
+										</div>
+									{/if}
+								</div>
+							</div>
+
+							<div>
+								<span class="text-muted-foreground block text-xs">
+									FA (Classic)
+									{#if activeLongPlacement?.status === 'BREAK'}
+										<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
+									{/if}
+								</span>
+								{#if activeLongPlacement}
+									<div class="flex gap-2 rounded border border-sky-500 bg-sky-100 p-3">
+										<p>
+											{activeLongPlacement.host.profil.firstName}
+											{truncate(activeLongPlacement.host.profil.lastName, 1)}.
+										</p>
+										{#if activeLongPlacement.host.profil.phone}
+											<a
+												href={`tel:${activeLongPlacement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{activeLongPlacement.host.profil.phone}
+											</a>
+										{/if}
+										{#if activeLongPlacement.host.profil.email}
+											<a
+												href={`mailto:${activeLongPlacement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{activeLongPlacement.host.profil.email}
+											</a>
+										{/if}
+										<p class="block text-xs">
+											{activeLongPlacement.host.profil.address}
+											{activeLongPlacement.host.profil.city}
+										</p>
+									</div>
+								{:else}
+									<p class="text-muted-foreground">Aucune</p>
+								{/if}
+							</div>
+
+							<div>
+								{#if activeShortPlacement}
+									<div>
+										<span class="text-muted-foreground block text-xs">FA (Relais)</span>
+										<div class="flex gap-2 rounded border border-amber-500 bg-amber-100 p-3">
+											<p>
+												{activeShortPlacement.host.profil.firstName}
+												{truncate(activeShortPlacement.host.profil.lastName, 1)}.
+											</p>
+											{#if activeShortPlacement.host.profil.phone}
+												<a
+													href={`tel:${activeShortPlacement.host.profil.phone}`}
+													class="hover:text-primary text-xs text-blue-500 underline"
+												>
+													{activeShortPlacement.host.profil.phone}
+												</a>
+											{/if}
+											{#if activeShortPlacement.host.profil.email}
+												<a
+													href={`mailto:${activeShortPlacement.host.profil.email}`}
+													class="hover:text-primary block text-xs text-blue-500 underline"
+												>
+													{activeShortPlacement.host.profil.email}
+												</a>
+											{/if}
+											<p class="block text-xs">
+												{activeShortPlacement.host.profil.address}
+												{activeShortPlacement.host.profil.city}
+											</p>
+										</div>
+									</div>
+								{/if}
+							</div>
+						</div>
+					</SectionCard>
+				</section>
+
+				<Separator />
+
+				<div class="grid grid-cols-4 gap-4">
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.profile.icon}
+						title={CAT_SECTION_CONFIG.profile.label}
+						color={CAT_SECTION_CONFIG.profile.color}
+						class="col-span-1"
+					>
+						<div class="ml-6 space-y-1">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Âge</span>
+								<span>{formatAge(cat.birthDate)}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Couleur</span>
+								<span>{cat.color ?? '—'}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Poil</span>
+								<span>{getLabel(hairLabel, cat.hairLength)}</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Origine</span>
+								<span>{cat.origin ?? '—'}</span>
+							</div>
+						</div>
+					</SectionCard>
+
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.compatibility.icon}
+						title={CAT_SECTION_CONFIG.compatibility.label}
+						color={CAT_SECTION_CONFIG.compatibility.color}
+						class="col-span-1"
+					>
+						<div class="ml-6 space-y-1">
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Chien</span>
+								<BooleanIcon value={cat.isOkDog ?? false} />
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Chat</span>
+								<BooleanIcon value={cat.isOkCat ?? false} />
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Enfant</span>
+								<BooleanIcon value={cat.isOkChild ?? false} />
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-muted-foreground">Jardin</span>
+								<BooleanIcon value={cat.isOutside ?? false} />
+							</div>
+						</div>
+					</SectionCard>
+
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.health.icon}
+						title={CAT_SECTION_CONFIG.health.label}
+						color={CAT_SECTION_CONFIG.health.color}
+						class="col-span-2"
+					>
+						<section class="ml-6 grid grid-cols-2 gap-6">
+							<div class="grid grid-cols-2 gap-2 text-sm">
+								<span class="text-muted-foreground">Vaccin</span>
+								<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>
+								<span class="text-muted-foreground">Test FIV</span>
+								<div class="flex justify-start">
+									<BooleanIcon value={cat.isFivTest ?? false} />
+								</div>
+								<span class="text-muted-foreground">Vermifuge</span>
+								<div class="flex justify-start">
+									<BooleanIcon value={cat.isDeworming ?? false} />
+								</div>
+							</div>
+							<div class="grid grid-cols-2 gap-2 text-sm">
+								<span class="text-muted-foreground">Stérilisé·e</span>
+								<div class="flex justify-start">
+									<BooleanIcon
+										value={(cat.isSterilize ?? false) || (cat.isAlreadySterilized ?? false)}
+									/>
+								</div>
+								<span class="text-muted-foreground">Identifié·e</span>
+								<div class="flex justify-start">
+									<BooleanIcon value={cat.isIdentify ?? false} />
+								</div>
+								<span class="text-muted-foreground">Puce</span>
+								<span>{cat.chipId ?? '—'}</span>
+							</div>
+						</section>
+					</SectionCard>
+				</div>
+
+				<Separator />
+
+				{#if activeSicknesses.length > 0}
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.sicknesses.icon}
+						title={CAT_SECTION_CONFIG.sicknesses.label}
+						color={CAT_SECTION_CONFIG.sicknesses.color}
+					>
+						<div class="space-y-4">
+							{#each activeSicknesses as sickness (sickness.id)}
+								<div
+									class="grid grid-cols-5 gap-4 rounded-xl border border-lime-500 bg-lime-100 px-4 py-2 text-sm"
+								>
+									<div class="col-span-1">
+										<span class="text-muted-foreground block text-xs"
+											>Maladie {sicknessStatus[sickness.status as SicknessStatus]}</span
+										>
+										<span class="font-medium">{sickness.name}</span>
+
+										<div class="flex gap-2 pt-2">
+											<div>
+												<span class="text-muted-foreground block text-xs">Début</span>
+												<span class="text-xs">{formatDateNum(sickness.startDate)}</span>
+											</div>
+											{#if sickness.endDate}
+												<div>
+													<span class="text-muted-foreground block text-xs">Fin</span>
+													<span class="text-xs">{formatDateNum(sickness.endDate)}</span>
+												</div>
+											{/if}
+										</div>
+									</div>
+									{#if sickness.description}
+										<div class="col-span-2">
+											<span class="text-muted-foreground block text-xs">Description</span>
+											<p class="text-xs">{sickness.description}</p>
+										</div>
+									{/if}
+									<div class="col-span-2">
+										<span class="text-muted-foreground block text-xs">Traitement</span>
+										<span class="text-xs">{sickness.treatment ?? '—'}</span>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</SectionCard>
+				{:else}
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.sicknesses.icon}
+						title={CAT_SECTION_CONFIG.sicknesses.label}
+						color={CAT_SECTION_CONFIG.sicknesses.color}
+					>
+						<p class="text-muted-foreground ml-6 text-sm">Aucune maladie active</p>
+					</SectionCard>
+				{/if}
+
+				<Separator />
+
+				{#if cat.description}
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.description.icon}
+						title={CAT_SECTION_CONFIG.description.label}
+						color={CAT_SECTION_CONFIG.description.color}
+					>
+						<p class="text-muted-foreground ml-6 text-xs">{cat.description}</p>
+					</SectionCard>
+				{/if}
 				{#if cat.adoptions?.[0]}
 					{@const adoption = cat.adoptions[0]}
 					<SectionCard
@@ -350,164 +559,6 @@
 							</div>
 						</div>
 					</SectionCard>
-				{:else}
-					<div class="grid grid-cols-4 gap-4">
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.profile.icon}
-							title={CAT_SECTION_CONFIG.profile.label}
-							color={CAT_SECTION_CONFIG.profile.color}
-							class="col-span-1"
-						>
-							<div class="ml-6 space-y-1">
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Âge</span>
-									<span>{formatAge(cat.birthDate)}</span>
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Couleur</span>
-									<span>{cat.color ?? '—'}</span>
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Poil</span>
-									<span>{getLabel(hairLabel, cat.hairLength)}</span>
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Origine</span>
-									<span>{cat.origin ?? '—'}</span>
-								</div>
-							</div>
-						</SectionCard>
-
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.compatibility.icon}
-							title={CAT_SECTION_CONFIG.compatibility.label}
-							color={CAT_SECTION_CONFIG.compatibility.color}
-							class="col-span-1"
-						>
-							<div class="ml-6 space-y-1">
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Chien</span>
-									<BooleanIcon value={cat.isOkDog ?? false} />
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Chat</span>
-									<BooleanIcon value={cat.isOkCat ?? false} />
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Enfant</span>
-									<BooleanIcon value={cat.isOkChild ?? false} />
-								</div>
-								<div class="flex items-center justify-between">
-									<span class="text-muted-foreground">Jardin</span>
-									<BooleanIcon value={cat.isOutside ?? false} />
-								</div>
-							</div>
-						</SectionCard>
-
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.health.icon}
-							title={CAT_SECTION_CONFIG.health.label}
-							color={CAT_SECTION_CONFIG.health.color}
-							class="col-span-2"
-						>
-							<section class="ml-6 grid grid-cols-2 gap-6">
-								<div class="grid grid-cols-2 gap-2 text-sm">
-									<span class="text-muted-foreground">Vaccin</span>
-									<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>
-									<span class="text-muted-foreground">Test FIV</span>
-									<div class="flex justify-start">
-										<BooleanIcon value={cat.isFivTest ?? false} />
-									</div>
-									<span class="text-muted-foreground">Vermifuge</span>
-									<div class="flex justify-start">
-										<BooleanIcon value={cat.isDeworming ?? false} />
-									</div>
-								</div>
-								<div class="grid grid-cols-2 gap-2 text-sm">
-									<span class="text-muted-foreground">Stérilisé·e</span>
-									<div class="flex justify-start">
-										<BooleanIcon
-											value={(cat.isSterilize ?? false) || (cat.isAlreadySterilized ?? false)}
-										/>
-									</div>
-									<span class="text-muted-foreground">Identifié·e</span>
-									<div class="flex justify-start">
-										<BooleanIcon value={cat.isIdentify ?? false} />
-									</div>
-									<span class="text-muted-foreground">Puce</span>
-									<span>{cat.chipId ?? '—'}</span>
-								</div>
-							</section>
-						</SectionCard>
-					</div>
-
-					<Separator />
-
-					{#if activeSicknesses.length > 0}
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.sicknesses.icon}
-							title={CAT_SECTION_CONFIG.sicknesses.label}
-							color={CAT_SECTION_CONFIG.sicknesses.color}
-						>
-							<div class="space-y-4">
-								{#each activeSicknesses as sickness (sickness.id)}
-									<div
-										class="grid grid-cols-5 gap-4 rounded-xl border border-lime-500 bg-lime-100 px-4 py-2 text-sm"
-									>
-										<div class="col-span-1">
-											<span class="text-muted-foreground block text-xs"
-												>Maladie {sicknessStatus[sickness.status as SicknessStatus]}</span
-											>
-											<span class="font-medium">{sickness.name}</span>
-
-											<div class="flex gap-2 pt-2">
-												<div>
-													<span class="text-muted-foreground block text-xs">Début</span>
-													<span class="text-xs">{formatDateNum(sickness.startDate)}</span>
-												</div>
-												{#if sickness.endDate}
-													<div>
-														<span class="text-muted-foreground block text-xs">Fin</span>
-														<span class="text-xs">{formatDateNum(sickness.endDate)}</span>
-													</div>
-												{/if}
-											</div>
-										</div>
-										{#if sickness.description}
-											<div class="col-span-2">
-												<span class="text-muted-foreground block text-xs">Description</span>
-												<p class="text-xs">{sickness.description}</p>
-											</div>
-										{/if}
-										<div class="col-span-2">
-											<span class="text-muted-foreground block text-xs">Traitement</span>
-											<span class="text-xs">{sickness.treatment ?? '—'}</span>
-										</div>
-									</div>
-								{/each}
-							</div>
-						</SectionCard>
-					{:else}
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.sicknesses.icon}
-							title={CAT_SECTION_CONFIG.sicknesses.label}
-							color={CAT_SECTION_CONFIG.sicknesses.color}
-						>
-							<p class="text-muted-foreground ml-6 text-sm">Aucune maladie active</p>
-						</SectionCard>
-					{/if}
-
-					<Separator />
-
-					{#if cat.description}
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.description.icon}
-							title={CAT_SECTION_CONFIG.description.label}
-							color={CAT_SECTION_CONFIG.description.color}
-						>
-							<p class="text-muted-foreground ml-6 text-sm">{cat.description}</p>
-						</SectionCard>
-					{/if}
 				{/if}
 			</Card.Content>
 		{:else}
@@ -516,6 +567,7 @@
 					bind:editData
 					catId={cat.id}
 					hosts={hosts ?? []}
+					volunteers={volunteers ?? []}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>

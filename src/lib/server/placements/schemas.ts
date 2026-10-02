@@ -15,14 +15,13 @@ export const createPlacementSchema = z
 		hostId: z.string().uuid('hostId invalide'),
 		type: placementTypeEnum,
 		status: colabActivityEnum,
-		startedDate: z.coerce.date().nullable().optional(),
-		endedDate: z.coerce.date().nullable().optional(),
-		notes: z.string().optional().default('')
+		startDate: z.coerce.date().nullable().optional(),
+		endDate: z.coerce.date().nullable().optional()
 	})
 	.refine(
 		(data) => {
-			if (data.startedDate && data.endedDate) {
-				return data.endedDate >= data.startedDate;
+			if (data.startDate && data.endDate) {
+				return data.endDate >= data.startDate;
 			}
 			return true;
 		},
@@ -37,14 +36,13 @@ export const updatePlacementSchema = z
 		hostId: z.string().uuid('hostId invalide').optional(),
 		type: placementTypeEnum.optional(),
 		status: colabActivityEnum.optional(),
-		startedDate: z.coerce.date().nullable().optional(),
-		endedDate: z.coerce.date().nullable().optional(),
-		notes: z.string().optional()
+		startDate: z.coerce.date().nullable().optional(),
+		endDate: z.coerce.date().nullable().optional()
 	})
 	.refine(
 		(data) => {
-			if (data.startedDate && data.endedDate) {
-				return data.endedDate >= data.startedDate;
+			if (data.startDate && data.endDate) {
+				return data.endDate >= data.startDate;
 			}
 			return true;
 		},

@@ -107,7 +107,12 @@
 	<!-- 🔑 HIDDEN INPUTS -->
 	<input type="hidden" name="hostId" value={hostId} />
 
-	<div class="flex justify-end">
+	<div class="flex items-center justify-between">
+		<h2 class="text-lg font-semibold">
+			Éditer la FA: {editData.firstName || 'Sans nom'}
+			{editData.lastName || 'Sans nom'}
+		</h2>
+
 		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
 			<X class="h-5 w-5" />
 		</Button>

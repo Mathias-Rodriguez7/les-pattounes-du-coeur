@@ -33,7 +33,7 @@
 	);
 </script>
 
-<div class="space-y-2">
+<div>
 	{#if label}
 		<label for={id} class={`font-medium text-gray-700 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
 			{label}

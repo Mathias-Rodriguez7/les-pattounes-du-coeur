@@ -1,36 +1,36 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
-	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { ArrowUp, ArrowDown, ArrowUpDown } from '@lucide/svelte';
 	import type { HostFull } from '$lib/types/host';
 	import { columns as defaultColumns, type ColumnDef } from './columns';
 	import HostPlacementRow from './HostPlacementRow.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import InputField from '$lib/components/fields/InputField.svelte';
 
 	interface Props {
 		hosts: HostFull[];
 		selectedHostIds?: string[];
 		onSelectionChange?: (hostIds: string[]) => void;
 		columns?: ColumnDef[];
-		pageSize?: number;
 	}
 
 	let {
 		hosts,
 		selectedHostIds = [],
 		onSelectionChange,
-		columns = defaultColumns,
-		pageSize = 8
+		columns = defaultColumns
 	}: Props = $props();
+
+	const DEFAULT_FILTERS: Record<string, string> = { actif: 'ACTIVE' };
 
 	// --- État global ---
 	let globalFilter = $state('');
-	let columnFilters = $state<Record<string, string>>({});
+	let columnFilters = $state<Record<string, string>>({ ...DEFAULT_FILTERS });
 	let sortColumn = $state<string | null>(null);
 	let sortDirection = $state<'asc' | 'desc'>('asc');
-	let currentPage = $state(1);
 	let internalSelected = $state<string[]>(selectedHostIds);
+	let compareMode = $state(false);
 
 	const ALL_OPTION = { value: '', label: 'Tous' };
 	const BOOLEAN_OPTIONS = [
@@ -59,12 +59,19 @@
 
 	function setColumnFilter(colId: string, value: string) {
 		columnFilters = { ...columnFilters, [colId]: value };
-		currentPage = 1;
+	}
+
+	function toggleCompareMode() {
+		compareMode = !compareMode;
 	}
 
 	// --- Filtrage ---
 	const filteredHosts = $derived.by(() => {
 		let result = hosts;
+
+		if (compareMode) {
+			result = result.filter((h) => internalSelected.includes(h.id));
+		}
 
 		if (globalFilter.trim()) {
 			const q = globalFilter.trim().toLowerCase();
@@ -118,87 +125,78 @@
 		});
 	});
 
-	// --- Pagination ---
-	const totalPages = $derived(Math.max(1, Math.ceil(sortedHosts.length / pageSize)));
-
-	const paginatedHosts = $derived.by(() => {
-		const start = (currentPage - 1) * pageSize;
-		return sortedHosts.slice(start, start + pageSize);
-	});
-
-	$effect(() => {
-		if (currentPage > totalPages) currentPage = 1;
-	});
-
 	function resetFilters() {
 		globalFilter = '';
-		columnFilters = {};
-		currentPage = 1;
+		columnFilters = { ...DEFAULT_FILTERS };
 	}
 </script>
 
 <div class="space-y-3">
-	<!-- Barre de recherche globale -->
-	<div class="flex items-center gap-2">
-		<Input
-			type="text"
-			placeholder="Rechercher un hôte…"
-			bind:value={globalFilter}
-			class="max-w-sm"
-		/>
-		<Button variant="ghost" size="sm" onclick={resetFilters}>Réinitialiser</Button>
-		<span class="text-muted-foreground ml-auto text-sm">
-			{sortedHosts.length} résultat{sortedHosts.length > 1 ? 's' : ''}
-			{#if internalSelected.length > 0}
-				· {internalSelected.length} sélectionné{internalSelected.length > 1 ? 's' : ''}
-			{/if}
-		</span>
-	</div>
-
 	<!-- Filtres par colonne -->
-	<div class="flex flex-wrap items-end gap-2">
-		{#each columns.filter((c) => c.filter) as col (col.id)}
-			{#if col.filter?.type === 'select'}
-				<div class="w-[160px]">
-					<SelectField
-						id={`filter-${col.id}`}
-						label={col.header}
-						bind:value={() => columnFilters[col.id] ?? '', (v) => setColumnFilter(col.id, v)}
-						options={[ALL_OPTION, ...(col.filter.options ?? [])]}
-						size="sm"
-					/>
-				</div>
-			{:else if col.filter?.type === 'boolean'}
-				<div class="w-[140px]">
-					<SelectField
-						id={`filter-${col.id}`}
-						label={col.header}
-						bind:value={() => columnFilters[col.id] ?? '', (v) => setColumnFilter(col.id, v)}
-						options={BOOLEAN_OPTIONS}
-						size="sm"
-					/>
-				</div>
-			{:else if col.filter?.type === 'text'}
-				<div class="w-[140px] space-y-2">
-					<label class="text-xs font-medium text-gray-700" for={`filter-${col.id}`}>
-						{col.header}
-					</label>
-					<Input
-						id={`filter-${col.id}`}
-						type="text"
-						placeholder={col.header}
-						value={columnFilters[col.id] ?? ''}
-						oninput={(e) => setColumnFilter(col.id, e.currentTarget.value)}
-					/>
-				</div>
-			{/if}
-		{/each}
+	<div class="flex items-center justify-between gap-2">
+		<div class="flex flex-wrap gap-2">
+			{#each columns.filter((c) => c.filter) as col (col.id)}
+				{#if col.filter?.type === 'select'}
+					<div class="w-20">
+						<SelectField
+							id={`filter-${col.id}`}
+							label={col.header}
+							bind:value={() => columnFilters[col.id] ?? '', (v) => setColumnFilter(col.id, v)}
+							options={[ALL_OPTION, ...(col.filter.options ?? [])]}
+							size="sm"
+						/>
+					</div>
+				{:else if col.filter?.type === 'boolean'}
+					<div class="w-20">
+						<SelectField
+							id={`filter-${col.id}`}
+							label={col.header}
+							bind:value={() => columnFilters[col.id] ?? '', (v) => setColumnFilter(col.id, v)}
+							options={BOOLEAN_OPTIONS}
+							size="sm"
+						/>
+					</div>
+				{:else if col.filter?.type === 'text'}
+					<div class="w-25">
+						<InputField
+							id={`filter-${col.id}`}
+							label={col.header}
+							type="text"
+							placeholder={col.header}
+							bind:value={columnFilters[col.id]}
+							size="sm"
+						/>
+					</div>
+				{/if}
+			{/each}
+		</div>
+		<!-- Barre de recherche globale -->
+		<div class="mt-4 flex flex-col items-center gap-2">
+			<InputField
+				type="text"
+				placeholder="Rechercher un hôte…"
+				bind:value={globalFilter}
+				size="sm"
+			/>
+
+			<div class="flex gap-2">
+				<Button size="sm" onclick={resetFilters}>Réinitialiser</Button>
+				<Button
+					variant={compareMode ? 'default' : 'outline'}
+					size="sm"
+					disabled={internalSelected.length === 0 && !compareMode}
+					onclick={toggleCompareMode}
+				>
+					{compareMode ? 'Afficher tout' : `Comparer (${internalSelected.length})`}
+				</Button>
+			</div>
+		</div>
 	</div>
 
-	<!-- Table -->
-	<div class="overflow-x-auto rounded-md border">
+	<!-- Table avec scroll -->
+	<div class="max-h-120 overflow-x-auto overflow-y-auto rounded-md">
 		<Table.Root>
-			<Table.Header>
+			<Table.Header class="bg-background sticky top-0 z-10">
 				<Table.Row>
 					<Table.Head class="w-10"></Table.Head>
 					{#each columns as col (col.id)}
@@ -227,14 +225,14 @@
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
-				{#if paginatedHosts.length === 0}
+				{#if sortedHosts.length === 0}
 					<Table.Row>
 						<Table.Cell colspan={columns.length + 1} class="text-muted-foreground py-8 text-center">
 							Aucun hôte ne correspond à ces critères.
 						</Table.Cell>
 					</Table.Row>
 				{:else}
-					{#each paginatedHosts as host (host.id)}
+					{#each sortedHosts as host (host.id)}
 						<HostPlacementRow
 							{host}
 							{columns}
@@ -246,29 +244,4 @@
 			</Table.Body>
 		</Table.Root>
 	</div>
-
-	<!-- Pagination -->
-	{#if totalPages > 1}
-		<div class="flex items-center justify-between">
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={currentPage === 1}
-				onclick={() => (currentPage -= 1)}
-			>
-				Précédent
-			</Button>
-			<span class="text-muted-foreground text-sm">
-				Page {currentPage} / {totalPages}
-			</span>
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={currentPage === totalPages}
-				onclick={() => (currentPage += 1)}
-			>
-				Suivant
-			</Button>
-		</div>
-	{/if}
 </div>

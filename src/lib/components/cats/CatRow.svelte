@@ -2,7 +2,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import type { CatFull } from '$lib/types/cat';
-	import { focalPointClass } from '$lib/utils/catHelpers';
+	import { focalPointClass, getSexIcon } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
 
 	const {
@@ -10,18 +10,6 @@
 		onclick,
 		isSelected = false
 	}: { cat: CatFull; onclick: () => void; isSelected?: boolean } = $props();
-
-	// 👇 Utilise le iconMap
-	const getSexIcon = (sex: string | null | undefined) => {
-		switch (sex) {
-			case 'MALE':
-				return { icon: 'mars', color: 'text-blue-500', label: 'Mâle' };
-			case 'FEMALE':
-				return { icon: 'venus', color: 'text-pink-500', label: 'Femelle' };
-			default:
-				return { icon: 'CircleQuestionMark', color: 'text-gray-500', label: 'Inconnu' };
-		}
-	};
 
 	const sexIcon = getSexIcon(cat.sex);
 

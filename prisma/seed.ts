@@ -62,15 +62,15 @@ function getLocalPdf() {
 	return '/pdf/newsletter.pdf';
 }
 
-// ✅ NOUVELLE FONCTION : Générer un catNumber unique avec regex CJJMMnnn
+// ✅ NOUVELLE FONCTION : Générer un catNumber unique avec regex CAAMMnnn
 function generateCatNumber(sequenceNumber: number): string {
 	// Date aléatoire pour plus de réalisme
 	const randomDate = faker.date.recent({ days: 365 });
-	const day = String(randomDate.getDate()).padStart(2, '0');
+	const year = String(randomDate.getFullYear() % 100).padStart(2, '0');
 	const month = String(randomDate.getMonth() + 1).padStart(2, '0');
 	const sequence = String(sequenceNumber).padStart(3, '0');
 
-	return `C${day}${month}${sequence}`;
+	return `C${year}${month}${sequence}`;
 }
 
 // ✅ NOUVELLE FONCTION : Générer des dates de break

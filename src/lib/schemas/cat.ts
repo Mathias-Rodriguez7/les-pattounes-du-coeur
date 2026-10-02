@@ -17,9 +17,8 @@ const vaccinateEnum = z
 	.enum(Object.values(Vaccinate) as [string, ...string[]])
 	.transform((val) => val as Vaccinate);
 
-// ✅ Validation stricte du catNumber : C + JJ(01-31) + MM(01-12) + NNN(001-999)
-const catNumberRegex =
-	/^C(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$/;
+// ✅ Validation stricte du catNumber : C + AA(01-99) + MM(01-12) + NNN(001-999)
+const catNumberRegex = /^C([0-9][1-9]|[1-9]0)(0[1-9]|1[0-2])(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$/;
 
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();

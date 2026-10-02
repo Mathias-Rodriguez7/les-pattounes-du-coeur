@@ -2,7 +2,8 @@ export const statusLabel: Record<string, string> = {
 	AVAILABLE: 'Disponible',
 	SOCIALIZE: 'Socialisation',
 	ADOPTED: 'Adopté',
-	FREE: 'Libre'
+	FREE: 'Libre',
+	DEAD: 'Mort'
 };
 
 export const sexLabel: Record<string, string> = {
@@ -37,4 +38,22 @@ export const focalPointClass: Record<string, string> = {
 	TOP: 'object-top',
 	MID: 'object-center',
 	BOT: 'object-bottom'
+};
+
+// ✅ Fonction extraite pour obtenir l'icône du sexe
+export type SexIconInfo = {
+	icon: string;
+	color: string;
+	label: string;
+};
+
+export const getSexIcon = (sex: string | null | undefined): SexIconInfo => {
+	switch (sex) {
+		case 'MALE':
+			return { icon: 'mars', color: 'text-blue-500', label: 'Mâle' };
+		case 'FEMALE':
+			return { icon: 'venus', color: 'text-pink-500', label: 'Femelle' };
+		default:
+			return { icon: 'CircleQuestionMark', color: 'text-gray-500', label: 'Inconnu' };
+	}
 };
