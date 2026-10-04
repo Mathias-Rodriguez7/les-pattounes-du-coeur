@@ -205,7 +205,7 @@
 	const placementStats = $derived(host?.placementStats || { long: 0, short: 0, total: 0 });
 
 	const activePlacements = $derived(
-		host?.placements?.filter((p: (typeof host.placements)[number]) => p.isActive) || []
+		host?.placements?.filter((p: (typeof host.placements)[number]) => p.type === 'ACTIVE') || []
 	);
 
 	const historicalPlacements = $derived(
@@ -381,14 +381,14 @@
 						>
 							<div class="ml-6 grid gap-4">
 								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
+									<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
 									<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
 										{host.profil.phone || '—'}
 									</a>
 								</div>
 
 								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
+									<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
 									<a
 										href="mailto:{host.profil.email}"
 										class="truncate text-sm text-blue-600 hover:underline"

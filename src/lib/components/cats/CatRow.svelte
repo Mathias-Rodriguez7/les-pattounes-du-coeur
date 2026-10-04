@@ -4,6 +4,7 @@
 	import type { CatFull } from '$lib/types/cat';
 	import { focalPointClass, getSexIcon } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
+	import { Badge } from '$lib/components/ui/badge';
 
 	const {
 		cat,
@@ -40,9 +41,9 @@
 	<Table.Cell class="text-sm">{getAgeBadge(cat.birthDate)}</Table.Cell>
 	<Table.Cell>
 		{#if activeSicknesses.length > 0}
-			<span class="text-sm font-medium">
-				{activeSicknesses.map((s) => s.name).join(', ')}
-			</span>
+			<div class="flex items-center gap-2">
+				<Badge variant="outline" class="text-xs">{activeSicknesses.length}</Badge>
+			</div>
 		{:else}
 			<span class="text-muted-foreground text-xs">Aucune maladie</span>
 		{/if}

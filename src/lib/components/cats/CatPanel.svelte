@@ -24,6 +24,7 @@
 	import { truncate } from '$lib/utils/string';
 	import { sicknessStatus } from '$lib/constants/sickness';
 	import type { SicknessStatus } from '@prisma/client';
+	import { getPlacementTypeClass } from '$lib/constants/placement';
 
 	interface Props {
 		cat: CatFull | null;
@@ -153,12 +154,12 @@
 		);
 	});
 
-	const activeProposalPlacement = $derived.by(() => {
-		return activePlacements.find((p) => p.type === 'PROPOSAL') ?? null;
+	const activeProposalPlacements = $derived.by(() => {
+		return activePlacements.filter((p) => p.type === 'PROPOSAL');
 	});
 
-	const activeTransferPlacement = $derived.by(() => {
-		return activePlacements.find((p) => p.type === 'TRANSFER') ?? null;
+	const activeTransferPlacements = $derived.by(() => {
+		return activePlacements.filter((p) => p.type === 'TRANSFER');
 	});
 
 	const activeLongPlacement = $derived.by(() => {
@@ -167,6 +168,17 @@
 
 	const activeShortPlacement = $derived.by(() => {
 		return activePlacements.find((p) => p.type === 'SHORT') ?? null;
+	});
+
+	const stoppedPlacements = $derived.by(() => {
+		if (!cat?.placements) return [];
+		return cat.placements
+			.filter((p) => p.status === 'STOP')
+			.sort((a, b) => {
+				const dateA = new Date(a.endDate ?? a.startDate ?? 0).getTime();
+				const dateB = new Date(b.endDate ?? b.startDate ?? 0).getTime();
+				return dateB - dateA;
+			});
 	});
 
 	const sexIcon = $derived(cat ? getSexIcon(cat.sex) : null);
@@ -203,6 +215,56 @@
 						</div>
 					</div>
 
+					{#if assignedVolunteers.length > 0}
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.volunteer.icon}
+							title={CAT_SECTION_CONFIG.volunteer.label}
+							color={CAT_SECTION_CONFIG.volunteer.color}
+						>
+							<div class="ml-6 grid gap-2 text-sm">
+								{#if assignedVolunteers.length > 0}
+									<div class="flex gap-4">
+										{#each assignedVolunteers as volunteer, i (i)}
+											<div class="grid gap-2 rounded-xl border border-sky-400 bg-sky-100 p-2">
+												<p>{volunteer.firstName} {truncate(volunteer.lastName, 1)}.</p>
+												<div class="flex gap-2">
+													<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+													<a
+														href={`tel:${volunteer.phone}`}
+														class="hover:text-primary text-xs text-blue-500 underline"
+													>
+														{volunteer.phone}
+													</a>
+												</div>
+												<div class="flex gap-2">
+													<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+													<a
+														href={`mailto:${volunteer.email}`}
+														class="hover:text-primary block text-xs text-blue-500 underline"
+													>
+														{volunteer.email}
+													</a>
+												</div>
+											</div>
+										{/each}
+									</div>
+								{:else}
+									<p class="text-muted-foreground">Aucun bénévole assigné</p>
+								{/if}
+							</div>
+						</SectionCard>
+					{:else}
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.volunteer.icon}
+							title={CAT_SECTION_CONFIG.volunteer.label}
+							color={CAT_SECTION_CONFIG.volunteer.color}
+						>
+							<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
+								<p>Aucune Bénévole associer a ce chat</p>
+							</div>
+						</SectionCard>
+					{/if}
+
 					<div class="grid gap-2">
 						{#if isAdmin}
 							<Button variant="ghost" size="icon" onclick={startEditing}>
@@ -227,128 +289,236 @@
 				<Separator />
 
 				<section class="grid gap-6">
-					<SectionCard
-						icon={CAT_SECTION_CONFIG.relations.icon}
-						title={CAT_SECTION_CONFIG.relations.label}
-						color={CAT_SECTION_CONFIG.relations.color}
-					>
-						<div class="grid gap-4">
-							<div class="ml-2 grid grid-cols-2 gap-2 text-sm">
+					{#if activeProposalPlacements.length > 0}
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.host.icon}
+							title={CAT_SECTION_CONFIG.host.label}
+							color={CAT_SECTION_CONFIG.host.color}
+						>
+							<div class="ml-6 grid gap-4">
+								{#if activeProposalPlacements.length > 0}
+									<div class="grid gap-2">
+										<span class="text-muted-foreground block text-xs">FA (Proposition)</span>
+										{#each activeProposalPlacements as placement (placement.id)}
+											<div
+												class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+													placement.type
+												)}"
+											>
+												<p class="text-sm">
+													{placement.host.profil.firstName}
+													{truncate(placement.host.profil.lastName, 1)}.
+												</p>
+												<div class="ml-6 flex flex-wrap gap-2">
+													<div class="flex gap-2">
+														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`tel:${placement.host.profil.phone}`}
+															class="hover:text-primary text-xs text-blue-500 underline"
+														>
+															{placement.host.profil.phone}
+														</a>
+													</div>
+													<div class="flex gap-2">
+														<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`mailto:${placement.host.profil.email}`}
+															class="hover:text-primary block text-xs text-blue-500 underline"
+														>
+															{placement.host.profil.email}
+														</a>
+													</div>
+
+													<p class="block text-xs">
+														{placement.host.profil.address}
+														{placement.host.profil.city}
+													</p>
+												</div>
+												{#if placement.startDate}
+													<div class="flex justify-between">
+														<p>
+															Début {formatDateNum(placement.startDate)}
+														</p>
+														<p>
+															Fin {formatDateNum(placement.endDate)}
+														</p>
+													</div>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
+
+								{#if activeTransferPlacements.length > 0}
+									<div>
+										<span class="text-muted-foreground block text-xs">FA (Transfer)</span>
+										{#each activeTransferPlacements as placement (placement.id)}
+											<div class="grid gap-2">
+												<div
+													class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+														placement.type
+													)}"
+												>
+													<p>
+														{placement.host.profil.firstName}
+														{truncate(placement.host.profil.lastName, 1)}.
+													</p>
+													<div class="ml-6 flex gap-2">
+														<div class="flex gap-2">
+															<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+															<a
+																href={`tel:${placement.host.profil.phone}`}
+																class="hover:text-primary text-xs text-blue-500 underline"
+															>
+																{placement.host.profil.phone}
+															</a>
+														</div>
+														<div class="flex gap-2">
+															<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+															<a
+																href={`mailto:${placement.host.profil.email}`}
+																class="hover:text-primary block text-xs text-blue-500 underline"
+															>
+																{placement.host.profil.email}
+															</a>
+														</div>
+
+														<p class="block text-xs">
+															{placement.host.profil.address}
+															{placement.host.profil.city}
+														</p>
+													</div>
+													{#if placement.startDate}
+														<div class="flex justify-between">
+															<p>
+																Début {formatDateNum(placement.startDate)}
+															</p>
+															<p>
+																Fin {formatDateNum(placement.endDate)}
+															</p>
+														</div>
+													{/if}
+												</div>
+											</div>
+										{/each}
+									</div>
+								{/if}
+
 								<div>
-									<div>
-										<span class="text-muted-foreground block text-xs">Bénévole(s)</span>
-										{#if assignedVolunteers.length > 0}
-											<div class="flex gap-2 space-y-1">
-												{#each assignedVolunteers as volunteer, i (i)}
-													<p>{volunteer.firstName} {truncate(volunteer.lastName, 1)}.</p>
-												{/each}
+									{#if activeLongPlacement}
+										<div class="grid gap-2">
+											<span class="text-muted-foreground block text-xs"> FA (Classic)</span>
+											<div
+												class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+													activeLongPlacement.type
+												)}"
+											>
+												<div class="flex gap-2">
+													<p>
+														{activeLongPlacement.host.profil.firstName}
+														{truncate(activeLongPlacement.host.profil.lastName, 1)}.
+													</p>
+													{#if activeLongPlacement?.status === 'BREAK'}
+														<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
+													{/if}
+												</div>
+												<div class="ml-6 flex gap-2">
+													<div class="flex gap-2">
+														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`tel:${activeLongPlacement.host.profil.phone}`}
+															class="hover:text-primary text-xs text-blue-500 underline"
+														>
+															{activeLongPlacement.host.profil.phone}
+														</a>
+													</div>
+													<div class="flex gap-2">
+														<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`mailto:${activeLongPlacement.host.profil.email}`}
+															class="hover:text-primary block text-xs text-blue-500 underline"
+														>
+															{activeLongPlacement.host.profil.email}
+														</a>
+													</div>
+													<p class="block text-xs">
+														{activeLongPlacement.host.profil.address}
+														{activeLongPlacement.host.profil.city}
+													</p>
+												</div>
+												{#if activeLongPlacement.startDate}
+													<div class="flex justify-between">
+														<p>Début {formatDateNum(activeLongPlacement.startDate)}</p>
+														<p>Fin {formatDateNum(activeLongPlacement.endDate)}</p>
+													</div>
+												{/if}
 											</div>
-										{:else}
-											<p class="text-muted-foreground">Aucun bénévole assigné</p>
-										{/if}
-									</div>
+										</div>
+									{/if}
 								</div>
 
-								<div class="flex gap-2">
-									{#if activeProposalPlacement}
-										<div>
-											<span class="text-muted-foreground block text-xs">FA (Proposition)</span>
-											<div class="rounded border border-amber-500 bg-amber-100 p-2">
+								<div>
+									{#if activeShortPlacement}
+										<div class="grid gap-2">
+											<span class="text-muted-foreground block text-xs">FA (Relais)</span>
+											<div
+												class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+													activeShortPlacement.type
+												)}"
+											>
 												<p>
-													{activeProposalPlacement.host.profil.firstName}
-													{truncate(activeProposalPlacement.host.profil.lastName, 1)}.
+													{activeShortPlacement.host.profil.firstName}
+													{truncate(activeShortPlacement.host.profil.lastName, 1)}.
 												</p>
-											</div>
-										</div>
-									{/if}
-									{#if activeTransferPlacement}
-										<div>
-											<span class="text-muted-foreground block text-xs">FA (Transfer)</span>
-											<div class="rounded border border-amber-500 bg-amber-100 p-2">
-												<p>
-													{activeTransferPlacement.host.profil.firstName}
-													{truncate(activeTransferPlacement.host.profil.lastName, 1)}.
-												</p>
+												<div class="ml-6 flex gap-2">
+													<div class="flex gap-2">
+														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`tel:${activeShortPlacement.host.profil.phone}`}
+															class="hover:text-primary text-xs text-blue-500 underline"
+														>
+															{activeShortPlacement.host.profil.phone}
+														</a>
+													</div>
+
+													<div class="flex gap-2">
+														<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`mailto:${activeShortPlacement.host.profil.email}`}
+															class="hover:text-primary block text-xs text-blue-500 underline"
+														>
+															{activeShortPlacement.host.profil.email}
+														</a>
+													</div>
+
+													<p class="block text-xs">
+														{activeShortPlacement.host.profil.address}
+														{activeShortPlacement.host.profil.city}
+													</p>
+												</div>
+												{#if activeShortPlacement.startDate}
+													<div class="flex justify-between">
+														<p>Début {formatDateNum(activeShortPlacement.startDate)}</p>
+														<p>Fin {formatDateNum(activeShortPlacement.endDate)}</p>
+													</div>
+												{/if}
 											</div>
 										</div>
 									{/if}
 								</div>
 							</div>
-
-							<div>
-								<span class="text-muted-foreground block text-xs">
-									FA (Classic)
-									{#if activeLongPlacement?.status === 'BREAK'}
-										<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
-									{/if}
-								</span>
-								{#if activeLongPlacement}
-									<div class="flex gap-2 rounded border border-sky-500 bg-sky-100 p-3">
-										<p>
-											{activeLongPlacement.host.profil.firstName}
-											{truncate(activeLongPlacement.host.profil.lastName, 1)}.
-										</p>
-										{#if activeLongPlacement.host.profil.phone}
-											<a
-												href={`tel:${activeLongPlacement.host.profil.phone}`}
-												class="hover:text-primary text-xs text-blue-500 underline"
-											>
-												{activeLongPlacement.host.profil.phone}
-											</a>
-										{/if}
-										{#if activeLongPlacement.host.profil.email}
-											<a
-												href={`mailto:${activeLongPlacement.host.profil.email}`}
-												class="hover:text-primary block text-xs text-blue-500 underline"
-											>
-												{activeLongPlacement.host.profil.email}
-											</a>
-										{/if}
-										<p class="block text-xs">
-											{activeLongPlacement.host.profil.address}
-											{activeLongPlacement.host.profil.city}
-										</p>
-									</div>
-								{:else}
-									<p class="text-muted-foreground">Aucune</p>
-								{/if}
+						</SectionCard>
+					{:else}
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.host.icon}
+							title={CAT_SECTION_CONFIG.host.label}
+							color={CAT_SECTION_CONFIG.host.color}
+						>
+							<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
+								<p>Aucune FA associer a ce chat</p>
 							</div>
-
-							<div>
-								{#if activeShortPlacement}
-									<div>
-										<span class="text-muted-foreground block text-xs">FA (Relais)</span>
-										<div class="flex gap-2 rounded border border-amber-500 bg-amber-100 p-3">
-											<p>
-												{activeShortPlacement.host.profil.firstName}
-												{truncate(activeShortPlacement.host.profil.lastName, 1)}.
-											</p>
-											{#if activeShortPlacement.host.profil.phone}
-												<a
-													href={`tel:${activeShortPlacement.host.profil.phone}`}
-													class="hover:text-primary text-xs text-blue-500 underline"
-												>
-													{activeShortPlacement.host.profil.phone}
-												</a>
-											{/if}
-											{#if activeShortPlacement.host.profil.email}
-												<a
-													href={`mailto:${activeShortPlacement.host.profil.email}`}
-													class="hover:text-primary block text-xs text-blue-500 underline"
-												>
-													{activeShortPlacement.host.profil.email}
-												</a>
-											{/if}
-											<p class="block text-xs">
-												{activeShortPlacement.host.profil.address}
-												{activeShortPlacement.host.profil.city}
-											</p>
-										</div>
-									</div>
-								{/if}
-							</div>
-						</div>
-					</SectionCard>
+						</SectionCard>
+					{/if}
 				</section>
 
 				<Separator />
@@ -495,7 +665,9 @@
 						title={CAT_SECTION_CONFIG.sicknesses.label}
 						color={CAT_SECTION_CONFIG.sicknesses.color}
 					>
-						<p class="text-muted-foreground ml-6 text-sm">Aucune maladie active</p>
+						<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
+							<p>Aucune maladie active</p>
+						</div>
 					</SectionCard>
 				{/if}
 
@@ -557,6 +729,72 @@
 									<span>{formatDateNum(adoption.created_at)}</span>
 								</div>
 							</div>
+						</div>
+					</SectionCard>
+				{/if}
+
+				<Separator />
+
+				{#if stoppedPlacements.length > 0}
+					<SectionCard
+						icon={CAT_SECTION_CONFIG.history.icon}
+						title={CAT_SECTION_CONFIG.history.label}
+						color={CAT_SECTION_CONFIG.history.color}
+					>
+						<div class="ml-6 grid gap-2">
+							{#each stoppedPlacements as placement (placement.id)}
+								<div
+									class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+										placement.type
+									)} opacity-70"
+								>
+									<div class="flex items-center justify-between">
+										<p>
+											{placement.host.profil.firstName}
+											{truncate(placement.host.profil.lastName, 1)}.
+										</p>
+										<Badge variant="outline" class="text-xs">
+											{placement.type === 'LONG'
+												? 'Classic'
+												: placement.type === 'SHORT'
+													? 'Relais'
+													: placement.type === 'PROPOSAL'
+														? 'Proposition'
+														: 'Transfer'}
+										</Badge>
+									</div>
+									<div class="ml-6 flex flex-wrap gap-2">
+										<div class="flex gap-2">
+											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`tel:${placement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.phone}
+											</a>
+										</div>
+										<div class="flex gap-2">
+											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`mailto:${placement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.email}
+											</a>
+										</div>
+										<p class="block text-xs">
+											{placement.host.profil.address}
+											{placement.host.profil.city}
+										</p>
+									</div>
+									{#if placement.startDate}
+										<div class="flex justify-between">
+											<p>Début {formatDateNum(placement.startDate)}</p>
+											<p>Fin {placement.endDate ? formatDateNum(placement.endDate) : '—'}</p>
+										</div>
+									{/if}
+								</div>
+							{/each}
 						</div>
 					</SectionCard>
 				{/if}

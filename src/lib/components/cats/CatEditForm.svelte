@@ -34,6 +34,8 @@
 	import CatVolunteerRemoveButton from '../catVolunteer/CatVolunteerRemoveButton.svelte';
 	import type { VolunteerBasic } from '$lib/types/volunteer';
 	import { PLACEMENT_TYPE_GROUPS, getPlacementTypeClass } from '$lib/constants/placement';
+	import Icon from '$lib/components/Icon.svelte';
+	import { Badge } from '$lib/components/ui/badge';
 
 	let {
 		editData = $bindable<CatEditData>(),
@@ -55,7 +57,19 @@
 	});
 
 	let proposalPlacements = $derived(
-		(editData.placements ?? []).filter((p) => PLACEMENT_TYPE_GROUPS.proposal.includes(p.type))
+		(editData.placements ?? []).filter((p) => PLACEMENT_TYPE_GROUPS.PROPOSAL.includes(p.type))
+	);
+
+	let transferPlacements = $derived(
+		(editData.placements ?? []).filter((p) => PLACEMENT_TYPE_GROUPS.TRANSFER.includes(p.type))
+	);
+
+	let longPlacements = $derived(
+		(editData.placements ?? []).filter((p) => PLACEMENT_TYPE_GROUPS.LONG.includes(p.type))
+	);
+
+	let shortPlacements = $derived(
+		(editData.placements ?? []).filter((p) => PLACEMENT_TYPE_GROUPS.SHORT.includes(p.type))
 	);
 
 	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
@@ -109,7 +123,7 @@
 	</div>
 
 	<!-- 📋 SECTION 1: Statuts + Profil -->
-	<section class="grid grid-cols-4 gap-4">
+	<section class="grid grid-cols-3 gap-4">
 		<!-- Statuts -->
 		<SectionCard
 			icon={CAT_SECTION_CONFIG.statuts.icon}
@@ -117,7 +131,7 @@
 			color={CAT_SECTION_CONFIG.statuts.color}
 			class="col-span-1"
 		>
-			<div class="grid gap-4">
+			<div class="grid grid-cols-2 gap-4">
 				<SelectField
 					id="status"
 					name="status"
@@ -141,145 +155,291 @@
 		</SectionCard>
 
 		<SectionCard
-			icon={CAT_SECTION_CONFIG.relations.icon}
-			title={CAT_SECTION_CONFIG.relations.label}
-			color={CAT_SECTION_CONFIG.relations.color}
-			class="col-span-3"
+			icon={CAT_SECTION_CONFIG.volunteer.icon}
+			title={CAT_SECTION_CONFIG.volunteer.label}
+			color={CAT_SECTION_CONFIG.volunteer.color}
+			class="col-span-2"
 		>
 			<div class="flex justify-between gap-4">
-				<div>
-					<div class="space-y-2">
-						<CatVolunteerCreateForm
-							{catId}
-							{volunteers}
-							assignedVolunteerIds={(editData.volunteers ?? []).map((cv) => cv.volunteerId)}
-							onSuccess={(catVolunteer) => {
-								editData.volunteers = [...(editData.volunteers ?? []), catVolunteer];
-							}}
-						/>
-						<span class="text-muted-foreground block text-xs font-semibold"
-							>Bénévoles référents</span
-						>
-						{#if (editData.volunteers ?? []).length > 0}
-							<div class="flex flex-col gap-1">
-								{#each editData.volunteers ?? [] as cv (cv.volunteerId)}
-									<div
-										class="flex items-center justify-between rounded border border-slate-300 bg-slate-100 px-2 py-1 text-xs"
-									>
-										<span class="font-medium">
-											{cv.volunteer?.profil?.firstName}
-											{truncate(cv.volunteer?.profil?.lastName, 1)}.
-										</span>
-										<CatVolunteerRemoveButton
-											{catId}
-											volunteerId={cv.volunteerId}
-											volunteerName={`${cv.volunteer?.profil?.firstName} ${cv.volunteer?.profil?.lastName}`}
-											{onSuccess}
-										/>
-									</div>
-								{/each}
-							</div>
-						{:else}
-							<span class="text-muted-foreground text-xs italic">Aucun bénévole assigné</span>
-						{/if}
-					</div>
-				</div>
-
-				<div class="grid gap-4">
-					<div class="flex justify-end">
-						<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
-					</div>
-					<!-- Colonne Prop/Tran -->
-					<div>
-						<span class="text-muted-foreground block text-xs font-semibold"
-							>FA proposé/transfer</span
-						>
-						<div class="flex gap-2">
-							{#each proposalPlacements as placement (placement.id)}
+				<div class="grid gap-2">
+					<span class="text-muted-foreground block text-xs font-semibold">Bénévoles référents</span>
+					{#if (editData.volunteers ?? []).length > 0}
+						<div class="flex flex-wrap gap-2">
+							{#each editData.volunteers ?? [] as cv (cv.volunteerId)}
 								<div
-									class="flex items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-										placement.type
-									)}"
+									class="flex items-center justify-between rounded border border-slate-300 bg-slate-100 px-2 py-1 text-xs"
 								>
-									<span class="font-medium whitespace-nowrap">
-										{placement.host?.profil?.firstName}
-										{truncate(placement.host?.profil?.lastName, 1)}.
+									<span class="font-medium">
+										{cv.volunteer?.profil?.firstName}
+										{truncate(cv.volunteer?.profil?.lastName, 1)}.
 									</span>
-									<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+									<CatVolunteerRemoveButton
+										{catId}
+										volunteerId={cv.volunteerId}
+										volunteerName={`${cv.volunteer?.profil?.firstName} ${cv.volunteer?.profil?.lastName}`}
+										{onSuccess}
+									/>
 								</div>
 							{/each}
 						</div>
-					</div>
-
-					<div class="flex gap-4">
-						<!-- Colonne LONG -->
-						<div class="space-y-2">
-							<span class="text-muted-foreground block text-xs font-semibold">FA Classique</span>
-							{#each (editData.placements ?? []).filter((p) => p.type === 'LONG') as placement (placement.id)}
-								<div class="flex justify-between rounded border border-sky-500 bg-sky-100 p-3">
-									<div class="flex flex-col">
-										<span class="font-medium">
-											{placement.host?.profil?.firstName}
-											{truncate(placement.host?.profil?.lastName, 1)}.
-										</span>
-
-										<div class="flex gap-2 pt-2">
-											<div>
-												<span class="text-muted-foreground block text-xs">Début</span>
-												<span class="text-xs">{formatDateNum(placement.startDate)}</span>
-											</div>
-											{#if placement.endDate}
-												<div>
-													<span class="text-muted-foreground block text-xs">Fin</span>
-													<span class="text-xs">{formatDateNum(placement.endDate)}</span>
-												</div>
-											{/if}
-										</div>
-									</div>
-
-									<div class="flex items-start">
-										<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-									</div>
-								</div>
-							{/each}
-						</div>
-
-						<!-- Colonne SHORT -->
-						<div class="space-y-2">
-							<span class="text-muted-foreground block text-xs font-semibold">FA Relais</span>
-							{#each (editData.placements ?? []).filter((p) => p.type === 'SHORT') as placement (placement.id)}
-								<div class="flex justify-between rounded border border-amber-500 bg-amber-100 p-3">
-									<div class="flex flex-col">
-										<span class="font-medium">
-											{placement.host?.profil?.firstName}
-											{truncate(placement.host?.profil?.lastName, 1)}.
-										</span>
-
-										<div class="flex gap-2 pt-2">
-											<div>
-												<span class="text-muted-foreground block text-xs">Début</span>
-												<span class="text-xs">{formatDateNum(placement.startDate)}</span>
-											</div>
-											{#if placement.endDate}
-												<div>
-													<span class="text-muted-foreground block text-xs">Fin</span>
-													<span class="text-xs">{formatDateNum(placement.endDate)}</span>
-												</div>
-											{/if}
-										</div>
-									</div>
-
-									<div class="flex items-start">
-										<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-									</div>
-								</div>
-							{/each}
-						</div>
-					</div>
+					{:else}
+						<span class="text-muted-foreground text-xs italic">Aucun bénévole assigné</span>
+					{/if}
 				</div>
+
+				<CatVolunteerCreateForm
+					{catId}
+					{volunteers}
+					assignedVolunteerIds={(editData.volunteers ?? []).map((cv) => cv.volunteerId)}
+					onSuccess={(catVolunteer) => {
+						editData.volunteers = [...(editData.volunteers ?? []), catVolunteer];
+					}}
+				/>
 			</div>
 		</SectionCard>
 	</section>
+
+	<Separator />
+
+	<SectionCard
+		icon={CAT_SECTION_CONFIG.host.icon}
+		title={CAT_SECTION_CONFIG.host.label}
+		color={CAT_SECTION_CONFIG.host.color}
+		class="col-span-3"
+	>
+		<div class="grid gap-4">
+			<div class="flex items-start justify-end">
+				<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
+			</div>
+
+			<div class="grid gap-2">
+				<!-- Colonne Prop -->
+				<div class="grid gap-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA proposé</span>
+					{#each proposalPlacements as placement (placement.id)}
+						<div
+							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+								placement.type
+							)}"
+						>
+							<div>
+								<p class="text-sm">
+									{placement.host.profil.firstName}
+									{truncate(placement.host.profil.lastName, 1)}.
+								</p>
+								<div class="ml-6 flex flex-wrap gap-2">
+									<div class="flex gap-2">
+										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`tel:${placement.host.profil.phone}`}
+											class="hover:text-primary text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.phone}
+										</a>
+									</div>
+									<div class="flex gap-2">
+										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`mailto:${placement.host.profil.email}`}
+											class="hover:text-primary block text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.email}
+										</a>
+									</div>
+
+									<p class="block text-xs">
+										{placement.host.profil.address}
+										{placement.host.profil.city}
+									</p>
+								</div>
+								{#if placement.startDate}
+									<div class="flex justify-between">
+										<p>
+											Début {formatDateNum(placement.startDate)}
+										</p>
+										<p>
+											Fin {formatDateNum(placement.endDate)}
+										</p>
+									</div>
+								{/if}
+							</div>
+
+							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+						</div>
+					{/each}
+				</div>
+
+				<!-- Colonne Tran -->
+				<div class="grid gap-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA transfer</span>
+					{#each transferPlacements as placement (placement.id)}
+						<div
+							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+								placement.type
+							)}"
+						>
+							<div>
+								<p class="text-sm">
+									{placement.host.profil.firstName}
+									{truncate(placement.host.profil.lastName, 1)}.
+								</p>
+								<div class="ml-6 flex gap-2">
+									<div class="flex gap-2">
+										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`tel:${placement.host.profil.phone}`}
+											class="hover:text-primary text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.phone}
+										</a>
+									</div>
+									<div class="flex gap-2">
+										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`mailto:${placement.host.profil.email}`}
+											class="hover:text-primary block text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.email}
+										</a>
+									</div>
+
+									<p class="block text-xs">
+										{placement.host.profil.address}
+										{placement.host.profil.city}
+									</p>
+								</div>
+								{#if placement.startDate}
+									<div class="flex justify-between">
+										<p>
+											Début {formatDateNum(placement.startDate)}
+										</p>
+										<p>
+											Fin {formatDateNum(placement.endDate)}
+										</p>
+									</div>
+								{/if}
+							</div>
+
+							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+						</div>
+					{/each}
+				</div>
+
+				<!-- Colonne LONG -->
+				<div class="grid gap-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA calssic</span>
+					{#each longPlacements as placement (placement.id)}
+						<div
+							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+								placement.type
+							)}"
+						>
+							<div>
+								<p class="text-sm">
+									{placement.host.profil.firstName}
+									{truncate(placement.host.profil.lastName, 1)}.
+								</p>
+								<div class="ml-6 flex gap-2">
+									<div class="flex gap-2">
+										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`tel:${placement.host.profil.phone}`}
+											class="hover:text-primary text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.phone}
+										</a>
+									</div>
+									<div class="flex gap-2">
+										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`mailto:${placement.host.profil.email}`}
+											class="hover:text-primary block text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.email}
+										</a>
+									</div>
+
+									<p class="block text-xs">
+										{placement.host.profil.address}
+										{placement.host.profil.city}
+									</p>
+									{#if longPlacements?.status === 'BREAK'}
+										<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
+									{/if}
+								</div>
+								{#if placement.startDate}
+									<div class="flex justify-between">
+										<p>
+											Début {formatDateNum(placement.startDate)}
+										</p>
+										<p>
+											Fin {formatDateNum(placement.endDate)}
+										</p>
+									</div>
+								{/if}
+							</div>
+							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+						</div>
+					{/each}
+				</div>
+
+				<!-- Colonne SHORT -->
+				<div class="grid gap-2">
+					<span class="text-muted-foreground block text-xs font-semibold">FA relais</span>
+					{#each shortPlacements as placement (placement.id)}
+						<div
+							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+								placement.type
+							)}"
+						>
+							<div>
+								<p class="text-sm">
+									{placement.host.profil.firstName}
+									{truncate(placement.host.profil.lastName, 1)}.
+								</p>
+								<div class="ml-6 flex gap-2">
+									<div class="flex gap-2">
+										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`tel:${placement.host.profil.phone}`}
+											class="hover:text-primary text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.phone}
+										</a>
+									</div>
+									<div class="flex gap-2">
+										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+										<a
+											href={`mailto:${placement.host.profil.email}`}
+											class="hover:text-primary block text-xs text-blue-500 underline"
+										>
+											{placement.host.profil.email}
+										</a>
+									</div>
+
+									<p class="block text-xs">
+										{placement.host.profil.address}
+										{placement.host.profil.city}
+									</p>
+								</div>
+								{#if placement.startDate}
+									<div class="flex justify-between">
+										<p>
+											Début {formatDateNum(placement.startDate)}
+										</p>
+										<p>
+											Fin {formatDateNum(placement.endDate)}
+										</p>
+									</div>
+								{/if}
+							</div>
+							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+						</div>
+					{/each}
+				</div>
+			</div>
+		</div>
+	</SectionCard>
 
 	<Separator />
 
