@@ -1,14 +1,21 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import HostRow from '$lib/components/hosts/HostRow.svelte';
 	import HostPanel from '$lib/components/hosts/HostPanel.svelte';
 	import NewHostDialog from '$lib/components/hosts/NewHostDialog.svelte';
+	import {
+		HOST_ACTIF_OPTIONS,
+		HOST_TYPE_OPTIONS,
+		HOST_HEAL_OPTIONS,
+		HOST_SOCIALIZE_OPTIONS,
+		HOST_BABY_FEEDING_OPTIONS
+	} from '$lib/constants/host.js';
 
 	const { data } = $props();
 
@@ -18,14 +25,18 @@
 	let selectedHostId = $state<string | null>(null);
 	let selectedHost = $derived(hosts.find((h) => h.id === selectedHostId) ?? null);
 
-	let currentPage = $state(1);
-	let currentTab = $state('all');
+	let newHostOpen = $state(false); // ← manquait
+
+	let typeFilter = $state('');
+	let actifFilter = $state('ACTIVE');
+	let searchQuery = $state('');
+	let healFilter = $state('');
+	let socializeFilter = $state('');
+	let babyFilter = $state('');
 
 	const handleSelectHost = (hostId: string) => {
 		selectedHostId = hostId;
 	};
-
-	const PAGE_SIZE = 10;
 
 	const statCards = $derived([
 		{
@@ -66,27 +77,51 @@
 		{ icon: 'trees', theme: 'fa', title: 'Exterieur' }
 	];
 
-	const filteredHosts = $derived(() => {
-		switch (currentTab) {
-			case 'LONG':
-				return hosts.filter((h) => h.type === 'CLASSIC');
-			case 'RELAIS':
-				return hosts.filter((h) => h.type === 'RELAY');
-			default:
-				return hosts;
+	const filteredHosts = $derived.by(() => {
+		let filtered = hosts; // ← scopedHost n'existe pas
+
+		if (typeFilter) {
+			filtered = filtered.filter((h) => h.type === typeFilter);
 		}
+
+		if (actifFilter) {
+			filtered = filtered.filter((h) => h.actif === actifFilter);
+		}
+
+		if (healFilter) {
+			filtered = filtered.filter((h) => h.heal === healFilter);
+		}
+
+		if (socializeFilter) {
+			filtered = filtered.filter((h) => h.socialize === socializeFilter);
+		}
+
+		if (babyFilter) {
+			filtered = filtered.filter((h) => h.babyFeeding === babyFilter);
+		}
+
+		const query = searchQuery.trim().toLowerCase();
+		if (query) {
+			filtered = filtered.filter((h) => {
+				const firstName = h.profil.firstName?.toLowerCase() ?? '';
+				const lastName = h.profil.lastName?.toLowerCase() ?? '';
+				const fullName = `${firstName} ${lastName}`;
+
+				return fullName.includes(query);
+			});
+		}
+
+		return filtered; // ← manquait, + accolades en trop supprimées
 	});
 
-	const paginatedHosts = $derived(
-		filteredHosts().slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-	);
-
-	function onTabChange(tab: string) {
-		currentTab = tab;
-		currentPage = 1;
+	function clearFilters() {
+		typeFilter = '';
+		actifFilter = 'ACTIVE';
+		healFilter = '';
+		socializeFilter = '';
+		babyFilter = '';
+		searchQuery = '';
 	}
-
-	let newHostOpen = $state(false);
 </script>
 
 <main class="flex flex-col gap-4 p-8">
@@ -117,102 +152,117 @@
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Familles d'accueil</Card.Title>
-				<Button size="sm" onclick={() => (newHostOpen = true)}>
+				<Button class="rounded-2xl" size="sm" onclick={() => (newHostOpen = true)}>
 					<Icon name="plus" class="mr-2 h-4 w-4" />
-					Nouvelle famille
+					Nouvelle FA
 				</Button>
 			</Card.Header>
 			<Card.Content>
-				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="min-w-full">
-					<Tabs.List class="bg-muted grid grid-cols-3 gap-1 p-1">
-						<!-- 👇 STATUT HEADER CLICKABLE AVEC CYCLE -->
-						<Tabs.Trigger value="ALL" class="relative">
-							Tous
-							{#if currentTab === 'ALL'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
+				<!-- Recherche + filtre -->
+				<div class="grid items-center gap-2">
+					<div class="flex flex-wrap gap-2">
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={HOST_TYPE_OPTIONS}
+							bind:value={typeFilter}
+							placeholder="Type"
+							class="w-40"
+						/>
 
-						<Tabs.Trigger value="LONG" class="relative">
-							Long
-							{#if currentTab === 'LONG'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={HOST_ACTIF_OPTIONS}
+							bind:value={actifFilter}
+							placeholder="Status"
+							class="w-40"
+						/>
 
-						<Tabs.Trigger value="RELAIS" class="relative">
-							Relais
-							{#if currentTab === 'RELAIS'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
-					</Tabs.List>
-				</Tabs.Root>
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={HOST_HEAL_OPTIONS}
+							bind:value={healFilter}
+							placeholder="Soin"
+							class="w-40"
+						/>
 
-				<Table.Root>
-					<Table.Header>
-						<Table.Row>
-							<Table.Head>Nom</Table.Head>
-							<Table.Head>Rôle</Table.Head>
-							<Table.Head>Animaux</Table.Head>
-							<Table.Head>Socia</Table.Head>
-							{#each compatibilityIcons as compat (compat.title)}
-								<Table.Head title={compat.title} class="text-center">
-									<div class="flex justify-center text-white">
-										<Icon
-											name={compat.icon}
-											withWrapper={true}
-											wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
-											style="background: {getGradientStyle(compat.theme)}"
-											iconClass="h-5 w-5"
-										/>
-									</div>
-								</Table.Head>
-							{/each}
-						</Table.Row>
-					</Table.Header>
-					<Table.Body>
-						{#each paginatedHosts as host (host.id)}
-							<HostRow
-								{host}
-								onclick={() => handleSelectHost(host.id)}
-								isSelected={selectedHostId === host.id}
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={HOST_SOCIALIZE_OPTIONS}
+							bind:value={socializeFilter}
+							placeholder="Socia"
+							class="w-40"
+						/>
+
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={HOST_BABY_FEEDING_OPTIONS}
+							bind:value={babyFilter}
+							placeholder="Bib"
+							class="w-40"
+						/>
+					</div>
+
+					<div class="flex items-center gap-2">
+						<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
+
+						<div class="relative flex-1">
+							<Icon
+								name="search"
+								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
 							/>
-						{/each}
-					</Table.Body>
-				</Table.Root>
+							<Input bind:value={searchQuery} placeholder="Rechercher une FA..." class="pl-9" />
+						</div>
+					</div>
+				</div>
 
-				<!-- Pagination -->
-				<div class="mt-4 flex justify-center">
-					<Pagination.Root
-						count={filteredHosts().length}
-						perPage={PAGE_SIZE}
-						bind:page={currentPage}
-					>
-						{#snippet children({ pages, currentPage: cp })}
-							<Pagination.Content>
-								<Pagination.Item>
-									<Pagination.Previous />
-								</Pagination.Item>
-								{#each pages as page (page.key)}
-									{#if page.type === 'ellipsis'}
-										<Pagination.Item>
-											<Pagination.Ellipsis />
-										</Pagination.Item>
-									{:else}
-										<Pagination.Item>
-											<Pagination.Link {page} isActive={cp === page.value}>
-												{page.value}
-											</Pagination.Link>
-										</Pagination.Item>
-									{/if}
+				<!-- Tableau scrollable -->
+				<div class="max-h-[60vh] overflow-y-auto">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Nom</Table.Head>
+								<Table.Head>Rôle</Table.Head>
+								<Table.Head>Animaux</Table.Head>
+								<Table.Head>Socia</Table.Head>
+								{#each compatibilityIcons as compat (compat.title)}
+									<Table.Head title={compat.title} class="text-center">
+										<div class="flex justify-center text-white">
+											<Icon
+												name={compat.icon}
+												withWrapper={true}
+												wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
+												style="background: {getGradientStyle(compat.theme)}"
+												iconClass="h-5 w-5"
+											/>
+										</div>
+									</Table.Head>
 								{/each}
-								<Pagination.Item>
-									<Pagination.Next />
-								</Pagination.Item>
-							</Pagination.Content>
-						{/snippet}
-					</Pagination.Root>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each filteredHosts as host (host.id)}
+								<HostRow
+									{host}
+									onclick={() => handleSelectHost(host.id)}
+									isSelected={selectedHostId === host.id}
+								/>
+							{:else}
+								<Table.Row>
+									<Table.Cell
+										colspan={4 + compatibilityIcons.length}
+										class="text-muted-foreground py-8 text-center"
+									>
+										Aucune famille d'accueil trouvée
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -222,6 +272,7 @@
 			<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
 		</div>
 	</section>
+
 	<NewHostDialog
 		bind:open={newHostOpen}
 		onCancel={() => {

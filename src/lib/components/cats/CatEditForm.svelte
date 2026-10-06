@@ -42,6 +42,7 @@
 		catId = '',
 		hosts = [] as HostBasic[],
 		volunteers = [] as VolunteerBasic[],
+		isAdmin = false,
 		onSuccess,
 		onCancel
 	} = $props();
@@ -173,12 +174,14 @@
 										{cv.volunteer?.profil?.firstName}
 										{truncate(cv.volunteer?.profil?.lastName, 1)}.
 									</span>
-									<CatVolunteerRemoveButton
-										{catId}
-										volunteerId={cv.volunteerId}
-										volunteerName={`${cv.volunteer?.profil?.firstName} ${cv.volunteer?.profil?.lastName}`}
-										{onSuccess}
-									/>
+									{#if isAdmin}
+										<CatVolunteerRemoveButton
+											{catId}
+											volunteerId={cv.volunteerId}
+											volunteerName={`${cv.volunteer?.profil?.firstName} ${cv.volunteer?.profil?.lastName}`}
+											{onSuccess}
+										/>
+									{/if}
 								</div>
 							{/each}
 						</div>
@@ -187,14 +190,16 @@
 					{/if}
 				</div>
 
-				<CatVolunteerCreateForm
-					{catId}
-					{volunteers}
-					assignedVolunteerIds={(editData.volunteers ?? []).map((cv) => cv.volunteerId)}
-					onSuccess={(catVolunteer) => {
-						editData.volunteers = [...(editData.volunteers ?? []), catVolunteer];
-					}}
-				/>
+				{#if isAdmin}
+					<CatVolunteerCreateForm
+						{catId}
+						{volunteers}
+						assignedVolunteerIds={(editData.volunteers ?? []).map((cv) => cv.volunteerId)}
+						onSuccess={(catVolunteer) => {
+							editData.volunteers = [...(editData.volunteers ?? []), catVolunteer];
+						}}
+					/>
+				{/if}
 			</div>
 		</SectionCard>
 	</section>
@@ -207,238 +212,258 @@
 		color={CAT_SECTION_CONFIG.host.color}
 		class="col-span-3"
 	>
-		<div class="grid gap-4">
-			<div class="flex items-start justify-end">
-				<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
-			</div>
-
-			<div class="grid gap-2">
-				<!-- Colonne Prop -->
-				<div class="grid gap-2">
-					<span class="text-muted-foreground block text-xs font-semibold">FA proposé</span>
-					{#each proposalPlacements as placement (placement.id)}
-						<div
-							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-								placement.type
-							)}"
-						>
-							<div>
-								<p class="text-sm">
-									{placement.host.profil.firstName}
-									{truncate(placement.host.profil.lastName, 1)}.
-								</p>
-								<div class="ml-6 flex flex-wrap gap-2">
-									<div class="flex gap-2">
-										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`tel:${placement.host.profil.phone}`}
-											class="hover:text-primary text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.phone}
-										</a>
-									</div>
-									<div class="flex gap-2">
-										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`mailto:${placement.host.profil.email}`}
-											class="hover:text-primary block text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.email}
-										</a>
-									</div>
-
-									<p class="block text-xs">
-										{placement.host.profil.address}
-										{placement.host.profil.city}
-									</p>
-								</div>
-								{#if placement.startDate}
-									<div class="flex justify-between">
-										<p>
-											Début {formatDateNum(placement.startDate)}
-										</p>
-										<p>
-											Fin {formatDateNum(placement.endDate)}
-										</p>
-									</div>
-								{/if}
-							</div>
-
-							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-						</div>
-					{/each}
+		{#if proposalPlacements.length > 0}
+			<div class="grid gap-4">
+				<div class="flex items-start justify-end">
+					{#if isAdmin}
+						<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
+					{/if}
 				</div>
 
-				<!-- Colonne Tran -->
 				<div class="grid gap-2">
-					<span class="text-muted-foreground block text-xs font-semibold">FA transfer</span>
-					{#each transferPlacements as placement (placement.id)}
-						<div
-							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-								placement.type
-							)}"
-						>
-							<div>
-								<p class="text-sm">
-									{placement.host.profil.firstName}
-									{truncate(placement.host.profil.lastName, 1)}.
-								</p>
-								<div class="ml-6 flex gap-2">
-									<div class="flex gap-2">
-										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`tel:${placement.host.profil.phone}`}
-											class="hover:text-primary text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.phone}
-										</a>
-									</div>
-									<div class="flex gap-2">
-										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`mailto:${placement.host.profil.email}`}
-											class="hover:text-primary block text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.email}
-										</a>
-									</div>
-
-									<p class="block text-xs">
-										{placement.host.profil.address}
-										{placement.host.profil.city}
+					<!-- Prop -->
+					<div class="grid gap-2">
+						<span class="text-muted-foreground block text-xs font-semibold">FA proposé</span>
+						{#each proposalPlacements as placement (placement.id)}
+							<div
+								class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+									placement.type
+								)}"
+							>
+								<div>
+									<p class="text-sm">
+										{placement.host.profil.firstName}
+										{truncate(placement.host.profil.lastName, 1)}.
 									</p>
-								</div>
-								{#if placement.startDate}
-									<div class="flex justify-between">
-										<p>
-											Début {formatDateNum(placement.startDate)}
-										</p>
-										<p>
-											Fin {formatDateNum(placement.endDate)}
+									<div class="ml-6 flex flex-wrap gap-2">
+										<div class="flex gap-2">
+											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`tel:${placement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.phone}
+											</a>
+										</div>
+										<div class="flex gap-2">
+											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`mailto:${placement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.email}
+											</a>
+										</div>
+
+										<p class="block text-xs">
+											{placement.host.profil.address}
+											{placement.host.profil.city}
 										</p>
 									</div>
-								{/if}
-							</div>
-
-							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-						</div>
-					{/each}
-				</div>
-
-				<!-- Colonne LONG -->
-				<div class="grid gap-2">
-					<span class="text-muted-foreground block text-xs font-semibold">FA calssic</span>
-					{#each longPlacements as placement (placement.id)}
-						<div
-							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-								placement.type
-							)}"
-						>
-							<div>
-								<p class="text-sm">
-									{placement.host.profil.firstName}
-									{truncate(placement.host.profil.lastName, 1)}.
-								</p>
-								<div class="ml-6 flex gap-2">
-									<div class="flex gap-2">
-										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`tel:${placement.host.profil.phone}`}
-											class="hover:text-primary text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.phone}
-										</a>
-									</div>
-									<div class="flex gap-2">
-										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`mailto:${placement.host.profil.email}`}
-											class="hover:text-primary block text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.email}
-										</a>
-									</div>
-
-									<p class="block text-xs">
-										{placement.host.profil.address}
-										{placement.host.profil.city}
-									</p>
-									{#if longPlacements?.status === 'BREAK'}
-										<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
+									{#if placement.startDate}
+										<div class="flex justify-between">
+											<p>
+												Début {formatDateNum(placement.startDate)}
+											</p>
+											<p>
+												Fin {formatDateNum(placement.endDate)}
+											</p>
+										</div>
 									{/if}
 								</div>
-								{#if placement.startDate}
-									<div class="flex justify-between">
-										<p>
-											Début {formatDateNum(placement.startDate)}
-										</p>
-										<p>
-											Fin {formatDateNum(placement.endDate)}
-										</p>
-									</div>
+
+								{#if isAdmin}
+									<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
 								{/if}
 							</div>
-							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-						</div>
-					{/each}
-				</div>
+						{/each}
+					</div>
 
-				<!-- Colonne SHORT -->
-				<div class="grid gap-2">
-					<span class="text-muted-foreground block text-xs font-semibold">FA relais</span>
-					{#each shortPlacements as placement (placement.id)}
-						<div
-							class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-								placement.type
-							)}"
-						>
-							<div>
-								<p class="text-sm">
-									{placement.host.profil.firstName}
-									{truncate(placement.host.profil.lastName, 1)}.
-								</p>
-								<div class="ml-6 flex gap-2">
-									<div class="flex gap-2">
-										<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`tel:${placement.host.profil.phone}`}
-											class="hover:text-primary text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.phone}
-										</a>
-									</div>
-									<div class="flex gap-2">
-										<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-										<a
-											href={`mailto:${placement.host.profil.email}`}
-											class="hover:text-primary block text-xs text-blue-500 underline"
-										>
-											{placement.host.profil.email}
-										</a>
-									</div>
-
-									<p class="block text-xs">
-										{placement.host.profil.address}
-										{placement.host.profil.city}
+					<!-- Tran -->
+					<div class="grid gap-2">
+						<span class="text-muted-foreground block text-xs font-semibold">FA transfer</span>
+						{#each transferPlacements as placement (placement.id)}
+							<div
+								class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+									placement.type
+								)}"
+							>
+								<div>
+									<p class="text-sm">
+										{placement.host.profil.firstName}
+										{truncate(placement.host.profil.lastName, 1)}.
 									</p>
-								</div>
-								{#if placement.startDate}
-									<div class="flex justify-between">
-										<p>
-											Début {formatDateNum(placement.startDate)}
-										</p>
-										<p>
-											Fin {formatDateNum(placement.endDate)}
+									<div class="ml-6 flex gap-2">
+										<div class="flex gap-2">
+											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`tel:${placement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.phone}
+											</a>
+										</div>
+										<div class="flex gap-2">
+											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`mailto:${placement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.email}
+											</a>
+										</div>
+
+										<p class="block text-xs">
+											{placement.host.profil.address}
+											{placement.host.profil.city}
 										</p>
 									</div>
+									{#if placement.startDate}
+										<div class="flex justify-between">
+											<p>
+												Début {formatDateNum(placement.startDate)}
+											</p>
+											<p>
+												Fin {formatDateNum(placement.endDate)}
+											</p>
+										</div>
+									{/if}
+								</div>
+
+								{#if isAdmin}
+									<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
 								{/if}
 							</div>
-							<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
-						</div>
-					{/each}
+						{/each}
+					</div>
+
+					<!-- LONG -->
+					<div class="grid gap-2">
+						<span class="text-muted-foreground block text-xs font-semibold">FA calssic</span>
+						{#each longPlacements as placement (placement.id)}
+							<div
+								class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+									placement.type
+								)}"
+							>
+								<div>
+									<p class="text-sm">
+										{placement.host.profil.firstName}
+										{truncate(placement.host.profil.lastName, 1)}.
+									</p>
+									<div class="ml-6 flex gap-2">
+										<div class="flex gap-2">
+											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`tel:${placement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.phone}
+											</a>
+										</div>
+										<div class="flex gap-2">
+											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`mailto:${placement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.email}
+											</a>
+										</div>
+
+										<p class="block text-xs">
+											{placement.host.profil.address}
+											{placement.host.profil.city}
+										</p>
+										{#if longPlacements?.status === 'BREAK'}
+											<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
+										{/if}
+									</div>
+									{#if placement.startDate}
+										<div class="flex justify-between">
+											<p>
+												Début {formatDateNum(placement.startDate)}
+											</p>
+											<p>
+												Fin {formatDateNum(placement.endDate)}
+											</p>
+										</div>
+									{/if}
+								</div>
+								{#if isAdmin}
+									<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+								{/if}
+							</div>
+						{/each}
+					</div>
+
+					<!-- SHORT -->
+					<div class="grid gap-2">
+						<span class="text-muted-foreground block text-xs font-semibold">FA relais</span>
+						{#each shortPlacements as placement (placement.id)}
+							<div
+								class="flex items-center justify-between gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+									placement.type
+								)}"
+							>
+								<div>
+									<p class="text-sm">
+										{placement.host.profil.firstName}
+										{truncate(placement.host.profil.lastName, 1)}.
+									</p>
+									<div class="ml-6 flex gap-2">
+										<div class="flex gap-2">
+											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`tel:${placement.host.profil.phone}`}
+												class="hover:text-primary text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.phone}
+											</a>
+										</div>
+										<div class="flex gap-2">
+											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+											<a
+												href={`mailto:${placement.host.profil.email}`}
+												class="hover:text-primary block text-xs text-blue-500 underline"
+											>
+												{placement.host.profil.email}
+											</a>
+										</div>
+
+										<p class="block text-xs">
+											{placement.host.profil.address}
+											{placement.host.profil.city}
+										</p>
+									</div>
+									{#if placement.startDate}
+										<div class="flex justify-between">
+											<p>
+												Début {formatDateNum(placement.startDate)}
+											</p>
+											<p>
+												Fin {formatDateNum(placement.endDate)}
+											</p>
+										</div>
+									{/if}
+								</div>
+								{#if isAdmin}
+									<PlacementEditForm {catId} cat={editData} {placement} {hosts} {onSuccess} />
+								{/if}
+							</div>
+						{/each}
+					</div>
 				</div>
 			</div>
-		</div>
+		{:else}
+			<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
+				{#if isAdmin}
+					<PlacementCreateForm {catId} cat={editData} {hosts} {onSuccess} />
+				{:else}
+					<span class="text-muted-foreground text-xs italic">Aucun placement</span>
+				{/if}
+			</div>
+		{/if}
 	</SectionCard>
 
 	<Separator />

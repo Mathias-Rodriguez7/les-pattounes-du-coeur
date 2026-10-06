@@ -24,6 +24,13 @@ export const CAT_VACCINATE = [
 	{ value: 'PARTIAL', label: 'Partiel' }
 ] satisfies Array<{ value: string; label: string }>;
 
+export const CAT_AGE = [
+	{ value: 'Chaton', label: 'Chaton (< 6 mois)' },
+	{ value: 'Junior', label: 'Junior (< 3 ans)' },
+	{ value: 'Adulte', label: 'Adulte (< 10 ans)' },
+	{ value: 'Senior', label: 'Senior (10 ans +)' }
+] satisfies Array<{ value: string; label: string }>;
+
 export const CAT_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
 	volunteer: { icon: 'users', label: 'Bénévole', color: 'emerald' },

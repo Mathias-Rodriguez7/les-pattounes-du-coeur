@@ -48,7 +48,8 @@ export const HOST_SECTION_CONFIG = {
 	presence: { icon: 'clock', label: 'Présence à domicile', color: 'indigo' },
 	outsideDescription: { icon: 'trees', label: 'Description du jardin', color: 'green' },
 	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt", color: 'red' },
-	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' }
+	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' },
+	placements: { icon: 'house', label: 'Placements', color: 'emerald' }
 } as const;
 
 // Couleurs pour les types

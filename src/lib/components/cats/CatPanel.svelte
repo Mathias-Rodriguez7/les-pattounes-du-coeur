@@ -25,6 +25,7 @@
 	import { sicknessStatus } from '$lib/constants/sickness';
 	import type { SicknessStatus } from '@prisma/client';
 	import { getPlacementTypeClass } from '$lib/constants/placement';
+	import * as Accordion from '$lib/components/ui/accordion';
 
 	interface Props {
 		cat: CatFull | null;
@@ -226,7 +227,10 @@
 									<div class="flex gap-4">
 										{#each assignedVolunteers as volunteer, i (i)}
 											<div class="grid gap-2 rounded-xl border border-sky-400 bg-sky-100 p-2">
-												<p>{volunteer.firstName} {truncate(volunteer.lastName, 1)}.</p>
+												<p class="font-semibold">
+													{volunteer.firstName}
+													{truncate(volunteer.lastName, 1)}.
+												</p>
 												<div class="flex gap-2">
 													<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
 													<a
@@ -266,11 +270,9 @@
 					{/if}
 
 					<div class="grid gap-2">
-						{#if isAdmin}
-							<Button variant="ghost" size="icon" onclick={startEditing}>
-								<Pencil class="h-5 w-5" />
-							</Button>
-						{/if}
+						<Button variant="ghost" size="icon" onclick={startEditing}>
+							<Pencil class="h-5 w-5" />
+						</Button>
 
 						<Button
 							variant="ghost"
@@ -289,7 +291,7 @@
 				<Separator />
 
 				<section class="grid gap-6">
-					{#if activeProposalPlacements.length > 0}
+					{#if activePlacements.length > 0}
 						<SectionCard
 							icon={CAT_SECTION_CONFIG.host.icon}
 							title={CAT_SECTION_CONFIG.host.label}
@@ -305,10 +307,21 @@
 													placement.type
 												)}"
 											>
-												<p class="text-sm">
-													{placement.host.profil.firstName}
-													{truncate(placement.host.profil.lastName, 1)}.
-												</p>
+												<div class="flex items-center justify-between">
+													<p class="text-sm font-semibold">
+														{placement.host.profil.firstName}
+														{truncate(placement.host.profil.lastName, 1)}.
+													</p>
+													<Badge variant="outline" class="text-xs">
+														{placement.type === 'LONG'
+															? 'Classic'
+															: placement.type === 'SHORT'
+																? 'Relais'
+																: placement.type === 'PROPOSAL'
+																	? 'Proposition'
+																	: 'Transfer'}
+													</Badge>
+												</div>
 												<div class="ml-6 flex flex-wrap gap-2">
 													<div class="flex gap-2">
 														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
@@ -350,55 +363,64 @@
 								{/if}
 
 								{#if activeTransferPlacements.length > 0}
-									<div>
+									<div class="grid gap-2">
 										<span class="text-muted-foreground block text-xs">FA (Transfer)</span>
 										{#each activeTransferPlacements as placement (placement.id)}
-											<div class="grid gap-2">
-												<div
-													class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-														placement.type
-													)}"
-												>
-													<p>
+											<div
+												class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+													placement.type
+												)}"
+											>
+												<div class="flex items-center justify-between">
+													<p class="text-sm font-semibold">
 														{placement.host.profil.firstName}
 														{truncate(placement.host.profil.lastName, 1)}.
 													</p>
-													<div class="ml-6 flex gap-2">
-														<div class="flex gap-2">
-															<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-															<a
-																href={`tel:${placement.host.profil.phone}`}
-																class="hover:text-primary text-xs text-blue-500 underline"
-															>
-																{placement.host.profil.phone}
-															</a>
-														</div>
-														<div class="flex gap-2">
-															<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-															<a
-																href={`mailto:${placement.host.profil.email}`}
-																class="hover:text-primary block text-xs text-blue-500 underline"
-															>
-																{placement.host.profil.email}
-															</a>
-														</div>
+													<Badge variant="outline" class="text-xs">
+														{placement.type === 'LONG'
+															? 'Classic'
+															: placement.type === 'SHORT'
+																? 'Relais'
+																: placement.type === 'PROPOSAL'
+																	? 'Proposition'
+																	: 'Transfer'}
+													</Badge>
+												</div>
+												<div class="ml-6 flex gap-2">
+													<div class="flex gap-2">
+														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`tel:${placement.host.profil.phone}`}
+															class="hover:text-primary text-xs text-blue-500 underline"
+														>
+															{placement.host.profil.phone}
+														</a>
+													</div>
+													<div class="flex gap-2">
+														<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+														<a
+															href={`mailto:${placement.host.profil.email}`}
+															class="hover:text-primary block text-xs text-blue-500 underline"
+														>
+															{placement.host.profil.email}
+														</a>
+													</div>
 
-														<p class="block text-xs">
-															{placement.host.profil.address}
-															{placement.host.profil.city}
+													<p class="block text-xs">
+														{placement.host.profil.address}
+														{placement.host.profil.city}
+													</p>
+												</div>
+												{#if placement.startDate}
+													<div class="flex justify-between">
+														<p>
+															Début {formatDateNum(placement.startDate)}
+														</p>
+														<p>
+															Fin {formatDateNum(placement.endDate)}
 														</p>
 													</div>
-													{#if placement.startDate}
-														<div class="flex justify-between">
-															<p>
-																Début {formatDateNum(placement.startDate)}
-															</p>
-															<p>
-																Fin {formatDateNum(placement.endDate)}
-															</p>
-														</div>
-													{/if}
-												</div>
+												{/if}
 											</div>
 										{/each}
 									</div>
@@ -413,14 +435,23 @@
 													activeLongPlacement.type
 												)}"
 											>
-												<div class="flex gap-2">
-													<p>
+												<div class="flex items-center justify-between">
+													<p class="text-sm font-semibold">
 														{activeLongPlacement.host.profil.firstName}
 														{truncate(activeLongPlacement.host.profil.lastName, 1)}.
 													</p>
 													{#if activeLongPlacement?.status === 'BREAK'}
 														<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
 													{/if}
+													<Badge variant="outline" class="text-xs">
+														{activeLongPlacement.type === 'LONG'
+															? 'Classic'
+															: activeLongPlacement.type === 'SHORT'
+																? 'Relais'
+																: activeLongPlacement.type === 'PROPOSAL'
+																	? 'Proposition'
+																	: 'Transfer'}
+													</Badge>
 												</div>
 												<div class="ml-6 flex gap-2">
 													<div class="flex gap-2">
@@ -466,10 +497,21 @@
 													activeShortPlacement.type
 												)}"
 											>
-												<p>
-													{activeShortPlacement.host.profil.firstName}
-													{truncate(activeShortPlacement.host.profil.lastName, 1)}.
-												</p>
+												<div class="flex items-center justify-between">
+													<p class="text-sm font-semibold">
+														{activeShortPlacement.host.profil.firstName}
+														{truncate(activeShortPlacement.host.profil.lastName, 1)}.
+													</p>
+													<Badge variant="outline" class="text-xs">
+														{activeShortPlacement.type === 'LONG'
+															? 'Classic'
+															: activeShortPlacement.type === 'SHORT'
+																? 'Relais'
+																: activeShortPlacement.type === 'PROPOSAL'
+																	? 'Proposition'
+																	: 'Transfer'}
+													</Badge>
+												</div>
 												<div class="ml-6 flex gap-2">
 													<div class="flex gap-2">
 														<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
@@ -735,69 +777,78 @@
 
 				<Separator />
 
-				{#if stoppedPlacements.length > 0}
-					<SectionCard
-						icon={CAT_SECTION_CONFIG.history.icon}
-						title={CAT_SECTION_CONFIG.history.label}
-						color={CAT_SECTION_CONFIG.history.color}
-					>
-						<div class="ml-6 grid gap-2">
-							{#each stoppedPlacements as placement (placement.id)}
-								<div
-									class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-										placement.type
-									)} opacity-70"
-								>
-									<div class="flex items-center justify-between">
-										<p>
-											{placement.host.profil.firstName}
-											{truncate(placement.host.profil.lastName, 1)}.
-										</p>
-										<Badge variant="outline" class="text-xs">
-											{placement.type === 'LONG'
-												? 'Classic'
-												: placement.type === 'SHORT'
-													? 'Relais'
-													: placement.type === 'PROPOSAL'
-														? 'Proposition'
-														: 'Transfer'}
-										</Badge>
-									</div>
-									<div class="ml-6 flex flex-wrap gap-2">
-										<div class="flex gap-2">
-											<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-											<a
-												href={`tel:${placement.host.profil.phone}`}
-												class="hover:text-primary text-xs text-blue-500 underline"
-											>
-												{placement.host.profil.phone}
-											</a>
-										</div>
-										<div class="flex gap-2">
-											<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-											<a
-												href={`mailto:${placement.host.profil.email}`}
-												class="hover:text-primary block text-xs text-blue-500 underline"
-											>
-												{placement.host.profil.email}
-											</a>
-										</div>
-										<p class="block text-xs">
-											{placement.host.profil.address}
-											{placement.host.profil.city}
-										</p>
-									</div>
-									{#if placement.startDate}
-										<div class="flex justify-between">
-											<p>Début {formatDateNum(placement.startDate)}</p>
-											<p>Fin {placement.endDate ? formatDateNum(placement.endDate) : '—'}</p>
-										</div>
-									{/if}
+				<section class="mt-6">
+					<Accordion.Root type="single">
+						<Accordion.Item value="history">
+							<Accordion.Trigger class="py-4 text-lg font-semibold hover:no-underline">
+								<div class="flex items-center gap-2">
+									<Icon name="history" class="h-5 w-5 text-slate-600" />
+									<span>Historique des placements</span>
+									<Badge variant="secondary" class="ml-2">
+										{stoppedPlacements.length}
+									</Badge>
 								</div>
-							{/each}
-						</div>
-					</SectionCard>
-				{/if}
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="grid gap-2">
+									{#each stoppedPlacements as placement (placement.id)}
+										<div
+											class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
+												placement.type
+											)} opacity-70"
+										>
+											<div class="flex items-center justify-between">
+												<p class="text-sm font-semibold">
+													{placement.host.profil.firstName}
+													{truncate(placement.host.profil.lastName, 1)}.
+												</p>
+												<Badge variant="outline" class="text-xs">
+													{placement.type === 'LONG'
+														? 'Classic'
+														: placement.type === 'SHORT'
+															? 'Relais'
+															: placement.type === 'PROPOSAL'
+																? 'Proposition'
+																: 'Transfer'}
+												</Badge>
+											</div>
+											<div class="ml-6 flex flex-wrap gap-2">
+												<div class="flex gap-2">
+													<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+													<a
+														href={`tel:${placement.host.profil.phone}`}
+														class="hover:text-primary text-xs text-blue-500 underline"
+													>
+														{placement.host.profil.phone}
+													</a>
+												</div>
+												<div class="flex gap-2">
+													<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+													<a
+														href={`mailto:${placement.host.profil.email}`}
+														class="hover:text-primary block text-xs text-blue-500 underline"
+													>
+														{placement.host.profil.email}
+													</a>
+												</div>
+												<p class="text-xs">
+													{placement.host.profil.address}
+													{placement.host.profil.city}
+												</p>
+											</div>
+											{#if placement.startDate}
+												<div class="flex justify-between">
+													<p>Début {formatDateNum(placement.startDate)}</p>
+													<p>Fin {placement.endDate ? formatDateNum(placement.endDate) : '—'}</p>
+												</div>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							</Accordion.Content>
+						</Accordion.Item>
+					</Accordion.Root>
+				</section>
 			</Card.Content>
 		{:else}
 			<Card.Content class="space-y-6 overflow-y-auto">

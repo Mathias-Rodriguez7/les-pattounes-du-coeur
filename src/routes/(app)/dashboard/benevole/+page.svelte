@@ -1,14 +1,15 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import VolunteerRow from '$lib/components/volunteers/VolunteerRow.svelte';
 	import VolunteerPanel from '$lib/components/volunteers/VolunteerPanel.svelte';
 	import NewVolunteerDialog from '$lib/components/volunteers/NewVolunteerDialog.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '$lib/constants/volunteer.js';
 
 	const { data } = $props();
 
@@ -18,23 +19,14 @@
 	let selectedVolunteerId = $state<string | null>(null);
 	let selectedVolunteer = $derived(volunteers.find((v) => v.id === selectedVolunteerId) ?? null);
 
-	let currentPage = $state(1);
-	let currentTab = $state('all');
+	let searchQuery = $state('');
 
-	// 👇 FILTRE CYCLIQUE SUR LE RÔLE
-	const roles = ['ALL', 'ADMIN', 'MANAGER', 'COMMUNICATION'];
-	let currentRoleFilterIndex = $state(0);
-
-	const handleRoleHeaderClick = () => {
-		currentRoleFilterIndex = (currentRoleFilterIndex + 1) % roles.length;
-		currentTab = roles[currentRoleFilterIndex];
-		currentPage = 1;
-	};
+	let actifFilter = $state('ACTIVE');
+	let roleFilter = $state('');
 
 	const handleSelectVolunteer = (volunteerId: string) => {
 		selectedVolunteerId = volunteerId;
 	};
-	const PAGE_SIZE = 10;
 
 	const statCards = $derived([
 		{
@@ -69,37 +61,40 @@
 		}
 	]);
 
+	const filteredVolunteer = $derived.by(() => {
+		let filtered = volunteers;
+
+		if (actifFilter) {
+			filtered = filtered.filter((v) => v.actif === actifFilter);
+		}
+
+		if (roleFilter) {
+			filtered = filtered.filter((v) => v.role === roleFilter);
+		}
+
+		const query = searchQuery.trim().toLowerCase();
+		if (query) {
+			filtered = filtered.filter((v) => {
+				const firstName = v.profil.firstName?.toLowerCase() ?? '';
+				const lastName = v.profil.lastName?.toLowerCase() ?? '';
+				const fullName = `${firstName} ${lastName}`;
+
+				return fullName.includes(query);
+			});
+		}
+
+		return filtered;
+	});
+
 	const compatibilityIcons = [
 		{ icon: 'cat', theme: 'cats', title: 'Compatible avec les chats' },
 		{ icon: 'news', theme: 'fa', title: 'Nécessite un jardin' }
 	];
 
-	const filteredVolunteers = $derived(() => {
-		switch (currentTab) {
-			case 'ADMIN':
-				return volunteers.filter((v) => v.role === 'ADMIN');
-			case 'MANAGER':
-				return volunteers.filter((v) => v.role === 'MANAGER');
-			case 'COMMUNICATION':
-				return volunteers.filter((v) => v.role === 'COMMUNICATION');
-			case 'ACTIVE':
-				return volunteers.filter((v) => v.actif === 'ACTIVE');
-			case 'BREAK':
-				return volunteers.filter((v) => v.actif === 'BREAK');
-			case 'STOP':
-				return volunteers.filter((v) => v.actif === 'STOP');
-			default:
-				return volunteers;
-		}
-	});
-
-	const paginatedVolunteers = $derived(
-		filteredVolunteers().slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-	);
-
-	function onTabChange(tab: string) {
-		currentTab = tab;
-		currentPage = 1;
+	function clearFilters() {
+		actifFilter = 'ACTIVE';
+		roleFilter = '';
+		searchQuery = '';
 	}
 
 	let newVolunteerOpen = $state(false);
@@ -133,116 +128,86 @@
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Bénévoles</Card.Title>
-				<Button size="sm" onclick={() => (newVolunteerOpen = true)}>
+				<Button class="rounded-2xl" size="sm" onclick={() => (newVolunteerOpen = true)}>
 					<Icon name="plus" class="mr-2 h-4 w-4" />
 					Nouveau bénévole
 				</Button>
 			</Card.Header>
 			<Card.Content>
-				<Tabs.Root value={currentTab} onValueChange={onTabChange} class="min-w-full">
-					<Tabs.List class="bg-muted grid grid-cols-4 gap-1 p-1">
-						<!-- 👇 RÔLE HEADER CLICKABLE AVEC CYCLE -->
-						<Tabs.Trigger value="ALL" class="relative">
-							Tous
-							{#if currentTab === 'ALL'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
+				<!-- Barre de filtres -->
+				<div class="grid items-center gap-2">
+					<div class="flex flex-wrap gap-2">
+						<!-- Status -->
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={VOLUNTEER_STATUS_OPTIONS}
+							bind:value={actifFilter}
+							placeholder="Status"
+							class="w-30"
+						/>
 
-						<Tabs.Trigger value="ACTIVE" class="relative">
-							En activité
-							{#if currentTab === 'ACTIVE'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
+						<!-- Role -->
+						<SelectField
+							id="host-type-filter"
+							label=""
+							options={VOLUNTEER_ROLE_OPTIONS}
+							bind:value={roleFilter}
+							placeholder="Rôle"
+							class="w-30"
+						/>
+					</div>
 
-						<Tabs.Trigger value="BREAK" class="relative">
-							En pause
-							{#if currentTab === 'BREAK'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
-						<Tabs.Trigger value="STOP" class="relative">
-							Stop
-							{#if currentTab === 'STOP'}
-								<div class="bg-primary absolute right-0 bottom-0 left-0 h-1 rounded-full"></div>
-							{/if}
-						</Tabs.Trigger>
-					</Tabs.List>
+					<div class="flex items-center gap-2">
+						<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
 
-					<!-- Le reste du tableau ... -->
-				</Tabs.Root>
-
-				<Table.Root>
-					<Table.Header>
-						<Table.Row>
-							<Table.Head>Nom</Table.Head>
-							<Table.Head
-								class="hover:bg-muted cursor-pointer transition-colors"
-								onclick={handleRoleHeaderClick}
-								role="button"
-								tabindex={0}
-							>
-								Rôle
-							</Table.Head>
-							<Table.Head>Quartier</Table.Head>
-							{#each compatibilityIcons as compat (compat.title)}
-								<Table.Head title={compat.title} class="text-center">
-									<div class="flex justify-center text-white">
-										<Icon
-											name={compat.icon}
-											withWrapper={true}
-											wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
-											style="background: {getGradientStyle(compat.theme)}"
-											iconClass="h-5 w-5"
-										/>
-									</div>
-								</Table.Head>
-							{/each}
-						</Table.Row>
-					</Table.Header>
-					<Table.Body>
-						{#each paginatedVolunteers as volunteer (volunteer.id)}
-							<VolunteerRow
-								{volunteer}
-								onclick={() => handleSelectVolunteer(volunteer.id)}
-								isSelected={selectedVolunteerId === volunteer.id}
+						<div class="relative flex-1">
+							<Icon
+								name="search"
+								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
 							/>
-						{/each}
-					</Table.Body>
-				</Table.Root>
+							<Input
+								type="text"
+								placeholder="Chercher un chat..."
+								bind:value={searchQuery}
+								class="pl-9"
+							/>
+						</div>
+					</div>
+				</div>
 
-				<!-- Pagination -->
-				<div class="mt-4 flex justify-center">
-					<Pagination.Root
-						count={filteredVolunteers().length}
-						perPage={PAGE_SIZE}
-						bind:page={currentPage}
-					>
-						{#snippet children({ pages, currentPage: cp })}
-							<Pagination.Content>
-								<Pagination.Item>
-									<Pagination.Previous />
-								</Pagination.Item>
-								{#each pages as page (page.key)}
-									{#if page.type === 'ellipsis'}
-										<Pagination.Item>
-											<Pagination.Ellipsis />
-										</Pagination.Item>
-									{:else}
-										<Pagination.Item>
-											<Pagination.Link {page} isActive={cp === page.value}>
-												{page.value}
-											</Pagination.Link>
-										</Pagination.Item>
-									{/if}
+				<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
+					<Table.Root containerClass="overflow-visible">
+						<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
+							<Table.Row>
+								<Table.Head>Nom</Table.Head>
+								<Table.Head>Rôle</Table.Head>
+								<Table.Head>Quartier</Table.Head>
+								{#each compatibilityIcons as compat (compat.title)}
+									<Table.Head title={compat.title} class="text-center">
+										<div class="flex justify-center text-white">
+											<Icon
+												name={compat.icon}
+												withWrapper={true}
+												wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
+												style="background: {getGradientStyle(compat.theme)}"
+												iconClass="h-5 w-5"
+											/>
+										</div>
+									</Table.Head>
 								{/each}
-								<Pagination.Item>
-									<Pagination.Next />
-								</Pagination.Item>
-							</Pagination.Content>
-						{/snippet}
-					</Pagination.Root>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each filteredVolunteer as volunteer (volunteer.id)}
+								<VolunteerRow
+									{volunteer}
+									onclick={() => handleSelectVolunteer(volunteer.id)}
+									isSelected={selectedVolunteerId === volunteer.id}
+								/>
+							{/each}
+						</Table.Body>
+					</Table.Root>
 				</div>
 			</Card.Content>
 		</Card.Root>

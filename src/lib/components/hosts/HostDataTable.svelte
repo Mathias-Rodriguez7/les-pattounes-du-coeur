@@ -194,9 +194,9 @@
 	</div>
 
 	<!-- Table avec scroll -->
-	<div class="max-h-120 overflow-x-auto overflow-y-auto rounded-md">
-		<Table.Root>
-			<Table.Header class="bg-background sticky top-0 z-10">
+	<div class="mt-2 h-[calc(100vh-24rem)] min-h-80 overflow-auto rounded-md">
+		<Table.Root containerClass="overflow-visible">
+			<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
 				<Table.Row>
 					<Table.Head class="w-10"></Table.Head>
 					{#each columns as col (col.id)}

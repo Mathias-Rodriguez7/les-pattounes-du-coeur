@@ -169,7 +169,7 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content size="lg" class="max-h-[90vh] overflow-y-auto">
+	<Dialog.Content size="xl" class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Créer un nouveau chat</Dialog.Title>
 			<Dialog.Description>

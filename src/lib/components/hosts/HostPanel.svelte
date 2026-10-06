@@ -19,6 +19,7 @@
 	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import { formatDate } from '$lib/utils/date';
+	import { PLACEMENT_TYPE_COLORS, PLACEMENT_TYPE_LABELS } from '$lib/constants/placement';
 
 	const { host = $bindable<HostFull | undefined>(), isAdmin = false } = $props();
 
@@ -205,27 +206,31 @@
 	const placementStats = $derived(host?.placementStats || { long: 0, short: 0, total: 0 });
 
 	const activePlacements = $derived(
-		host?.placements?.filter((p: (typeof host.placements)[number]) => p.type === 'ACTIVE') || []
+		host?.placements?.filter(
+			(p: (typeof host.placements)[number]) => p.status === 'ACTIVE' || p.status === 'BREAK'
+		) || []
 	);
 
 	const historicalPlacements = $derived(
 		host?.placements?.filter(
 			(p: (typeof host.placements)[number]) =>
-				!p.isActive && (p.type === 'LONG' || p.type === 'SHORT')
+				p.status === 'STOP' && (p.type === 'LONG' || p.type === 'SHORT')
 		) || []
 	);
 
 	const longShortActivePlacements = $derived(
 		host?.placements?.filter(
 			(p: (typeof host.placements)[number]) =>
-				(p.type === 'LONG' || p.type === 'SHORT') && p.isActive
+				(p.type === 'LONG' || p.type === 'SHORT') && (p.status === 'ACTIVE' || p.status === 'BREAK')
 		) || []
 	);
 
 	const getPlacementsByType = (type: string, isActive: boolean) => {
 		return (
 			host?.placements?.filter(
-				(p: (typeof host.placements)[number]) => p.type === type && p.isActive === isActive
+				(p: (typeof host.placements)[number]) =>
+					p.type === type &&
+					(isActive ? p.status === 'ACTIVE' || p.status === 'BREAK' : p.status === 'STOP')
 			) || []
 		);
 	};
@@ -592,98 +597,116 @@
 				<!-- Placement -->
 				<section class="space-y-8">
 					{#if activePlacements.length > 0}
-						<!-- PLACEMENTS ACTIFS -->
-						<div>
-							<h3 class="mb-4 text-lg font-semibold text-gray-900">Placements actifs</h3>
-							<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-								<!-- PROPOSAL -->
-								<div class="space-y-3">
-									<h4 class="flex items-center gap-2 text-sm font-semibold text-purple-700">
-										<span class="h-3 w-3 rounded-full bg-purple-500"></span>
-										Proposition
-									</h4>
-									<div class="space-y-2">
-										{#each getPlacementsByType('PROPOSAL', true) as placement (placement.id)}
-											<PlacementCard {placement} type="proposal" />
-										{/each}
-										{#if getPlacementsByType('PROPOSAL', true).length === 0}
-											<p class="text-xs text-gray-500 italic">Aucun</p>
-										{/if}
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.placements.icon}
+							title={HOST_SECTION_CONFIG.placements.label}
+							color={HOST_SECTION_CONFIG.placements.color}
+						>
+							<!-- PLACEMENTS ACTIFS -->
+							<div>
+								<h3 class="mb-4 text-lg font-semibold text-gray-900">Placements actifs</h3>
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+									<!-- PROPOSAL -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.PROPOSAL.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.PROPOSAL.dot}"
+											></span>
+											{PLACEMENT_TYPE_LABELS.PROPOSAL}
+										</h4>
+										<div class="space-y-2">
+											{#each getPlacementsByType('PROPOSAL', true) as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if getPlacementsByType('PROPOSAL', true).length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
 									</div>
-								</div>
 
-								<!-- TRANSFER -->
-								<div class="space-y-3">
-									<h4 class="flex items-center gap-2 text-sm font-semibold text-blue-700">
-										<span class="h-3 w-3 rounded-full bg-blue-500"></span>
-										Transfert
-									</h4>
-									<div class="space-y-2">
-										{#each getPlacementsByType('TRANSFER', true) as placement (placement.id)}
-											<PlacementCard {placement} type="transfer" />
-										{/each}
-										{#if getPlacementsByType('TRANSFER', true).length === 0}
-											<p class="text-xs text-gray-500 italic">Aucun</p>
-										{/if}
+									<!-- TRANSFER -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.TRANSFER.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.TRANSFER.dot}"
+											></span>
+											{PLACEMENT_TYPE_LABELS.TRANSFER}
+										</h4>
+										<div class="space-y-2">
+											{#each getPlacementsByType('TRANSFER', true) as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if getPlacementsByType('TRANSFER', true).length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
 									</div>
-								</div>
 
-								<!-- LONG & SHORT -->
-								<div class="space-y-3">
-									<h4 class="flex items-center gap-2 text-sm font-semibold text-green-700">
-										<span class="h-3 w-3 rounded-full bg-green-500"></span>
-										Accueil (Long/Relais)
-									</h4>
-									<div class="space-y-2">
-										{#each longShortActivePlacements as placement (placement.id)}
-											<PlacementCard {placement} type={placement.type.toLowerCase()} />
-										{/each}
-										{#if longShortActivePlacements.length === 0}
-											<p class="text-xs text-gray-500 italic">Aucun</p>
-										{/if}
+									<!-- LONG & SHORT -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.LONG.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.LONG.dot}"></span>
+											Accueil (Long/Relais)
+										</h4>
+										<div class="space-y-2">
+											{#each longShortActivePlacements as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if longShortActivePlacements.length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</SectionCard>
 					{:else}
-						<div
-							class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.placements.icon}
+							title={HOST_SECTION_CONFIG.placements.label}
+							color={HOST_SECTION_CONFIG.placements.color}
 						>
-							<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
-							<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
-						</div>
+							<div
+								class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
+							>
+								<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
+								<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
+							</div>
+						</SectionCard>
 					{/if}
 				</section>
+
 				<Separator />
 
 				<!-- HISTORIQUE DES PLACEMENTS -->
 				<section class="mt-6">
-					{#if historicalPlacements.length > 0}
-						<Accordion.Root type="single">
-							<Accordion.Item value="history">
-								<Accordion.Trigger class="py-4 text-lg font-semibold hover:no-underline">
-									<div class="flex items-center gap-2">
-										<Icon name="history" class="h-5 w-5 text-slate-600" />
-										<span>Historique des placements</span>
-										<Badge variant="secondary" class="ml-2">
-											{historicalPlacements.length}
-										</Badge>
-									</div>
-								</Accordion.Trigger>
-								<Accordion.Content>
-									<div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
-										{#each historicalPlacements as placement (placement.id)}
-											<PlacementCard
-												{placement}
-												type={placement.type.toLowerCase()}
-												isHistory={true}
-											/>
-										{/each}
-									</div>
-								</Accordion.Content>
-							</Accordion.Item>
-						</Accordion.Root>
-					{/if}
+					<Accordion.Root type="single">
+						<Accordion.Item value="history">
+							<Accordion.Trigger class="py-4 text-lg font-semibold hover:no-underline">
+								<div class="flex items-center gap-2">
+									<Icon name="history" class="h-5 w-5 text-slate-600" />
+									<span>Historique des placements</span>
+									<Badge variant="secondary" class="ml-2">
+										{historicalPlacements.length}
+									</Badge>
+								</div>
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
+									{#each historicalPlacements as placement (placement.id)}
+										<PlacementCard {placement} isHistory={true} />
+									{/each}
+								</div>
+							</Accordion.Content>
+						</Accordion.Item>
+					</Accordion.Root>
 				</section>
 			</Card.Content>
 		{:else}

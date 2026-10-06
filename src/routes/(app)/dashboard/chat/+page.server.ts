@@ -94,8 +94,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 			include: { profil: true }
 		});
 
+		const catsWithOwnership = cats.map((cat) => ({
+			...cat,
+			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
+		}));
+
 		return {
-			cats,
+			cats: catsWithOwnership,
 			stats: {
 				managedByUser,
 				incompleteProfiles,

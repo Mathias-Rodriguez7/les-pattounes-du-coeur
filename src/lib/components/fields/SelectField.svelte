@@ -12,9 +12,12 @@
 		name?: string;
 		value?: string;
 		options: readonly SelectOption[];
+		placeholder?: string;
 		disabled?: boolean;
-		size?: 'sm' | 'md';
+		size?: 'xs' | 'sm' | 'md';
 		required?: boolean;
+		class?: string;
+		wrapperClass?: string;
 	};
 
 	let {
@@ -23,17 +26,19 @@
 		label,
 		value = $bindable(),
 		options,
+		placeholder = 'SÃ©lectionner...',
 		disabled = false,
 		size = 'sm',
-		required = false
+		required = false,
+		class: className = '',
+		wrapperClass = ''
 	}: Props = $props();
 
-	const selectedLabel = $derived(
-		options.find((o) => o.value === value)?.label ?? 'Sélectionner...'
-	);
+	const selectedOption = $derived(options.find((o) => o.value === value));
+	const selectedLabel = $derived(selectedOption?.label ?? placeholder);
 </script>
 
-<div>
+<div class={wrapperClass}>
 	{#if label}
 		<label for={id} class={`font-medium text-gray-700 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
 			{label}
@@ -43,8 +48,10 @@
 		</label>
 	{/if}
 	<Select.Root type="single" bind:value {disabled}>
-		<Select.Trigger {id} {name}>
-			{selectedLabel}
+		<Select.Trigger {id} class={className}>
+			<span class={selectedOption ? '' : 'text-muted-foreground'}>
+				{selectedLabel}
+			</span>
 		</Select.Trigger>
 		<Select.Content>
 			{#each options as option (option.value)}
@@ -55,6 +62,5 @@
 		</Select.Content>
 	</Select.Root>
 
-	<!-- ⚠️ AJOUTE UN INPUT CACHÉ pour garantir que le name/value arrive au serveur -->
 	<input type="hidden" {name} {value} />
 </div>

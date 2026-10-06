@@ -1,66 +1,52 @@
 <script lang="ts">
-	import type { Placement } from '$types';
-	import { formatDate } from '$lib/utils/date';
+	import type { Placement } from '$lib/types/';
+	import { formatDateNum } from '$lib/utils/date';
+	import {
+		PLACEMENT_TYPE_COLORS,
+		PLACEMENT_TYPE_LABELS,
+		getPlacementTypeClass
+	} from '$lib/constants/placement';
 
 	interface Props {
 		placement: Placement;
-		type: 'proposal' | 'transfer' | 'long' | 'short';
 		isHistory?: boolean;
 	}
 
-	let { placement, type, isHistory = false }: Props = $props();
+	let { placement, isHistory = false }: Props = $props();
 
-	const typeConfig = {
-		proposal: {
-			label: 'Proposition',
-			color: 'bg-purple-50 border-purple-200',
-			badgeColor: 'bg-purple-100 text-purple-800'
-		},
-		transfer: {
-			label: 'Transfert',
-			color: 'bg-blue-50 border-blue-200',
-			badgeColor: 'bg-blue-100 text-blue-800'
-		},
-		long: {
-			label: 'Long',
-			color: 'bg-teal-50 border-teal-200',
-			badgeColor: 'bg-teal-100 text-teal-800'
-		},
-		short: {
-			label: 'Relais',
-			color: 'bg-lime-50 border-lime-200',
-			badgeColor: 'bg-lime-100 text-lime-800'
-		}
-	} as const;
-
-	const config = $derived(typeConfig[type]);
+	const colors = $derived(PLACEMENT_TYPE_COLORS[placement.type]);
+	const label = $derived(PLACEMENT_TYPE_LABELS[placement.type]);
 
 	const displayName = $derived(placement.cat?.name || 'Chat');
-	const startDate = $derived(formatDate(placement.started));
-	const endDate = $derived(formatDate(placement.ended));
+	const startDate = $derived(formatDateNum(placement.startDate));
+	const endDate = $derived(formatDateNum(placement.endDate));
 </script>
 
-<div class={`rounded-lg border ${config.color} p-3 transition hover:shadow-sm`}>
-	<div class="mb-2 flex items-start justify-between">
-		<div class="flex-1">
-			<p class="text-sm font-semibold text-gray-900">{displayName}</p>
-			<span class={`inline-block rounded px-2 py-1 text-xs font-medium ${config.badgeColor}`}>
-				{config.label}
+<div
+	class="rounded-lg border p-3 transition hover:shadow-sm {getPlacementTypeClass(
+		placement.type
+	)} {isHistory ? 'opacity-70' : ''}"
+>
+	<div class="mb-2 flex items-start justify-between gap-2">
+		<p class="text-sm font-semibold text-gray-900">{displayName}</p>
+		<div class="flex items-center gap-2">
+			<span class="inline-block rounded px-2 py-1 text-xs font-medium {colors.badge}">
+				{label}
 			</span>
+			{#if isHistory}
+				<span class="text-xs font-medium text-gray-400">Terminé</span>
+			{/if}
 		</div>
-		{#if isHistory}
-			<span class="text-xs font-medium text-gray-400">Terminé</span>
-		{/if}
 	</div>
 
-	<div class="space-y-1 text-xs text-gray-600">
-		{#if placement.started}
+	<div class="flex justify-between text-xs text-gray-600">
+		{#if placement.startDate}
 			<p>
 				<span class="font-medium">Début :</span>
 				{startDate}
 			</p>
 		{/if}
-		{#if placement.ended}
+		{#if placement.endDate}
 			<p>
 				<span class="font-medium">Fin :</span>
 				{endDate}
