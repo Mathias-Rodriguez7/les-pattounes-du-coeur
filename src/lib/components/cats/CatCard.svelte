@@ -2,8 +2,9 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import SexIcon from '$lib/components/cats/SexIcon.svelte';
-	import type { Cat } from '$lib/types/cat';
+	import type { CatFull } from '$lib/types/cat';
 	import { focalPointClass } from '$lib/utils/catHelpers';
+	import { getAgeBadge } from '$lib/utils/age';
 
 	type BadgeKey = 'isOkCat' | 'isOkDog' | 'isOkChild' | 'isOutside';
 
@@ -14,7 +15,7 @@
 		{ key: 'isOutside', label: 'Jardin' }
 	];
 
-	const { cat } = $props<{ cat: Cat }>();
+	const { cat } = $props<{ cat: CatFull }>();
 </script>
 
 <Card.Root
@@ -30,7 +31,7 @@
 		<Card.Title>{cat.name}</Card.Title>
 		<span class="flex gap-2">
 			<SexIcon sex={cat.sex} class="size-4" />
-			{cat.formattedAge}
+			{getAgeBadge(cat.birthDate)}
 		</span>
 	</Card.Header>
 

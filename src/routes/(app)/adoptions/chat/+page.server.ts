@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { mapCat } from '$lib/mappers/cats';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const catId = url.searchParams.get('cat');
@@ -12,7 +11,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	});
 
 	return {
-		cats: cats.map(mapCat),
+		cats,
 		selectedCatId: catId
 	};
 };

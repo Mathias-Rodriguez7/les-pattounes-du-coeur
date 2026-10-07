@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
-	import type { VolunteerRole } from '../@prisma/client/enums';
+	import type { VolunteerRole } from '@prisma/client';
 	import {
 		LayoutDashboard,
 		Cat,
@@ -9,7 +9,8 @@
 		Users,
 		LogOut,
 		ChevronLeft,
-		ChevronRight
+		ChevronRight,
+		Newspaper
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { Route } from '@sveltejs/kit';
@@ -43,18 +44,27 @@
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
 		},
 		{
-			label: 'FA',
+			label: "Famille d'acceil",
 			icon: HouseHeart,
-			href: '/dashboard/fa' as const,
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
+			href: '/dashboard/famille_d_accueil' as const,
+			roles: ['ADMIN'] as VolunteerRole[]
 		},
 		{
 			label: 'Bénévoles',
 			icon: Users,
 			href: '/dashboard/benevole' as const,
 			roles: ['ADMIN'] as VolunteerRole[]
+		},
+		{
+			label: 'News',
+			icon: Newspaper,
+			href: '/dashboard/news' as const,
+			roles: ['ADMIN', 'COMMUNICATION'] as VolunteerRole[]
 		}
 	];
+
+	const profileHref = '/dashboard/profil' as const;
+	const isProfileActive = $derived($page.url.pathname === profileHref);
 
 	const items = $derived(allItems.filter((item) => item.roles.includes(user.role)));
 
@@ -78,11 +88,16 @@
 	</button>
 
 	<!-- HEADER / Avatar -->
-	<div
-		class={`border-border flex items-center gap-3 border-b px-4 py-5 ${collapsed ? 'justify-center' : ''}`}
+	<a
+		href={resolve(profileHref as Route)}
+		onclick={() => onClose?.()}
+		title={collapsed ? 'Mon profil' : undefined}
+		class={`group border-border flex items-center gap-3 border-b px-4 py-5 transition-colors
+        ${collapsed ? 'justify-center' : ''}
+        ${isProfileActive ? 'bg-accent' : 'hover:bg-accent/50'}`}
 	>
 		<div
-			class="from-primary to-secondary text-primary-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-sm font-bold shadow-md"
+			class="from-primary to-secondary text-primary-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-sm font-bold shadow-md transition-transform group-hover:scale-105"
 		>
 			{initials}
 		</div>
@@ -95,7 +110,7 @@
 				<p class="text-muted-foreground truncate text-xs">{user.role}</p>
 			</div>
 		{/if}
-	</div>
+	</a>
 
 	<!-- NAV -->
 	<nav class="flex flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto px-2 py-4">

@@ -1,6 +1,40 @@
 import type { Handle } from '@sveltejs/kit';
+import type { VolunteerRole } from '@prisma/client';
+import { building } from '$app/environment';
+import cron from 'node-cron';
 import prisma from '$lib/server/prisma';
+import { updateExpiredBreaks } from '$lib/server/cron/updateHostVolunteerStatus';
 
+// ✅ Définir le type de l'utilisateur
+export interface AppUser {
+	id: string;
+	role: VolunteerRole;
+	profil: {
+		firstName: string;
+		lastName: string;
+		email: string;
+	};
+}
+
+// ✅ Initialiser les crons (une seule fois au démarrage)
+if (!building) {
+	console.log('[CRON] 🚀 Initialisation des tâches programmées...');
+
+	// Toutes les heures
+	cron.schedule('0 * * * *', async () => {
+		console.log('[CRON] 🕐 Vérification des pauses expirées...');
+		try {
+			const result = await updateExpiredBreaks();
+			console.log(`[CRON] ✅ ${result.hosts} hosts, ${result.volunteers} volunteers mis à jour`);
+		} catch (error) {
+			console.error('[CRON] ❌ Erreur:', error);
+		}
+	});
+
+	console.log('[CRON] 📋 Tâches programmées avec succès');
+}
+
+// ✅ Gestion des sessions (inchangé)
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('session');
 

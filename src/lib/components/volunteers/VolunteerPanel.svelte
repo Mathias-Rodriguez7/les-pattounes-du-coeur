@@ -12,138 +12,77 @@
 	import { truncate } from '$lib/utils/string';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
+	import { formatAge } from '$lib/utils/age';
+	import {
+		type VolunteerWithRelations,
+		type VolunteerEditData,
+		type FormType,
+		type CatVolunteerWithRelations,
+		FORM_TYPE_CONFIG,
+		FORM_TYPE_LABELS,
+		FORM_TYPES,
+		STATUS_CONFIG
+	} from '$lib/types/';
+	import { VOLUNTEER_SECTION_CONFIG } from '$lib/constants/volunteer';
+	import type { ColabActivity, VolunteerRole, Form } from '@prisma/client';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import { formatDate } from '$lib/utils/date';
 
-	type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'ALERT' | 'OTHER';
-
-	const { volunteer, isAdmin = false } = $props();
+	const {
+		volunteer,
+		isAdmin = false
+	}: { volunteer: VolunteerWithRelations | null; isAdmin?: boolean } = $props();
 
 	let isEditing = $state(false);
 	let currentPage = $state(1);
-	let isSaving = $state(false);
 
-	// ===== DONNÉES ÉDITION =====
-	let editData = $state({
+	let editData = $state<VolunteerEditData>({
 		firstName: '',
 		lastName: '',
+		birthDate: new Date(),
 		email: '',
 		phone: '',
 		district: '',
 		address: '',
-		actif: 'ACTIVE',
-		role: 'ADMIN',
 		city: '',
-		postalCode: ''
+		postalCode: '',
+
+		// Volunteer spécifiques
+		actif: 'ACTIVE' as ColabActivity,
+		role: 'MANAGER' as VolunteerRole,
+		breakStart: null,
+		breakEnd: null
 	});
 
-	const PAGE_SIZE = 10;
-
-	// ===== CONFIG STATUS =====
-	const statusConfig = {
-		ACTIVE: {
-			icon: 'CirclePlay',
-			label: 'En activité',
-			theme: 'activ'
-		},
-		BREAK: {
-			icon: 'CirclePause',
-			label: 'En pause',
-			theme: 'break'
-		},
-		STOP: {
-			icon: 'CircleX',
-			label: 'Arrêté',
-			theme: 'stop'
-		}
-	};
-
-	// Récupérer TOUS les chats + leur placement s'il existe
-	const catList = $derived(
-		volunteer?.cats?.map((catVolunteer) => {
-			const placement = catVolunteer.cat.placements?.[0];
-			return {
-				catId: catVolunteer.catId,
-				catName: catVolunteer.cat.name,
-				catStatus: catVolunteer.cat.status,
-				hostFirstName: placement?.host.profil.firstName || null,
-				hostLastName: placement?.host.profil.lastName || null,
-				placementId: placement?.id || null,
-				hasPlacement: !!placement
-			};
-		}) ?? []
-	);
-
-	const statusColors = {
-		AVAILABLE: 'bg-emerald-100 text-emerald-800',
-		ADOPTED: 'bg-rose-100 text-rose-800',
-		SOCIALIZE: 'bg-sky-100 text-sky-800',
-		FREE: 'bg-orange-100 text-orange-800'
-	};
-
-	const getBadgeClass = (status: string) =>
-		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
-
-	// Paginer les chats
-	const paginatedCats = $derived(
-		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-	);
-
-	// ===== STATUS COURANT =====
-	const currentStatus = $derived(
-		volunteer?.actif
-			? statusConfig[volunteer.actif as keyof typeof statusConfig]
-			: statusConfig.ACTIVE
-	);
-
-	const formCounts = $derived.by(() => {
-		const types = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'];
-		const counts: Record<string, number> = {};
-
-		types.forEach((type) => {
-			counts[type] = (volunteer?.assignedForms || []).filter((f) => f.type === type).length;
-		});
-
-		return counts;
-	});
-
-	const formTypeConfig = {
-		ADOPTION: { icon: 'heart', theme: 'adoptions' },
-		VOLUNTEER: { icon: 'users', theme: 'volunteers' },
-		HOST: { icon: 'house', theme: 'fa' },
-		COLAB: { icon: 'Handshake', theme: 'colab' },
-		ALERT: { icon: 'alert', theme: 'stop' },
-		OTHER: { icon: 'other', theme: 'other' }
-	};
-
-	const formTypeLabels: Record<FormType, string> = {
-		ADOPTION: 'Adoptions',
-		VOLUNTEER: 'Bénévoles',
-		HOST: "Familles d'accueil",
-		COLAB: 'Collaborations',
-		ALERT: 'Alertes',
-		OTHER: 'Autres'
-	};
-
-	// ===== GESTION ÉDITION =====
 	const startEditing = () => {
+		if (!volunteer) return;
 		editData = {
 			firstName: volunteer.profil.firstName,
 			lastName: volunteer.profil.lastName,
+			birthDate: volunteer.profil.birthDate ? new Date(volunteer.profil.birthDate) : new Date(),
 			email: volunteer.profil.email,
 			phone: volunteer.profil.phone || '',
 			district: volunteer.profil.district || '',
 			address: volunteer.profil.address || '',
 			city: volunteer.profil.city || '',
 			postalCode: volunteer.profil.postalCode || '',
-			actif: volunteer.actif,
+			actif: volunteer.actif || 'ACTIVE',
+			breakStart: volunteer.breakStart ? new Date(volunteer.breakStart) : null,
+			breakEnd: volunteer.breakEnd ? new Date(volunteer.breakEnd) : null,
 			role: volunteer.role
 		};
+
 		isEditing = true;
 	};
 
-	// ✅ UNIFIÉ : Utilise handleFormSave du utils
+	const handleCancelEdit = () => {
+		isEditing = false;
+	};
+
 	const handleSuccessfulSave = () => {
-		console.log('✅ Volontaire mis à jour avec succès');
-		// Met à jour le volunteer object avec les nouvelles données
+		if (!volunteer) return;
+
+		// Met à jour les données du volunteer avec les changements
 		volunteer.profil.firstName = editData.firstName;
 		volunteer.profil.lastName = editData.lastName;
 		volunteer.profil.email = editData.email;
@@ -158,13 +97,77 @@
 		isEditing = false;
 	};
 
-	// ✅ UNIFIÉ : Gestion du cancel
-	const handleCancelEdit = () => {
-		isEditing = false;
-		// editData sera réinitialisé au prochain startEditing
+	const PAGE_SIZE = 10;
+
+	const catList = $derived(
+		volunteer?.cats?.map((catVolunteer: CatVolunteerWithRelations) => {
+			const placement = catVolunteer.cat.placements?.[0];
+			return {
+				catId: catVolunteer.catId,
+				catName: catVolunteer.cat.name,
+				catStatus: catVolunteer.cat.status,
+				hostFirstName: placement?.host.profil.firstName || null,
+				hostLastName: placement?.host.profil.lastName || null,
+				placementId: placement?.id || null,
+				hasPlacement: !!placement
+			};
+		}) ?? []
+	);
+
+	const adoptedCatsCount = $derived(
+		volunteer?.cats?.filter(
+			(catVolunteer: CatVolunteerWithRelations) => catVolunteer.cat.status === 'ADOPTED'
+		).length ?? 0
+	);
+
+	const fullName = $derived(
+		volunteer ? `${volunteer.profil.firstName} ${volunteer.profil.lastName}` : ''
+	);
+
+	const location = $derived(
+		volunteer?.profil.district
+			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			: volunteer?.profil.city || '—'
+	);
+
+	const paginatedCats = $derived(
+		catList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+	);
+
+	const currentStatus = $derived(
+		volunteer?.actif && volunteer.actif in STATUS_CONFIG
+			? STATUS_CONFIG[volunteer.actif]
+			: STATUS_CONFIG.ACTIVE
+	);
+
+	const statusColors = {
+		AVAILABLE: 'bg-emerald-100 text-emerald-800',
+		ADOPTED: 'bg-rose-100 text-rose-800',
+		SOCIALIZE: 'bg-sky-100 text-sky-800',
+		FREE: 'bg-orange-100 text-orange-800'
 	};
 
-	// Couleurs pour les rôles
+	const formCounts = $derived.by(() => {
+		const counts: Record<FormType, number> = {
+			ADOPTION: 0,
+			VOLUNTEER: 0,
+			HOST: 0,
+			COLAB: 0,
+			ALERT: 0,
+			OTHER: 0
+		};
+
+		const forms = volunteer?.assignedForms ?? [];
+		FORM_TYPES.forEach((type) => {
+			counts[type] = forms.filter((f: Form) => (f.type as FormType) === type).length;
+		});
+
+		return counts;
+	});
+
+	const getBadgeClass = (status: string) =>
+		statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700';
+
 	const roleColors: Record<string, string> = {
 		ADMIN: 'bg-red-100 text-red-800',
 		MANAGER: 'bg-blue-100 text-blue-800',
@@ -177,47 +180,63 @@
 		{#if !isEditing}
 			<!-- ===== HEADER AFFICHAGE ===== -->
 			<Card.Header>
-				<div class="flex justify-between">
-					<div class="flex gap-6">
-						<div class="flex items-center gap-6">
-							<div class="grid grid-cols-1 gap-2">
-								{#key volunteer?.actif}
-									<Icon
-										name={currentStatus.icon}
-										withWrapper={true}
-										wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
-										style="background: {getGradientStyle(currentStatus.theme)}"
-										iconClass="h-5 w-5"
-									/>
-								{/key}
-								<span class="text-muted-foreground text-xs">{currentStatus.label}</span>
-							</div>
-							<div class="flex-1">
-								<Card.Title class="text-xl">
-									{volunteer.profil.firstName}
-									{volunteer.profil.lastName}
-								</Card.Title>
+				<div class="flex h-25 justify-between">
+					<div class="flex gap-8">
+						<!-- Status Icon -->
+						<div class="flex flex-col items-center justify-around">
+							{#key volunteer?.actif}
+								<Icon
+									name={currentStatus.icon}
+									withWrapper={true}
+									wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+									style="background: {getGradientStyle(currentStatus.theme)}"
+									iconClass="h-5 w-5"
+								/>
+							{/key}
+							<Badge class={roleColors[volunteer.role] || 'bg-gray-100 text-gray-800'}>
+								{truncate(volunteer.role, 5)}
+							</Badge>
+						</div>
 
-								<div class="mt-2 flex items-center gap-2">
-									<Badge class={roleColors[volunteer.role] || 'bg-gray-100 text-gray-800'}>
-										{truncate(volunteer.role, 5)}
-									</Badge>
-								</div>
+						<div class="flex flex-col justify-around">
+							<Card.Title class="text-2xl">{fullName}</Card.Title>
+
+							<div class="flex gap-4">
+								<Card.Description class="text-xl">
+									{formatAge(volunteer.profil.birthDate)}
+								</Card.Description>
+
+								{#if volunteer.profil.host}
+									<div title="Ce bénévole est aussi FA">
+										<Icon name="star" iconClass="h-6 w-6 text-amber-500 fill-amber-500" />
+									</div>
+								{/if}
 							</div>
 						</div>
-						<!-- Contact Info avec icones -->
-						<div class="flex gap-6">
-							<!-- Email -->
-							<div class="flex items-end gap-2">
-								<Icon name="mail" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{volunteer.profil.email}</span>
-							</div>
-
-							<!-- Phone -->
-							<div class="flex items-end gap-2">
-								<Icon name="phone" iconClass="h-6 w-6 text-muted-foreground" />
-								<span class="text-muted-foreground text-sm">{volunteer.profil.phone || '-'}</span>
-							</div>
+						<!-- PAUSE / BREAK -->
+						<div>
+							{#if volunteer.actif === 'BREAK' && (volunteer.breakStart || volunteer.breakEnd)}
+								<SectionCard
+									icon={VOLUNTEER_SECTION_CONFIG.pause.icon}
+									title={VOLUNTEER_SECTION_CONFIG.pause.label}
+									color={VOLUNTEER_SECTION_CONFIG.pause.color}
+								>
+									<div class="ml-6 grid gap-4">
+										<div class="text-sm">
+											{#if volunteer.breakStart}
+												<p class="font-medium text-gray-900">
+													Début: {formatDate(new Date(volunteer.breakStart))}
+												</p>
+											{/if}
+											{#if volunteer.breakEnd}
+												<p class="font-medium text-gray-900">
+													Fin: {formatDate(new Date(volunteer.breakEnd))}
+												</p>
+											{/if}
+										</div>
+									</div>
+								</SectionCard>
+							{:else}{/if}
 						</div>
 					</div>
 					<!-- Boutons d'édition -->
@@ -230,154 +249,221 @@
 					</div>
 				</div>
 			</Card.Header>
-		{:else}
-			<!-- ===== HEADER ÉDITION ===== -->
-			<Card.Header>
-				<h3 class="text-2xl font-bold">Éditer le bénévole</h3>
-			</Card.Header>
-		{/if}
 
-		<!-- Contenu principal -->
-		<Card.Content class="grid grid-cols-1 gap-6">
-			<Separator />
-			<div class="space-y-6">
-				{#if !isEditing}
-					<!-- ===== MODE AFFICHAGE INFOS GÉOGRAPHIQUES ===== -->
-					<div class="grid grid-cols-3 gap-x-6 gap-y-2">
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Adresse</p>
-							<p class="text-sm font-semibold">{volunteer.profil.address || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Ville</p>
-							<p class="text-sm font-semibold">{volunteer.profil.city || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Code postal</p>
-							<p class="text-sm font-semibold">{volunteer.profil.postalCode || '-'}</p>
-						</div>
-						<div>
-							<p class="text-muted-foreground text-sm font-medium">Quartier</p>
-							<p class="text-sm font-semibold">
-								{DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS] ||
-									volunteer.profil.district ||
-									'-'}
-							</p>
-						</div>
-					</div>
-				{:else}
-					<!-- ===== MODE ÉDITION ===== -->
-					<!-- ✅ Props correctement passées -->
-					<VolunteerEditForm
-						bind:editData
-						volunteerId={volunteer.id}
-						onSuccess={handleSuccessfulSave}
-						onCancel={handleCancelEdit}
-						{isSaving}
-					/>
-				{/if}
-			</div>
+			<!-- Contenu principal -->
 
-			{#if !isEditing}
+			<Card.Content class="grid grid-cols-1 gap-6">
+				<Separator />
+				<section class="grid grid-cols-8 gap-4">
+					<!-- Experience -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.Experience.icon}
+						title={VOLUNTEER_SECTION_CONFIG.Experience.label}
+						color={VOLUNTEER_SECTION_CONFIG.Experience.color}
+						class="col-span-2"
+					>
+						<div>
+							<div class="ml-6 grid gap-4">
+								<!-- Nombre total de chats gérés -->
+								<div class="flex justify-between">
+									<span class="text-muted-foreground text-xs font-medium">Chats gérés</span>
+									<Badge class="bg-blue-100 text-sm font-bold text-blue-800">
+										{catList.length}
+									</Badge>
+								</div>
+
+								<!-- Nombre de chats adoptés -->
+								<div class="flex justify-between">
+									<span class="text-muted-foreground text-xs font-medium">Adoptions</span>
+									<Badge class="bg-green-100 text-sm font-bold text-green-800">
+										{adoptedCatsCount}
+									</Badge>
+								</div>
+							</div>
+						</div>
+					</SectionCard>
+
+					<!-- Adresse -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+						title={VOLUNTEER_SECTION_CONFIG.address.label}
+						color={VOLUNTEER_SECTION_CONFIG.address.color}
+						class="col-span-3"
+					>
+						<div class="grid gap-4">
+							<div class="col-span-2 ml-6 gap-4 space-y-2 text-sm">
+								<div>
+									<p class="text-muted-foreground font-medium">Rue</p>
+									<p class="font-medium text-gray-900">{volunteer.profil.address || '—'}</p>
+								</div>
+								<div class="flex gap-4">
+									<div>
+										<p class="text-muted-foreground font-medium">Ville</p>
+										<p class="font-medium text-gray-900">{volunteer.profil.city || '—'}</p>
+									</div>
+									<div>
+										<p class="text-muted-foreground font-medium">CP</p>
+										<p class="font-medium text-gray-900">{volunteer.profil.postalCode || '—'}</p>
+									</div>
+
+									<div>
+										<p class="text-muted-foreground font-medium">Quartier</p>
+										<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
+									</div>
+								</div>
+							</div>
+						</div>
+					</SectionCard>
+
+					<!-- Contact -->
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
+						title={VOLUNTEER_SECTION_CONFIG.contact.label}
+						color={VOLUNTEER_SECTION_CONFIG.contact.color}
+						class="col-span-3"
+					>
+						<div class="ml-6 grid gap-4">
+							<div class="flex items-center gap-2">
+								<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+								<a
+									href="tel:{volunteer.profil.phone}"
+									class="text-sm text-blue-600 hover:underline"
+								>
+									{volunteer.profil.phone || '—'}
+								</a>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+								<a
+									href="mailto:{volunteer.profil.email}"
+									class="truncate text-sm text-blue-600 hover:underline"
+									title={volunteer.profil.email}
+								>
+									{truncate(volunteer.profil.email, 28)}
+								</a>
+							</div>
+						</div>
+					</SectionCard>
+				</section>
 				<Separator />
 
 				<!-- Chats et Formulaires -->
-				<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+				<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 					<!-- CHATS EN GESTION -->
-					<div>
-						<h4 class="mb-4 text-base font-semibold text-gray-900">Chats en gestion</h4>
-						<Table.Root class="min-h-125">
-							<Table.Header>
-								<Table.Row>
-									<Table.Head>Chat</Table.Head>
-									<Table.Head>Statut</Table.Head>
-									<Table.Head>FA</Table.Head>
-								</Table.Row>
-							</Table.Header>
-							<Table.Body>
-								{#each paginatedCats as cat (cat.catId)}
+					<div class="col-span-2 grid">
+						<SectionCard
+							icon={VOLUNTEER_SECTION_CONFIG.cats.icon}
+							title={VOLUNTEER_SECTION_CONFIG.cats.label}
+							color={VOLUNTEER_SECTION_CONFIG.cats.color}
+						>
+							<Table.Root class="min-h-125">
+								<Table.Header>
 									<Table.Row>
-										<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
-										<Table.Cell>
-											<Badge class={getBadgeClass(cat.catStatus)}>
-												{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
-											</Badge>
-										</Table.Cell>
-										<Table.Cell>
-											{#if cat.hasPlacement}
-												<span class="font-semibold text-gray-900">
-													{cat.hostFirstName}
-													{cat.hostLastName}
-												</span>
-											{:else}
-												<span class="text-gray-400">-</span>
-											{/if}
-										</Table.Cell>
+										<Table.Head>Chat</Table.Head>
+										<Table.Head>Statut</Table.Head>
+										<Table.Head>FA</Table.Head>
 									</Table.Row>
-								{/each}
-							</Table.Body>
-						</Table.Root>
+								</Table.Header>
+								<Table.Body>
+									{#each paginatedCats as cat (cat.catId)}
+										<Table.Row>
+											<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
+											<Table.Cell>
+												<Badge class={getBadgeClass(cat.catStatus)}>
+													{truncate(statusLabel[cat.catStatus] ?? cat.catStatus, 5)}
+												</Badge>
+											</Table.Cell>
+											<Table.Cell>
+												{#if cat.hasPlacement}
+													<span class="font-semibold text-gray-900">
+														{cat.hostFirstName}
+														{cat.hostLastName}
+													</span>
+												{:else}
+													<span class="text-gray-400">-</span>
+												{/if}
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
 
-						<!-- Pagination -->
-						<div class="mt-4 flex justify-center">
-							<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
-								{#snippet children({ pages, currentPage: cp })}
-									<Pagination.Content>
-										<Pagination.Item>
-											<Pagination.Previous />
-										</Pagination.Item>
-										{#each pages as page (page.key)}
-											{#if page.type === 'ellipsis'}
-												<Pagination.Item>
-													<Pagination.Ellipsis />
-												</Pagination.Item>
-											{:else}
-												<Pagination.Item>
-													<Pagination.Link {page} isActive={cp === page.value}>
-														{page.value}
-													</Pagination.Link>
-												</Pagination.Item>
-											{/if}
-										{/each}
-										<Pagination.Item>
-											<Pagination.Next />
-										</Pagination.Item>
-									</Pagination.Content>
-								{/snippet}
-							</Pagination.Root>
-						</div>
+							<!-- Pagination -->
+							<div class="mt-4 flex justify-center">
+								<Pagination.Root count={catList.length} perPage={PAGE_SIZE} bind:page={currentPage}>
+									{#snippet children({ pages, currentPage: cp })}
+										<Pagination.Content>
+											<Pagination.Item>
+												<Pagination.Previous />
+											</Pagination.Item>
+											{#each pages as page (page.key)}
+												{#if page.type === 'ellipsis'}
+													<Pagination.Item>
+														<Pagination.Ellipsis />
+													</Pagination.Item>
+												{:else}
+													<Pagination.Item>
+														<Pagination.Link {page} isActive={cp === page.value}>
+															{page.value}
+														</Pagination.Link>
+													</Pagination.Item>
+												{/if}
+											{/each}
+											<Pagination.Item>
+												<Pagination.Next />
+											</Pagination.Item>
+										</Pagination.Content>
+									{/snippet}
+								</Pagination.Root>
+							</div>
+						</SectionCard>
 					</div>
 
 					<!-- FORMULAIRES ASSIGNÉS -->
-					<div>
-						<h4 class="mb-4 text-base font-semibold text-gray-900">Formulaires assignés</h4>
+					<SectionCard
+						icon={VOLUNTEER_SECTION_CONFIG.forms.icon}
+						title={VOLUNTEER_SECTION_CONFIG.forms.label}
+						color={VOLUNTEER_SECTION_CONFIG.forms.color}
+					>
 						<div class="space-y-2">
-							{#each Object.entries(formCounts) as [type, count] (type)}
+							{#each FORM_TYPES as type (type)}
 								<div
 									class="flex items-center justify-between rounded-xl border p-4 transition hover:shadow-md"
 								>
 									<div class="flex items-center gap-3">
 										<Icon
-											name={formTypeConfig[type]?.icon || 'FileText'}
+											name={FORM_TYPE_CONFIG[type].icon}
 											withWrapper={true}
 											wrapperClass="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-white"
-											style="background: {getGradientStyle(formTypeConfig[type]?.theme || 'other')}"
+											style="background: {getGradientStyle(FORM_TYPE_CONFIG[type].theme)}"
 											iconClass="h-3 w-3"
 										/>
-										<span class="font-medium text-gray-900">{formTypeLabels[type]}</span>
+										<span class="font-medium text-gray-900">{FORM_TYPE_LABELS[type]}</span>
 									</div>
 									<span
-										class={`text-sm font-semibold ${count > 0 ? 'text-teal-600' : 'text-gray-400'}`}
+										class={`text-sm font-semibold ${formCounts[type] > 0 ? 'text-teal-600' : 'text-gray-400'}`}
 									>
-										{count}
+										{formCounts[type]}
 									</span>
 								</div>
 							{/each}
 						</div>
-					</div>
+					</SectionCard>
 				</div>
-			{/if}
-		</Card.Content>
+			</Card.Content>
+		{:else}
+			<Card.Content class="grid grid-cols-1 gap-6">
+				<!-- ===== MODE ÉDITION ===== -->
+				<VolunteerEditForm
+					bind:editData
+					volunteerId={volunteer.id}
+					profileId={volunteer.profilId}
+					onSuccess={handleSuccessfulSave}
+					onCancel={handleCancelEdit}
+				/>
+			</Card.Content>
+		{/if}
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">

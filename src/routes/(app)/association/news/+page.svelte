@@ -27,6 +27,8 @@
 		isOpen = true;
 	}
 
+	console.log('News data:', data.news);
+
 	// -----------------------------
 	// FILTER STATE
 	// -----------------------------

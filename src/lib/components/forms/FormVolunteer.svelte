@@ -1,84 +1,58 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
-
 	import { toast } from 'svelte-sonner';
-
+	import { get } from 'svelte/store';
+	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import {
 		volunteerFormSchema,
 		volunteerStep1Schema,
 		volunteerStep2Schema,
 		volunteerStep3Schema,
 		volunteerStep4Schema
-	} from '$lib/schema/volunteerForm';
-
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
-
-	import { zod4Client } from 'sveltekit-superforms/adapters';
-
-	import { get } from 'svelte/store';
+	} from '$lib/schemas/formShema/volunteerForm';
+	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import InputField from '$lib/components/fields/InputField.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import DatePicker from '$lib/components/fields/DatePicker.svelte';
+	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 
 	let { data } = $props<{
 		data: SuperValidated<Infer<typeof volunteerFormSchema>>;
 	}>();
 
-	// FORM
+	let step = $state(1);
+	const totalSteps = 4;
+	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
+
 	const form = superForm(data, {
 		validators: zod4Client(volunteerFormSchema),
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Candidature envoyée 🎉');
+				birthDate = undefined;
 				form.reset();
 				step = 1;
+			}
+			if (result.type === 'failure') {
+				toast.error("Une erreur s'est produite ❌");
 			}
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors, delayed } = form;
 
-	// STEP
-	let step = $state(1);
-
-	const totalSteps = 4;
-
-	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
-
-	function validateCurrentStep() {
-		const schema =
-			step === 1
-				? volunteerStep1Schema
-				: step === 2
-					? volunteerStep2Schema
-					: step === 3
-						? volunteerStep3Schema
-						: volunteerStep4Schema;
-
-		const result = schema.safeParse(get(formData));
-
-		return result.success;
+	// DatePicker manipule un Date, le schéma attend 'YYYY-MM-DD'
+	let birthDate = $state<Date | undefined>(undefined);
+	function onBirthDateSelect(date: Date) {
+		birthDate = date;
+		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
 
-	function nextStep() {
-		if (!validateCurrentStep()) return;
-
-		if (step < totalSteps) {
-			step++;
-		}
-	}
-
-	function prevStep() {
-		if (step > 1) {
-			step--;
-		}
-	}
+	const districtOptions = $derived(
+		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
+	);
 
 	const availabilityOptions = [
 		{ value: 'LOW', label: 'Quelques heures par mois' },
@@ -94,14 +68,42 @@
 		{ value: 'LONG_TERM', label: 'Long terme' }
 	];
 
-	// STYLE
-	const fieldClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
+	// Validation par étape + affichage des erreurs
+	function validateCurrentStep(): boolean {
+		const schema =
+			step === 1
+				? volunteerStep1Schema
+				: step === 2
+					? volunteerStep2Schema
+					: step === 3
+						? volunteerStep3Schema
+						: volunteerStep4Schema;
 
-	const textareaClass = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl border px-4 py-3';
+		const result = schema.safeParse(get(formData));
 
-	const selectClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
+		if (!result.success) {
+			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			errors.update((current) => {
+				const next = { ...current } as Record<string, string[] | undefined>;
+				for (const [key, messages] of Object.entries(fieldErrors)) {
+					next[key] = messages;
+				}
+				return next as typeof current;
+			});
+			toast.error('Veuillez corriger les erreurs avant de continuer');
+			return false;
+		}
+		return true;
+	}
+
+	function nextStep() {
+		if (!validateCurrentStep()) return;
+		if (step < totalSteps) step++;
+	}
+
+	function prevStep() {
+		if (step > 1) step--;
+	}
 </script>
 
 <form method="POST" action="?/volunteer" use:enhance class="space-y-8">
@@ -113,80 +115,105 @@
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="firstName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="lastName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<InputField
+				id="firstName"
+				name="firstName"
+				label="Prénom"
+				required
+				size="sm"
+				bind:value={$formData.firstName}
+				placeholder="Jean"
+				error={$errors.firstName?.[0]}
+			/>
+			<InputField
+				id="lastName"
+				name="lastName"
+				label="Nom"
+				required
+				size="sm"
+				bind:value={$formData.lastName}
+				placeholder="Dupont"
+				error={$errors.lastName?.[0]}
+			/>
+			<DatePicker
+				name="birthDate"
+				value={birthDate}
+				onSelect={onBirthDateSelect}
+				label="Date de naissance"
+				error={$errors.birthDate?.[0]}
+			/>
 		</div>
 
-		<Form.Field {form} name="email">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
-					<Input type="email" {...props} bind:value={$formData.email} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-
-		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="phone">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.phone} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="age">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Âge <span class="text-destructive">*</span></Form.Label>
-						<Input type="number" {...props} bind:value={$formData.age} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+		<div class="grid grid-cols-2 gap-2">
+			<InputField
+				id="email"
+				name="email"
+				label="Email"
+				type="email"
+				required
+				size="sm"
+				bind:value={$formData.email}
+				placeholder="jean@example.com"
+				error={$errors.email?.[0]}
+			/>
+			<InputField
+				id="phone"
+				name="phone"
+				label="Téléphone"
+				required
+				size="sm"
+				placeholder="06 12 34 56 78"
+				bind:value={$formData.phone}
+				error={$errors.phone?.[0]}
+			/>
 		</div>
 
-		<Form.Field {form} name="address">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Adresse <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.address} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-
-		<Form.Field {form} name="job">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Profession <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.job} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<div class="space-y-4">
+			<InputField
+				id="address"
+				name="address"
+				label="Adresse"
+				required
+				size="sm"
+				bind:value={$formData.address}
+				placeholder="123 rue de la Paix"
+				error={$errors.address?.[0]}
+			/>
+			<div class="grid grid-cols-3 gap-4">
+				<InputField
+					id="city"
+					name="city"
+					label="Ville"
+					required
+					size="sm"
+					bind:value={$formData.city}
+					placeholder="Montpellier"
+					error={$errors.city?.[0]}
+				/>
+				<InputField
+					id="postalCode"
+					name="postalCode"
+					label="Code postal"
+					required
+					size="sm"
+					bind:value={$formData.postalCode}
+					placeholder="34000"
+					error={$errors.postalCode?.[0]}
+				/>
+				{#if $formData.city?.toLowerCase() === 'montpellier'}
+					<SelectField
+						id="district"
+						name="district"
+						label="Quartier"
+						placeholder="Quartier"
+						size="sm"
+						options={districtOptions}
+						bind:value={$formData.district}
+					/>
+				{/if}
+			</div>
+		</div>
 	</div>
-
 	<!-- STEP 2 -->
 	<div class:hidden={step !== 2} class="space-y-6">
 		<div class="space-y-2">
@@ -196,152 +223,73 @@
 			</p>
 		</div>
 
-		<Form.Field {form} name="hasCatExperience">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-					>
-						<Checkbox
-							{...props}
-							checked={$formData.hasCatExperience}
-							onCheckedChange={(v) => ($formData.hasCatExperience = !!v)}
-						/>
-						<div>
-							<p class="text-sm font-medium">Expérience avec les chats</p>
-							<p class="text-muted-foreground text-xs">
-								Avez-vous déjà vécu ou travaillé avec des chats ?
-							</p>
-						</div>
-					</Label>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<CheckboxField
+			id="hasCatExperience"
+			name="hasCatExperience"
+			label="Expérience avec les chats"
+			checked={$formData.hasCatExperience}
+			onChange={(value) => ($formData.hasCatExperience = value)}
+		/>
 
 		{#if $formData.hasCatExperience}
-			<Form.Field {form} name="catExperienceDescription">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label
-							>Décrivez votre expérience avec les chats <span class="text-destructive">*</span
-							></Form.Label
-						>
-						<Textarea
-							placeholder="Ex : j'ai eu plusieurs chats, famille d'accueil, etc..."
-							{...props}
-							bind:value={$formData.catExperienceDescription}
-							class={textareaClass}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<TextareaField
+				id="catExperienceDescription"
+				name="catExperienceDescription"
+				label="Décrivez votre expérience avec les chats"
+				placeholder="Ex : j'ai eu plusieurs chats, famille d'accueil, etc..."
+				bind:value={$formData.catExperienceDescription}
+				error={$errors.catExperienceDescription?.[0]}
+				required
+			/>
 		{/if}
 
-		<Form.Field {form} name="hasAssociationExperience">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-					>
-						<Checkbox
-							{...props}
-							checked={$formData.hasAssociationExperience}
-							onCheckedChange={(v) => ($formData.hasAssociationExperience = !!v)}
-						/>
-						<div>
-							<p class="text-sm font-medium">Expérience associative</p>
-							<p class="text-muted-foreground text-xs">
-								Avez-vous déjà travaillé dans une association ?
-							</p>
-						</div>
-					</Label>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<CheckboxField
+			id="hasAssociationExperience"
+			name="hasAssociationExperience"
+			label="Expérience associative"
+			checked={$formData.hasAssociationExperience}
+			onChange={(value) => ($formData.hasAssociationExperience = value)}
+		/>
 
 		{#if $formData.hasAssociationExperience}
-			<Form.Field {form} name="associationExperienceDescription">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label
-							>Décrivez votre expérience associative <span class="text-destructive">*</span
-							></Form.Label
-						>
-						<Textarea
-							placeholder="Ex : bénévolat, refuge, organisation..."
-							{...props}
-							bind:value={$formData.associationExperienceDescription}
-							class={textareaClass}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<TextareaField
+				id="associationExperienceDescription"
+				name="associationExperienceDescription"
+				label="Décrivez votre expérience associative"
+				placeholder="Ex : bénévolat, refuge, organisation..."
+				bind:value={$formData.associationExperienceDescription}
+				error={$errors.associationExperienceDescription?.[0]}
+				required
+			/>
 		{/if}
 
-		<Form.Field {form} name="hasMedicalCareExperience">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-					>
-						<Checkbox
-							{...props}
-							checked={$formData.hasMedicalCareExperience}
-							onCheckedChange={(v) => ($formData.hasMedicalCareExperience = !!v)}
-						/>
-						<div>
-							<p class="text-sm font-medium">Soins médicaux</p>
-							<p class="text-muted-foreground text-xs">
-								Avez-vous déjà donné des soins à des animaux ?
-							</p>
-						</div>
-					</Label>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<CheckboxField
+			id="hasMedicalCareExperience"
+			name="hasMedicalCareExperience"
+			label="Soins médicaux"
+			checked={$formData.hasMedicalCareExperience}
+			onChange={(value) => ($formData.hasMedicalCareExperience = value)}
+		/>
 
 		{#if $formData.hasMedicalCareExperience}
-			<Form.Field {form} name="medicalCareDescription">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Détail des soins <span class="text-destructive">*</span></Form.Label>
-						<Textarea
-							placeholder="Ex : médicaments, blessures, injections..."
-							{...props}
-							bind:value={$formData.medicalCareDescription}
-							class={textareaClass}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<TextareaField
+				id="medicalCareDescription"
+				name="medicalCareDescription"
+				label="Détail des soins"
+				placeholder="Ex : médicaments, blessures, injections..."
+				bind:value={$formData.medicalCareDescription}
+				error={$errors.medicalCareDescription?.[0]}
+				required
+			/>
 		{/if}
 
-		<Form.Field {form} name="hasTransportExperience">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-					>
-						<Checkbox
-							{...props}
-							checked={$formData.hasTransportExperience}
-							onCheckedChange={(v) => ($formData.hasTransportExperience = !!v)}
-						/>
-						<div>
-							<p class="text-sm font-medium">Transport d'animaux</p>
-							<p class="text-muted-foreground text-xs">Avez-vous déjà transporté des animaux ?</p>
-						</div>
-					</Label>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<CheckboxField
+			id="hasTransportExperience"
+			name="hasTransportExperience"
+			label="Transport d'animaux"
+			checked={$formData.hasTransportExperience}
+			onChange={(value) => ($formData.hasTransportExperience = value)}
+		/>
 	</div>
 
 	<!-- STEP 3 -->
@@ -353,133 +301,67 @@
 			</p>
 		</div>
 
-		<Form.Field {form} name="availability">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Disponibilité générale <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.availability}>
-						<Select.Trigger {...props} class={selectClass}>
-							{availabilityOptions.find((o) => o.value === $formData.availability)?.label ??
-								'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each availabilityOptions as option (option.value)}
-									<Select.Item value={option.value}>{option.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="availability"
+			name="availability"
+			label="Disponibilité générale"
+			placeholder="Choisir"
+			options={availabilityOptions}
+			bind:value={$formData.availability}
+			required
+			size="sm"
+		/>
+		{#if $errors.availability}
+			<p class="-mt-4 text-xs text-red-500">{$errors.availability[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="availabilityDuration">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Durée d'engagement <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.availabilityDuration}>
-						<Select.Trigger {...props} class={selectClass}>
-							{availabilityDurationOptions.find((o) => o.value === $formData.availabilityDuration)
-								?.label ?? 'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each availabilityDurationOptions as option (option.value)}
-									<Select.Item value={option.value}>{option.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="availabilityDuration"
+			name="availabilityDuration"
+			label="Durée d'engagement"
+			placeholder="Choisir"
+			options={availabilityDurationOptions}
+			bind:value={$formData.availabilityDuration}
+			required
+			size="sm"
+		/>
+		{#if $errors.availabilityDuration}
+			<p class="-mt-4 text-xs text-red-500">{$errors.availabilityDuration[0]}</p>
+		{/if}
 
 		<div class="space-y-3">
 			<h3 class="text-sm font-medium">Quand pouvez-vous aider ?</h3>
 
-			<Form.Field {form} name="canHelpWeekdays">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Label
-							class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-						>
-							<Checkbox
-								{...props}
-								checked={$formData.canHelpWeekdays}
-								onCheckedChange={(v) => ($formData.canHelpWeekdays = !!v)}
-							/>
-							<div>
-								<p class="text-sm font-medium">En semaine</p>
-								<p class="text-muted-foreground text-xs">Lundi à vendredi</p>
-							</div>
-						</Label>
-					{/snippet}
-				</Form.Control>
-			</Form.Field>
-
-			<Form.Field {form} name="canHelpWeekends">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Label
-							class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-						>
-							<Checkbox
-								{...props}
-								checked={$formData.canHelpWeekends}
-								onCheckedChange={(v) => ($formData.canHelpWeekends = !!v)}
-							/>
-							<div>
-								<p class="text-sm font-medium">Week-end</p>
-								<p class="text-muted-foreground text-xs">Samedi et dimanche</p>
-							</div>
-						</Label>
-					{/snippet}
-				</Form.Control>
-			</Form.Field>
-
-			<Form.Field {form} name="canHelpEmergencies">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Label
-							class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-						>
-							<Checkbox
-								{...props}
-								checked={$formData.canHelpEmergencies}
-								onCheckedChange={(v) => ($formData.canHelpEmergencies = !!v)}
-							/>
-							<div>
-								<p class="text-sm font-medium">Urgences</p>
-								<p class="text-muted-foreground text-xs">Interventions ponctuelles rapides</p>
-							</div>
-						</Label>
-					{/snippet}
-				</Form.Control>
-			</Form.Field>
+			<CheckboxField
+				id="canHelpWeekdays"
+				name="canHelpWeekdays"
+				label="En semaine (lundi à vendredi)"
+				checked={$formData.canHelpWeekdays}
+				onChange={(value) => ($formData.canHelpWeekdays = value)}
+			/>
+			<CheckboxField
+				id="canHelpWeekends"
+				name="canHelpWeekends"
+				label="Week-end (samedi et dimanche)"
+				checked={$formData.canHelpWeekends}
+				onChange={(value) => ($formData.canHelpWeekends = value)}
+			/>
+			<CheckboxField
+				id="canHelpEmergencies"
+				name="canHelpEmergencies"
+				label="Urgences (interventions ponctuelles rapides)"
+				checked={$formData.canHelpEmergencies}
+				onChange={(value) => ($formData.canHelpEmergencies = value)}
+			/>
 		</div>
 
-		<Form.Field {form} name="car">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex cursor-pointer items-center gap-3 rounded-4xl border p-4 transition"
-					>
-						<Checkbox
-							{...props}
-							checked={$formData.car}
-							onCheckedChange={(v) => ($formData.car = !!v)}
-						/>
-						<div>
-							<p class="text-sm font-medium">Véhicule disponible</p>
-							<p class="text-muted-foreground text-xs">Pour transports ou urgences vétérinaires</p>
-						</div>
-					</Label>
-				{/snippet}
-			</Form.Control>
-		</Form.Field>
+		<CheckboxField
+			id="car"
+			name="car"
+			label="Véhicule disponible (transports ou urgences vétérinaires)"
+			checked={$formData.car}
+			onChange={(value) => ($formData.car = value)}
+		/>
 	</div>
 
 	<!-- STEP 4 -->
@@ -491,50 +373,33 @@
 			</p>
 		</div>
 
-		<Form.Field {form} name="motivation">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Votre motivation <span class="text-destructive">*</span></Form.Label>
-					<Textarea
-						placeholder="Expliquez pourquoi vous voulez devenir bénévole..."
-						{...props}
-						bind:value={$formData.motivation}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="motivation"
+			name="motivation"
+			label="Votre motivation"
+			placeholder="Expliquez pourquoi vous voulez devenir bénévole..."
+			bind:value={$formData.motivation}
+			error={$errors.motivation?.[0]}
+			required
+		/>
 
-		<Form.Field {form} name="skills">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Compétences</Form.Label>
-					<Textarea
-						placeholder="Ex: expérience animale, association, organisation..."
-						{...props}
-						bind:value={$formData.skills}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="skills"
+			name="skills"
+			label="Compétences"
+			placeholder="Ex: expérience animale, association, organisation..."
+			bind:value={$formData.skills}
+			error={$errors.skills?.[0]}
+		/>
 
-		<Form.Field {form} name="additionalInformation">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Informations complémentaires</Form.Label>
-					<Textarea
-						placeholder="Autres informations utiles..."
-						{...props}
-						bind:value={$formData.additionalInformation}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="additionalInformation"
+			name="additionalInformation"
+			label="Informations complémentaires"
+			placeholder="Autres informations utiles..."
+			bind:value={$formData.additionalInformation}
+			error={$errors.additionalInformation?.[0]}
+		/>
 	</div>
 
 	<!-- NAVIGATION -->
@@ -544,6 +409,8 @@
 				<ChevronLeft class="h-4 w-4" />
 				Retour
 			</button>
+		{:else}
+			<span></span>
 		{/if}
 
 		{#if step < totalSteps}
@@ -552,7 +419,13 @@
 				<ChevronRight class="h-4 w-4" />
 			</button>
 		{:else}
-			<Button type="submit">Envoyer la candidature</Button>
+			<button
+				type="submit"
+				disabled={$delayed}
+				class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+			>
+				{$delayed ? 'Envoi...' : 'Envoyer la candidature'}
+			</button>
 		{/if}
 	</div>
 
