@@ -4,7 +4,7 @@ import {
 	updateSicknessSchema,
 	type CreateSicknessInput,
 	type UpdateSicknessInput
-} from './schemas';
+} from '../../schemas/sickness';
 
 function convertFormData(formData: FormData): Record<string, string | null> {
 	const data: Record<string, string | null> = {};

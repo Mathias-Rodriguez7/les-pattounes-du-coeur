@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createHostSchema } from '$lib/schemas/host';
+	import type { createHostSchema } from '$lib/schemas/host';
 	import { getFieldError } from '$lib/utils/zodErrors';
 	import type { FlattenedErrors } from '$lib/utils/zodErrors';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
@@ -234,7 +234,7 @@
 
 <!-- Template -->
 <Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content size="lg" class="max-h-[90vh] overflow-y-auto">
+	<Dialog.Content size="xl" class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Créer un nouvel accueillant</Dialog.Title>
 			<Dialog.Description>
@@ -369,6 +369,7 @@
 									name="district"
 									label="Quartier"
 									bind:value={selectedDistrict}
+									placeholder="Quartier"
 									options={districtOptions}
 									size="sm"
 									disabled={isSubmitting}

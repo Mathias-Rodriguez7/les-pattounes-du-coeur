@@ -1,14 +1,11 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { sosFormSchema } from '$lib/schemas/sosForm';
+	import { sosFormSchema } from '$lib/schemas/formShema/sosForm';
+	import InputField from '$lib/components/fields/InputField.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 
 	let { data } = $props<{
 		data: SuperValidated<Infer<typeof sosFormSchema>>;
@@ -29,7 +26,7 @@
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors, delayed } = form;
 
 	const alertTypes = [
 		{ value: 'abandon', label: 'Abandons / problèmes de comportement au sein de votre foyer' },
@@ -38,111 +35,101 @@
 		{ value: 'found', label: 'Chatons trouvés / vus' },
 		{ value: 'other', label: 'Autre' }
 	];
-
-	const selectedLabel = (value: string) =>
-		alertTypes.find((t) => t.value === value)?.label ?? 'Choisir un type';
 </script>
 
 <form method="POST" action="?/sos" use:enhance class="space-y-6">
 	<!-- TYPE ALERT -->
-	<Form.Field {form} name="alertType">
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>Type de signalement <span class="text-destructive">*</span></Form.Label>
-
-				<Select.Root type="single" bind:value={$formData.alertType}>
-					<Select.Trigger {...props}>
-						{selectedLabel($formData.alertType)}
-					</Select.Trigger>
-
-					<Select.Content>
-						<Select.Group>
-							{#each alertTypes as type (type.value)}
-								<Select.Item value={type.value}>
-									{type.label}
-								</Select.Item>
-							{/each}
-						</Select.Group>
-					</Select.Content>
-				</Select.Root>
-			{/snippet}
-		</Form.Control>
-
-		<Form.FieldErrors />
-	</Form.Field>
+	<SelectField
+		id="alertType"
+		name="alertType"
+		label="Type de signalement"
+		placeholder="Choisir un type"
+		options={alertTypes}
+		bind:value={$formData.alertType}
+		required
+		size="sm"
+	/>
+	{#if $errors.alertType}
+		<p class="-mt-4 text-xs text-red-500">{$errors.alertType[0]}</p>
+	{/if}
 
 	<!-- IDENTITÉ -->
 	<div class="grid grid-cols-2 gap-4">
-		<Form.Field {form} name="firstName">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.firstName} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<InputField
+			id="firstName"
+			name="firstName"
+			label="Prénom"
+			bind:value={$formData.firstName}
+			error={$errors.firstName?.[0]}
+			required
+			size="sm"
+		/>
 
-		<Form.Field {form} name="lastName">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.lastName} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<InputField
+			id="lastName"
+			name="lastName"
+			label="Nom"
+			bind:value={$formData.lastName}
+			error={$errors.lastName?.[0]}
+			required
+			size="sm"
+		/>
 	</div>
 
 	<!-- CONTACT -->
-	<Form.Field {form} name="phone">
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
-				<Input {...props} bind:value={$formData.phone} />
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
+	<InputField
+		id="phone"
+		name="phone"
+		label="Téléphone"
+		placeholder="06 12 34 56 78"
+		bind:value={$formData.phone}
+		error={$errors.phone?.[0]}
+		required
+		size="sm"
+	/>
 
-	<Form.Field {form} name="email">
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
-				<Input type="email" {...props} bind:value={$formData.email} />
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
+	<InputField
+		id="email"
+		name="email"
+		label="Email"
+		type="email"
+		bind:value={$formData.email}
+		error={$errors.email?.[0]}
+		required
+		size="sm"
+	/>
 
 	<!-- LOCALISATION -->
-	<Form.Field {form} name="address">
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>Lieu du signalement <span class="text-destructive">*</span></Form.Label>
-				<Input placeholder="Adresse ou lieu" {...props} bind:value={$formData.address} />
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
+	<InputField
+		id="address"
+		name="address"
+		label="Lieu du signalement"
+		placeholder="Adresse ou lieu"
+		bind:value={$formData.address}
+		error={$errors.address?.[0]}
+		required
+		size="sm"
+	/>
 
 	<!-- DESCRIPTION -->
-	<Form.Field {form} name="description">
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>Description <span class="text-destructive">*</span></Form.Label>
-				<Textarea
-					placeholder="Décrivez la situation..."
-					{...props}
-					bind:value={$formData.description}
-				/>
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
+	<TextareaField
+		id="description"
+		name="description"
+		label="Description"
+		placeholder="Décrivez la situation..."
+		bind:value={$formData.description}
+		error={$errors.description?.[0]}
+		required
+	/>
 
 	<!-- SUBMIT -->
 	<div class="flex justify-end">
-		<Button type="submit">Envoyer le signalement</Button>
+		<button
+			type="submit"
+			disabled={$delayed}
+			class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+		>
+			{$delayed ? 'Envoi...' : 'Envoyer le signalement'}
+		</button>
 	</div>
 </form>

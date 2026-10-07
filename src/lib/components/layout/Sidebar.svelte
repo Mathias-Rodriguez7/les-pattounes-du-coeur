@@ -9,7 +9,8 @@
 		Users,
 		LogOut,
 		ChevronLeft,
-		ChevronRight
+		ChevronRight,
+		Newspaper
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { Route } from '@sveltejs/kit';
@@ -53,6 +54,12 @@
 			icon: Users,
 			href: '/dashboard/benevole' as const,
 			roles: ['ADMIN'] as VolunteerRole[]
+		},
+		{
+			label: 'News',
+			icon: Newspaper,
+			href: '/dashboard/news' as const,
+			roles: ['ADMIN', 'COMMUNICATION'] as VolunteerRole[]
 		}
 	];
 

@@ -10,7 +10,15 @@ export const load: PageServerLoad = async ({ url }) => {
 			cats: {
 				include: {
 					cat: {
-						include: { media: true }
+						select: {
+							id: true, // ← IMPORTANT
+							name: true,
+							catNumber: true,
+							status: true,
+							birthDate: true,
+							description: true,
+							media: true
+						}
 					}
 				}
 			}

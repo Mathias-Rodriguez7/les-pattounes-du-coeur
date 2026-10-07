@@ -1,5 +1,12 @@
 import { z } from 'zod';
+import { District } from '@prisma/client';
 
+const districtEnum = z
+	.enum(Object.values(District) as [string, ...string[]])
+	.transform((val) => val as District);
+
+// ✅ Convertir les strings en dates
+const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 //
 // STEP 1
 //
@@ -9,8 +16,10 @@ export const volunteerStep1Schema = z.object({
 	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
 	email: z.email('Email invalide'),
 	address: z.string().min(1, "L'adresse est obligatoire"),
-	age: z.coerce.number().min(18, 'Vous devez être majeur'),
-	job: z.string().min(1, 'Le métier est obligatoire')
+	birthDate: stringToDate,
+	city: z.string().min(1, 'La ville est obligatoire'),
+	postalCode: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
+	district: districtEnum.nullable().optional()
 });
 
 //

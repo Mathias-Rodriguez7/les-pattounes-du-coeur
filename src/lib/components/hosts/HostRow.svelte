@@ -14,7 +14,7 @@
 <Table.Row
 	class="{isSelected
 		? 'bg-accent hover:bg-accent'
-		: 'hover:bg-muted/50'} h-16 cursor-pointer transition-colors"
+		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
 >
 	<!-- Nom Complet -->

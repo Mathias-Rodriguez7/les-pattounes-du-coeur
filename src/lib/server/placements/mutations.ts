@@ -4,7 +4,7 @@ import {
 	updatePlacementSchema,
 	type CreatePlacementInput,
 	type UpdatePlacementInput
-} from './schemas';
+} from '../../schemas/placement';
 
 // ==========================================
 // CREATE - Créer un placement

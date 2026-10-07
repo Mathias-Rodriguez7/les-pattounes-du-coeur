@@ -33,7 +33,9 @@ import {
 	ChevronDown,
 	Clock,
 	Star,
-	BicepsFlexed
+	BicepsFlexed,
+	Book,
+	Megaphone
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -72,5 +74,7 @@ export const iconMap: Record<string, Component> = {
 	chevronDown: ChevronDown,
 	clock: Clock,
 	star: Star,
-	biceps: BicepsFlexed
+	biceps: BicepsFlexed,
+	book: Book,
+	megaphone: Megaphone
 };

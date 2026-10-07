@@ -1,46 +1,54 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schemas/colabForm';
+	import { get } from 'svelte/store';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { get } from 'svelte/store';
+	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schemas/formShema/colabForm';
+	import InputField from '$lib/components/fields/InputField.svelte';
+	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 
 	let { data } = $props<{
 		data: SuperValidated<Infer<typeof colabForm>>;
 	}>();
 
+	let step = $state(1);
+	const totalSteps = 2;
+	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
+
 	const form = superForm(data, {
 		validators: zod4Client(colabForm),
-
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Demande envoyée avec succès 🤝');
 				form.reset();
 				step = 1;
 			}
-
 			if (result.type === 'failure') {
 				toast.error("Une erreur s'est produite ❌");
 			}
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors, delayed } = form;
 
-	let step = $state(1);
-
-	const totalSteps = 2;
-
-	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
-
-	function validateCurrentStep() {
+	function validateCurrentStep(): boolean {
 		const schema = step === 1 ? colabStep1Schema : colabStep2Schema;
-		return schema.safeParse(get(formData)).success;
+		const result = schema.safeParse(get(formData));
+
+		if (!result.success) {
+			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			errors.update((current) => {
+				const next = { ...current } as Record<string, string[] | undefined>;
+				for (const [key, messages] of Object.entries(fieldErrors)) {
+					next[key] = messages;
+				}
+				return next as typeof current;
+			});
+			toast.error('Veuillez corriger les erreurs avant de continuer');
+			return false;
+		}
+		return true;
 	}
 
 	function nextStep() {
@@ -51,15 +59,10 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
-
-	const fieldClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
-
-	const textareaClass = 'hover:bg-foreground/10 min-h-32 w-full rounded-2xl border px-4 py-3';
 </script>
 
 <form method="POST" action="?/colab" use:enhance class="space-y-8">
-	<!-- STEP 1 -->
+	<!-- STEP 1: INFORMATIONS -->
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Informations</h2>
@@ -67,63 +70,60 @@
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="firstName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="lastName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<InputField
+				id="firstName"
+				name="firstName"
+				label="Prénom"
+				bind:value={$formData.firstName}
+				error={$errors.firstName?.[0]}
+				required
+				size="sm"
+			/>
+			<InputField
+				id="lastName"
+				name="lastName"
+				label="Nom"
+				bind:value={$formData.lastName}
+				error={$errors.lastName?.[0]}
+				required
+				size="sm"
+			/>
 		</div>
 
-		<Form.Field {form} name="companyName">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label
-						>Entreprise <span class="text-muted-foreground text-xs">(optionnel)</span></Form.Label
-					>
-					<Input {...props} bind:value={$formData.companyName} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<InputField
+			id="companyName"
+			name="companyName"
+			label="Entreprise"
+			placeholder="Optionnel"
+			bind:value={$formData.companyName}
+			size="sm"
+		/>
 
 		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="email">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
-						<Input type="email" {...props} bind:value={$formData.email} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="phone">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.phone} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<InputField
+				id="email"
+				name="email"
+				type="email"
+				label="Email"
+				bind:value={$formData.email}
+				error={$errors.email?.[0]}
+				required
+				size="sm"
+			/>
+			<InputField
+				id="phone"
+				name="phone"
+				label="Téléphone"
+				placeholder="06 12 34 56 78"
+				bind:value={$formData.phone}
+				error={$errors.phone?.[0]}
+				required
+				size="sm"
+			/>
 		</div>
 	</div>
 
-	<!-- STEP 2 -->
+	<!-- STEP 2: PARTENARIAT -->
 	<div class:hidden={step !== 2} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Partenariat</h2>
@@ -132,36 +132,25 @@
 			</p>
 		</div>
 
-		<Form.Field {form} name="presentation">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Présentation <span class="text-destructive">*</span></Form.Label>
-					<Textarea
-						placeholder="Présentez votre activité, votre entreprise ou votre projet..."
-						{...props}
-						bind:value={$formData.presentation}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="presentation"
+			name="presentation"
+			label="Présentation"
+			placeholder="Présentez votre activité, votre entreprise ou votre projet..."
+			bind:value={$formData.presentation}
+			error={$errors.presentation?.[0]}
+			required
+		/>
 
-		<Form.Field {form} name="partnershipProposal">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Proposition de partenariat <span class="text-destructive">*</span></Form.Label
-					>
-					<Textarea
-						placeholder="Expliquez comment vous souhaitez collaborer avec l'association..."
-						{...props}
-						bind:value={$formData.partnershipProposal}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="partnershipProposal"
+			name="partnershipProposal"
+			label="Proposition de partenariat"
+			placeholder="Expliquez comment vous souhaitez collaborer avec l'association..."
+			bind:value={$formData.partnershipProposal}
+			error={$errors.partnershipProposal?.[0]}
+			required
+		/>
 	</div>
 
 	<!-- NAVIGATION -->
@@ -171,6 +160,8 @@
 				<ChevronLeft class="h-4 w-4" />
 				Retour
 			</button>
+		{:else}
+			<span></span>
 		{/if}
 
 		{#if step < totalSteps}
@@ -179,7 +170,13 @@
 				<ChevronRight class="h-4 w-4" />
 			</button>
 		{:else}
-			<Button type="submit">Envoyer la demande</Button>
+			<button
+				type="submit"
+				disabled={$delayed}
+				class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+			>
+				{$delayed ? 'Envoi...' : 'Envoyer la demande'}
+			</button>
 		{/if}
 	</div>
 

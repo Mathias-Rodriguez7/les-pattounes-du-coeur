@@ -1,26 +1,9 @@
 export const volunteerFormCases = {
 	step1: [
-		{
-			name: 'invalid email',
-			override: {
-				email: 'bad-email'
-			},
-			expected: false
-		},
-		{
-			name: 'underage volunteer',
-			override: {
-				age: 16
-			},
-			expected: false
-		},
-		{
-			name: 'invalid phone',
-			override: {
-				phone: '123'
-			},
-			expected: false
-		}
+		{ name: 'invalid email', override: { email: 'bad-email' }, expected: false },
+		{ name: 'invalid postal code', override: { postalCode: '123' }, expected: false },
+		{ name: 'missing city', override: { city: '' }, expected: false },
+		{ name: 'invalid district', override: { district: 'NOPE' }, expected: false }
 	],
 
 	step2: [

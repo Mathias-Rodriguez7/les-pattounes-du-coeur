@@ -8,7 +8,7 @@ import {
 	updatePlacement,
 	deletePlacement
 } from '$lib/server/placements/mutations';
-import type { UpdatePlacementInput } from '$lib/server/placements/schemas';
+import type { UpdatePlacementInput } from '$lib/schemas/placement';
 import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
 import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
 

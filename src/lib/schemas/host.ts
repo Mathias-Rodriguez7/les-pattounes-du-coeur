@@ -1,89 +1,91 @@
 import { z } from 'zod';
+import { District, HostType, Heal, Socialize, BabyFeeding, ColabActivity } from '@prisma/client';
 
-export const hostTypeEnum = z.enum(['CLASSIC', 'SOS', 'ADOPT', 'PROPRIO']);
-
-export const healEnum = z.enum(['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING']);
-
-export const socializeEnum = z.enum(['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED']);
-
-export const babyFeedingEnum = z.enum(['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY']);
+// ✅ Convertir les enums Prisma en arrays pour z.enum()
+const districtEnum = z
+	.enum(Object.values(District) as [string, ...string[]])
+	.transform((val) => val as District);
+const hostTypeEnum = z
+	.enum(Object.values(HostType) as [string, ...string[]])
+	.transform((val) => val as HostType);
+const healEnum = z
+	.enum(Object.values(Heal) as [string, ...string[]])
+	.transform((val) => val as Heal);
+const socializeEnum = z
+	.enum(Object.values(Socialize) as [string, ...string[]])
+	.transform((val) => val as Socialize);
+const babyFeedingEnum = z
+	.enum(Object.values(BabyFeeding) as [string, ...string[]])
+	.transform((val) => val as BabyFeeding);
+const colabActivityEnum = z
+	.enum(Object.values(ColabActivity) as [string, ...string[]])
+	.transform((val) => val as ColabActivity);
 
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 
-export const createHostSchema = z
-	.object({
-		// Profil
-		firstName: z.string().min(1, 'Le prénom est obligatoire').max(60),
-		lastName: z.string().min(1, 'Le nom est obligatoire').max(60),
-		birthDate: stringToDate,
-		email: z.string().email('Email invalide'),
-		phone: z
-			.string()
-			.regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro invalide')
-			.transform((val) => val.replace(/\s+/g, '')), // Enlève les espaces
-		address: z.string().min(1, "L'adresse est obligatoire").max(100),
-		city: z.string().min(1, 'La ville est obligatoire').max(80),
-		postalCode: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
-		district: z.string().optional(),
+// ✅ Convertir les strings en booleans
+const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
 
-		// Host basiques
-		type: hostTypeEnum,
-		space: z.coerce.number().min(0),
-		homeDescription: z.string().min(10, 'Description minimale 10 caractères').max(500), // ✅ Ajoute max
-		presence: z.string().min(1, 'Présence obligatoire').max(255),
+export const createHostSchema = z.object({
+	// Statut
+	type: hostTypeEnum.nullable(),
+	actif: colabActivityEnum.default(ColabActivity.ACTIVE),
+	breakStart: stringToDate.optional(),
+	breakEnd: stringToDate.optional(),
+	isAvailable: stringToBoolean.default(true),
 
-		// Animaux
-		hasAnimalsAtHome: z.boolean().default(false),
-		numberOfCatsAtHome: z.coerce.number().min(0).default(0), // ✅ Simplifie
-		numberOfDogsAtHome: z.coerce.number().min(0).default(0), // ✅ Simplifie
-		otherAnimalsAtHome: z.string().max(255).optional(),
+	// PROFIL
+	firstName: z.string().min(1, 'Le prénom est obligatoire'),
+	lastName: z.string().min(1, 'Le nom est obligatoire'),
+	birthDate: stringToDate,
+	email: z.email('Email invalide'),
+	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
 
-		// Extérieur
-		outside: z.boolean().default(false),
-		outsideDescription: z.string().max(500).optional(),
-		isStockFeed: z.boolean().default(false),
+	// Adresse
+	address: z.string().min(1, "L'adresse est obligatoire"),
+	city: z.string().min(1, 'La ville est obligatoire'),
+	postalCode: z.string().min(5, 'Code postal invalide'),
+	district: districtEnum.nullable().optional(),
 
-		// Soins & Socialize
-		heal: healEnum,
-		socialize: socializeEnum,
-		car: z.boolean().default(false),
-		babyFeeding: babyFeedingEnum,
+	// HOST - Domicile
+	space: z.coerce
+		.number()
+		.int()
+		.min(10)
+		.positive("L'espace doit être un nombre positif d'au moins 10 m²"),
+	outside: stringToBoolean.default(false),
+	isStockFeed: stringToBoolean.default(false),
+	car: stringToBoolean.default(false),
 
-		// Disponibilité & Infos
-		additionalInformation: z.string().max(1000).optional() // ✅ Enlève .default('')
-	})
-	.superRefine((data, ctx) => {
-		// VALIDATION OUTSIDE
-		if (data.outside && !data.outsideDescription?.trim()) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['outsideDescription'],
-				message: "Veuillez décrire l'accès extérieur"
-			});
-		}
+	// Animaux
+	hasAnimalsAtHome: stringToBoolean.default(false),
+	numberOfCatsAtHome: z.coerce.number().int().min(0).nullable().optional(),
+	numberOfDogsAtHome: z.coerce.number().int().min(0).nullable().optional(),
+	otherAnimalsAtHome: z.string().nullable().optional(),
 
-		// VALIDATION ANIMAUX
-		if (data.hasAnimalsAtHome) {
-			const cats = data.numberOfCatsAtHome ?? 0;
-			const dogs = data.numberOfDogsAtHome ?? 0;
+	// Capacités
+	heal: healEnum,
+	socialize: socializeEnum,
+	babyFeeding: babyFeedingEnum,
 
-			if (cats < 0) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['numberOfCatsAtHome'],
-					message: 'Le nombre de chats doit être positif'
-				});
-			}
+	// Cat
+	catAdult: z.coerce.number().int().min(0).default(0),
+	kittyAndKitten: z.coerce.boolean().default(false),
+	kitten: z.coerce.number().int().min(0).default(0),
 
-			if (dogs < 0) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['numberOfDogsAtHome'],
-					message: 'Le nombre de chiens doit être positif'
-				});
-			}
-		}
-	});
+	// Descriptions
+	homeDescription: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+	presence: z.string().default(''),
+	outsideDescription: z.string().optional().nullable(),
+	stopActivity: z.string().optional(),
+	additionalInformation: z.string().optional().nullable()
+});
 
-export type CreateHostSchema2 = z.infer<typeof createHostSchema>;
+export const updateHostSchema = createHostSchema.partial().extend({
+	hostId: z.uuid('ID invalide')
+});
+
+// ✅ Types TypeScript corrects
+export type CreateHostInput = z.infer<typeof createHostSchema>;
+export type UpdateHostInput = z.infer<typeof updateHostSchema>;

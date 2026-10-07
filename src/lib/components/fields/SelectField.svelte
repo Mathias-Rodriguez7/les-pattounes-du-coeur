@@ -26,7 +26,7 @@
 		label,
 		value = $bindable(),
 		options,
-		placeholder = 'SÃ©lectionner...',
+		placeholder = 'Sélectionner...',
 		disabled = false,
 		size = 'sm',
 		required = false,

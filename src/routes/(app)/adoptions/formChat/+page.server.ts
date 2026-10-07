@@ -1,6 +1,6 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { adoptionFormSchema } from '$lib/schemas/adoptionForm';
+import { adoptionFormSchema } from '$lib/schemas/formShema/adoptionForm';
 import prisma from '$lib/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
@@ -35,7 +35,11 @@ export const actions: Actions = {
 						firstName: form.data.firstName,
 						lastName: form.data.lastName,
 						phone: form.data.phone,
-						age: form.data.age,
+						birthDate: form.data.birthDate,
+						address: form.data.address,
+						city: form.data.city,
+						postalCode: form.data.postalCode,
+						district: form.data.district,
 
 						catPreferences: {
 							age: form.data.catAge,

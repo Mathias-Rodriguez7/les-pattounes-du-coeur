@@ -13,8 +13,10 @@ export function makeValidVolunteerForm(
 		phone: '0612345678',
 		email: 'jean@example.com',
 		address: '10 rue de Paris',
-		age: 30,
-		job: 'Infirmier',
+		birthDate: '1990-01-01',
+		city: 'Montpellier',
+		postalCode: '34000',
+		district: 'PRES_D_ARENES',
 
 		hasCatExperience: true,
 		catExperienceDescription: 'Expérience avec chats',

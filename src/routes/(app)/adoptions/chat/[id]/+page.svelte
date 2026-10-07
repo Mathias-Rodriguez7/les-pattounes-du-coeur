@@ -9,7 +9,7 @@
 		QuickAdoptionFormSchema,
 		step1Schema,
 		step2Schema
-	} from '$lib/schemas/quickAdoptionForm';
+	} from '$lib/schemas/formShema/quickAdoptionForm';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { get } from 'svelte/store';

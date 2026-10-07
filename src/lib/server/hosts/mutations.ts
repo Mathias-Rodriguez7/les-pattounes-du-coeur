@@ -5,7 +5,7 @@ import {
 	updateHostSchema,
 	type CreateHostInput,
 	type UpdateHostInput
-} from './schemas';
+} from '../../schemas/host';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [

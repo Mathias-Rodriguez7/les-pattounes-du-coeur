@@ -145,29 +145,15 @@ model Sickness {
 }
 
 model MediaCat {
-  id          String    @id @default(uuid()) @db.Uuid
-  catId       String    @db.Uuid
-  cat         Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
-
-  type        MediaType
-  key         String    @db.VarChar(500)
-  filename    String    @db.VarChar(255)
-  mimeType    String    @db.VarChar(100)
-  size        Int       @db.Integer       // Int max ~2 Go, suffisant ici
-
-  // Images uniquement
+  id          String   @id @default(uuid()) @db.Uuid
+  catId       String   @db.Uuid
+  cat         Cat      @relation(fields: [catId], references: [id])
+  picture     String?  @db.VarChar(255)
+  fille       String?  @db.VarChar(255)
   focalPointX Int?      @db.Integer
   focalPointY Int?      @db.Integer
-  isMain      Boolean   @default(false)
-
-  // Vidéos uniquement
-  thumbnailKey String?  @db.VarChar(500)  // miniature (voir ci-dessous)
-  duration     Int?     @db.Integer       // secondes, optionnel
-
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
-
-  @@index([catId])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
 }
 
 model News {
