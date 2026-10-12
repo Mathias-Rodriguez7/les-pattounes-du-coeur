@@ -1,103 +1,77 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import SaveCancelButtons from '../SaveCancelButtons.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import type { VolunteerEditData } from '$lib/types/volunteer';
 	import {
-		updateVolunteerAction,
-		deleteVolunteerAction,
-		blacklistVolunteerAction
-	} from '$lib/utils/volunteerActions';
-	import Icon from '$lib/components/Icon.svelte';
+		VOLUNTEER_STATUS_OPTIONS,
+		VOLUNTEER_ROLE_OPTIONS,
+		VOLUNTEER_SECTION_CONFIG
+	} from '$lib/constants/volunteer';
+	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
-
-	interface Props {
-		editData: {
-			firstName: string;
-			lastName: string;
-			email: string;
-			phone: string;
-			district: string;
-			address: string;
-			city: string;
-			postalCode: string;
-			actif: string;
-			role: string;
-		};
-		volunteerId?: string;
-		onSuccess?: () => void;
-		onCancel?: () => void;
-		isSaving?: boolean;
-		isDeleting?: boolean;
-	}
+	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
+	import DeleteButton from '../buttons/DeleteButton.svelte';
+	import BlacklistButton from '../buttons/BlacklistButton.svelte';
+	import InputField from '../fields/InputField.svelte';
+	import SelectField from '../fields/SelectField.svelte';
+	import SectionCard from '../cards/SectionCard.svelte';
+	import DatePicker from '../fields/DatePicker.svelte';
+	import DateRangePicker from '../fields/DateRangePicker.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { X } from '@lucide/svelte';
 
 	let {
-		editData = $bindable(),
+		editData = $bindable<VolunteerEditData>(),
 		volunteerId,
+		profileId,
 		onSuccess,
-		onCancel,
-		isSaving = false,
-		isDeleting = false
-	}: Props = $props();
+		onCancel
+	} = $props();
 
+	// États
+	let isSaving = $state(false);
+	let isDeleting = $state(false);
 	let isBlacklisting = $state(false);
-	let showBlacklistDialog = $state(false);
-	let blacklistReason = $state('');
 
-	let selectedRole = $derived(editData.role);
-	let selectedStatus = $derived(editData.actif);
-	let selectedDistrict = $derived(editData.district);
+	let formErrors = $state({
+		firstName: '',
+		lastName: '',
+		email: '',
+		phone: '',
+		address: '',
+		city: '',
+		postalCode: ''
+	});
 
-	const statusOptions = [
-		{ value: 'ACTIVE', label: 'En activité' },
-		{ value: 'BREAK', label: 'En pause' },
-		{ value: 'STOP', label: 'Arrêté' }
-	];
+	// ✅ DERIVED : Afficher DateRangePicker si statut = 'BREAK'
+	let showBreakDateRange = $derived(editData.actif === 'BREAK');
 
-	const roleOptions = [
-		{ value: 'ADMIN', label: 'Admin' },
-		{ value: 'MANAGER', label: 'Manager' },
-		{ value: 'COMMUNICATION', label: 'Communication' }
-	];
+	// Dérivés
+	let districtOptions = $derived(
+		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
+	);
 
-	const handleRoleChange = (value: string) => {
-		editData.role = value;
-	};
-
-	const handleStatusChange = (value: string) => {
-		editData.actif = value;
-	};
-
-	const handleDistrictChange = (value: string) => {
-		editData.district = value;
-	};
-
-	const handleSubmit = async (e: Event) => {
-		e.preventDefault();
-
-		if (!volunteerId) {
-			console.error('❌ volunteerId manquant');
-			toast.error('Erreur: ID bénévole manquant');
-			return;
-		}
-
+	// Handlers
+	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
 		isSaving = true;
 
-		await updateVolunteerAction({
-			volunteerId,
-			data: editData,
-			onLocalUpdate: (updatedVolunteer) => {
-				console.log('✅ Local update:', updatedVolunteer);
+		formData.append('volunteerId', volunteerId || '');
+
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				toast.success('la Bénévole mis à jour avec succès ! ✅');
 				if (onSuccess) {
 					onSuccess();
 				}
+			} else if (result.type === 'failure') {
+				console.error('Erreur mise à jour:', result.data);
+				toast.error(result.data?.error || 'Erreur lors de la mise à jour');
 			}
-		});
 
-		isSaving = false;
+			await update();
+			isSaving = false;
+		};
 	};
 
 	const handleCancelClick = () => {
@@ -107,305 +81,238 @@
 		}
 	};
 
-	const handleConfirmDelete = async () => {
-		if (!volunteerId) {
-			console.error('❌ volunteerId manquant');
-			toast.error('Erreur: ID bénévole manquant');
-			return;
-		}
-
-		isDeleting = true;
-
-		await deleteVolunteerAction(volunteerId, () => {
-			console.log('✅ Local delete');
-			if (onSuccess) {
-				onSuccess();
-			}
-		});
-
+	const handleDeleted = () => {
 		isDeleting = false;
+		if (onSuccess) {
+			onSuccess();
+		}
 	};
 
-	const handleBlacklistClick = () => {
-		showBlacklistDialog = true;
-		blacklistReason = '';
-	};
-
-	const handleConfirmBlacklist = async () => {
-		if (!volunteerId) {
-			console.error('❌ volunteerId manquant');
-			toast.error('Erreur: ID bénévole manquant');
-			return;
-		}
-
-		if (!blacklistReason.trim()) {
-			toast.error('Veuillez entrer une raison');
-			return;
-		}
-
-		isBlacklisting = true;
-
-		const success = await blacklistVolunteerAction(volunteerId, editData.email, blacklistReason);
-
-		if (success) {
-			showBlacklistDialog = false;
-			blacklistReason = '';
-			if (onSuccess) {
-				onSuccess();
-			}
-		}
-
+	const handleBlacklisted = () => {
 		isBlacklisting = false;
+		if (onSuccess) {
+			onSuccess();
+		}
 	};
 
-	const handleCancelBlacklist = () => {
-		showBlacklistDialog = false;
-		blacklistReason = '';
+	// ✅ Handler pour la plage de dates
+	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
+		editData.breakStartDate = dates.start;
+		editData.breakEndDate = dates.end;
 	};
 </script>
 
-<!-- ✅ FORMULAIRE -->
-<form onsubmit={handleSubmit} class="space-y-6">
-	<!-- SECTION 1: CONTACT -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Contact</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			<div class="space-y-2">
-				<label for="firstname-input" class="text-sm font-medium text-gray-700">Prénom</label>
-				<Input
-					id="firstname-input"
+<!-- ✅ FORMULAIRE UPDATE -->
+<form method="POST" action="?/updateVolunteer" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<div class="flex items-center justify-between">
+		<h2 class="text-lg font-semibold">
+			Éditer la FA: {editData.firstName || 'Sans nom'}
+			{editData.lastName || 'Sans nom'}
+		</h2>
+
+		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
+			<X class="h-5 w-5" />
+		</Button>
+	</div>
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Statu -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
+			title={VOLUNTEER_SECTION_CONFIG.statuts.label}
+			color={VOLUNTEER_SECTION_CONFIG.statuts.color}
+		>
+			<div class="grid grid-cols-2 gap-4">
+				<SelectField
+					id="actif"
+					name="actif"
+					label="Statut activité"
+					bind:value={editData.actif}
+					options={VOLUNTEER_STATUS_OPTIONS}
+					size="sm"
+					required
+				/>
+
+				<SelectField
+					id="role"
+					name="role"
+					label="Rôle"
+					bind:value={editData.role}
+					options={VOLUNTEER_ROLE_OPTIONS}
+					size="sm"
+					required
+				/>
+
+				<!-- ✅ AFFICHAGE CONDITIONNEL : DateRangePicker apparaît si statut = 'BREAK' -->
+				{#if showBreakDateRange}
+					<div class="col-span-2">
+						<DateRangePicker
+							startValue={editData.breakStart}
+							endValue={editData.breakEnd}
+							startName="breakStart"
+							endName="breakEnd"
+							label="Période de congé"
+							onSelect={handleBreakDateRangeSelect}
+						/>
+					</div>
+				{/if}
+			</div>
+		</SectionCard>
+
+		<!-- Profil -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
+			title={VOLUNTEER_SECTION_CONFIG.profile.label}
+			color={VOLUNTEER_SECTION_CONFIG.profile.color}
+		>
+			<div class="grid grid-cols-2 gap-4">
+				<InputField
+					id="firstName"
 					name="firstName"
+					label="Prénom"
 					bind:value={editData.firstName}
-					placeholder="Jean"
-					disabled={isSaving || isDeleting || isBlacklisting}
+					error={formErrors.firstName}
+					size="sm"
+					required
 				/>
-			</div>
 
-			<div class="space-y-2">
-				<label for="lastname-input" class="text-sm font-medium text-gray-700">Nom</label>
-				<Input
-					id="lastname-input"
+				<InputField
+					id="lastName"
 					name="lastName"
+					label="Nom"
 					bind:value={editData.lastName}
-					placeholder="Dupont"
-					disabled={isSaving || isDeleting || isBlacklisting}
+					error={formErrors.lastName}
+					size="sm"
+					required
+				/>
+
+				<DatePicker
+					name="birthDate"
+					value={editData.birthDate}
+					onSelect={(date) => (editData.birthDate = date)}
+					label="Date de naissance"
 				/>
 			</div>
+		</SectionCard>
+	</section>
+	<Separator />
 
-			<div class="space-y-2">
-				<label for="email-input" class="text-sm font-medium text-gray-700">Email</label>
-				<Input
-					id="email-input"
+	<section class="grid grid-cols-2 gap-4">
+		<!-- Adresse -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+			title={VOLUNTEER_SECTION_CONFIG.address.label}
+			color={VOLUNTEER_SECTION_CONFIG.address.color}
+		>
+			<div class="space-y-4">
+				<InputField
+					id="address"
+					name="address"
+					label="Rue"
+					bind:value={editData.address}
+					placeholder="Adresse"
+					error={formErrors.address}
+					required
+					size="sm"
+				/>
+
+				<div class="flex gap-4">
+					<InputField
+						id="city"
+						name="city"
+						label="Ville"
+						bind:value={editData.city}
+						placeholder="Ville"
+						error={formErrors.city}
+						required
+						size="sm"
+					/>
+
+					<InputField
+						id="postalCode"
+						name="postalCode"
+						label="Code postal"
+						bind:value={editData.postalCode}
+						placeholder="75000"
+						error={formErrors.postalCode}
+						required
+						size="sm"
+					/>
+
+					<SelectField
+						id="district"
+						name="district"
+						label="Quartier"
+						bind:value={editData.district}
+						options={districtOptions}
+						size="sm"
+					/>
+				</div>
+			</div>
+		</SectionCard>
+
+		<!-- Contact -->
+		<SectionCard
+			icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
+			title={VOLUNTEER_SECTION_CONFIG.contact.label}
+			color={VOLUNTEER_SECTION_CONFIG.contact.color}
+		>
+			<div class="grid gap-2">
+				<InputField
+					id="phone"
+					name="phone"
+					label="Téléphone"
+					bind:value={editData.phone}
+					placeholder="06 12 34 56 78"
+					error={formErrors.phone}
+					required
+					size="sm"
+				/>
+
+				<InputField
+					id="email"
 					name="email"
+					label="Email"
 					type="email"
 					bind:value={editData.email}
 					placeholder="jean@example.com"
-					disabled={isSaving || isDeleting || isBlacklisting}
+					error={formErrors.email}
+					required
+					size="sm"
 				/>
 			</div>
-
-			<div class="space-y-2">
-				<label for="phone-input" class="text-sm font-medium text-gray-700">Téléphone</label>
-				<Input
-					id="phone-input"
-					name="phone"
-					type="tel"
-					bind:value={editData.phone}
-					placeholder="06 12 34 56 78"
-					disabled={isSaving || isDeleting || isBlacklisting}
-				/>
-			</div>
-		</div>
-	</div>
+		</SectionCard>
+	</section>
 
 	<Separator />
 
-	<!-- SECTION 2: STATUT ET RÔLE + BLACKLIST -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Statut et Rôle</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-			<div class="space-y-2">
-				<label for="status-select" class="text-sm font-medium text-gray-700">Statut</label>
-				<Select.Root
-					type="single"
-					value={selectedStatus}
-					onValueChange={handleStatusChange}
-					disabled={isSaving || isDeleting || isBlacklisting}
-				>
-					<Select.Trigger id="status-select">
-						{statusOptions.find((opt) => opt.value === selectedStatus)?.label || 'Sélectionner'}
-					</Select.Trigger>
-					<Select.Content>
-						{#each statusOptions as option (option.value)}
-							<Select.Item value={option.value} label={option.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</div>
+	<!-- ✅ SECTION 4: BOUTONS ACTION -->
+	<section class="flex justify-between">
+		<div class="flex gap-4">
+			<BlacklistButton
+				{profileId}
+				firstName={editData.firstName}
+				lastName={editData.lastName}
+				email={editData.email}
+				{isBlacklisting}
+				{isSaving}
+				{isDeleting}
+				showBlacklist={true}
+				actionName="?/blacklistVolunteer"
+				buttonLabel="Ajouter à la liste noire"
+				onSuccess={handleBlacklisted}
+			/>
 
-			<div class="space-y-2">
-				<label for="role-select" class="text-sm font-medium text-gray-700">Rôle</label>
-				<Select.Root
-					type="single"
-					value={selectedRole}
-					onValueChange={handleRoleChange}
-					disabled={isSaving || isDeleting || isBlacklisting}
-				>
-					<Select.Trigger id="role-select">
-						{roleOptions.find((opt) => opt.value === selectedRole)?.label || 'Sélectionner'}
-					</Select.Trigger>
-					<Select.Content>
-						{#each roleOptions as option (option.value)}
-							<Select.Item value={option.value} label={option.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</div>
-
-			<!-- ✅ BOUTON BLACKLIST DANS LA SECTION 2 -->
-			<div>
-				<h3 class="text-sm font-medium text-gray-700">Actions</h3>
-				<Button
-					type="button"
-					variant="destructive"
-					disabled={isSaving || isDeleting || isBlacklisting}
-					onclick={handleBlacklistClick}
-					class="w-full"
-				>
-					<Icon name="blacklist" class="mr-2 h-4 w-4" />
-					{#if isBlacklisting}
-						Mise en liste noire...
-					{:else}
-						Ajouter à la liste noire
-					{/if}
-				</Button>
-			</div>
+			<DeleteButton
+				entityId={profileId}
+				firstName={editData.firstName}
+				lastName={editData.lastName}
+				{isDeleting}
+				{isSaving}
+				showDelete={true}
+				deleteConfirmMessage="Êtes-vous sûr de vouloir supprimer ce bénévole ?"
+				onSuccess={handleDeleted}
+			/>
 		</div>
-	</div>
-
-	<Separator />
-
-	<!-- SECTION 3: LOCALISATION -->
-	<div>
-		<h3 class="mb-4 text-sm font-semibold text-gray-900">Localisation</h3>
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			<div class="space-y-2">
-				<label for="address-input" class="text-sm font-medium text-gray-700">Adresse</label>
-				<Input
-					id="address-input"
-					name="address"
-					bind:value={editData.address}
-					placeholder="123 rue de la Paix"
-					disabled={isSaving || isDeleting || isBlacklisting}
-				/>
-			</div>
-
-			<div class="space-y-2">
-				<label for="city-input" class="text-sm font-medium text-gray-700">Ville</label>
-				<Input
-					id="city-input"
-					name="city"
-					bind:value={editData.city}
-					placeholder="Paris"
-					disabled={isSaving || isDeleting || isBlacklisting}
-				/>
-			</div>
-
-			<div class="space-y-2">
-				<label for="postalcode-input" class="text-sm font-medium text-gray-700">Code postal</label>
-				<Input
-					id="postalcode-input"
-					name="postalCode"
-					bind:value={editData.postalCode}
-					placeholder="75001"
-					disabled={isSaving || isDeleting || isBlacklisting}
-				/>
-			</div>
-
-			<div class="space-y-2">
-				<label for="district-select" class="text-sm font-medium text-gray-700">Quartier</label>
-				<Select.Root
-					type="single"
-					value={selectedDistrict}
-					onValueChange={handleDistrictChange}
-					disabled={isSaving || isDeleting || isBlacklisting}
-				>
-					<Select.Trigger id="district-select">
-						{Object.entries(DISTRICT_LABELS).find(([k]) => k === selectedDistrict)?.[1] ||
-							'Sélectionner'}
-					</Select.Trigger>
-					<Select.Content>
-						{#each Object.entries(DISTRICT_LABELS) as [key, label] (key)}
-							<Select.Item value={key} {label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
-			</div>
-		</div>
-	</div>
-
-	<Separator />
-
-	<!-- ✅ BOUTONS -->
-	<SaveCancelButtons
-		onCancel={handleCancelClick}
-		onDelete={handleConfirmDelete}
-		{isSaving}
-		{isDeleting}
-		showDelete={true}
-		deleteConfirmMessage="Êtes-vous sûr de vouloir supprimer ce bénévole ?"
-		class="pt-4"
-	/>
+		<SaveCancelButtons onCancel={handleCancelClick} {isSaving} />
+	</section>
 </form>
-
-<!-- ✅ DIALOG BLACKLIST -->
-<Dialog.Root bind:open={showBlacklistDialog}>
-	<Dialog.Content>
-		<Dialog.Header>
-			<Dialog.Title>🚫 Blacklister</Dialog.Title>
-		</Dialog.Header>
-
-		<div class="space-y-4 py-4">
-			<p class="text-sm text-gray-600">
-				Vous êtes sur le point de blacklister <strong
-					>{editData.firstName} {editData.lastName}</strong
-				>.
-			</p>
-
-			<div class="space-y-2">
-				<label for="reason-input" class="text-sm font-medium text-gray-700">Raison</label>
-				<textarea
-					id="reason-input"
-					bind:value={blacklistReason}
-					placeholder="Entrez la raison de la mise en liste noire..."
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-					rows="4"
-					disabled={isBlacklisting}
-				></textarea>
-			</div>
-		</div>
-
-		<Dialog.Footer>
-			<Button
-				type="button"
-				variant="outline"
-				disabled={isBlacklisting}
-				onclick={handleCancelBlacklist}
-			>
-				Annuler
-			</Button>
-			<Button
-				type="button"
-				variant="destructive"
-				disabled={isBlacklisting || !blacklistReason.trim()}
-				onclick={handleConfirmBlacklist}
-			>
-				{#if isBlacklisting}
-					Mise en liste noire...
-				{:else}
-					Confirmer la mise en liste noire
-				{/if}
-			</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>

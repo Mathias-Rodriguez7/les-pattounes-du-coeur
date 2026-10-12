@@ -20,14 +20,15 @@
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
 		children: Snippet;
 		showCloseButton?: boolean;
-		size?: 'sm' | 'md' | 'lg' | 'xl';
+		size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 	} = $props();
 
 	const sizes = {
 		sm: 'max-w-[95vw] sm:max-w-sm',
 		md: 'max-w-[95vw] sm:max-w-md lg:max-w-lg',
 		lg: 'max-w-[95vw] sm:max-w-lg lg:max-w-xl',
-		xl: 'max-w-[95vw] sm:max-w-xl lg:max-w-6xl'
+		xl: 'max-w-[95vw] sm:max-w-xl lg:max-w-6xl',
+		xxl: 'max-w-[95vw] sm:max-w-xl lg:max-w-[96rem]'
 	} as const;
 </script>
 

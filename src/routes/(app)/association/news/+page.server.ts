@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { mapNews } from '$lib/mappers/news';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const newsId = url.searchParams.get('news');
@@ -11,7 +10,15 @@ export const load: PageServerLoad = async ({ url }) => {
 			cats: {
 				include: {
 					cat: {
-						include: { media: true }
+						select: {
+							id: true, // ← IMPORTANT
+							name: true,
+							catNumber: true,
+							status: true,
+							birthDate: true,
+							description: true,
+							media: true
+						}
 					}
 				}
 			}
@@ -19,7 +26,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	});
 
 	return {
-		news: news.map(mapNews),
+		news,
 		selectedNewsId: newsId
 	};
 };

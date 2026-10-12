@@ -1,0 +1,43 @@
+export const FORM_SECTION_CONFIG = {
+	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	address: { icon: 'map', label: 'Adresse', color: 'gray' },
+	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
+	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
+	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
+	capacity: { icon: 'biceps', label: 'Capacités', color: 'indigo' },
+	cat: { icon: 'cat', label: 'Type de chats', color: 'fuchsia' },
+	homeDescription: { icon: 'house', label: 'Description du domicile', color: 'blue' },
+	presence: { icon: 'clock', label: 'Présence à domicile', color: 'indigo' },
+	outsideDescription: { icon: 'trees', label: 'Description du jardin', color: 'green' },
+	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' },
+	foyer: { icon: 'house', label: 'Description du foyer', color: 'blue' },
+	notes: { icon: 'note', label: 'Notes', color: 'gray' }
+} as const;
+
+export const FORM_TYPE_OPTIONS = [
+	{ value: 'ADOPTION', label: 'Adoption' },
+	{ value: 'VOLUNTEER', label: 'Bénévole' },
+	{ value: 'HOST', label: 'FA' },
+	{ value: 'COLAB', label: 'Collaboration' },
+	{ value: 'OTHER', label: 'Autre' }
+];
+
+export const FORM_STATUS_OPTIONS = [
+	{ value: 'PENDING', label: 'En attente' },
+	{ value: 'APPROVED', label: 'Approuvé' },
+	{ value: 'REJECTED', label: 'Rejeté' }
+];
+
+export const statusColors: Record<string, { label: string; color: string }> = {
+	PENDING: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+	APPROVED: { label: 'Approuvé', color: 'bg-green-100 text-green-800' },
+	REJECTED: { label: 'Rejeté', color: 'bg-red-100 text-red-800' }
+};
+
+export const typesLabels: Record<string, { label: string; color: string }> = {
+	ADOPTION: { label: 'Ado', color: 'bg-rose-100 text-rose-800' },
+	VOLUNTEER: { label: 'Bén', color: 'bg-purple-100 text-purple-800' },
+	HOST: { label: 'FA', color: 'bg-emerald-100 text-emerald-800' },
+	COLAB: { label: 'Col', color: 'bg-orange-100 text-orange-800' },
+	OTHER: { label: 'Aut', color: 'bg-gray-100 text-gray-800' }
+};

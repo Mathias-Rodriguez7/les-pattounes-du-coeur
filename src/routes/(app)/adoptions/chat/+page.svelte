@@ -9,11 +9,11 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CatCard from '$lib/components/cats/CatCard.svelte';
 	import CatDialog from '$lib/components/cats/CatDialog.svelte';
-	import type { Cat } from '$lib/types/cat';
+	import type { CatFull } from '$lib/types/cat';
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
-		cats: Cat[];
+		cats: CatFull[];
 		selectedCatId?: string | null;
 	};
 
@@ -22,7 +22,7 @@
 	// -----------------------------
 	// STATE
 	// -----------------------------
-	let selectedCat = $state<Cat | null>(null);
+	let selectedCat = $state<CatFull | null>(null);
 	let isOpen = $state(false);
 
 	type AgeFilter = 'ALL' | 'CHATON' | 'JUNIOR' | 'ADULT' | 'SENIOR';
@@ -64,7 +64,7 @@
 	// -----------------------------
 	// ACTIONS
 	// -----------------------------
-	function openCat(cat: Cat) {
+	function openCat(cat: CatFull) {
 		selectedCat = cat;
 		isOpen = true;
 	}
@@ -87,7 +87,7 @@
 	// -----------------------------
 	// FILTER LOGIC
 	// -----------------------------
-	function matches(cat: Cat) {
+	function matches(cat: CatFull) {
 		// SEARCH
 		if (filters.search && !cat.name?.toLowerCase().includes(filters.search.toLowerCase())) {
 			return false;

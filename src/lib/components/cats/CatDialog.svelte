@@ -1,12 +1,13 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
-	import type { Cat } from '$lib/types/cat';
+	import type { CatFull } from '$lib/types/cat';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import SexIcon from '$lib/components/cats/SexIcon.svelte';
 	import { focalPointClass } from '$lib/utils/catHelpers';
+	import { getAgeBadge } from '$lib/utils/age';
 
-	let { selectedCat }: { selectedCat: Cat | null } = $props();
+	let { selectedCat }: { selectedCat: CatFull | null } = $props();
 
 	let currentPhoto = $state(0);
 
@@ -22,7 +23,7 @@
 			<div class="text-muted-foreground flex gap-2 text-sm">
 				<span class="flex gap-2">
 					<SexIcon sex={selectedCat.sex} class="size-4" />
-					{selectedCat.formattedAge}
+					{getAgeBadge(selectedCat.birthDate)}
 				</span>
 			</div>
 		</Dialog.Header>

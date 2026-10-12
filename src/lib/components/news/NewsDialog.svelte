@@ -4,12 +4,23 @@
 	import NewsCatDialog from '$lib/components/news/NewsCatDialog.svelte';
 
 	let { selectedNews }: { selectedNews: News | null } = $props();
+
+	// Extrait les vrais chats depuis la relation
+	const extractedCats = $derived(
+		selectedNews?.type === 'NEWSCATS' && selectedNews?.cats
+			? selectedNews.cats
+					.map((item: any) => item.cat || item) // Gère les deux formats
+					.filter((cat: any) => cat && cat.id)
+			: []
+	);
+
+	console.log('Extracted cats:', extractedCats);
 </script>
 
 <Dialog.Content size="xl" class="bg-background">
 	{#if selectedNews}
 		<Dialog.Header class="flex justify-between p-6">
-			<div class=" flex justify-between">
+			<div class="flex justify-between">
 				<Dialog.Title>{selectedNews.title}</Dialog.Title>
 				<p class="text-sm opacity-70">{selectedNews.formattedDate}</p>
 			</div>
@@ -18,7 +29,7 @@
 		<div class="">
 			<!-- 🐱 MODE NEWSCATS -->
 			{#if selectedNews.type === 'NEWSCATS'}
-				<NewsCatDialog cats={selectedNews.cats} />
+				<NewsCatDialog cats={extractedCats} />
 
 				<!-- 📄 MODE PDF -->
 			{:else if selectedNews.mediaUrl}

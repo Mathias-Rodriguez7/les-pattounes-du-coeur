@@ -1,45 +1,61 @@
-export type MediaCat = {
-	id: string;
-	catId: string;
-	picture: string | null;
-	fille: string | null;
-	created_at: Date;
-	updated_at: Date;
-};
+export type {
+	Profil,
+	Volunteer,
+	Host,
+	Cat,
+	Placement,
+	Adoption,
+	Session,
+	Form,
+	Care,
+	Sickness,
+	MediaCat,
+	News,
+	NewsCat,
+	CatVolunteer,
+	BlacklistHistoric,
+	District,
+	ColabActivity,
+	VolunteerRole,
+	HostType,
+	Heal,
+	Socialize,
+	BabyFeeding,
+	SexCat,
+	CatStatus,
+	HairLength,
+	Vaccinate,
+	CareType,
+	NewsType,
+	PlacementType,
+	FormType,
+	FormStatus,
+	SicknessStatus
+} from '@prisma/client';
 
-export type CatWithMedia = {
-	id: string;
-	name: string | null;
-	sex: string;
-	birthDate: Date | null;
-	isVisible: boolean;
-	status: string;
-	hairLength: string | null;
-	color: string | null;
-	origin: string | null;
-	isSterilize: boolean;
-	isAlreadySterilized: boolean;
-	sickness: string | null;
-	treatment: string | null;
-	vaccinate: string | null;
-	isFivTest: boolean;
-	isDeworming: boolean;
-	description: string | null;
-	isOkCat: boolean | null;
-	isOkDog: boolean | null;
-	isOkChild: boolean | null;
-	isOutside: boolean | null;
-	isIdentify: boolean;
-	chipId: string | null;
-	focalPoint: string | null;
-	created_at: Date;
-	updated_at: Date;
-	media: MediaCat[];
-};
+export type { HostFull, HostEditData, HostFormErrors } from './host';
 
-export type AdoptionTrendItem = {
-	created_at: Date;
-	_count: {
-		id: number;
-	};
-};
+export type {
+	VolunteerWithRelations,
+	VolunteerEditData,
+	CatVolunteerWithRelations,
+	VolunteerEditFormState
+} from './volunteer';
+
+export type { CatFull, CatMedia, Cat as CatType } from './cat';
+
+export type { PlacementFull } from './placement';
+export type { CatWithMedia, AdoptionTrendItem } from './media';
+
+// Config & labels - TOUT
+export {
+	hostTypeLabel,
+	colabActivityLabel,
+	healLabel,
+	socializeLabel,
+	babyFeedingLabel,
+	FORM_TYPE_CONFIG,
+	FORM_TYPE_LABELS,
+	FORM_TYPES,
+	STATUS_CONFIG
+} from './labels';

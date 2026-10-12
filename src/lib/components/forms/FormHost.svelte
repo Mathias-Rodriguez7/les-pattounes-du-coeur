@@ -1,62 +1,50 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label';
-
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
-
 	import { toast } from 'svelte-sonner';
-
+	import { get } from 'svelte/store';
+	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import {
 		hostFormSchema,
 		hostStep1Schema,
 		hostStep2Schema,
 		hostStep3Schema,
 		hostStep4Schema
-	} from '$lib/schema/hostForm';
-
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
-
-	import { zod4Client } from 'sveltekit-superforms/adapters';
-
-	import { get } from 'svelte/store';
+	} from '$lib/schemas/formShema/hostForm';
+	import InputField from '$lib/components/fields/InputField.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '$lib/components/fields/TextareaField.svelte';
+	import DatePicker from '$lib/components/fields/DatePicker.svelte';
+	import { DISTRICT_LABELS } from '$lib/utils/districts';
 
 	let { data } = $props<{
 		data: SuperValidated<Infer<typeof hostFormSchema>>;
 	}>();
 
-	// FORM
+	let step = $state(1);
+	const totalSteps = 4;
+	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
+
 	const form = superForm(data, {
 		validators: zod4Client(hostFormSchema),
-
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Candidature envoyée avec succès 🎉');
 				form.reset();
 				step = 1;
 			}
-
 			if (result.type === 'failure') {
 				toast.error("Une erreur s'est produite ❌");
 			}
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors, delayed } = form;
 
-	// STEP
-	let step = $state(1);
-
-	const totalSteps = 4;
-
-	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
-
-	function validateCurrentStep() {
-		let schema =
+	// Validation par étape + affichage des erreurs
+	function validateCurrentStep(): boolean {
+		const schema =
 			step === 1
 				? hostStep1Schema
 				: step === 2
@@ -65,7 +53,21 @@
 						? hostStep3Schema
 						: hostStep4Schema;
 
-		return schema.safeParse(get(formData)).success;
+		const result = schema.safeParse(get(formData));
+
+		if (!result.success) {
+			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			errors.update((current) => {
+				const next = { ...current } as Record<string, string[] | undefined>;
+				for (const [key, messages] of Object.entries(fieldErrors)) {
+					next[key] = messages;
+				}
+				return next as typeof current;
+			});
+			toast.error('Veuillez corriger les erreurs avant de continuer');
+			return false;
+		}
+		return true;
 	}
 
 	function nextStep() {
@@ -77,260 +79,271 @@
 		if (step > 1) step--;
 	}
 
-	// DATA
+	// DatePicker manipule un Date, le schéma attend 'YYYY-MM-DD'
+	let birthDate = $state<Date | undefined>(undefined);
+	function onBirthDateSelect(date: Date) {
+		birthDate = date;
+		$formData.birthDate = date.toISOString().split('T')[0] as never;
+	}
+
+	const districtOptions = $derived(
+		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
+	);
+
+	// OPTIONS
 	const hostTypes = [
 		{ value: 'CLASSIC', label: "Famille d'accueil classique" },
 		{ value: 'RELAY', label: 'Famille relais' }
 	];
 
-	const spaces = [
+	const spaceOptions = [
 		{ value: 'SMALL', label: 'Petit espace' },
 		{ value: 'MEDIUM', label: 'Espace moyen' },
 		{ value: 'LARGE', label: 'Grand espace' }
 	];
 
-	const healLevels = [
+	const healOptions = [
 		{ value: 'NO', label: 'Aucun soin' },
 		{ value: 'LIGHT', label: 'Soins légers' },
 		{ value: 'HEAVY', label: 'Soins importants' },
 		{ value: 'HEAVY_STING', label: 'Soins très lourds' }
 	];
 
-	const socializeLevels = [
+	const socializeOptions = [
 		{ value: 'NO', label: 'Non' },
 		{ value: 'FEARFUL', label: 'Chats craintifs' },
 		{ value: 'WITHOUT_EX', label: 'Sans expérience' },
 		{ value: 'EXPERIENCED', label: 'Expérimenté' }
 	];
 
-	const babyFeedingLevels = [
+	const babyFeedingOptions = [
 		{ value: 'NO', label: 'Non' },
 		{ value: 'WITHOUT_EX', label: 'Sans expérience' },
 		{ value: 'EXPERIENCED', label: 'Expérimenté' },
 		{ value: 'RELAY', label: 'Relais biberonnage' }
 	];
 
-	// STYLE
-	const fieldClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
+	const presenceOptions = [
+		{ value: 'FULL_TIME_HOME', label: 'Toujours à la maison' },
+		{ value: 'HOME_HALF_DAY', label: 'Présent une bonne partie de la journée' },
+		{ value: 'EVENINGS_ONLY', label: 'Présent surtout le soir' },
+		{ value: 'WEEKENDS_ONLY', label: 'Disponible le week-end' },
+		{ value: 'OCCASIONAL', label: 'Présence occasionnelle' }
+	];
 
-	const textareaClass = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl px-4 py-3';
-
-	const selectClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10';
+	const durationOptions = [
+		{ value: 'LESS_THAN_1_MONTH', label: "Moins d'1 mois" },
+		{ value: '1_TO_3_MONTHS', label: '1 à 3 mois' },
+		{ value: '3_TO_6_MONTHS', label: '3 à 6 mois' },
+		{ value: 'MORE_THAN_6_MONTHS', label: 'Plus de 6 mois' },
+		{ value: 'LONG_TERM', label: 'Long terme' }
+	];
 </script>
 
 <form method="POST" action="?/host" use:enhance class="space-y-8">
 	<!-- STEP 1 -->
 	<div class:hidden={step !== 1} class="space-y-6">
-		<h2 class="text-xl font-semibold">Informations personnelles</h2>
-
-		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="firstName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Prénom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="lastName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Nom <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+		<div class="space-y-2">
+			<h2 class="text-2xl font-semibold">Informations personnelles</h2>
+			<p class="text-muted-foreground text-sm">Parlez-nous un peu de vous.</p>
 		</div>
 
-		<Form.Field {form} name="email">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Email <span class="text-destructive">*</span></Form.Label>
-					<Input type="email" {...props} bind:value={$formData.email} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-
 		<div class="grid grid-cols-2 gap-4">
-			<Form.Field {form} name="phone">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Téléphone <span class="text-destructive">*</span></Form.Label>
-						<Input {...props} bind:value={$formData.phone} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="age">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Âge <span class="text-destructive">*</span></Form.Label>
-						<Input type="number" {...props} bind:value={$formData.age} class={fieldClass} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<InputField
+				id="firstName"
+				name="firstName"
+				label="Prénom"
+				required
+				size="sm"
+				bind:value={$formData.firstName}
+				placeholder="Jean"
+				error={$errors.firstName?.[0]}
+			/>
+			<InputField
+				id="lastName"
+				name="lastName"
+				label="Nom"
+				required
+				size="sm"
+				bind:value={$formData.lastName}
+				placeholder="Dupont"
+				error={$errors.lastName?.[0]}
+			/>
+			<DatePicker
+				name="birthDate"
+				value={birthDate}
+				onSelect={onBirthDateSelect}
+				label="Date de naissance"
+				error={$errors.birthDate?.[0]}
+			/>
 		</div>
 
-		<Form.Field {form} name="address">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Adresse <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.address} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<div class="grid grid-cols-2 gap-2">
+			<InputField
+				id="email"
+				name="email"
+				label="Email"
+				type="email"
+				required
+				size="sm"
+				bind:value={$formData.email}
+				placeholder="jean@example.com"
+				error={$errors.email?.[0]}
+			/>
+			<InputField
+				id="phone"
+				name="phone"
+				label="Téléphone"
+				required
+				size="sm"
+				placeholder="06 12 34 56 78"
+				bind:value={$formData.phone}
+				error={$errors.phone?.[0]}
+			/>
+		</div>
 
-		<Form.Field {form} name="job">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Profession <span class="text-destructive">*</span></Form.Label>
-					<Input {...props} bind:value={$formData.job} class={fieldClass} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<div class="space-y-4">
+			<InputField
+				id="address"
+				name="address"
+				label="Adresse"
+				required
+				size="sm"
+				bind:value={$formData.address}
+				placeholder="123 rue de la Paix"
+				error={$errors.address?.[0]}
+			/>
+			<div class="grid grid-cols-3 gap-4">
+				<InputField
+					id="city"
+					name="city"
+					label="Ville"
+					required
+					size="sm"
+					bind:value={$formData.city}
+					placeholder="Montpellier"
+					error={$errors.city?.[0]}
+				/>
+				<InputField
+					id="postalCode"
+					name="postalCode"
+					label="Code postal"
+					required
+					size="sm"
+					bind:value={$formData.postalCode}
+					placeholder="34000"
+					error={$errors.postalCode?.[0]}
+				/>
+				{#if $formData.city?.toLowerCase() === 'montpellier'}
+					<SelectField
+						id="district"
+						name="district"
+						label="Quartier"
+						placeholder="Quartier"
+						size="sm"
+						options={districtOptions}
+						bind:value={$formData.district}
+					/>
+				{/if}
+			</div>
+		</div>
 	</div>
 
 	<!-- STEP 2 -->
 	<div class:hidden={step !== 2} class="space-y-6">
 		<h2 class="text-xl font-semibold">Accueil & capacités</h2>
 
-		<Form.Field {form} name="space">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Espace disponible <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.space}>
-						<Select.Trigger {...props} class={selectClass}>
-							{$formData.space ? spaces.find((s) => s.value === $formData.space)?.label : 'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each spaces as space (space.value)}
-									<Select.Item value={space.value}>{space.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-
-		<Form.Field {form} name="homeDescription">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Description du foyer <span class="text-destructive">*</span></Form.Label>
-					<Textarea
-						placeholder="Décrivez votre logement..."
-						{...props}
-						bind:value={$formData.homeDescription}
-						class={textareaClass}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-
-		<Form.Field {form} name="outside">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex items-center justify-between rounded-4xl border p-4"
-					>
-						<Form.Label>Accès extérieur</Form.Label>
-						<Checkbox
-							{...props}
-							checked={$formData.outside}
-							onCheckedChange={(v) => ($formData.outside = Boolean(v))}
-						/>
-					</Label>
-				{/snippet}
-			</Form.Control>
-		</Form.Field>
-
-		{#if $formData.outside}
-			<Form.Field {form} name="outsideDescription">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Description extérieur <span class="text-destructive">*</span></Form.Label>
-						<Textarea
-							placeholder="Jardin, balcon sécurisé..."
-							{...props}
-							bind:value={$formData.outsideDescription}
-							class={textareaClass}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+		<SelectField
+			id="space"
+			name="space"
+			label="Espace disponible"
+			placeholder="Choisir"
+			options={spaceOptions}
+			bind:value={$formData.space}
+			required
+			size="sm"
+		/>
+		{#if $errors.space}
+			<p class="-mt-4 text-xs text-red-500">{$errors.space[0]}</p>
 		{/if}
 
-		<Form.Field {form} name="hasAnimalsAtHome">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Label
-						class="hover:bg-secondary flex items-center justify-between rounded-4xl border p-4"
-					>
-						<Form.Label>🐾 Des animaux vivent déjà chez vous ?</Form.Label>
-						<Checkbox
-							{...props}
-							checked={$formData.hasAnimalsAtHome}
-							onCheckedChange={(v) => {
-								$formData.hasAnimalsAtHome = Boolean(v);
-								if (!v) {
-									$formData.numberOfCatsAtHome = undefined;
-									$formData.numberOfDogsAtHome = undefined;
-									$formData.otherAnimalsAtHome = undefined;
-								}
-							}}
-						/>
-					</Label>
-				{/snippet}
-			</Form.Control>
-		</Form.Field>
+		<TextareaField
+			id="homeDescription"
+			name="homeDescription"
+			label="Description du foyer"
+			placeholder="Décrivez votre logement..."
+			bind:value={$formData.homeDescription}
+			error={$errors.homeDescription?.[0]}
+			required
+		/>
+
+		<CheckboxField
+			id="outside"
+			name="outside"
+			label="Accès extérieur"
+			checked={$formData.outside}
+			onChange={(value) => {
+				$formData.outside = value;
+				if (!value) $formData.outsideDescription = undefined;
+			}}
+		/>
+
+		{#if $formData.outside}
+			<TextareaField
+				id="outsideDescription"
+				name="outsideDescription"
+				label="Description extérieur"
+				placeholder="Jardin, balcon sécurisé..."
+				bind:value={$formData.outsideDescription}
+				error={$errors.outsideDescription?.[0]}
+				required
+			/>
+		{/if}
+
+		<CheckboxField
+			id="hasAnimalsAtHome"
+			name="hasAnimalsAtHome"
+			label="Des animaux vivent déjà chez vous ?"
+			checked={$formData.hasAnimalsAtHome}
+			onChange={(value) => {
+				$formData.hasAnimalsAtHome = value;
+				if (!value) {
+					$formData.numberOfCatsAtHome = undefined;
+					$formData.numberOfDogsAtHome = undefined;
+					$formData.otherAnimalsAtHome = undefined;
+				}
+			}}
+		/>
 
 		{#if $formData.hasAnimalsAtHome}
 			<div class="grid grid-cols-2 gap-4">
-				<Form.Field {form} name="numberOfCatsAtHome">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>🐱 Chats</Form.Label>
-							<Input type="number" min="0" {...props} bind:value={$formData.numberOfCatsAtHome} />
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
-
-				<Form.Field {form} name="numberOfDogsAtHome">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>🐶 Chiens</Form.Label>
-							<Input type="number" min="0" {...props} bind:value={$formData.numberOfDogsAtHome} />
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
+				<InputField
+					id="numberOfCatsAtHome"
+					name="numberOfCatsAtHome"
+					label="Chats"
+					type="number"
+					min="0"
+					bind:value={$formData.numberOfCatsAtHome}
+					size="sm"
+				/>
+				<InputField
+					id="numberOfDogsAtHome"
+					name="numberOfDogsAtHome"
+					label="Chiens"
+					type="number"
+					min="0"
+					bind:value={$formData.numberOfDogsAtHome}
+					size="sm"
+				/>
 			</div>
 
-			<Form.Field {form} name="otherAnimalsAtHome">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>🐾 Autres animaux</Form.Label>
-						<Textarea
-							placeholder="Lapins, oiseaux, etc..."
-							{...props}
-							bind:value={$formData.otherAnimalsAtHome}
-						/>
-					{/snippet}
-				</Form.Control>
-			</Form.Field>
+			<TextareaField
+				id="otherAnimalsAtHome"
+				name="otherAnimalsAtHome"
+				label="Autres animaux"
+				placeholder="Lapins, oiseaux, etc..."
+				bind:value={$formData.otherAnimalsAtHome}
+			/>
 		{/if}
 	</div>
 
@@ -338,112 +351,69 @@
 	<div class:hidden={step !== 3} class="space-y-6">
 		<h2 class="text-xl font-semibold">Expérience & capacités</h2>
 
-		<Form.Field {form} name="type">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Type d'accueil <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.type}>
-						<Select.Trigger {...props} class={selectClass}>
-							{$formData.type
-								? hostTypes.find((t) => t.value === $formData.type)?.label
-								: 'Choisir un type'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each hostTypes as type (type.value)}
-									<Select.Item value={type.value}>{type.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="type"
+			name="type"
+			label="Type d'accueil"
+			placeholder="Choisir un type"
+			options={hostTypes}
+			bind:value={$formData.type}
+			required
+			size="sm"
+		/>
+		{#if $errors.type}
+			<p class="-mt-4 text-xs text-red-500">{$errors.type[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="heal">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Niveau de soins acceptés <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.heal}>
-						<Select.Trigger {...props} class={selectClass}>
-							{$formData.heal
-								? healLevels.find((h) => h.value === $formData.heal)?.label
-								: 'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each healLevels as heal (heal.value)}
-									<Select.Item value={heal.value}>{heal.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="heal"
+			name="heal"
+			label="Niveau de soins acceptés"
+			placeholder="Choisir"
+			options={healOptions}
+			bind:value={$formData.heal}
+			required
+			size="sm"
+		/>
+		{#if $errors.heal}
+			<p class="-mt-4 text-xs text-red-500">{$errors.heal[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="socialize">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Socialisation des chats <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.socialize}>
-						<Select.Trigger {...props} class={selectClass}>
-							{$formData.socialize
-								? socializeLevels.find((s) => s.value === $formData.socialize)?.label
-								: 'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each socializeLevels as s (s.value)}
-									<Select.Item value={s.value}>{s.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="socialize"
+			name="socialize"
+			label="Socialisation des chats"
+			placeholder="Choisir"
+			options={socializeOptions}
+			bind:value={$formData.socialize}
+			required
+			size="sm"
+		/>
+		{#if $errors.socialize}
+			<p class="-mt-4 text-xs text-red-500">{$errors.socialize[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="babyFeeding">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Biberonnage <span class="text-destructive">*</span></Form.Label>
-					<Select.Root type="single" bind:value={$formData.babyFeeding}>
-						<Select.Trigger {...props} class={selectClass}>
-							{$formData.babyFeeding
-								? babyFeedingLevels.find((b) => b.value === $formData.babyFeeding)?.label
-								: 'Choisir'}
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								{#each babyFeedingLevels as b (b.value)}
-									<Select.Item value={b.value}>{b.label}</Select.Item>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="babyFeeding"
+			name="babyFeeding"
+			label="Biberonnage"
+			placeholder="Choisir"
+			options={babyFeedingOptions}
+			bind:value={$formData.babyFeeding}
+			required
+			size="sm"
+		/>
+		{#if $errors.babyFeeding}
+			<p class="-mt-4 text-xs text-red-500">{$errors.babyFeeding[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="car">
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="flex items-center justify-between rounded-xl border p-4">
-						<Form.Label>Véhicule disponible</Form.Label>
-						<Checkbox
-							{...props}
-							checked={$formData.car}
-							onCheckedChange={(v) => ($formData.car = Boolean(v))}
-						/>
-					</div>
-				{/snippet}
-			</Form.Control>
-		</Form.Field>
+		<CheckboxField
+			id="car"
+			name="car"
+			label="Véhicule disponible"
+			checked={$formData.car}
+			onChange={(value) => ($formData.car = value)}
+		/>
 	</div>
 
 	<!-- STEP 4 -->
@@ -462,193 +432,78 @@
 			</div>
 
 			<div class="grid gap-4 md:grid-cols-3">
-				<Form.Field {form} name="canHostAdultCats">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Label
-								class={`flex cursor-pointer items-start gap-3 rounded-3xl border p-4 transition ${
-									$formData.canHostAdultCats ? 'border-primary bg-primary/5' : 'hover:bg-secondary'
-								}`}
-							>
-								<Checkbox
-									{...props}
-									checked={$formData.canHostAdultCats}
-									onCheckedChange={(v) => ($formData.canHostAdultCats = Boolean(v))}
-								/>
-								<div class="space-y-1">
-									<p class="text-sm font-medium">🐱 Chats adultes</p>
-									<p class="text-muted-foreground text-xs">Accueil de chats adultes seuls.</p>
-								</div>
-							</Label>
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
+				<CheckboxField
+					id="canHostAdultCats"
+					name="canHostAdultCats"
+					label="🐱 Chats adultes (accueil de chats adultes seuls)"
+					checked={$formData.canHostAdultCats}
+					onChange={(value) => ($formData.canHostAdultCats = value)}
+				/>
 
-				<Form.Field {form} name="canHostKittens">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Label
-								class={`flex cursor-pointer items-start gap-3 rounded-3xl border p-4 transition ${
-									$formData.canHostKittens ? 'border-primary bg-primary/5' : 'hover:bg-secondary'
-								}`}
-							>
-								<Checkbox
-									{...props}
-									checked={$formData.canHostKittens}
-									onCheckedChange={(v) => ($formData.canHostKittens = Boolean(v))}
-								/>
-								<div class="space-y-1">
-									<p class="text-sm font-medium">🐾 Chatons</p>
-									<p class="text-muted-foreground text-xs">Accueil de plusieurs chatons.</p>
-								</div>
-							</Label>
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
+				<CheckboxField
+					id="canHostKittens"
+					name="canHostKittens"
+					label="🐾 Chatons (accueil de plusieurs chatons)"
+					checked={$formData.canHostKittens}
+					onChange={(value) => ($formData.canHostKittens = value)}
+				/>
 
-				<Form.Field {form} name="canHostMotherAndKittens">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Label
-								class={`flex cursor-pointer items-start gap-3 rounded-3xl border p-4 transition ${
-									$formData.canHostMotherAndKittens
-										? 'border-primary bg-primary/5'
-										: 'hover:bg-secondary'
-								}`}
-							>
-								<Checkbox
-									{...props}
-									checked={$formData.canHostMotherAndKittens}
-									onCheckedChange={(v) => ($formData.canHostMotherAndKittens = Boolean(v))}
-								/>
-								<div class="space-y-1">
-									<p class="text-sm font-medium">👩‍🍼 Maman + petits</p>
-									<p class="text-muted-foreground text-xs">Accueil d'une mère et sa portée.</p>
-								</div>
-							</Label>
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
+				<CheckboxField
+					id="canHostMotherAndKittens"
+					name="canHostMotherAndKittens"
+					label="👩‍🍼 Maman + petits (accueil d'une mère et sa portée)"
+					checked={$formData.canHostMotherAndKittens}
+					onChange={(value) => ($formData.canHostMotherAndKittens = value)}
+				/>
 			</div>
 		</div>
 
-		<Form.Field {form} name="presenceWeek">
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="space-y-2">
-						<Form.Label
-							>Présence dans le logement <span class="text-destructive">*</span></Form.Label
-						>
-						<Select.Root type="single" bind:value={$formData.presenceWeek}>
-							<Select.Trigger {...props} class={selectClass}>
-								{#if $formData.presenceWeek}
-									{#if $formData.presenceWeek === 'FULL_TIME_HOME'}
-										Toujours à la maison
-									{:else if $formData.presenceWeek === 'HOME_HALF_DAY'}
-										Présent une bonne partie de la journée
-									{:else if $formData.presenceWeek === 'EVENINGS_ONLY'}
-										Présent surtout le soir
-									{:else if $formData.presenceWeek === 'WEEKENDS_ONLY'}
-										Disponible le week-end
-									{:else}
-										Présence occasionnelle
-									{/if}
-								{:else}
-									Sélectionner une présence
-								{/if}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Group>
-									<Select.Item value="FULL_TIME_HOME">Toujours à la maison</Select.Item>
-									<Select.Item value="HOME_HALF_DAY"
-										>Présent une bonne partie de la journée</Select.Item
-									>
-									<Select.Item value="EVENINGS_ONLY">Présent surtout le soir</Select.Item>
-									<Select.Item value="WEEKENDS_ONLY">Disponible le week-end</Select.Item>
-									<Select.Item value="OCCASIONAL">Présence occasionnelle</Select.Item>
-								</Select.Group>
-							</Select.Content>
-						</Select.Root>
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="presenceWeek"
+			name="presenceWeek"
+			label="Présence dans le logement"
+			placeholder="Sélectionner une présence"
+			options={presenceOptions}
+			bind:value={$formData.presenceWeek}
+			required
+			size="sm"
+		/>
+		{#if $errors.presenceWeek}
+			<p class="-mt-4 text-xs text-red-500">{$errors.presenceWeek[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="availabilityDuration">
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="space-y-2">
-						<Form.Label
-							>Durée d'engagement prévue <span class="text-destructive">*</span></Form.Label
-						>
-						<Select.Root type="single" bind:value={$formData.availabilityDuration}>
-							<Select.Trigger {...props} class={selectClass}>
-								{#if $formData.availabilityDuration}
-									{#if $formData.availabilityDuration === 'LESS_THAN_1_MONTH'}
-										Moins d'1 mois
-									{:else if $formData.availabilityDuration === '1_TO_3_MONTHS'}
-										1 à 3 mois
-									{:else if $formData.availabilityDuration === '3_TO_6_MONTHS'}
-										3 à 6 mois
-									{:else if $formData.availabilityDuration === 'MORE_THAN_6_MONTHS'}
-										Plus de 6 mois
-									{:else}
-										Long terme
-									{/if}
-								{:else}
-									Sélectionner une durée
-								{/if}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Group>
-									<Select.Item value="LESS_THAN_1_MONTH">Moins d'1 mois</Select.Item>
-									<Select.Item value="1_TO_3_MONTHS">1 à 3 mois</Select.Item>
-									<Select.Item value="3_TO_6_MONTHS">3 à 6 mois</Select.Item>
-									<Select.Item value="MORE_THAN_6_MONTHS">Plus de 6 mois</Select.Item>
-									<Select.Item value="LONG_TERM">Long terme</Select.Item>
-								</Select.Group>
-							</Select.Content>
-						</Select.Root>
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<SelectField
+			id="availabilityDuration"
+			name="availabilityDuration"
+			label="Durée d'engagement prévue"
+			placeholder="Sélectionner une durée"
+			options={durationOptions}
+			bind:value={$formData.availabilityDuration}
+			required
+			size="sm"
+		/>
+		{#if $errors.availabilityDuration}
+			<p class="-mt-4 text-xs text-red-500">{$errors.availabilityDuration[0]}</p>
+		{/if}
 
-		<Form.Field {form} name="motivation">
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="space-y-2">
-						<Form.Label>Motivation <span class="text-destructive">*</span></Form.Label>
-						<Textarea
-							placeholder="Pourquoi souhaitez-vous devenir famille d'accueil ?"
-							{...props}
-							bind:value={$formData.motivation}
-							class={textareaClass}
-						/>
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="motivation"
+			name="motivation"
+			label="Motivation"
+			placeholder="Pourquoi souhaitez-vous devenir famille d'accueil ?"
+			bind:value={$formData.motivation}
+			error={$errors.motivation?.[0]}
+			required
+		/>
 
-		<Form.Field {form} name="additionalMessage">
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="space-y-2">
-						<Form.Label>Informations complémentaires</Form.Label>
-						<Textarea
-							placeholder="Vous pouvez ajouter toute information utile..."
-							{...props}
-							bind:value={$formData.additionalMessage}
-							class={textareaClass}
-						/>
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
+		<TextareaField
+			id="additionalMessage"
+			name="additionalMessage"
+			label="Informations complémentaires"
+			placeholder="Vous pouvez ajouter toute information utile..."
+			bind:value={$formData.additionalMessage}
+			error={$errors.additionalMessage?.[0]}
+		/>
 	</div>
 
 	<!-- NAVIGATION -->
@@ -658,6 +513,8 @@
 				<ChevronLeft class="h-4 w-4" />
 				Retour
 			</button>
+		{:else}
+			<span></span>
 		{/if}
 
 		{#if step < totalSteps}
@@ -666,7 +523,13 @@
 				<ChevronRight class="h-4 w-4" />
 			</button>
 		{:else}
-			<Button type="submit">Envoyer la candidature</Button>
+			<button
+				type="submit"
+				disabled={$delayed}
+				class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+			>
+				{$delayed ? 'Envoi...' : 'Envoyer la candidature'}
+			</button>
 		{/if}
 	</div>
 

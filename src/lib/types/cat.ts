@@ -1,71 +1,128 @@
-export type Cat = {
-	id: string;
-	name: string | null;
-	sex: string | null;
-	birthDate: Date | null;
-	formattedAge: string;
-	ageBadge: string;
-	description: string | null;
-	media: CatMedia[];
-	focalPoint: 'TOP' | 'MID' | 'BOT';
+import type {
+	Prisma,
+	SexCat,
+	CatStatus,
+	HairLength,
+	Vaccinate,
+	Sickness,
+	Volunteer,
+	Adoption,
+	Care,
+	Media,
+	News
+} from '@prisma/client';
+import type { PlacementFull } from './placement';
+import type { HostBasic } from '$lib/types/host';
 
+// ✅ Types Prisma avec relations
+export type CatFull = Prisma.CatGetPayload<{
+	include: {
+		media: true;
+		sicknesses: true;
+		cares: true;
+		volunteers: {
+			include: {
+				volunteer: {
+					include: {
+						profil: true;
+					};
+				};
+			};
+		};
+		placements: {
+			include: {
+				host: {
+					include: {
+						profil: true;
+					};
+				};
+			};
+		};
+		adoptions: {
+			include: {
+				profil: true;
+			};
+		};
+
+		news: true;
+	};
+}> & {
+	// ✅ Force le typage des enums
+	sex: SexCat;
+	status: CatStatus;
+	hairLength: HairLength;
+	vaccinate: Vaccinate;
+};
+
+// ✅ Type pour l'édition
+export type CatEditData = {
+	catNumber: string;
+	name: string | null;
+	sex: SexCat;
+	birthDate: Date | null;
+	description: string | null;
+
+	// Infos santé
+	isSterilize: boolean;
+	isAlreadySterilized: boolean;
+	vaccinate: Vaccinate;
+	isFivTest: boolean;
+	isDeworming: boolean;
+
+	// Identification
+	isIdentify: boolean;
+	chipId: string | null;
+
+	// Compatibilités
 	isOkDog: boolean;
 	isOkCat: boolean;
 	isOkChild: boolean;
 	isOutside: boolean;
-};
 
-export type CatMedia = {
-	picture: string;
-	id: string;
-	catId: string;
-	type: 'image' | 'pdf';
-	name: string;
-	size: number;
-	url: string;
-	storageKey: string;
-	order: number;
-	focalPointX?: number;
-	focalPointY?: number;
-	uploadedAt: Date;
-};
+	// Apparence
+	hairLength: HairLength;
+	color: string;
+	origin: string;
 
-export type CatFull = Cat & {
-	id: string;
-	status: string;
+	// Visibilité
 	isVisible: boolean;
-	hairLength: string | null;
-	color: string | null;
-	origin: string | null;
-	isSterilize: boolean;
-	isAlreadySterilized: boolean;
-	sickness: string | null;
-	treatment: string | null;
-	vaccinate: string | null;
-	isFivTest: boolean;
-	isDeworming: boolean;
-	isIdentify: boolean;
-	chipId: string | null;
-	placement: {
-		startedDate: Date | null;
-		endedDate: Date | null;
-	};
-	currentHost: {
-		id: string;
-		firstName: string;
-		lastName: string;
-		phone: string | null;
-		email: string;
-	} | null;
+	status: CatStatus;
 
-	referent: {
-		id: string;
-		firstName: string;
-		lastName: string;
-		email: string;
-		phone: string | null;
-	} | null;
-	medias?: CatMedia[];
-	focalPointX?: number;
-	focalPointY?: number;
+	sicknesses?: Sickness[];
+	placements?: PlacementFull[];
+	volunteers?: Volunteer[];
+	adoptions?: Adoption[];
+	cares?: Care[];
+	media?: Media[];
+	news?: News[];
 };
+
+// ✅ Type pour les props du formulaire
+export type CatEditFormProps = {
+	editData: CatEditData;
+	catId?: string;
+	hosts?: HostBasic[];
+	onSuccess?: () => void;
+	onCancel?: () => void;
+};
+
+// ✅ Type pour les erreurs
+export type CatFormErrors = {
+	name?: string;
+	sex?: string;
+	birthDate?: string;
+	description?: string;
+};
+
+// ✅ Type pour créer un chat
+export type CatCreateInput = Omit<CatEditData, 'id'> & {
+	catNumber: string;
+	media?: Array<{
+		picture: string;
+		focalPointX: number;
+		focalPointY: number;
+	}>;
+};
+
+// ✅ Type pour mettre à jour un chat
+export type CatUpdateInput = Partial<CatEditData>;

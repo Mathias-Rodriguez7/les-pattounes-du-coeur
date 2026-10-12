@@ -2,13 +2,14 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import type { News } from '$lib/types/news';
+	import { getNewsImage } from '$lib/utils/newsImg';
 
 	let { news } = $props<{ news: News }>();
 </script>
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
 	<div class="flex justify-center">
-		<img src={news.image} alt={news.title ?? ''} class="object-fit size-60" />
+		<img src={getNewsImage(news.type)} alt={news.title ?? ''} class="object-fit size-60" />
 	</div>
 
 	<Card.Header class="flex items-center justify-between">

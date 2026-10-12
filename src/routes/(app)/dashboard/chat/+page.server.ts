@@ -1,628 +1,324 @@
-import type { PageServerLoad, Actions } from './$types';
-import { error, fail, redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { mapCatFull } from '$lib/mappers/cats';
+import { createCat, updateCat } from '$lib/server/cats/mutations';
+import { deleteProfile } from '$lib/server/mutations';
 import {
-	PlacementError,
-	OverlapError,
-	NotFoundError,
-	InvalidStateError,
-	validateDates
-} from '$lib/server/placements';
-
-export type PageData = {
-    cats: ReturnType<typeof mapCatFull>[];
-    stats: {
-        total: number;
-        withVolunteer: number;
-        withHost: number;
-        withoutHost: number;
-        incomplete: number;
-    };
-    hosts: Array<{ id: string; firstName: string; lastName: string }>;
-    volunteers: Array<{ id: string; role: string; firstName: string; lastName: string }>;
-    isAdmin: boolean;
-};
+	createPlacements,
+	updatePlacement,
+	deletePlacement
+} from '$lib/server/placements/mutations';
+import type { UpdatePlacementInput } from '$lib/schemas/placement';
+import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
+import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
-    // ✅ Vérifier que l'user existe
-    if (!locals.user) {
-        redirect(302, '/');
-    }
+	if (!locals.user) {
+		redirect(302, '/');
+	}
 
-    try {
-        const volunteerId = locals.user.id;
+	try {
+		const volunteerId = locals.user.id;
 
-        // ✅ Récupérer TOUS les chats avec leurs relations
-        const cats = await prisma.cat.findMany({
-            include: {
-                media: true,
-                placements: {
-                    include: { host: { include: { profil: true } } }
-                },
-                volunteers: {
-                    include: { volunteer: { include: { profil: true } } }
-                }
-            },
-            orderBy: { created_at: 'desc' }
-        });
+		const volunteer = await prisma.volunteer.findUnique({
+			where: { id: volunteerId },
+			select: { role: true }
+		});
 
-        // ✅ Mapper les chats
-        const mapped = cats.map(mapCatFull);
+		if (!volunteer || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(volunteer.role)) {
+			redirect(302, '/');
+		}
 
-        // Début de l'année
-        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+		const isAdmin = volunteer.role === 'ADMIN';
 
-        // ✅ Stats en parallèle
-        const [
-            managedByUser,
-            incompleteProfiles,
-            visibleCats,
-            socializingCats,
-            adoptedThisYear
-        ] = await Promise.all([
-            // 1️⃣ Chats sous ma gestion
-            prisma.cat.count({
-                where: {
-                    volunteers: {
-                        some: {
-                            volunteerId: volunteerId
-                        }
-                    }
-                }
-            }),
+		// ✅ ADMIN voit tout, MANAGER/COMMUNICATION voient seulement leurs chats assignés
+		const catsWhere = isAdmin ? {} : { volunteers: { some: { volunteerId } } };
 
-            // 2️⃣ Profils incomplets
-            prisma.cat.count({
-                where: {
-                    OR: [
-                        { isOkCat: false },
-                        { isOkDog: false },
-                        { isOutside: false }
-                    ]
-                }
-            }),
+		const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
-            // 3️⃣ Chats visibles
-            prisma.cat.count({
-                where: {
-                    isVisible: true
-                }
-            }),
+		const [cats, managedByUser, incompleteProfiles, visibleCats, socializingCats, adoptedThisYear] =
+			await Promise.all([
+				prisma.cat.findMany({
+					where: catsWhere,
+					include: {
+						media: true,
+						sicknesses: true,
+						placements: {
+							include: {
+								host: { include: { profil: true } }
+							}
+						},
+						volunteers: {
+							include: {
+								volunteer: { include: { profil: true } }
+							}
+						},
+						adoptions: { include: { profil: true } }
+					},
+					orderBy: { created_at: 'desc' }
+				}),
 
-            // 4️⃣ Chats en socialisation
-            prisma.cat.count({
-                where: {
-                    status: 'SOCIALIZE'  // À adapter selon ton enum
-                }
-            }),
+				prisma.cat.count({
+					where: { volunteers: { some: { volunteerId } } }
+				}),
 
-            // 5️⃣ Chats adoptés cette année
-            prisma.cat.count({
-                where: {
-                    status: 'ADOPTED',  // À adapter selon ton enum
-                    updated_at: {
-                        gte: yearStart
-                    }
-                }
-            })
-        ]);
+				prisma.cat.count({
+					where: {
+						...catsWhere,
+						OR: [{ isOkCat: false }, { isOkDog: false }, { isOutside: false }]
+					}
+				}),
 
-        const hosts = await prisma.host.findMany({
-            include: { profil: true }
-        });
+				prisma.cat.count({
+					where: { ...catsWhere, isVisible: true }
+				}),
 
-        const volunteers = await prisma.volunteer.findMany({
-            include: { profil: true }
-        });
+				prisma.cat.count({
+					where: { ...catsWhere, status: 'SOCIALIZE' }
+				}),
 
-        const isAdmin = locals.user.role === 'ADMIN';
+				prisma.cat.count({
+					where: {
+						...catsWhere,
+						status: 'ADOPTED',
+						updated_at: { gte: yearStart }
+					}
+				})
+			]);
 
-        return {
-            cats: mapped,
-            stats: {
-                managedByUser,
-                incompleteProfiles,
-                visibleCats,
-                socializingCats,
-                adoptedThisYear
-            },
-            hosts: hosts.map((h) => ({
-                id: h.id,
-                firstName: h.profil.firstName,
-                lastName: h.profil.lastName
-            })),
-            volunteers: volunteers.map((v) => ({
-                id: v.id,
-                role: v.role,
-                firstName: v.profil.firstName,
-                lastName: v.profil.lastName
-            })),
-            isAdmin
-        };
-    } catch (err) {
-        console.error('Erreur dans load dashboard:', err);
-        throw error(500, 'Erreur lors du chargement du dashboard');
-    }
+		const hosts = await prisma.host.findMany({
+			include: { profil: true }
+		});
+
+		const volunteers = await prisma.volunteer.findMany({
+			include: { profil: true }
+		});
+
+		const catsWithOwnership = cats.map((cat) => ({
+			...cat,
+			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
+		}));
+
+		return {
+			cats: catsWithOwnership,
+			stats: {
+				managedByUser,
+				incompleteProfiles,
+				visibleCats,
+				socializingCats,
+				adoptedThisYear
+			},
+			hosts,
+			volunteers,
+			isAdmin
+		};
+	} catch (error) {
+		console.error('Erreur lors du chargement des chats:', error);
+		throw error;
+	}
 };
 
 export const actions: Actions = {
 	// ==========================================
-	// ACTION: Créer un chat
+	// ACTION: Cat
 	// ==========================================
-	createCat: async ({ request }) => {
+	createCat: async ({ request, locals }) => {
+		try {
+			const result = await createCat({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur création chat:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	updateCat: async ({ request, locals }) => {
+		try {
+			const result = await updateCat({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur updateCat:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteProfile: async ({ request }) => {
 		try {
 			const data = await request.formData();
-			const name = data.get('name')?.toString() || null;
-			const sex = data.get('sex')?.toString();
-			const age = parseInt(data.get('age')?.toString() ?? '0');
-			const status = data.get('status')?.toString();
+			const profileId = data.get('profileId') as string;
 
-			if (!sex || !status) return fail(400, { message: 'Champs manquants' });
+			if (!profileId) {
+				return fail(400, { success: false, error: 'ID manquant' });
+			}
 
-			await prisma.cat.create({
-				data: { name, sex: sex as any, age, status: status as any }
-			});
-
-			return { success: true };
-		} catch (err) {
-			console.error('Erreur createCat:', err);
-			return fail(500, { message: 'Erreur lors de la création' });
+			return await deleteProfile(profileId);
+		} catch (error) {
+			console.error('Erreur suppression profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},
 
 	// ==========================================
-	// ACTION: Mettre à jour un chat
+	// ACTION: Placement
 	// ==========================================
-	updateCat: async ({ request }) => {
-		try {
-			const data = await request.formData();
-			const id = data.get('id')?.toString();
-			if (!id) return fail(400, { message: 'ID manquant' });
-
-			const bool = (key: string) => data.get(key) === 'true';
-			const str = (key: string) => {
-				const v = data.get(key)?.toString();
-				return v && v !== '' ? v : null;
-			};
-			const num = (key: string) => {
-				const v = data.get(key)?.toString();
-				return v ? parseInt(v) : null;
-			};
-
-			await prisma.cat.update({
-				where: { id },
-				data: {
-					name: str('name'),
-					sex: (str('sex') as any) ?? undefined,
-					age: num('age') ?? undefined,
-					status: (str('status') as any) ?? undefined,
-					isVisible: bool('isVisible'),
-					description: str('description'),
-					hairLength: (str('hairLength') as any) ?? null,
-					color: str('color'),
-					origin: str('origin'),
-					isSterilize: bool('isSterilize'),
-					isAlreadySterilized: bool('isAlreadySterilized'),
-					sickness: str('sickness'),
-					treatment: str('treatment'),
-					vaccinate: (str('vaccinate') as any) ?? null,
-					isFivTest: bool('isFivTest'),
-					isDeworming: bool('isDeworming'),
-					isIdentify: bool('isIdentify'),
-					chipId: str('chipId'),
-					isOkDog: bool('isOkDog'),
-					isOkCat: bool('isOkCat'),
-					isOkChild: bool('isOkChild'),
-					isOutside: bool('isOutside')
-				}
-			});
-
-			// Gestion FA (placement)
-			const hostIdRaw = data.get('hostId')?.toString();
-			const hostId = hostIdRaw && hostIdRaw !== '' ? hostIdRaw : null;
-
-			// Toujours fermer le placement actif
-			await prisma.placement.updateMany({
-				where: { catId: id, status: 'ACTIVE' },
-				data: { status: 'CLOSED', endedDate: new Date() }
-			});
-
-			// Créer un nouveau placement seulement si une FA est choisie
-			if (hostId) {
-				await prisma.placement.create({
-					data: {
-						catId: id,
-						hostId,
-						type: 'LONG',
-						status: 'ACTIVE',
-						startedDate: new Date(),
-						notes: ''
-					}
-				});
-			}
-
-			return { success: true };
-		} catch (err) {
-			console.error('Erreur updateCat:', err);
-			return fail(500, { message: 'Erreur lors de la mise à jour' });
-		}
-	},
-
-	// ==========================================
-	// ACTION: Assigner un bénévole référent
-	// ==========================================
-	assignVolunteer: async ({ request, locals }) => {
-		try {
-			// Vérification ADMIN
-			if (!locals.user || locals.user.role !== 'ADMIN') {
-				return fail(403, { message: 'Accès refusé' });
-			}
-
-			const data = await request.formData();
-			const catId = data.get('catId')?.toString();
-			const volunteerId = data.get('volunteerId')?.toString();
-
-			if (!catId) return fail(400, { message: 'ID manquant' });
-
-			// Supprimer l'ancien référent
-			await prisma.catVolunteer.deleteMany({ where: { catId } });
-
-			// Assigner le nouveau si fourni
-			if (volunteerId) {
-				await prisma.catVolunteer.create({ data: { catId, volunteerId } });
-			}
-
-			return { success: true };
-		} catch (err) {
-			console.error('Erreur assignVolunteer:', err);
-			return fail(500, { message: "Erreur lors de l'assignation" });
-		}
-	},
-
-	// ==========================================
-	// ACTION 1: Ajouter ou Remplacer FA LONG
-	// ==========================================
-	addOrReplaceLongPlacement: async ({ request }) => {
+	createPlacement: async ({ request }) => {
 		try {
 			const formData = await request.formData();
-			const catId = formData.get('catId') as string;
-			const hostId = formData.get('hostId') as string;
-			const startedDate = new Date(formData.get('startedDate') as string);
-			const endedDate = formData.get('endedDate')
-				? new Date(formData.get('endedDate') as string)
-				: null;
 
-			// Validation
-			if (!catId || !hostId) {
-				throw new PlacementError('catId et hostId sont requis', 'INVALID_DATES');
-			}
-
-			validateDates(startedDate, endedDate || undefined);
-
-			// Vérifier les chevauchements
-			const existingPlacements = await prisma.placement.findMany({
-				where: {
-					catId,
-					status: { not: 'CLOSED' }
-				}
-			});
-
-			const hasOverlap = existingPlacements.some((p) => {
-				if (p.endedDate && startedDate >= p.endedDate) return false;
-				if (endedDate && p.startedDate >= endedDate) return false;
-				return true;
-			});
-
-			if (hasOverlap) {
-				throw new OverlapError('Un placement chevauche cette période');
-			}
-
-			// Récupérer les anciens placements
-			const oldPlacements = await prisma.placement.findMany({
-				where: {
-					catId,
-					type: 'LONG',
-					status: { not: 'CLOSED' }
-				}
-			});
-
-			// Créer le nouveau placement
-			const newPlacement = await prisma.placement.create({
-				data: {
-					catId,
-					hostId,
-					startedDate,
-					endedDate,
-					type: 'LONG',
-					status: 'ACTIVE',
-					notes: (formData.get('notes') as string) || ''
-				},
-				include: {
-					host: true,
-					cat: true
-				}
-			});
-
-			// Clôturer les anciens
-			if (oldPlacements.length > 0) {
-				await prisma.placement.updateMany({
-					where: { id: { in: oldPlacements.map((p) => p.id) } },
-					data: { status: 'CLOSED', endedDate: startedDate }
-				});
-			}
-
-			return { success: true, placement: newPlacement };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
-			}
-			console.error('Erreur addOrReplaceLongPlacement:', err);
-			return fail(500, { message: 'Erreur serveur' });
-		}
-	},
-
-	// ==========================================
-	// ACTION 2: Ajouter FA SHORT
-	// ==========================================
-	addShortPlacement: async ({ request }) => {
-		try {
-			const formData = await request.formData();
-			const catId = formData.get('catId') as string;
-			const hostId = formData.get('hostId') as string;
-			const startedDate = new Date(formData.get('startedDate') as string);
-			const endedDate = formData.get('endedDate')
-				? new Date(formData.get('endedDate') as string)
-				: null;
-
-			if (!catId || !hostId) {
-				throw new PlacementError('catId et hostId sont requis', 'INVALID_DATES');
-			}
-
-			validateDates(startedDate, endedDate || undefined);
-
-			// Vérifier les chevauchements
-			const existingPlacements = await prisma.placement.findMany({
-				where: {
-					catId,
-					status: { not: 'CLOSED' }
-				}
-			});
-
-			const hasOverlap = existingPlacements.some((p) => {
-				if (p.endedDate && startedDate >= p.endedDate) return false;
-				if (endedDate && p.startedDate >= endedDate) return false;
-				return true;
-			});
-
-			if (hasOverlap) {
-				throw new OverlapError('Un placement chevauche cette période');
-			}
-
-			const newPlacement = await prisma.placement.create({
-				data: {
-					catId,
-					hostId,
-					startedDate,
-					endedDate,
-					type: 'SHORT',
-					status: 'ACTIVE',
-					notes: (formData.get('notes') as string) || ''
-				},
-				include: {
-					host: true,
-					cat: true
-				}
-			});
-
-			return { success: true, placement: newPlacement };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
-			}
-			console.error('Erreur addShortPlacement:', err);
-			return fail(500, { message: 'Erreur serveur' });
-		}
-	},
-
-	// ==========================================
-	// ACTION 3: Modifier FA SHORT
-	// ==========================================
-	updateShortPlacement: async ({ request }) => {
-		try {
-			const formData = await request.formData();
-			const placementId = formData.get('placementId') as string;
-			const hostId = formData.get('hostId') as string;
-			const startedDate = new Date(formData.get('startedDate') as string);
-			const endedDate = formData.get('endedDate')
-				? new Date(formData.get('endedDate') as string)
-				: null;
-
-			if (!placementId) {
-				throw new PlacementError('placementId est requis', 'INVALID_DATES');
-			}
-
-			// Vérifier que le placement existe
-			const existingPlacement = await prisma.placement.findUnique({
-				where: { id: placementId }
-			});
-
-			if (!existingPlacement) {
-				throw new NotFoundError('Placement non trouvé');
-			}
-
-			if (existingPlacement.type !== 'SHORT') {
-				throw new InvalidStateError('Seuls les placements SHORT peuvent être modifiés');
-			}
-
-			validateDates(startedDate, endedDate || undefined);
-
-			// Vérifier les chevauchements (sauf avec lui-même)
-			const otherPlacements = await prisma.placement.findMany({
-				where: {
-					catId: existingPlacement.catId,
-					id: { not: placementId },
-					status: { not: 'CLOSED' }
-				}
-			});
-
-			const hasOverlap = otherPlacements.some((p) => {
-				if (p.endedDate && startedDate >= p.endedDate) return false;
-				if (endedDate && p.startedDate >= endedDate) return false;
-				return true;
-			});
-
-			if (hasOverlap) {
-				throw new OverlapError('Un placement chevauche cette période');
-			}
-
-			const updatedPlacement = await prisma.placement.update({
-				where: { id: placementId },
-				data: {
-					hostId,
-					startedDate,
-					endedDate,
-					notes: (formData.get('notes') as string) || ''
-				},
-				include: {
-					host: true,
-					cat: true
-				}
-			});
-
-			return { success: true, placement: updatedPlacement };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
-			}
-			console.error('Erreur updateShortPlacement:', err);
-			return fail(500, { message: 'Erreur serveur' });
-		}
-	},
-
-	// ==========================================
-	// ACTION 4: Supprimer FA SHORT
-	// ==========================================
-	deleteShortPlacement: async ({ request }) => {
-		try {
-			const formData = await request.formData();
-			const placementId = formData.get('placementId') as string;
-
-			if (!placementId) {
-				throw new PlacementError('placementId est requis', 'INVALID_DATES');
-			}
-
-			const existingPlacement = await prisma.placement.findUnique({
-				where: { id: placementId }
-			});
-
-			if (!existingPlacement) {
-				throw new NotFoundError('Placement non trouvé');
-			}
-
-			if (existingPlacement.type !== 'SHORT') {
-				throw new InvalidStateError('Seuls les placements SHORT peuvent être supprimés');
-			}
-
-			await prisma.placement.delete({
-				where: { id: placementId }
-			});
-
-			return { success: true };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
-			}
-			console.error('Erreur deleteShortPlacement:', err);
-			return fail(500, { message: 'Erreur serveur' });
-		}
-	},
-
-	// ==========================================
-	// ACTION 5: Clôturer une FA
-	// ==========================================
-	closePlacement: async ({ request }) => {
-		try {
-			const formData = await request.formData();
-			const placementId = formData.get('placementId') as string;
-			const endedDate = formData.get('endedDate')
-				? new Date(formData.get('endedDate') as string)
-				: new Date();
-
-			if (!placementId) {
-				throw new PlacementError('placementId est requis', 'INVALID_DATES');
-			}
-
-			const existingPlacement = await prisma.placement.findUnique({
-				where: { id: placementId }
-			});
-
-			if (!existingPlacement) {
-				throw new NotFoundError('Placement non trouvé');
-			}
-
-			if (existingPlacement.status === 'CLOSED') {
-				throw new InvalidStateError('Ce placement est déjà clôturé');
-			}
-
-			const closedPlacement = await prisma.placement.update({
-				where: { id: placementId },
-				data: {
-					status: 'CLOSED',
-					endedDate
-				},
-				include: {
-					host: true,
-					cat: true
-				}
-			});
-
-			return { success: true, placement: closedPlacement };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
-			}
-			console.error('Erreur closePlacement:', err);
-			return fail(500, { message: 'Erreur serveur' });
-		}
-	},
-
-	// ==========================================
-	// ACTION 6: Récupérer placements d'un chat
-	// ==========================================
-	getCatPlacements: async ({ request }) => {
-		try {
-			const formData = await request.formData();
-			const catId = formData.get('catId') as string;
-			const includeArchived = formData.get('includeArchived') === 'true';
+			const catId = formData.get('catId')?.toString() ?? '';
+			const hostIds = formData.getAll('hostIds').map((v) => v.toString());
+			const type = formData.get('type')?.toString() ?? '';
+			const status = formData.get('status')?.toString() ?? '';
+			const notes = formData.get('notes')?.toString() || '';
 
 			if (!catId) {
-				throw new PlacementError('catId est requis', 'INVALID_DATES');
+				return fail(400, { success: false, error: 'catId manquant' });
 			}
 
-			const placements = await prisma.placement.findMany({
-				where: {
-					catId,
-					...(includeArchived ? {} : { status: { not: 'CLOSED' } })
-				},
-				include: {
-					host: true,
-					cat: true
-				},
-				orderBy: [{ startedDate: 'desc' }]
-			});
-
-			if (placements.length === 0) {
-				throw new NotFoundError('Aucun placement trouvé pour ce chat');
+			if (hostIds.length === 0) {
+				return fail(400, { success: false, error: 'Aucun hôte sélectionné' });
 			}
 
-			return { success: true, placements };
-		} catch (err) {
-			if (err instanceof PlacementError) {
-				return fail(err.statusCode, { message: err.message });
+			const result = await createPlacements({ catId, hostIds, type, status, notes });
+
+			if (!result.success) {
+				return fail(400, result);
 			}
-			console.error('Erreur getCatPlacements:', err);
-			return fail(500, { message: 'Erreur serveur' });
+
+			return result;
+		} catch (error) {
+			console.error('Erreur createPlacement:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	updatePlacement: async ({ request }) => {
+		try {
+			const formData = await request.formData();
+			const placementId = formData.get('placementId')?.toString();
+
+			if (!placementId) {
+				return fail(400, { success: false, error: 'placementId manquant' });
+			}
+
+			const input = {
+				hostId: formData.get('hostId')?.toString() || undefined,
+				type: formData.get('type')?.toString() || undefined,
+				status: formData.get('status')?.toString() || undefined,
+				startedDate: formData.get('startedDate')?.toString() || null,
+				endedDate: formData.get('endedDate')?.toString() || null,
+				notes: formData.get('notes')?.toString() || undefined
+			};
+
+			const result = await updatePlacement(placementId, input as UpdatePlacementInput);
+
+			if (!result.success) {
+				return fail(400, result);
+			}
+
+			return result;
+		} catch (error) {
+			console.error('Erreur updatePlacement:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deletePlacement: async ({ request }) => {
+		try {
+			const formData = await request.formData();
+			const placementId = formData.get('placementId')?.toString();
+
+			if (!placementId) {
+				return fail(400, { success: false, error: 'placementId manquant' });
+			}
+
+			const result = await deletePlacement(placementId);
+
+			if (!result.success) {
+				return fail(400, result);
+			}
+
+			return result;
+		} catch (error) {
+			console.error('Erreur deletePlacement:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Sickness
+	// ==========================================
+	createSickness: async ({ request, locals }) => {
+		try {
+			const result = await createSickness({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur createSickness:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	updateSickness: async ({ request, locals }) => {
+		try {
+			const result = await updateSickness({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur updateSickness:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteSickness: async ({ request, locals }) => {
+		try {
+			const result = await deleteSickness({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteSickness:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: CatVolunteer
+	// ==========================================
+	assignCatVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await createCatVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur assignCatVolunteer:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	removeCatVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur removeCatVolunteer:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}
 };

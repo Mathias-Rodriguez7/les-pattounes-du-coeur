@@ -21,7 +21,7 @@
 		</div>
 
 		<!-- CONTENU SCROLLABLE -->
-		<div class="flex flex-1 flex-col overflow-y-auto">
+		<div class="flex-1 overflow-y-auto">
 			<div class="flex-1">
 				{@render children()}
 			</div>

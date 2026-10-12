@@ -41,11 +41,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 				href: '/dashboard/benevole'
 			},
 			{
-				label: 'Candidatures',
-				description: 'Traiter les candidatures',
-				icon: 'mail',
+				label: 'Formulaires',
+				description: 'Traiter les formulaires',
+				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/dashboard/candidature'
+				href: '/dashboard/formulaire'
 			}
 		];
 
@@ -58,11 +58,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 				href: '/cats/new'
 			},
 			{
-				label: 'Candidatures',
-				description: 'Traiter mes candidatures',
-				icon: 'mail',
+				label: 'Formulaires',
+				description: 'Traiter mes formulaires',
+				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/applications?assigned=me'
+				href: '/dashboard/formulaire'
 			}
 		];
 
@@ -82,11 +82,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 				href: '/dashboard/news/new'
 			},
 			{
-				label: 'Candidatures',
-				description: 'Traiter mes candidatures',
-				icon: 'mail',
+				label: 'Formulaires',
+				description: 'Traiter mes formulaires',
+				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/applications?assigned=me'
+				href: '/dashboard/formulaire'
 			}
 		];
 
@@ -178,7 +178,7 @@ async function getAdminTasks() {
 		prisma.cat.count({
 			where: {
 				status: { in: ['AVAILABLE', 'SOCIALIZE'] },
-				placements: { none: { ended: null } }
+				placements: { none: { endDate: null } }
 			}
 		}),
 		// 2. FA - FA actives sans chat
@@ -282,21 +282,21 @@ async function getAdminTasks() {
 			]
 		},
 		{
-			theme: 'Candidatures',
-			icon: 'mail',
+			theme: 'Formulaires',
+			icon: 'clipboard',
 			iconTheme: 'pending',
 			tasks: [
 				{
 					label: 'FA',
 					description: 'À traiter',
 					value: pendingHostForms,
-					href: '/dashboard/candidatures?type=HOST'
+					href: '/dashboard/formulaire?type=HOST'
 				},
 				{
 					label: 'Bénévoles',
 					description: 'À traiter',
 					value: pendingVolunteerForms,
-					href: '/dashboard/candidatures?type=VOLUNTEER'
+					href: '/dashboard/formulaire?type=VOLUNTEER'
 				}
 			]
 		}
@@ -385,21 +385,21 @@ async function getManagerTasks(volunteerId: string) {
 			]
 		},
 		{
-			theme: 'Mes candidatures',
-			icon: 'mail',
+			theme: 'Mes formulaires',
+			icon: 'clipboard',
 			iconTheme: 'pending',
 			tasks: [
 				{
-					label: 'Candidatures bénévoles',
+					label: 'Formulaires bénévoles',
 					description: 'En attente de traitement',
 					value: assignedPendingVolunteerForms,
-					href: '/dashboard/candidatures?assigned=true'
+					href: '/dashboard/formulaire?assigned=true'
 				},
 				{
-					label: 'Candidatures FA',
+					label: 'Formulaires FA',
 					description: 'En attente de traitement',
 					value: assignedPendingHostForms,
-					href: '/dashboard/candidatures?assigned=true&type=HOST'
+					href: '/dashboard/formulaire?assigned=true&type=HOST'
 				}
 			]
 		}
@@ -535,21 +535,21 @@ async function getCommunicationTasks(volunteerId: string) {
 			]
 		},
 		{
-			theme: 'Mes candidatures',
-			icon: 'mail',
+			theme: 'Mes formulaires',
+			icon: 'clipboard',
 			iconTheme: 'pending',
 			tasks: [
 				{
-					label: 'Candidatures bénévoles',
+					label: 'Formulaires bénévoles',
 					description: 'En attente de traitement',
 					value: assignedPendingVolunteerForms,
-					href: '/dashboard/candidatures?assigned=true'
+					href: '/dashboard/formulaire?assigned=true'
 				},
 				{
-					label: 'Candidatures FA',
+					label: 'Formulaires FA',
 					description: 'En attente de traitement',
 					value: assignedPendingHostForms,
-					href: '/dashboard/candidatures?assigned=true&type=HOST'
+					href: '/dashboard/formulaire?assigned=true&type=HOST'
 				}
 			]
 		}

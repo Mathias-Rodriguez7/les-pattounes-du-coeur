@@ -2,11 +2,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { District, VolunteerRole } from '@prisma/client';
-import {
-	createVolunteer,
-	updateVolunteer,
-	deleteVolunteer
-} from '$lib/server/volunteers/mutations';
+import { createVolunteer, updateVolunteer } from '$lib/server/volunteers/mutations';
+import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN
@@ -58,15 +55,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		] = await Promise.all([
 			// 1. Total de bénévoles
 			prisma.volunteer.count({
-				where: whereCondition
+				where: {
+					...whereCondition,
+					actif: {
+						not: 'STOP'
+					}
+				}
 			}),
 
-			// 2. Profils incomplets
+			// 2. Profils incomplets (FIXE: pas de duplication)
 			prisma.volunteer.count({
 				where: {
 					...whereCondition,
 					profil: {
-						...(districtFilter && { district: districtFilter }),
 						OR: [{ firstName: '' }, { lastName: '' }, { phone: '' }, { email: '' }, { address: '' }]
 					}
 				}
@@ -103,7 +104,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const volunteers = await prisma.volunteer.findMany({
 			where: whereCondition,
 			include: {
-				profil: true,
+				profil: {
+					include: {
+						host: true
+					}
+				},
 				cats: {
 					include: {
 						cat: {
@@ -159,65 +164,69 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
 	createVolunteer: async ({ request, locals }) => {
-		const result = await createVolunteer({ request, locals });
-		if (!result.success) {
-			return fail(400, result);
-		}
-		return result;
-	},
-
-	updateVolunteer: async ({ request }) => {
-		const result = await updateVolunteer({ request });
-		if (!result.success) {
-			return fail(400, result);
-		}
-		return result;
-	},
-
-	deleteVolunteer: async ({ request }) => {
-		const formData = await request.formData();
-		const volunteerId = formData.get('volunteerId') as string;
-
-		const result = await deleteVolunteer(volunteerId);
-		if (!result.success) {
-			return fail(400, result);
-		}
-		return result;
-	},
-
-	blacklistVolunteer: async ({ request, locals }) => {
-		if (!locals.user || locals.user.role !== 'ADMIN') {
-			return fail(403, { error: 'Non autorisé' });
-		}
-
-		const formData = await request.formData();
-		const volunteerId = formData.get('volunteerId') as string;
-		const email = formData.get('email') as string;
-		const description = formData.get('description') as string;
-
 		try {
-			const volunteer = await prisma.volunteer.findUnique({
-				where: { id: volunteerId },
-				select: { profilId: true }
-			});
+			const result = await createVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur création bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
 
-			if (!volunteer) {
-				return fail(404, { error: 'Bénévole non trouvé' });
+	updateVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await updateVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error('Erreur mise à jour bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteProfile: async ({ request }) => {
+		try {
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
+
+			if (!profileId) {
+				return fail(400, {
+					success: false,
+					error: 'ID manquant'
+				});
 			}
 
-			const blacklisted = await prisma.blacklistHistoric.create({
-				data: {
-					profilId: volunteer.profilId,
-					email,
-					description,
-					isBlacklisted: true
-				}
-			});
-
-			return { success: true, data: blacklisted };
+			return await deleteProfile(profileId);
 		} catch (error) {
-			console.error('Erreur blacklist:', error);
-			return fail(400, { error: 'Erreur lors de la mise en liste noire' });
+			console.error('Erreur suppression profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	blacklistProfile: async ({ request, locals }) => {
+		try {
+			if (!locals.user || locals.user.role !== 'ADMIN') {
+				return fail(403, { success: false, error: 'Non autorisé' });
+			}
+
+			const data = await request.formData();
+			const profileId = data.get('profileId') as string;
+			const email = data.get('email') as string;
+			const description = data.get('description') as string;
+
+			if (!profileId || !email) {
+				return fail(400, { success: false, error: 'Données manquantes' });
+			}
+
+			return await blacklistProfile(profileId, email, description || '');
+		} catch (error) {
+			console.error('Erreur blacklist profil:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}
 };

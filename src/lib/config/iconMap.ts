@@ -6,9 +6,10 @@ import {
 	Plus,
 	ClipboardList,
 	Mail,
-	Users,
+	UserGroup,
 	Newspaper,
 	HeartPlus,
+	Pencil,
 	PenTool,
 	Dog,
 	Baby,
@@ -25,7 +26,16 @@ import {
 	Handshake,
 	CircleEllipsis,
 	Phone,
-	Ban
+	Ban,
+	MapPinHouse,
+	User,
+	Syringe,
+	ChevronDown,
+	Clock,
+	Star,
+	BicepsFlexed,
+	Book,
+	Megaphone
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -37,9 +47,11 @@ export const iconMap: Record<string, Component> = {
 	plus: Plus,
 	clipboard: ClipboardList,
 	mail: Mail,
-	users: Users,
+	user: User,
+	users: UserGroup,
 	news: Newspaper,
 	heart: HeartPlus,
+	pencil: Pencil,
 	pen: PenTool,
 	dog: Dog,
 	baby: Baby,
@@ -56,5 +68,13 @@ export const iconMap: Record<string, Component> = {
 	Handshake: Handshake,
 	other: CircleEllipsis,
 	phone: Phone,
-	blacklist: Ban
+	blacklist: Ban,
+	map: MapPinHouse,
+	syringe: Syringe,
+	chevronDown: ChevronDown,
+	clock: Clock,
+	star: Star,
+	biceps: BicepsFlexed,
+	book: Book,
+	megaphone: Megaphone
 };

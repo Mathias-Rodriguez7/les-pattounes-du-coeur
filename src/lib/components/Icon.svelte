@@ -19,14 +19,16 @@
 		iconClass = 'h-5 w-5 text-white'
 	}: Props = $props();
 
-	const IconComponent = iconMap[name];
-	const finalClass = className || iconClass;
+	const IconComponent = $derived(iconMap[name]);
+	const finalClass = $derived(className || iconClass);
 </script>
 
-{#if withWrapper}
-	<div {style} class={wrapperClass}>
-		<svelte:component this={IconComponent} class={iconClass} />
-	</div>
-{:else}
-	<svelte:component this={IconComponent} class={finalClass} />
+{#if IconComponent}
+	{#if withWrapper}
+		<div {style} class={wrapperClass}>
+			<IconComponent class={iconClass} />
+		</div>
+	{:else}
+		<IconComponent class={finalClass} />
+	{/if}
 {/if}
