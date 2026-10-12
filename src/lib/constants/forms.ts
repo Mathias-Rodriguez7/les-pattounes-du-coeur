@@ -11,7 +11,19 @@ export const FORM_SECTION_CONFIG = {
 	outsideDescription: { icon: 'trees', label: 'Description du jardin', color: 'green' },
 	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' },
 	foyer: { icon: 'house', label: 'Description du foyer', color: 'blue' },
-	notes: { icon: 'note', label: 'Notes', color: 'gray' }
+	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' }
+} as const;
+
+export const ADOPTION_SECTION_CONFIG = {
+	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	address: { icon: 'map', label: 'Adresse', color: 'gray' },
+	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
+	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
+	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
+	cat: { icon: 'cat', label: 'Type de chats', color: 'fuchsia' },
+	homeDescription: { icon: 'house', label: 'Description du domicile', color: 'blue' },
+	foyer: { icon: 'house', label: 'Description du foyer', color: 'blue' },
+	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' }
 } as const;
 
 export const FORM_TYPE_OPTIONS = [
@@ -40,4 +52,46 @@ export const typesLabels: Record<string, { label: string; color: string }> = {
 	HOST: { label: 'FA', color: 'bg-emerald-100 text-emerald-800' },
 	COLAB: { label: 'Col', color: 'bg-orange-100 text-orange-800' },
 	OTHER: { label: 'Aut', color: 'bg-gray-100 text-gray-800' }
+};
+
+export const ADOPTION_FUR_OPTIONS = [
+	{ value: 'short', label: 'Court' },
+	{ value: 'medium', label: 'Moyen' },
+	{ value: 'long', label: 'Long' },
+	{ value: 'free', label: 'Sans préférence' }
+];
+
+export const ADOPTION_AGE_OPTIONS = [
+	{ value: 'kitten', label: 'Chaton' },
+	{ value: 'Junior', label: 'Junior' },
+	{ value: 'adult', label: 'Adulte' },
+	{ value: 'senior', label: 'Senior' },
+	{ value: 'free', label: 'Sans préférence' }
+];
+
+export const ADOPTION_SEX_OPTIONS = [
+	{ value: 'male', label: 'Mâle' },
+	{ value: 'female', label: 'Femelle' },
+	{ value: 'free', label: 'Sans préférence' }
+];
+
+// 🐱 Adoption Form Labels
+export const ageLabels: Record<string, string> = {
+	kitten: 'Chaton',
+	adult: 'Adulte',
+	senior: 'Senior',
+	free: 'Sans préférence'
+};
+
+export const sexLabels: Record<string, string> = {
+	male: 'Mâle',
+	female: 'Femelle',
+	free: 'Sans préférence'
+};
+
+export const furLabels: Record<string, string> = {
+	short: 'Court',
+	medium: 'Moyen',
+	long: 'Long',
+	free: 'Sans préférence'
 };

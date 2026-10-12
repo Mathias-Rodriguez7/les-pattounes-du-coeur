@@ -187,7 +187,9 @@
 
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
-			<FormPanel form={selectedForm} />
+			{#key selectedFormId}
+				<FormPanel form={selectedForm} />
+			{/key}
 		</div>
 	</section>
 </main>

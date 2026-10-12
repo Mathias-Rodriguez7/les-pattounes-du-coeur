@@ -37,3 +37,12 @@ export const colabForm = colabStep1Schema.extend(colabStep2Schema.shape);
 //
 
 export type ColabFormData = z.infer<typeof colabForm>;
+
+export const updateColabSchema = colabForm.partial().extend({
+	formId: z.string().uuid('ID invalide'), // Obligatoire pour identifier le form
+	status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+	notes: z.string().optional(),
+	assignedToId: z.string().uuid('ID invalide').optional().nullable()
+});
+
+export type UpdateColabInput = z.infer<typeof updateColabSchema>;

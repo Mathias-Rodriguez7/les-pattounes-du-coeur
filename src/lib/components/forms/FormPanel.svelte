@@ -5,10 +5,14 @@
 
 	let { form } = $props();
 
-	const PanelComponent = $derived(form ? getFormPanelComponent(form.type) : null);
+	// Force la recalculation quand form change
+	const PanelComponent = $derived.by(() => {
+		if (!form) return null;
+		return getFormPanelComponent(form.type);
+	});
 </script>
 
-{#if form}
+{#if form && PanelComponent}
 	<PanelComponent {form} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">

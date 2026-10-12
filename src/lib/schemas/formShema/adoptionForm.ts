@@ -33,7 +33,9 @@ const adultBirthDate = z
 		{ message: 'Vous devez être majeur' }
 	);
 
-// 👤 STEP 1
+//
+// STEP 1
+//
 export const step1Schema = z.object({
 	firstName: z.string().trim().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().trim().min(1, 'Le nom est obligatoire'),
@@ -43,10 +45,15 @@ export const step1Schema = z.object({
 	birthDate: adultBirthDate,
 	city: z.string().trim().min(1, 'La ville est obligatoire'),
 	postalCode: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
-	district: z.enum(District).nullable().optional()
+	district: z
+		.enum(Object.values(District) as [string, ...string[]])
+		.nullable()
+		.optional()
 });
 
-// 🐱 STEP 2
+//
+// STEP 2
+//
 export const step2Schema = z.object({
 	catAge: z
 		.enum(['kitten', 'adult', 'senior', 'free'], {
@@ -67,7 +74,9 @@ export const step2Schema = z.object({
 	temperament: z.string().trim().min(5, 'Le caractère doit contenir au moins 5 caractères')
 });
 
-// 🏠 STEP 3
+//
+// STEP 3
+//
 export const step3Schema = z.object({
 	housingSize: z.coerce
 		.number({ message: 'La taille du logement doit être un nombre' })
@@ -82,21 +91,56 @@ export const step3Schema = z.object({
 	numberOfChildren: z.coerce.number({ message: "Nombre d'enfants invalide" }).int().min(0)
 });
 
-// 🔗 GLOBAL SCHEMA
-export const adoptionFormSchema = z
-	.object({
-		...step1Schema.shape,
-		...step2Schema.shape,
-		...step3Schema.shape
-	})
-	.superRefine((data, ctx) => {
-		if (data.hasGarden && data.gardenSize === undefined) {
-			ctx.addIssue({
-				path: ['gardenSize'],
-				code: 'custom',
-				message: 'Veuillez indiquer la taille du jardin'
-			});
-		}
-	});
+//
+// REFINEMENTS LOGIC
+//
+
+const adoptionFormRefinements = (data: any, ctx: any) => {
+	if (data.hasGarden && data.gardenSize === undefined) {
+		ctx.addIssue({
+			path: ['gardenSize'],
+			code: 'custom',
+			message: 'Veuillez indiquer la taille du jardin'
+		});
+	}
+};
+
+//
+// GLOBAL SCHEMA (sans superRefine ici !)
+//
+
+export const adoptionFormSchemaBase = z.object({
+	...step1Schema.shape,
+	...step2Schema.shape,
+	...step3Schema.shape
+});
+
+export const adoptionFormSchema = adoptionFormSchemaBase.superRefine(adoptionFormRefinements);
+
+//
+// TYPES
+//
+
+export type AdoptionIdentitySchema = z.infer<typeof step1Schema>;
+
+export type AdoptionCatSchema = z.infer<typeof step2Schema>;
+
+export type AdoptionHousingSchema = z.infer<typeof step3Schema>;
 
 export type AdoptionForm = z.infer<typeof adoptionFormSchema>;
+
+//
+// UPDATE SCHEMA (partial + refinements)
+//
+
+export const updateAdoptionFormSchema = adoptionFormSchemaBase
+	.partial()
+	.superRefine(adoptionFormRefinements)
+	.extend({
+		formId: z.string().uuid('ID invalide'),
+		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+		notes: z.string().optional(),
+		assignedToId: z.string().uuid('ID invalide').optional().nullable()
+	});
+
+export type UpdateAdoptionFormInput = z.infer<typeof updateAdoptionFormSchema>;

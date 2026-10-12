@@ -1,23 +1,55 @@
-import type { FormType, Form, User, Profil } from '@prisma/client';
+import type { FormStatus } from '@prisma/client';
 
-export type News = {
-	id: string;
-	title: string | null;
-	content: string | null;
-	type: FormType;
-	mediaUrl: string | null;
-	createdAt: Date;
-	formattedDate: string;
-	image: string;
-	cats: any[]; // À typer selon ton besoin
+export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'OTHER';
+
+// ===== DONNÉES SPÉCIFIQUES PAR TYPE =====
+
+export type AdoptionFormData = {
+	firstName: string;
+	lastName: string;
+	birthDate: Date;
+	phone: string;
+	address: string;
+	city: string;
+	postalCode: string;
+	district: string;
+	catAge: string;
+	catSex: string;
+	color: string;
+	furLength: string;
+	temperament: string;
+	housingSize: number;
+	hasGarden: boolean;
+	gardenSize?: number;
+	hasPets: boolean;
+	numberOfCats: number;
+	numberOfDogs: number;
+	otherPets: string;
+	numberOfChildren: number;
 };
 
-export type FormWithRelations = Form & {
-	assignedTo?:
-		| (User & {
-				profil: Profil;
-		  })
-		| null;
+export type VolunteerFormData = {
+	// À définir...
 };
 
-export type SOSType = 'abandon' | 'feeding_spot' | 'found' | 'danger' | 'autre';
+export type HostFormData = {
+	// À définir...
+};
+
+export type CollaborationFormData = {
+	// À définir...
+};
+
+export type OtherFormData = Record<string, any>;
+
+// ===== TYPE UNION =====
+export type AnyFormData =
+	AdoptionFormData | VolunteerFormData | HostFormData | CollaborationFormData | OtherFormData;
+
+// ===== ÉDITION =====
+export type FormEditData<T extends AnyFormData = AnyFormData> = {
+	status: FormStatus;
+	email: string;
+	data: T;
+	notes?: string | null;
+};

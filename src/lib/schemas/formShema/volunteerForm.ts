@@ -7,6 +7,7 @@ const districtEnum = z
 
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
+
 //
 // STEP 1
 //
@@ -67,40 +68,77 @@ export const volunteerStep4Schema = z.object({
 });
 
 //
-// GLOBAL SCHEMA (UNIFORME)
+// REFINEMENTS LOGIC
 //
-export const volunteerFormSchema = z
-	.object({
-		...volunteerStep1Schema.shape,
-		...volunteerStep2Schema.shape,
-		...volunteerStep3Schema.shape,
-		...volunteerStep4Schema.shape
-	})
-	.superRefine((data, ctx) => {
-		// Cat experience
-		if (data.hasCatExperience && !data.catExperienceDescription?.trim()) {
-			ctx.addIssue({
-				path: ['catExperienceDescription'],
-				code: 'custom',
-				message: 'Description obligatoire'
-			});
-		}
 
-		// Association experience
-		if (data.hasAssociationExperience && !data.associationExperienceDescription?.trim()) {
-			ctx.addIssue({
-				path: ['associationExperienceDescription'],
-				code: 'custom',
-				message: 'Description obligatoire'
-			});
-		}
+const volunteerFormRefinements = (data: any, ctx: any) => {
+	// Cat experience
+	if (data.hasCatExperience && !data.catExperienceDescription?.trim()) {
+		ctx.addIssue({
+			path: ['catExperienceDescription'],
+			code: 'custom',
+			message: 'Description obligatoire'
+		});
+	}
 
-		// Medical care
-		if (data.hasMedicalCareExperience && !data.medicalCareDescription?.trim()) {
-			ctx.addIssue({
-				path: ['medicalCareDescription'],
-				code: 'custom',
-				message: 'Description obligatoire'
-			});
-		}
+	// Association experience
+	if (data.hasAssociationExperience && !data.associationExperienceDescription?.trim()) {
+		ctx.addIssue({
+			path: ['associationExperienceDescription'],
+			code: 'custom',
+			message: 'Description obligatoire'
+		});
+	}
+
+	// Medical care
+	if (data.hasMedicalCareExperience && !data.medicalCareDescription?.trim()) {
+		ctx.addIssue({
+			path: ['medicalCareDescription'],
+			code: 'custom',
+			message: 'Description obligatoire'
+		});
+	}
+};
+
+//
+// GLOBAL SCHEMA (sans superRefine !)
+//
+
+export const volunteerFormSchemaBase = z.object({
+	...volunteerStep1Schema.shape,
+	...volunteerStep2Schema.shape,
+	...volunteerStep3Schema.shape,
+	...volunteerStep4Schema.shape
+});
+
+export const volunteerFormSchema = volunteerFormSchemaBase.superRefine(volunteerFormRefinements);
+
+//
+// TYPES
+//
+
+export type VolunteerIdentitySchema = z.infer<typeof volunteerStep1Schema>;
+
+export type VolunteerExperienceSchema = z.infer<typeof volunteerStep2Schema>;
+
+export type VolunteerAvailabilitySchema = z.infer<typeof volunteerStep3Schema>;
+
+export type VolunteerMotivationSchema = z.infer<typeof volunteerStep4Schema>;
+
+export type FormVolunteerSchema = z.infer<typeof volunteerFormSchema>;
+
+//
+// UPDATE SCHEMA (partial + refinements)
+//
+
+export const updateVolunteerSchema = volunteerFormSchemaBase
+	.partial()
+	.superRefine(volunteerFormRefinements)
+	.extend({
+		formId: z.string().uuid('ID invalide'),
+		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+		notes: z.string().optional(),
+		assignedToId: z.string().uuid('ID invalide').optional().nullable()
 	});
+
+export type UpdateVolunteerInput = z.infer<typeof updateVolunteerSchema>;

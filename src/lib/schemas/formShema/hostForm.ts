@@ -85,52 +85,63 @@ export const hostStep4Schema = z.object({
 	presence: z.string().default(''),
 
 	// 💬 motivation
-	motivation: z.string().min(10, 'Merci d’expliquer votre motivation'),
+	motivation: z.string().min(10, "Merci d'expliquer votre motivation"),
 
 	// 💬 message libre
 	additionalMessage: z.string().optional()
 });
 
 //
-// SCHEMA GLOBAL
+// REFINEMENTS LOGIC
 //
 
-export const hostFormSchema = z
-	.object({
-		...hostStep1Schema.shape,
-		...hostStep2Schema.shape,
-		...hostStep3Schema.shape,
-		...hostStep4Schema.shape
-	})
-	.superRefine((data, ctx) => {
-		// VALIDATION OUTSIDE
-		if (data.outside && !data.outsideDescription?.trim()) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['outsideDescription'],
-				message: "Veuillez décrire l'accès extérieur"
-			});
-		}
+const hostFormRefinements = (data: any, ctx: any) => {
+	// VALIDATION OUTSIDE
+	if (data.outside && !data.outsideDescription?.trim()) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['outsideDescription'],
+			message: "Veuillez décrire l'accès extérieur"
+		});
+	}
 
-		// VALIDATION ANIMAUX
-		if (!data.hasAnimalsAtHome) return;
+	// VALIDATION ANIMAUX
+	if (!data.hasAnimalsAtHome) return;
 
-		if ((data.numberOfCatsAtHome ?? 0) < 0) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['numberOfCatsAtHome'],
-				message: 'Le nombre de chats doit être positif'
-			});
-		}
+	if ((data.numberOfCatsAtHome ?? 0) < 0) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['numberOfCatsAtHome'],
+			message: 'Le nombre de chats doit être positif'
+		});
+	}
 
-		if ((data.numberOfDogsAtHome ?? 0) < 0) {
-			ctx.addIssue({
-				code: 'custom',
-				path: ['numberOfDogsAtHome'],
-				message: 'Le nombre de chiens doit être positif'
-			});
-		}
-	});
+	if ((data.numberOfDogsAtHome ?? 0) < 0) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['numberOfDogsAtHome'],
+			message: 'Le nombre de chiens doit être positif'
+		});
+	}
+};
+
+//
+// BASE SCHEMA (sans superRefine)
+//
+
+export const hostFormSchemaBase = z.object({
+	...hostStep1Schema.shape,
+	...hostStep2Schema.shape,
+	...hostStep3Schema.shape,
+	...hostStep4Schema.shape
+});
+
+//
+// SCHEMA GLOBAL (avec refinements)
+//
+
+export const hostFormSchema = hostFormSchemaBase.superRefine(hostFormRefinements);
+
 //
 // TYPES
 //
@@ -144,3 +155,19 @@ export type HostExperienceSchema = z.infer<typeof hostStep3Schema>;
 export type HostAvailabilitySchema = z.infer<typeof hostStep4Schema>;
 
 export type FormHostSchema = z.infer<typeof hostFormSchema>;
+
+//
+// UPDATE SCHEMA (partial + refinements)
+//
+
+export const updateHostSchema = hostFormSchemaBase
+	.partial()
+	.superRefine(hostFormRefinements)
+	.extend({
+		formId: z.string().uuid('ID invalide'),
+		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+		notes: z.string().optional(),
+		assignedToId: z.string().uuid('ID invalide').optional().nullable()
+	});
+
+export type UpdateHostInput = z.infer<typeof updateHostSchema>;
