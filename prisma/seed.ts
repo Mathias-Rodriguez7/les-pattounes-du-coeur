@@ -42,7 +42,6 @@ const SOCIALIZE = ['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED'] as const;
 const BABY = ['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY'] as const;
 
 const NEWS_TYPES = ['NEWS', 'NEWSLETTER', 'HISTORY', 'NEWSCATS', 'EVENT'] as const;
-const FORM_TYPES = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'] as const;
 const FORM_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
 const SICKNESS_STATUS = ['ACTIVE', 'TREATED', 'RESOLVED'] as const;
@@ -569,17 +568,190 @@ async function main() {
 	// 📄 FORMS
 	// ---------------------
 	console.log('📄 Création des formulaires...');
-	for (let i = 0; i < 50; i++) {
+
+	// 🎯 Créer 30 formulaires d'ADOPTION
+	console.log("  → 30 formulaires d'adoption...");
+	for (let i = 0; i < 30; i++) {
+		const adoptant = adoptants[i];
 		const shouldBeAssigned = randomBool(0.7);
 
 		await prisma.form.create({
 			data: {
-				type: faker.helpers.arrayElement(FORM_TYPES),
+				type: 'ADOPTION',
+				status: faker.helpers.arrayElement(FORM_STATUS),
+				email: adoptant.email,
+				data: {
+					// STEP 1 - Identité
+					firstName: adoptant.firstName,
+					lastName: adoptant.lastName,
+					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
+					email: adoptant.email,
+					address: adoptant.address,
+					birthDate: adoptant.birthDate, // ✅ Null check
+					city: adoptant.city,
+					postalCode: adoptant.postalCode,
+					district: adoptant.district ?? 'CENTRE_VILLE', // ✅ District peut être null
+
+					// STEP 2 - Préférences chat
+					catAge: faker.helpers.arrayElement(['kitten', 'adult', 'senior', 'free']),
+					catSex: faker.helpers.arrayElement(['male', 'female', 'free']),
+					color: faker.color.human(),
+					furLength: faker.helpers.arrayElement(['short', 'medium', 'long', 'free']),
+					temperament: faker.lorem.sentences(2),
+
+					// STEP 3 - Logement
+					housingSize: faker.number.int({ min: 20, max: 300 }),
+					hasGarden: randomBool(),
+					gardenSize: randomBool() ? faker.number.int({ min: 10, max: 5000 }) : undefined,
+					hasPets: randomBool(),
+					numberOfCats: faker.number.int({ min: 0, max: 5 }),
+					numberOfDogs: faker.number.int({ min: 0, max: 3 }),
+					otherPets: randomBool(0.3) ? faker.word.noun() : undefined,
+					numberOfChildren: faker.number.int({ min: 0, max: 4 })
+				},
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
+				assignedToId: shouldBeAssigned ? faker.helpers.arrayElement(volunteers).id : undefined
+			}
+		});
+	}
+
+	// 🎯 Créer 10 formulaires VOLUNTEER
+	console.log('  → 10 formulaires de bénévole...');
+	for (let i = 0; i < 10; i++) {
+		const shouldBeAssigned = randomBool(0.7);
+		const profilIdx = 27 + i; // À partir des profils non-utilisés
+
+		await prisma.form.create({
+			data: {
+				type: 'VOLUNTEER',
+				status: faker.helpers.arrayElement(FORM_STATUS),
+				email: profils[profilIdx].email,
+				data: {
+					// STEP 1 - Identité
+					firstName: profils[profilIdx].firstName,
+					lastName: profils[profilIdx].lastName,
+					phone: profils[profilIdx].phone,
+					email: profils[profilIdx].email,
+					address: profils[profilIdx].address,
+					birthDate: profils[profilIdx].birthDate,
+					city: profils[profilIdx].city,
+					postalCode: profils[profilIdx].postalCode,
+					district: profils[profilIdx].district,
+
+					// STEP 2 - Expérience
+					hasCatExperience: randomBool(0.7),
+					catExperienceDescription: randomBool(0.7) ? faker.lorem.sentences(2) : undefined,
+
+					hasAssociationExperience: randomBool(0.5),
+					associationExperienceDescription: randomBool(0.5) ? faker.lorem.sentences(2) : undefined,
+
+					hasMedicalCareExperience: randomBool(0.3),
+					medicalCareDescription: randomBool(0.3) ? faker.lorem.sentences(2) : undefined,
+
+					hasTransportExperience: randomBool(0.6),
+
+					// STEP 3 - Disponibilité
+					car: randomBool(0.8),
+					availability: faker.helpers.arrayElement(['LOW', 'MEDIUM', 'HIGH']),
+					availabilityDuration: faker.helpers.arrayElement([
+						'LESS_THAN_1_MONTH',
+						'1_TO_3_MONTHS',
+						'3_TO_6_MONTHS',
+						'MORE_THAN_6_MONTHS',
+						'LONG_TERM'
+					]),
+					canHelpWeekdays: randomBool(0.8),
+					canHelpWeekends: randomBool(0.7),
+					canHelpEmergencies: randomBool(0.5),
+
+					// STEP 4 - Motivation
+					motivation: faker.lorem.paragraphs(1),
+					skills: randomBool(0.6) ? faker.lorem.sentence() : undefined,
+					additionalInformation: randomBool(0.4) ? faker.lorem.sentence() : undefined
+				},
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
+				assignedToId: shouldBeAssigned ? faker.helpers.arrayElement(volunteers).id : undefined
+			}
+		});
+	}
+
+	// 🎯 Créer 10 formulaires HOST
+	console.log("  → 10 formulaires d'accueil...");
+	for (let i = 0; i < 10; i++) {
+		const shouldBeAssigned = randomBool(0.7);
+		const profilIdx = 37 + i; // À partir des profils non-utilisés
+
+		const hasAnimalsAtHome = randomBool(0.6);
+
+		await prisma.form.create({
+			data: {
+				type: 'HOST',
+				status: faker.helpers.arrayElement(FORM_STATUS),
+				email: profils[profilIdx].email,
+				data: {
+					// STEP 1 - Identité
+					firstName: profils[profilIdx].firstName,
+					lastName: profils[profilIdx].lastName,
+					phone: profils[profilIdx].phone,
+					email: profils[profilIdx].email,
+					address: profils[profilIdx].address,
+					birthDate: profils[profilIdx].birthDate,
+					city: profils[profilIdx].city,
+					postalCode: profils[profilIdx].postalCode,
+					district: profils[profilIdx].district,
+
+					// STEP 2 - Logement
+					space: faker.number.int({ min: 30, max: 500 }),
+					outside: randomBool(0.6),
+					outsideDescription: randomBool(0.6) ? faker.lorem.sentences(1) : undefined,
+					hasAnimalsAtHome: hasAnimalsAtHome,
+					numberOfCatsAtHome: hasAnimalsAtHome ? faker.number.int({ min: 0, max: 5 }) : undefined,
+					numberOfDogsAtHome: hasAnimalsAtHome ? faker.number.int({ min: 0, max: 3 }) : undefined,
+					otherAnimalsAtHome: hasAnimalsAtHome && randomBool(0.3) ? faker.word.noun() : undefined,
+					homeDescription: faker.lorem.sentences(2),
+
+					// STEP 3 - Expérience
+					type: faker.helpers.arrayElement(HOST_TYPE),
+					heal: faker.helpers.arrayElement(HEAL),
+					socialize: faker.helpers.arrayElement(SOCIALIZE),
+					car: randomBool(0.7),
+					babyFeeding: faker.helpers.arrayElement(BABY),
+
+					// STEP 4 - Disponibilité
+					catAdult: faker.number.int({ min: 1, max: 10 }),
+					kittyAndKitten: randomBool(0.5),
+					kitten: randomBool() ? faker.number.int({ min: 1, max: 10 }) : 0,
+					presence: faker.lorem.sentence(),
+					motivation: faker.lorem.paragraphs(1),
+					additionalMessage: randomBool(0.4) ? faker.lorem.sentence() : undefined
+				},
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
+				assignedToId: shouldBeAssigned ? faker.helpers.arrayElement(volunteers).id : undefined
+			}
+		});
+	}
+
+	// 🎯 Créer 10 formulaires COLAB (Partenariat)
+	console.log('  → 10 formulaires de partenariat...');
+	for (let i = 0; i < 10; i++) {
+		const shouldBeAssigned = randomBool(0.7);
+
+		await prisma.form.create({
+			data: {
+				type: 'COLAB',
 				status: faker.helpers.arrayElement(FORM_STATUS),
 				email: faker.internet.email(),
 				data: {
-					message: faker.lorem.sentence(),
-					name: faker.person.fullName()
+					// STEP 1 - Informations
+					firstName: faker.person.firstName(),
+					lastName: faker.person.lastName(),
+					companyName: randomBool(0.8) ? faker.company.name() : undefined,
+					email: faker.internet.email(),
+					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
+
+					// STEP 2 - Partenariat
+					presentation: faker.lorem.paragraphs(1),
+					partnershipProposal: faker.lorem.paragraphs(1)
 				},
 				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
 				assignedToId: shouldBeAssigned ? faker.helpers.arrayElement(volunteers).id : undefined

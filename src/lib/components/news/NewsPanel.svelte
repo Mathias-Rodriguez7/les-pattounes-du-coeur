@@ -95,11 +95,9 @@
 					</div>
 
 					<div>
-						{#if isAdmin}
-							<Button variant="ghost" size="icon" onclick={startEditing}>
-								<Pencil class="h-5 w-5" />
-							</Button>
-						{/if}
+						<Button variant="ghost" size="icon" onclick={startEditing}>
+							<Pencil class="h-5 w-5" />
+						</Button>
 					</div>
 				</div>
 			</Card.Header>

@@ -1,4 +1,4 @@
-import type { FormType } from '@prisma/client';
+import type { FormType, Form, User, Profil } from '@prisma/client';
 
 export type News = {
 	id: string;
@@ -10,6 +10,14 @@ export type News = {
 	formattedDate: string;
 	image: string;
 	cats: any[]; // À typer selon ton besoin
+};
+
+export type FormWithRelations = Form & {
+	assignedTo?:
+		| (User & {
+				profil: Profil;
+		  })
+		| null;
 };
 
 export type SOSType = 'abandon' | 'feeding_spot' | 'found' | 'danger' | 'autre';

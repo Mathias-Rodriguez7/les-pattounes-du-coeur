@@ -43,9 +43,9 @@
 		},
 		{
 			id: 'pending-apps',
-			label: 'Candidatures',
+			label: 'Formulaires',
 			value: stats.pendingApplications,
-			icon: 'mail',
+			icon: 'clipboard',
 			iconTheme: 'pending'
 		}
 	]);

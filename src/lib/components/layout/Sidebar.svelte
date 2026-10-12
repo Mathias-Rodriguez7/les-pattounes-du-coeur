@@ -10,7 +10,8 @@
 		LogOut,
 		ChevronLeft,
 		ChevronRight,
-		Newspaper
+		Newspaper,
+		ClipboardList
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { Route } from '@sveltejs/kit';
@@ -60,6 +61,12 @@
 			icon: Newspaper,
 			href: '/dashboard/news' as const,
 			roles: ['ADMIN', 'COMMUNICATION'] as VolunteerRole[]
+		},
+		{
+			label: 'Formulaire',
+			icon: ClipboardList,
+			href: '/dashboard/forms' as const,
+			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
 		}
 	];
 

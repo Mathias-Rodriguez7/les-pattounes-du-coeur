@@ -21,7 +21,7 @@
 	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
 	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
-	import { FORM_SECTION_CONFIG } from '$lib/constants/form';
+	import { FORM_SECTION_CONFIG } from '$lib/constants/forms';
 
 	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 

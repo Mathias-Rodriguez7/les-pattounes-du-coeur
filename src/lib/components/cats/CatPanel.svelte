@@ -857,6 +857,7 @@
 					catId={cat.id}
 					hosts={hosts ?? []}
 					volunteers={volunteers ?? []}
+					{isAdmin}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>

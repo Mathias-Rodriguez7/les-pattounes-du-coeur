@@ -375,7 +375,6 @@ enum FormType {
   VOLUNTEER
   HOST
   COLAB
-  ALERT
   OTHER
 }
 

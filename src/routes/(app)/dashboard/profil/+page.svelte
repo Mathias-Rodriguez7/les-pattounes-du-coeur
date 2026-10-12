@@ -105,11 +105,17 @@
 		<!-- TABS -->
 		<Tabs.Root value="email" class="w-full">
 			<Tabs.List class="mb-6 grid w-full grid-cols-2">
-				<Tabs.Trigger value="email" class="flex items-center gap-2">
+				<Tabs.Trigger
+					value="email"
+					class="flex items-center gap-2 transition-colors data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+				>
 					<Mail class="h-4 w-4" />
 					<span>Email</span>
 				</Tabs.Trigger>
-				<Tabs.Trigger value="password" class="flex items-center gap-2">
+				<Tabs.Trigger
+					value="password"
+					class="flex items-center gap-2 transition-colors data-[state=active]:border-b-2 data-[state=active]:border-emerald-600 data-[state=active]:text-emerald-600"
+				>
 					<Lock class="h-4 w-4" />
 					<span>Mot de passe</span>
 				</Tabs.Trigger>

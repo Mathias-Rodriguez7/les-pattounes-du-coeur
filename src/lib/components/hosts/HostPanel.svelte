@@ -353,26 +353,24 @@
 							title={HOST_SECTION_CONFIG.address.label}
 							color={HOST_SECTION_CONFIG.address.color}
 						>
-							<div class="grid gap-4">
-								<div class="col-span-2 ml-6 gap-4 space-y-2 text-sm">
+							<div class="ml-6 gap-4 space-y-2 text-sm">
+								<div>
+									<p class="text-muted-foreground font-medium">Rue</p>
+									<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
+								</div>
+								<div class="flex gap-4">
 									<div>
-										<p class="text-muted-foreground font-medium">Rue</p>
-										<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
+										<p class="text-muted-foreground font-medium">Ville</p>
+										<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
 									</div>
-									<div class="flex gap-4">
-										<div>
-											<p class="text-muted-foreground font-medium">Ville</p>
-											<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
-										</div>
-										<div>
-											<p class="text-muted-foreground font-medium">CP</p>
-											<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
-										</div>
+									<div>
+										<p class="text-muted-foreground font-medium">CP</p>
+										<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
+									</div>
 
-										<div>
-											<p class="text-muted-foreground font-medium">Quartier</p>
-											<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
-										</div>
+									<div>
+										<p class="text-muted-foreground font-medium">Quartier</p>
+										<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
 									</div>
 								</div>
 							</div>
@@ -385,27 +383,124 @@
 							color={HOST_SECTION_CONFIG.contact.color}
 						>
 							<div class="ml-6 grid gap-4">
-								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-									<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
-										{host.profil.phone || '—'}
-									</a>
+								<div>
+									<p class="text-muted-foreground font-medium">Tel</p>
+									<div class="flex items-center gap-2">
+										<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
+										<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
+											{host.profil.phone || '—'}
+										</a>
+									</div>
 								</div>
 
-								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-									<a
-										href="mailto:{host.profil.email}"
-										class="truncate text-sm text-blue-600 hover:underline"
-										title={host.profil.email}
-									>
-										{truncate(host.profil.email, 28)}
-									</a>
+								<div>
+									<p class="text-muted-foreground font-medium">Mail</p>
+									<div class="flex items-center gap-2">
+										<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
+										<a
+											href="mailto:{host.profil.email}"
+											class="truncate text-sm text-blue-600 hover:underline"
+											title={host.profil.email}
+										>
+											{truncate(host.profil.email, 28)}
+										</a>
+									</div>
 								</div>
 							</div>
 						</SectionCard>
 					</div>
 				</section>
+				<Separator />
+
+				<!-- Placement -->
+				<section class="space-y-8">
+					{#if activePlacements.length > 0}
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.placements.icon}
+							title={HOST_SECTION_CONFIG.placements.label}
+							color={HOST_SECTION_CONFIG.placements.color}
+						>
+							<!-- PLACEMENTS ACTIFS -->
+							<div>
+								<h3 class="mb-4 text-lg font-semibold text-gray-900">Placements actifs</h3>
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+									<!-- PROPOSAL -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.PROPOSAL.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.PROPOSAL.dot}"
+											></span>
+											{PLACEMENT_TYPE_LABELS.PROPOSAL}
+										</h4>
+										<div class="space-y-2">
+											{#each getPlacementsByType('PROPOSAL', true) as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if getPlacementsByType('PROPOSAL', true).length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
+									</div>
+
+									<!-- TRANSFER -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.TRANSFER.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.TRANSFER.dot}"
+											></span>
+											{PLACEMENT_TYPE_LABELS.TRANSFER}
+										</h4>
+										<div class="space-y-2">
+											{#each getPlacementsByType('TRANSFER', true) as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if getPlacementsByType('TRANSFER', true).length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
+									</div>
+
+									<!-- LONG & SHORT -->
+									<div class="space-y-3">
+										<h4
+											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
+												.LONG.text}"
+										>
+											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.LONG.dot}"></span>
+											Accueil (Long/Relais)
+										</h4>
+										<div class="space-y-2">
+											{#each longShortActivePlacements as placement (placement.id)}
+												<PlacementCard {placement} />
+											{/each}
+											{#if longShortActivePlacements.length === 0}
+												<p class="text-xs text-gray-500 italic">Aucun</p>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						</SectionCard>
+					{:else}
+						<SectionCard
+							icon={HOST_SECTION_CONFIG.placements.icon}
+							title={HOST_SECTION_CONFIG.placements.label}
+							color={HOST_SECTION_CONFIG.placements.color}
+						>
+							<div
+								class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
+							>
+								<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
+								<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
+							</div>
+						</SectionCard>
+					{/if}
+				</section>
+
 				<Separator />
 
 				<!-- Grille 2 colonnes : Adresse & Infos maison + Capacités -->
@@ -588,97 +683,6 @@
 							color={HOST_SECTION_CONFIG.additionalInformation.color}
 						>
 							<p class="text-sm text-gray-700">{host.additionalInformation}</p>
-						</SectionCard>
-					{/if}
-				</section>
-
-				<Separator />
-
-				<!-- Placement -->
-				<section class="space-y-8">
-					{#if activePlacements.length > 0}
-						<SectionCard
-							icon={HOST_SECTION_CONFIG.placements.icon}
-							title={HOST_SECTION_CONFIG.placements.label}
-							color={HOST_SECTION_CONFIG.placements.color}
-						>
-							<!-- PLACEMENTS ACTIFS -->
-							<div>
-								<h3 class="mb-4 text-lg font-semibold text-gray-900">Placements actifs</h3>
-								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-									<!-- PROPOSAL -->
-									<div class="space-y-3">
-										<h4
-											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
-												.PROPOSAL.text}"
-										>
-											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.PROPOSAL.dot}"
-											></span>
-											{PLACEMENT_TYPE_LABELS.PROPOSAL}
-										</h4>
-										<div class="space-y-2">
-											{#each getPlacementsByType('PROPOSAL', true) as placement (placement.id)}
-												<PlacementCard {placement} />
-											{/each}
-											{#if getPlacementsByType('PROPOSAL', true).length === 0}
-												<p class="text-xs text-gray-500 italic">Aucun</p>
-											{/if}
-										</div>
-									</div>
-
-									<!-- TRANSFER -->
-									<div class="space-y-3">
-										<h4
-											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
-												.TRANSFER.text}"
-										>
-											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.TRANSFER.dot}"
-											></span>
-											{PLACEMENT_TYPE_LABELS.TRANSFER}
-										</h4>
-										<div class="space-y-2">
-											{#each getPlacementsByType('TRANSFER', true) as placement (placement.id)}
-												<PlacementCard {placement} />
-											{/each}
-											{#if getPlacementsByType('TRANSFER', true).length === 0}
-												<p class="text-xs text-gray-500 italic">Aucun</p>
-											{/if}
-										</div>
-									</div>
-
-									<!-- LONG & SHORT -->
-									<div class="space-y-3">
-										<h4
-											class="flex items-center gap-2 text-sm font-semibold {PLACEMENT_TYPE_COLORS
-												.LONG.text}"
-										>
-											<span class="h-3 w-3 rounded-full {PLACEMENT_TYPE_COLORS.LONG.dot}"></span>
-											Accueil (Long/Relais)
-										</h4>
-										<div class="space-y-2">
-											{#each longShortActivePlacements as placement (placement.id)}
-												<PlacementCard {placement} />
-											{/each}
-											{#if longShortActivePlacements.length === 0}
-												<p class="text-xs text-gray-500 italic">Aucun</p>
-											{/if}
-										</div>
-									</div>
-								</div>
-							</div>
-						</SectionCard>
-					{:else}
-						<SectionCard
-							icon={HOST_SECTION_CONFIG.placements.icon}
-							title={HOST_SECTION_CONFIG.placements.label}
-							color={HOST_SECTION_CONFIG.placements.color}
-						>
-							<div
-								class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
-							>
-								<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
-								<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
-							</div>
 						</SectionCard>
 					{/if}
 				</section>

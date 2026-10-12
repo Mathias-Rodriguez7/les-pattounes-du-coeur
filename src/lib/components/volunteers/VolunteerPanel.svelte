@@ -323,25 +323,31 @@
 						class="col-span-3"
 					>
 						<div class="ml-6 grid gap-4">
-							<div class="flex items-center gap-2">
-								<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
-								<a
-									href="tel:{volunteer.profil.phone}"
-									class="text-sm text-blue-600 hover:underline"
-								>
-									{volunteer.profil.phone || '—'}
-								</a>
+							<div>
+								<p class="text-muted-foreground font-medium">Tel</p>
+								<div class="flex items-center gap-2">
+									<Icon name="phone" iconClass="h-5 w-5 text-muted-foreground" />
+									<a
+										href="tel:{volunteer.profil.phone}"
+										class="text-sm text-blue-600 hover:underline"
+									>
+										{volunteer.profil.phone || '—'}
+									</a>
+								</div>
 							</div>
 
-							<div class="flex items-center gap-2">
-								<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
-								<a
-									href="mailto:{volunteer.profil.email}"
-									class="truncate text-sm text-blue-600 hover:underline"
-									title={volunteer.profil.email}
-								>
-									{truncate(volunteer.profil.email, 28)}
-								</a>
+							<div>
+								<p class="text-muted-foreground font-medium">Mail</p>
+								<div class="flex items-center gap-2">
+									<Icon name="mail" iconClass="h-5 w-5 text-muted-foreground" />
+									<a
+										href="mailto:{volunteer.profil.email}"
+										class="truncate text-sm text-blue-600 hover:underline"
+										title={volunteer.profil.email}
+									>
+										{truncate(volunteer.profil.email, 28)}
+									</a>
+								</div>
 							</div>
 						</div>
 					</SectionCard>
