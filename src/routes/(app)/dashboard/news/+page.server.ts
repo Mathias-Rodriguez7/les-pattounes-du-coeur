@@ -3,7 +3,7 @@ import prisma from '$lib/server/prisma';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const news = await prisma.news.findMany({
-		orderBy: { created_at: 'desc' },
+		orderBy: { createdAt: 'desc' },
 		include: {
 			cats: {
 				include: { cat: { select: { id: true, name: true, catNumber: true, status: true } } }
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		newsletters: news.filter((n) => n.type === 'NEWSLETTER').length,
 		events: news.filter((n) => n.type === 'EVENT').length,
 		withoutMedia: news.filter((n) => !n.mediaUrl).length,
-		thisYear: news.filter((n) => n.created_at >= yearStart).length
+		thisYear: news.filter((n) => n.createdAt >= yearStart).length
 	};
 
 	return {

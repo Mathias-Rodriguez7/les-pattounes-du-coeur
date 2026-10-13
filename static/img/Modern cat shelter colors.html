@@ -1172,7 +1172,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -1357,7 +1357,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -1370,7 +1370,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -2710,8 +2710,8 @@ model Cat {
   chipId              String?     @db.VarChar(255)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -3022,7 +3022,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -3207,7 +3207,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -3220,7 +3220,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -3813,7 +3813,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -4047,7 +4047,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -4060,7 +4060,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -4214,7 +4214,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -4448,7 +4448,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -4461,7 +4461,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -6360,7 +6360,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -6594,7 +6594,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -6607,7 +6607,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -6760,7 +6760,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -7000,7 +7000,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -7013,7 +7013,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -7168,7 +7168,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -7408,7 +7408,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -7421,7 +7421,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -14091,7 +14091,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -14331,7 +14331,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -14344,7 +14344,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -14498,7 +14498,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -14521,9 +14521,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -14531,7 +14531,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -14779,7 +14779,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -14792,7 +14792,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -14949,7 +14949,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -14972,9 +14972,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -14982,7 +14982,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -15230,7 +15230,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -15243,7 +15243,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -20098,7 +20098,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -20121,9 +20121,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const adoptionTrend = await prisma.adoption.groupBy({
-		by: ['created_at'],
+		by: ['createdAt'],
 		where: {
-			created_at: {
+			createdAt: {
 				gte: thirtyDaysAgo
 			}
 		},
@@ -20131,7 +20131,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			id: true
 		},
 		orderBy: {
-			created_at: 'asc'
+			createdAt: 'asc'
 		}
 	});
 
@@ -20379,7 +20379,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -20392,7 +20392,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -20564,7 +20564,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
         // Total adoptions de l&#39;année
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: new Date(`${currentYear}-01-01`)
                 }
             }
@@ -20588,9 +20588,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -20598,7 +20598,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -20846,7 +20846,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -20859,7 +20859,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -21034,7 +21034,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
         <span class="hljs-comment">// Total adoptions de l'année</span>
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                 }
             }
@@ -21058,9 +21058,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -21068,7 +21068,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -21316,7 +21316,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: 'AVAILABLE'
         },
         orderBy: {
-            created_at: 'desc'
+            createdAt: 'desc'
         },
         take: 4,
         include: {
@@ -21329,7 +21329,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: 'ADOPTED'
         },
         orderBy: {
-            updated_at: 'desc'
+            updatedAt: 'desc'
         },
         take: 4,
         include: {
@@ -21983,7 +21983,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 		// Total adoptions de l'année
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: new Date(`${currentYear}-01-01`)
 				}
 			}
@@ -22007,9 +22007,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const adoptionTrend = await prisma.adoption.groupBy({
-		by: ['created_at'],
+		by: ['createdAt'],
 		where: {
-			created_at: {
+			createdAt: {
 				gte: thirtyDaysAgo
 			}
 		},
@@ -22017,7 +22017,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			id: true
 		},
 		orderBy: {
-			created_at: 'asc'
+			createdAt: 'asc'
 		}
 	});
 
@@ -22265,7 +22265,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -22278,7 +22278,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -22383,7 +22383,7 @@ prisma.<span class="hljs-property">host</span>.<span class="hljs-title function_
 
     prisma.adoption.count({
         where: {
-            created_at: {
+            createdAt: {
                 gte: new Date(`${currentYear}-01-01`)
             }
         }
@@ -22427,7 +22427,7 @@ prisma.<span class="hljs-property">host</span>.<span class="hljs-title function_
 
     prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
             }
         }
@@ -22480,7 +22480,7 @@ const totalActiveHosts = allActiveHosts.length;"><svg width="24" height="24" vie
     prisma.cat.count(),
     prisma.adoption.count({
         where: {
-            created_at: {
+            createdAt: {
                 gte: new Date(`${currentYear}-01-01`)
             }
         }
@@ -22513,7 +22513,7 @@ const availableHostFamilies = allActiveHosts.filter(host =&gt; host.placements.l
     prisma.<span class="hljs-property">cat</span>.<span class="hljs-title function_">count</span>(),
     prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
             }
         }
@@ -22561,8 +22561,8 @@ model Profil {
   email     String @db.VarChar(255) @unique
   address   String @map("address") @db.VarChar(255)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   volunteer  Volunteer?
   host       Host?
@@ -22577,8 +22577,8 @@ model Volunteer {
   actif      ColabActivity?
   profilId   String         @unique @db.Uuid
   profil     Profil         @relation(fields: [profilId], references: [id])
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
   sessions   Session[]
   assignedForms Form[] 
@@ -22611,8 +22611,8 @@ model Host {
   babyFeeding           BabyFeeding @map("baby_feeding")
   stopActivity          String      @db.Text
   availabilityDuration  String
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @default(now()) @updatedAt
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now()) @updatedAt
   placements            Placement[]
 }
 
@@ -22623,8 +22623,8 @@ model BlacklistHistoric {
   email         String   @db.VarChar(255)
   description   String   @db.Text
   isBlacklisted Boolean  @default(false) @db.Boolean
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model Cat {
@@ -22653,8 +22653,8 @@ model Cat {
   chipId              String?     @db.VarChar(255)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -22669,8 +22669,8 @@ model MediaCat {
   cat        Cat      @relation(fields: [catId], references: [id])
   picture    String?  @db.VarChar(255)
   fille      String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model News {
@@ -22679,8 +22679,8 @@ model News {
   type       NewsType
   content    String?   @db.Text
   mediaUrl   String?   @db.Text
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -22689,8 +22689,8 @@ model NewsCat {
   news       News     @relation(fields: [newsId], references: [id])
   catId      String   @db.Uuid
   cat        Cat      @relation(fields: [catId], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@id([newsId, catId])
 }
@@ -22700,8 +22700,8 @@ model CatVolunteer {
   cat         Cat       @relation(fields: [catId], references: [id])
   volunteerId String    @db.Uuid
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   @@id([catId, volunteerId])
 }
@@ -22715,8 +22715,8 @@ model Placement {
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
   isPrimary  Boolean   @default(true) @db.Boolean
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 }
 
 model Adoption {
@@ -22727,8 +22727,8 @@ model Adoption {
   profilId    String @db.Uuid
   profil      Profil @relation(fields: [profilId], references: [id])
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@unique([catId])
 }
@@ -22742,8 +22742,8 @@ model Session {
 
   expiresAt   DateTime @map("expires_at")
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model Form {
@@ -22757,8 +22757,8 @@ model Form {
   assignedTo Volunteer? @relation(fields: [assignedToId], references: [id])
 
   notes String? @db.Text
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 }
 
 model Care {
@@ -22769,8 +22769,8 @@ model Care {
   veterinary  String?  @db.VarChar(255)
   description String?  @db.Text
   reason      String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 //////////////////////////
@@ -23004,7 +23004,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             // Total adoptions de l&#39;année
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -23047,9 +23047,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -23057,7 +23057,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -23305,7 +23305,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -23318,7 +23318,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -23469,7 +23469,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-comment">// Total adoptions de l'année</span>
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -23512,9 +23512,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -23522,7 +23522,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -23770,7 +23770,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -23783,7 +23783,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -24215,7 +24215,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			// Total adoptions de l'année
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -24259,9 +24259,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const adoptionTrend = await prisma.adoption.groupBy({
-		by: ['created_at'],
+		by: ['createdAt'],
 		where: {
-			created_at: {
+			createdAt: {
 				gte: thirtyDaysAgo
 			}
 		},
@@ -24269,7 +24269,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			id: true
 		},
 		orderBy: {
-			created_at: 'asc'
+			createdAt: 'asc'
 		}
 	});
 
@@ -24517,7 +24517,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -24530,7 +24530,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -24724,7 +24724,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -24765,9 +24765,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -24775,7 +24775,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -25017,7 +25017,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -25030,7 +25030,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -25198,7 +25198,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -25239,9 +25239,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -25249,7 +25249,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -25491,7 +25491,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -25504,7 +25504,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -25560,8 +25560,8 @@ export type MediaCat = {
     catId: string;
     picture: string | null;
     fille: string | null;
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export type CatWithMedia = {
@@ -25589,13 +25589,13 @@ export type CatWithMedia = {
     isIdentify: boolean;
     chipId: string | null;
     focalPoint: string | null;
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;
+    updatedAt: Date;
     media: MediaCat[];
 };
 
 export type AdoptionTrendItem = {
-    created_at: Date;
+    createdAt: Date;
     _count: {
         id: number;
     };
@@ -25608,8 +25608,8 @@ export type AdoptionTrendItem = {
     <span class="hljs-attr">catId</span>: <span class="hljs-built_in">string</span>;
     <span class="hljs-attr">picture</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
     <span class="hljs-attr">fille</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
-    <span class="hljs-attr">created_at</span>: <span class="hljs-title class_">Date</span>;
-    <span class="hljs-attr">updated_at</span>: <span class="hljs-title class_">Date</span>;
+    <span class="hljs-attr">createdAt</span>: <span class="hljs-title class_">Date</span>;
+    <span class="hljs-attr">updatedAt</span>: <span class="hljs-title class_">Date</span>;
 };
 
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">CatWithMedia</span> = {
@@ -25637,13 +25637,13 @@ export type AdoptionTrendItem = {
     <span class="hljs-attr">isIdentify</span>: <span class="hljs-built_in">boolean</span>;
     <span class="hljs-attr">chipId</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
     <span class="hljs-attr">focalPoint</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
-    <span class="hljs-attr">created_at</span>: <span class="hljs-title class_">Date</span>;
-    <span class="hljs-attr">updated_at</span>: <span class="hljs-title class_">Date</span>;
+    <span class="hljs-attr">createdAt</span>: <span class="hljs-title class_">Date</span>;
+    <span class="hljs-attr">updatedAt</span>: <span class="hljs-title class_">Date</span>;
     <span class="hljs-attr">media</span>: <span class="hljs-title class_">MediaCat</span>[];
 };
 
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">AdoptionTrendItem</span> = {
-    <span class="hljs-attr">created_at</span>: <span class="hljs-title class_">Date</span>;
+    <span class="hljs-attr">createdAt</span>: <span class="hljs-title class_">Date</span>;
     <span class="hljs-attr">_count</span>: {
         <span class="hljs-attr">id</span>: <span class="hljs-built_in">number</span>;
     };
@@ -25776,7 +25776,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: new Date(`${currentYear}-01-01`)
                     }
                 }
@@ -25817,9 +25817,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -25827,7 +25827,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -26069,7 +26069,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -26082,7 +26082,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -26250,7 +26250,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-string">`<span class="hljs-subst">${currentYear}</span>-01-01`</span>)
                     }
                 }
@@ -26291,9 +26291,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -26301,7 +26301,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -26543,7 +26543,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -26556,7 +26556,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -30685,8 +30685,8 @@ model Profil {
   email     String @db.VarChar(255) @unique
   address   String @map("address") @db.VarChar(255)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   volunteer  Volunteer?
   host       Host?
@@ -30701,8 +30701,8 @@ model Volunteer {
   actif      ColabActivity?
   profilId   String         @unique @db.Uuid
   profil     Profil         @relation(fields: [profilId], references: [id])
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
   sessions   Session[]
   assignedForms Form[] 
@@ -30735,8 +30735,8 @@ model Host {
   babyFeeding           BabyFeeding @map("baby_feeding")
   stopActivity          String      @db.Text
   availabilityDuration  String
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @default(now()) @updatedAt
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now()) @updatedAt
   placements            Placement[]
 }
 
@@ -30747,8 +30747,8 @@ model BlacklistHistoric {
   email         String   @db.VarChar(255)
   description   String   @db.Text
   isBlacklisted Boolean  @default(false) @db.Boolean
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model Cat {
@@ -30777,8 +30777,8 @@ model Cat {
   chipId              String?     @db.VarChar(255)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -30793,8 +30793,8 @@ model MediaCat {
   cat        Cat      @relation(fields: [catId], references: [id])
   picture    String?  @db.VarChar(255)
   fille      String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model News {
@@ -30803,8 +30803,8 @@ model News {
   type       NewsType
   content    String?   @db.Text
   mediaUrl   String?   @db.Text
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -30813,8 +30813,8 @@ model NewsCat {
   news       News     @relation(fields: [newsId], references: [id])
   catId      String   @db.Uuid
   cat        Cat      @relation(fields: [catId], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@id([newsId, catId])
 }
@@ -30824,8 +30824,8 @@ model CatVolunteer {
   cat         Cat       @relation(fields: [catId], references: [id])
   volunteerId String    @db.Uuid
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   @@id([catId, volunteerId])
 }
@@ -30839,8 +30839,8 @@ model Placement {
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
   isPrimary  Boolean   @default(true) @db.Boolean
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 }
 
 model Adoption {
@@ -30851,8 +30851,8 @@ model Adoption {
   profilId    String @db.Uuid
   profil      Profil @relation(fields: [profilId], references: [id])
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@unique([catId])
 }
@@ -30866,8 +30866,8 @@ model Session {
 
   expiresAt   DateTime @map("expires_at")
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model Form {
@@ -30881,8 +30881,8 @@ model Form {
   assignedTo Volunteer? @relation(fields: [assignedToId], references: [id])
 
   notes String? @db.Text
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 }
 
 model Care {
@@ -30893,8 +30893,8 @@ model Care {
   veterinary  String?  @db.VarChar(255)
   description String?  @db.Text
   reason      String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 //////////////////////////
@@ -31062,7 +31062,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     const volunteerStats = volunteers.map((volunteer) =&gt; {
         // Chats gérés par ce bénévole (liaison via CatVolunteer)
         const catsManaged = volunteer.cats.filter((cv) =&gt; {
-            const catCreatedInYear = cv.cat.created_at &gt;= yearStart;
+            const catCreatedInYear = cv.cat.createdAt &gt;= yearStart;
             return catCreatedInYear;
         });
 
@@ -31070,7 +31070,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
         const catsAdopted = catsManaged.filter((cv) =&gt; {
             const adoption = cv.cat.adoptions[0];
             if (!adoption) return false;
-            return adoption.created_at &gt;= yearStart;
+            return adoption.createdAt &gt;= yearStart;
         });
 
         return {
@@ -31116,12 +31116,12 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     const totalAssociationCats = allCats.length;
     const totalAdoptionsYear = allCats.filter((c) =&gt; {
         const adoption = c.adoptions[0];
-        return adoption &amp;&amp; adoption.created_at &gt;= yearStart;
+        return adoption &amp;&amp; adoption.createdAt &gt;= yearStart;
     }).length;
 
     const totalAdoptionsMonth = allCats.filter((c) =&gt; {
         const adoption = c.adoptions[0];
-        return adoption &amp;&amp; adoption.created_at &gt;= monthStart;
+        return adoption &amp;&amp; adoption.createdAt &gt;= monthStart;
     }).length;
 
     return {
@@ -31185,7 +31185,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     <span class="hljs-keyword">const</span> volunteerStats = volunteers.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">volunteer</span>) =&gt;</span> {
         <span class="hljs-comment">// Chats gérés par ce bénévole (liaison via CatVolunteer)</span>
         <span class="hljs-keyword">const</span> catsManaged = volunteer.<span class="hljs-property">cats</span>.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">cv</span>) =&gt;</span> {
-            <span class="hljs-keyword">const</span> catCreatedInYear = cv.<span class="hljs-property">cat</span>.<span class="hljs-property">created_at</span> &gt;= yearStart;
+            <span class="hljs-keyword">const</span> catCreatedInYear = cv.<span class="hljs-property">cat</span>.<span class="hljs-property">createdAt</span> &gt;= yearStart;
             <span class="hljs-keyword">return</span> catCreatedInYear;
         });
 
@@ -31193,7 +31193,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
         <span class="hljs-keyword">const</span> catsAdopted = catsManaged.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">cv</span>) =&gt;</span> {
             <span class="hljs-keyword">const</span> adoption = cv.<span class="hljs-property">cat</span>.<span class="hljs-property">adoptions</span>[<span class="hljs-number">0</span>];
             <span class="hljs-keyword">if</span> (!adoption) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
-            <span class="hljs-keyword">return</span> adoption.<span class="hljs-property">created_at</span> &gt;= yearStart;
+            <span class="hljs-keyword">return</span> adoption.<span class="hljs-property">createdAt</span> &gt;= yearStart;
         });
 
         <span class="hljs-keyword">return</span> {
@@ -31239,12 +31239,12 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     <span class="hljs-keyword">const</span> totalAssociationCats = allCats.<span class="hljs-property">length</span>;
     <span class="hljs-keyword">const</span> totalAdoptionsYear = allCats.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">c</span>) =&gt;</span> {
         <span class="hljs-keyword">const</span> adoption = c.<span class="hljs-property">adoptions</span>[<span class="hljs-number">0</span>];
-        <span class="hljs-keyword">return</span> adoption &amp;&amp; adoption.<span class="hljs-property">created_at</span> &gt;= yearStart;
+        <span class="hljs-keyword">return</span> adoption &amp;&amp; adoption.<span class="hljs-property">createdAt</span> &gt;= yearStart;
     }).<span class="hljs-property">length</span>;
 
     <span class="hljs-keyword">const</span> totalAdoptionsMonth = allCats.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">c</span>) =&gt;</span> {
         <span class="hljs-keyword">const</span> adoption = c.<span class="hljs-property">adoptions</span>[<span class="hljs-number">0</span>];
-        <span class="hljs-keyword">return</span> adoption &amp;&amp; adoption.<span class="hljs-property">created_at</span> &gt;= monthStart;
+        <span class="hljs-keyword">return</span> adoption &amp;&amp; adoption.<span class="hljs-property">createdAt</span> &gt;= monthStart;
     }).<span class="hljs-property">length</span>;
 
     <span class="hljs-keyword">return</span> {
@@ -31305,7 +31305,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 &lt;RadarChartCatStatus data={radarData} /&gt;
 </code></pre></div><p><strong>Points clés :</strong></p>
 <ul>
-<li>✅ Filtre par année en cours (<code>created_at &gt;= yearStart</code>)</li>
+<li>✅ Filtre par année en cours (<code>createdAt &gt;= yearStart</code>)</li>
 <li>✅ Récupère les bénévoles ACTIFS seulement</li>
 <li>✅ Compte les chats gérés via la relation <code>CatVolunteer</code></li>
 <li>✅ Compte les chats adoptés via la relation <code>Adoption</code></li>
@@ -31442,7 +31442,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: new Date(`${currentYear}-01-01`)
 					}
 				}
@@ -31483,9 +31483,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const adoptionTrend = await prisma.adoption.groupBy({
-		by: ['created_at'],
+		by: ['createdAt'],
 		where: {
-			created_at: {
+			createdAt: {
 				gte: thirtyDaysAgo
 			}
 		},
@@ -31493,7 +31493,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			id: true
 		},
 		orderBy: {
-			created_at: 'asc'
+			createdAt: 'asc'
 		}
 	});
 
@@ -31734,7 +31734,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -31747,7 +31747,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -31934,7 +31934,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: yearStart
                     }
                 }
@@ -31975,9 +31975,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const adoptionTrend = await prisma.adoption.groupBy({
-        by: [&#39;created_at&#39;],
+        by: [&#39;createdAt&#39;],
         where: {
-            created_at: {
+            createdAt: {
                 gte: thirtyDaysAgo
             }
         },
@@ -31985,7 +31985,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             id: true
         },
         orderBy: {
-            created_at: &#39;asc&#39;
+            createdAt: &#39;asc&#39;
         }
     });
 
@@ -32226,7 +32226,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;AVAILABLE&#39;
         },
         orderBy: {
-            created_at: &#39;desc&#39;
+            createdAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -32239,7 +32239,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             status: &#39;ADOPTED&#39;
         },
         orderBy: {
-            updated_at: &#39;desc&#39;
+            updatedAt: &#39;desc&#39;
         },
         take: 4,
         include: {
@@ -32277,14 +32277,14 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     const volunteerStats: VolunteerStat[] = volunteersWithStats.map((vol) =&gt; {
         // Chats gérés par ce bénévole (créés cette année)
         const catsManaged = vol.cats.filter((cv) =&gt; {
-            return cv.cat.created_at &gt;= yearStart;
+            return cv.cat.createdAt &gt;= yearStart;
         }).length;
 
         // Chats adoptés par ce bénévole (adoptions créées cette année)
         const catsAdopted = vol.cats.filter((cv) =&gt; {
             const adoption = cv.cat.adoptions[0];
             if (!adoption) return false;
-            return adoption.created_at &gt;= yearStart;
+            return adoption.createdAt &gt;= yearStart;
         }).length;
 
         return {
@@ -32512,7 +32512,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: yearStart
                     }
                 }
@@ -32553,9 +32553,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     thirtyDaysAgo.<span class="hljs-title function_">setDate</span>(thirtyDaysAgo.<span class="hljs-title function_">getDate</span>() - <span class="hljs-number">30</span>);
 
     <span class="hljs-keyword">const</span> adoptionTrend = <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">groupBy</span>({
-        <span class="hljs-attr">by</span>: [<span class="hljs-string">'created_at'</span>],
+        <span class="hljs-attr">by</span>: [<span class="hljs-string">'createdAt'</span>],
         <span class="hljs-attr">where</span>: {
-            <span class="hljs-attr">created_at</span>: {
+            <span class="hljs-attr">createdAt</span>: {
                 <span class="hljs-attr">gte</span>: thirtyDaysAgo
             }
         },
@@ -32563,7 +32563,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">id</span>: <span class="hljs-literal">true</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'asc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'asc'</span>
         }
     });
 
@@ -32804,7 +32804,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'AVAILABLE'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">created_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">createdAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -32817,7 +32817,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
             <span class="hljs-attr">status</span>: <span class="hljs-string">'ADOPTED'</span>
         },
         <span class="hljs-attr">orderBy</span>: {
-            <span class="hljs-attr">updated_at</span>: <span class="hljs-string">'desc'</span>
+            <span class="hljs-attr">updatedAt</span>: <span class="hljs-string">'desc'</span>
         },
         <span class="hljs-attr">take</span>: <span class="hljs-number">4</span>,
         <span class="hljs-attr">include</span>: {
@@ -32855,14 +32855,14 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
     <span class="hljs-keyword">const</span> <span class="hljs-attr">volunteerStats</span>: <span class="hljs-title class_">VolunteerStat</span>[] = volunteersWithStats.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">vol</span>) =&gt;</span> {
         <span class="hljs-comment">// Chats gérés par ce bénévole (créés cette année)</span>
         <span class="hljs-keyword">const</span> catsManaged = vol.<span class="hljs-property">cats</span>.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">cv</span>) =&gt;</span> {
-            <span class="hljs-keyword">return</span> cv.<span class="hljs-property">cat</span>.<span class="hljs-property">created_at</span> &gt;= yearStart;
+            <span class="hljs-keyword">return</span> cv.<span class="hljs-property">cat</span>.<span class="hljs-property">createdAt</span> &gt;= yearStart;
         }).<span class="hljs-property">length</span>;
 
         <span class="hljs-comment">// Chats adoptés par ce bénévole (adoptions créées cette année)</span>
         <span class="hljs-keyword">const</span> catsAdopted = vol.<span class="hljs-property">cats</span>.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">cv</span>) =&gt;</span> {
             <span class="hljs-keyword">const</span> adoption = cv.<span class="hljs-property">cat</span>.<span class="hljs-property">adoptions</span>[<span class="hljs-number">0</span>];
             <span class="hljs-keyword">if</span> (!adoption) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
-            <span class="hljs-keyword">return</span> adoption.<span class="hljs-property">created_at</span> &gt;= yearStart;
+            <span class="hljs-keyword">return</span> adoption.<span class="hljs-property">createdAt</span> &gt;= yearStart;
         }).<span class="hljs-property">length</span>;
 
         <span class="hljs-keyword">return</span> {
@@ -41151,7 +41151,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 
 			prisma.adoption.count({
 				where: {
-					created_at: {
+					createdAt: {
 						gte: yearStart
 					}
 				}
@@ -41192,9 +41192,9 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const adoptionTrend = await prisma.adoption.groupBy({
-		by: ['created_at'],
+		by: ['createdAt'],
 		where: {
-			created_at: {
+			createdAt: {
 				gte: thirtyDaysAgo
 			}
 		},
@@ -41202,7 +41202,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			id: true
 		},
 		orderBy: {
-			created_at: 'asc'
+			createdAt: 'asc'
 		}
 	});
 
@@ -41443,7 +41443,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'AVAILABLE'
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -41456,7 +41456,7 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 			status: 'ADOPTED'
 		},
 		orderBy: {
-			updated_at: 'desc'
+			updatedAt: 'desc'
 		},
 		take: 4,
 		include: {
@@ -41494,14 +41494,14 @@ export const load: PageServerLoad = async ({ locals }) =&gt; {
 	const volunteerStats: VolunteerStat[] = volunteersWithStats.map((vol) =&gt; {
 		// Chats gérés par ce bénévole (créés cette année)
 		const catsManaged = vol.cats.filter((cv) =&gt; {
-			return cv.cat.created_at &gt;= yearStart;
+			return cv.cat.createdAt &gt;= yearStart;
 		}).length;
 
 		// Chats adoptés par ce bénévole (adoptions créées cette année)
 		const catsAdopted = vol.cats.filter((cv) =&gt; {
 			const adoption = cv.cat.adoptions[0];
 			if (!adoption) return false;
-			return adoption.created_at &gt;= yearStart;
+			return adoption.createdAt &gt;= yearStart;
 		}).length;
 
 		return {
@@ -42728,7 +42728,7 @@ export const load: PageServerLoad = async () =&gt; {
 				include: { volunteer: { include: { profil: true } } }
 			}
 		},
-		orderBy: { created_at: 'desc' }
+		orderBy: { createdAt: 'desc' }
 	});
 
 	const mapped = cats.map(mapCatFull);
@@ -58339,8 +58339,8 @@ model Profil {
   email     String @db.VarChar(255) @unique
   address   String @map("address") @db.VarChar(255)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   volunteer  Volunteer?
   host       Host?
@@ -58355,8 +58355,8 @@ model Volunteer {
   actif      ColabActivity?
   profilId   String         @unique @db.Uuid
   profil     Profil         @relation(fields: [profilId], references: [id])
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
   sessions   Session[]
   assignedForms Form[] 
@@ -58389,8 +58389,8 @@ model Host {
   babyFeeding           BabyFeeding @map("baby_feeding")
   stopActivity          String      @db.Text
   availabilityDuration  String
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @default(now()) @updatedAt
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now()) @updatedAt
   placements            Placement[]
 }
 
@@ -58401,8 +58401,8 @@ model BlacklistHistoric {
   email         String   @db.VarChar(255)
   description   String   @db.Text
   isBlacklisted Boolean  @default(false) @db.Boolean
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model Cat {
@@ -58431,8 +58431,8 @@ model Cat {
   chipId              String?     @db.VarChar(255)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -58447,8 +58447,8 @@ model MediaCat {
   cat        Cat      @relation(fields: [catId], references: [id])
   picture    String?  @db.VarChar(255)
   fille      String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model News {
@@ -58457,8 +58457,8 @@ model News {
   type       NewsType
   content    String?   @db.Text
   mediaUrl   String?   @db.Text
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -58467,8 +58467,8 @@ model NewsCat {
   news       News     @relation(fields: [newsId], references: [id])
   catId      String   @db.Uuid
   cat        Cat      @relation(fields: [catId], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@id([newsId, catId])
 }
@@ -58478,8 +58478,8 @@ model CatVolunteer {
   cat         Cat       @relation(fields: [catId], references: [id])
   volunteerId String    @db.Uuid
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   @@id([catId, volunteerId])
 }
@@ -58493,8 +58493,8 @@ model Placement {
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
   isPrimary  Boolean   @default(true) @db.Boolean
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 }
 
 model Adoption {
@@ -58505,8 +58505,8 @@ model Adoption {
   profilId    String @db.Uuid
   profil      Profil @relation(fields: [profilId], references: [id])
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@unique([catId])
 }
@@ -58520,8 +58520,8 @@ model Session {
 
   expiresAt   DateTime @map("expires_at")
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model Form {
@@ -58535,8 +58535,8 @@ model Form {
   assignedTo Volunteer? @relation(fields: [assignedToId], references: [id])
 
   notes String? @db.Text
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 }
 
 model Care {
@@ -58547,8 +58547,8 @@ model Care {
   veterinary  String?  @db.VarChar(255)
   description String?  @db.Text
   reason      String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 //////////////////////////
@@ -58725,7 +58725,7 @@ async function getAdminStats() {
         }),
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -58768,7 +58768,7 @@ async function getVolunteerStats(volunteerId: string) {
                             }
                         }
                     },
-                    created_at: {
+                    createdAt: {
                         gte: yearStart
                     }
                 }
@@ -58776,7 +58776,7 @@ async function getVolunteerStats(volunteerId: string) {
             // Total des adoptions cette année
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: yearStart
                     }
                 }
@@ -59022,7 +59022,7 @@ async function getCommunicationTasks(volunteerId: string) {
     const [draftNews, pendingNews] = await Promise.all([
         prisma.news.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Derniers 30 jours
                 }
             }
@@ -59120,7 +59120,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         }),
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -59163,7 +59163,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
                             }
                         }
                     },
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: yearStart
                     }
                 }
@@ -59171,7 +59171,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
             <span class="hljs-comment">// Total des adoptions cette année</span>
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: yearStart
                     }
                 }
@@ -59417,7 +59417,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
     <span class="hljs-keyword">const</span> [draftNews, pendingNews] = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Promise</span>.<span class="hljs-title function_">all</span>([
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>() - <span class="hljs-number">30</span> * <span class="hljs-number">24</span> * <span class="hljs-number">60</span> * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>) <span class="hljs-comment">// Derniers 30 jours</span>
                 }
             }
@@ -59484,8 +59484,8 @@ async function getTasksByRole(role: string, volunteerId: string) {
   authorId   String    @db.Uuid
   author     Volunteer @relation(fields: [authorId], references: [id])
   
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -59504,8 +59504,8 @@ model Volunteer {
   authorId   String    @db.Uuid
   author     Volunteer @relation(fields: [authorId], references: [id])
   
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -59629,7 +59629,7 @@ async function getAdminStats() {
         }),
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -59672,14 +59672,14 @@ async function getVolunteerStats(volunteerId: string) {
                             }
                         }
                     },
-                    created_at: {
+                    createdAt: {
                         gte: yearStart
                     }
                 }
             }),
             prisma.adoption.count({
                 where: {
-                    created_at: {
+                    createdAt: {
                         gte: yearStart
                     }
                 }
@@ -59726,7 +59726,7 @@ async function getVolunteerStats(volunteerId: string) {
         }),
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -59769,14 +59769,14 @@ async function getVolunteerStats(volunteerId: string) {
                             }
                         }
                     },
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: yearStart
                     }
                 }
             }),
             prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
                 <span class="hljs-attr">where</span>: {
-                    <span class="hljs-attr">created_at</span>: {
+                    <span class="hljs-attr">createdAt</span>: {
                         <span class="hljs-attr">gte</span>: yearStart
                     }
                 }
@@ -60047,7 +60047,7 @@ async function getAdminStats() {
         }),
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -60100,14 +60100,14 @@ async function getVolunteerStats(volunteerId: string) {
                         }
                     }
                 },
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
         }),
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -60370,7 +60370,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -60415,7 +60415,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -60537,7 +60537,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         }),
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -60590,14 +60590,14 @@ async function getTasksByRole(role: string, volunteerId: string) {
                         }
                     }
                 },
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
         }),
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -60860,7 +60860,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -60905,7 +60905,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -63337,7 +63337,7 @@ async function getAdminStats() {
 		}),
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -63390,14 +63390,14 @@ async function getVolunteerStats(volunteerId: string) {
 						}
 					}
 				},
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
 		}),
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -63650,7 +63650,7 @@ async function getManagerTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -63695,7 +63695,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -63982,7 +63982,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -64028,7 +64028,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -64303,7 +64303,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -64349,7 +64349,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -65625,7 +65625,7 @@ async function getAdminStats() {
 		}),
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -65678,14 +65678,14 @@ async function getVolunteerStats(volunteerId: string) {
 						}
 					}
 				},
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
 		}),
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -65945,7 +65945,7 @@ async function getManagerTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -65991,7 +65991,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -66399,7 +66399,7 @@ async function getAssociationStats() {
         // Chats adoptés cette année
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -66459,7 +66459,7 @@ async function getAssociationStats() {
         <span class="hljs-comment">// Chats adoptés cette année</span>
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -67362,8 +67362,8 @@ model Cat {
   chipId              String?     @db.VarChar(255) (a remplir)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -68160,7 +68160,7 @@ async function getAssociationStats() {
 		// Chats adoptés cette année
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -68500,7 +68500,7 @@ async function getManagerTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -68546,7 +68546,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -68668,7 +68668,7 @@ async function getAssociationStats() {
         // Chats adoptés cette année
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -69008,7 +69008,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -69054,7 +69054,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -69177,7 +69177,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         <span class="hljs-comment">// Chats adoptés cette année</span>
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -69517,7 +69517,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -69563,7 +69563,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -69950,7 +69950,7 @@ async function getAssociationStats() {
 		// Chats adoptés cette année
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -70290,7 +70290,7 @@ async function getManagerTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -70336,7 +70336,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -71411,7 +71411,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
 }
 </code></pre></div><p><strong>Points clés à adapter selon TON schema :</strong></p>
 <ol>
-<li>✅ <strong>Noms des champs</strong> : <code>created_at</code> → <code>createdAt</code>, <code>ended</code> → <code>endedAt</code>, etc.</li>
+<li>✅ <strong>Noms des champs</strong> : <code>createdAt</code> → <code>createdAt</code>, <code>ended</code> → <code>endedAt</code>, etc.</li>
 <li>✅ <strong>Types</strong> : <code>host.actif</code> → <code>host.status</code>, <code>form</code> → <code>applicationForm</code></li>
 <li>✅ <strong>Relations</strong> : <code>volunteer.id</code> → <code>volunteerHostId</code> (à vérifier)</li>
 <li>✅ <strong>News</strong> : <code>type: 'NEWS'</code> → <code>status: 'DRAFT'</code> (selon ta schema)</li>
@@ -71434,8 +71434,8 @@ model Profil {
   email     String @db.VarChar(255) @unique
   address   String @map("address") @db.VarChar(255)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   volunteer  Volunteer?
   host       Host?
@@ -71450,8 +71450,8 @@ model Volunteer {
   actif      ColabActivity?
   profilId   String         @unique @db.Uuid
   profil     Profil         @relation(fields: [profilId], references: [id])
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   cats       CatVolunteer[]
   sessions   Session[]
   assignedForms Form[] 
@@ -71484,8 +71484,8 @@ model Host {
   babyFeeding           BabyFeeding @map("baby_feeding")
   stopActivity          String      @db.Text
   availabilityDuration  String
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @default(now()) @updatedAt
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now()) @updatedAt
   placements            Placement[]
 }
 
@@ -71496,8 +71496,8 @@ model BlacklistHistoric {
   email         String   @db.VarChar(255)
   description   String   @db.Text
   isBlacklisted Boolean  @default(false) @db.Boolean
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model Cat {
@@ -71526,8 +71526,8 @@ model Cat {
   chipId              String?     @db.VarChar(255)
   focalPoint          FocalPoint? @default(MID)
 
-  created_at DateTime       @default(now())
-  updated_at DateTime       @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
   media      MediaCat[]
   volunteers CatVolunteer[]
   placements Placement[]
@@ -71542,8 +71542,8 @@ model MediaCat {
   cat        Cat      @relation(fields: [catId], references: [id])
   picture    String?  @db.VarChar(255)
   fille      String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model News {
@@ -71552,8 +71552,8 @@ model News {
   type       NewsType
   content    String?   @db.Text
   mediaUrl   String?   @db.Text
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cats       NewsCat[]
 }
 
@@ -71562,8 +71562,8 @@ model NewsCat {
   news       News     @relation(fields: [newsId], references: [id])
   catId      String   @db.Uuid
   cat        Cat      @relation(fields: [catId], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@id([newsId, catId])
 }
@@ -71573,8 +71573,8 @@ model CatVolunteer {
   cat         Cat       @relation(fields: [catId], references: [id])
   volunteerId String    @db.Uuid
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   @@id([catId, volunteerId])
 }
@@ -71588,8 +71588,8 @@ model Placement {
   started    DateTime? @db.Date
   ended      DateTime? @db.Date
   isPrimary  Boolean   @default(true) @db.Boolean
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 }
 
 model Adoption {
@@ -71600,8 +71600,8 @@ model Adoption {
   profilId    String @db.Uuid
   profil      Profil @relation(fields: [profilId], references: [id])
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@unique([catId])
 }
@@ -71615,8 +71615,8 @@ model Session {
 
   expiresAt   DateTime @map("expires_at")
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model Form {
@@ -71630,8 +71630,8 @@ model Form {
   assignedTo Volunteer? @relation(fields: [assignedToId], references: [id])
 
   notes String? @db.Text
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 }
 
 model Care {
@@ -71642,8 +71642,8 @@ model Care {
   veterinary  String?  @db.VarChar(255)
   description String?  @db.Text
   reason      String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 //////////////////////////
@@ -71819,7 +71819,7 @@ async function getAssociationStats() {
         // Chats adoptés cette année
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -72164,7 +72164,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -72210,7 +72210,7 @@ async function getCommunicationTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -72337,7 +72337,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         <span class="hljs-comment">// Chats adoptés cette année</span>
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -72682,7 +72682,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -72728,7 +72728,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -72807,7 +72807,7 @@ async function getTasksByRole(role: string, volunteerId: string) {
 </code></pre></div><p><strong>Changements clés selon ton schema :</strong></p>
 <p>✅ <code>actif: 'ACTIVE'</code> (au lieu de <code>status</code>)
 ✅ <code>placements: { none: { ended: null } }</code> (pour les chats sans FA)
-✅ <code>created_at</code> (au lieu de <code>createdAt</code>)
+✅ <code>createdAt</code> (au lieu de <code>createdAt</code>)
 ✅ <code>type: 'NEWS' | 'NEWSLETTER'</code> (selon tes enums)
 ✅ <code>FormType: HOST | VOLUNTEER</code> (au lieu de custom)
 ✅ <code>isVisible: true</code> pour les chats visibles</p>
@@ -73421,7 +73421,7 @@ async function getManagerTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -73570,7 +73570,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.news.count({
             where: {
                 type: &#39;NEWS&#39;,
-                created_at: {
+                createdAt: {
                     gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
                 }
             }
@@ -73719,7 +73719,7 @@ async function getManagerTasks(volunteerId: string) {
         prisma.<span class="hljs-property">news</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
                 <span class="hljs-attr">type</span>: <span class="hljs-string">'NEWS'</span>,
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getFullYear</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().<span class="hljs-title function_">getMonth</span>(), <span class="hljs-number">1</span>)
                 }
             }
@@ -73995,7 +73995,7 @@ async function getAssociationStats() {
 		// Chats adoptés cette année
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -74354,7 +74354,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -74726,7 +74726,7 @@ async function getAssociationStats() {
 		// Chats adoptés cette année
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -75040,7 +75040,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}
@@ -75137,7 +75137,7 @@ async function getAssociationStats() {
     ] = await Promise.all([
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -75201,7 +75201,7 @@ async function getStatsByRole() {
     ] = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Promise</span>.<span class="hljs-title function_">all</span>([
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -75276,7 +75276,7 @@ async function getAssociationStats() {
     ] = await Promise.all([
         prisma.adoption.count({
             where: {
-                created_at: {
+                createdAt: {
                     gte: yearStart
                 }
             }
@@ -75331,7 +75331,7 @@ async function getAssociationStats() {
     ] = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Promise</span>.<span class="hljs-title function_">all</span>([
         prisma.<span class="hljs-property">adoption</span>.<span class="hljs-title function_">count</span>({
             <span class="hljs-attr">where</span>: {
-                <span class="hljs-attr">created_at</span>: {
+                <span class="hljs-attr">createdAt</span>: {
                     <span class="hljs-attr">gte</span>: yearStart
                 }
             }
@@ -75426,7 +75426,7 @@ async function getAssociationStats() {
 	] = await Promise.all([
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -75720,7 +75720,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 				}
 			}

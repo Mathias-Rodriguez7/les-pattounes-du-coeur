@@ -93,12 +93,7 @@
 </script>
 
 {#if editData && editData.data}
-	<form
-		method="POST"
-		action="?/updateAdoptionForm"
-		use:enhance={handleUpdateEnhance}
-		class="space-y-6"
-	>
+	<form method="POST" action="?/updateForm" use:enhance={handleUpdateEnhance} class="space-y-6">
 		<!-- 🔑 HIDDEN INPUTS -->
 		<input type="hidden" name="formId" value={formId} />
 		<input type="hidden" name="status" value={editData.status} />

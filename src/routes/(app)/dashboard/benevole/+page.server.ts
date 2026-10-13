@@ -93,7 +93,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			prisma.volunteer.count({
 				where: {
 					...whereCondition,
-					created_at: {
+					createdAt: {
 						gte: new Date(new Date().getFullYear(), 0, 1)
 					}
 				}
@@ -137,7 +137,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				assignedForms: true
 			},
 			orderBy: {
-				created_at: 'desc'
+				createdAt: 'desc'
 			}
 		});
 

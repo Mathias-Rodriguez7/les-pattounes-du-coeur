@@ -89,7 +89,7 @@
 						<div class="flex flex-col justify-around">
 							<Card.Title class="text-2xl">{news.title}</Card.Title>
 							<Card.Description class="text-xl">
-								{formatDate(new Date(news.created_at))}
+								{formatDate(new Date(news.createdAt))}
 							</Card.Description>
 						</div>
 					</div>

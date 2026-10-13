@@ -27,7 +27,8 @@ export const ADOPTION_SECTION_CONFIG = {
 } as const;
 
 export const FORM_TYPE_OPTIONS = [
-	{ value: 'ADOPTION', label: 'Adoption' },
+	{ value: 'ADOPTION_SPECIFIC', label: 'Adoption spécifique' },
+	{ value: 'ADOPTION_FLEXIBLE', label: 'Adoption flexible' },
 	{ value: 'VOLUNTEER', label: 'Bénévole' },
 	{ value: 'HOST', label: 'FA' },
 	{ value: 'COLAB', label: 'Collaboration' },
@@ -47,7 +48,8 @@ export const statusColors: Record<string, { label: string; color: string }> = {
 };
 
 export const typesLabels: Record<string, { label: string; color: string }> = {
-	ADOPTION: { label: 'Ado', color: 'bg-rose-100 text-rose-800' },
+	ADOPTION_SPECIFIC: { label: 'Spéc', color: 'bg-rose-100 text-rose-800' },
+	ADOPTION_FLEXIBLE: { label: 'Flex', color: 'bg-rose-100 text-rose-800' },
 	VOLUNTEER: { label: 'Bén', color: 'bg-purple-100 text-purple-800' },
 	HOST: { label: 'FA', color: 'bg-emerald-100 text-emerald-800' },
 	COLAB: { label: 'Col', color: 'bg-orange-100 text-orange-800' },
@@ -78,6 +80,7 @@ export const ADOPTION_SEX_OPTIONS = [
 // 🐱 Adoption Form Labels
 export const ageLabels: Record<string, string> = {
 	kitten: 'Chaton',
+	Junior: 'Junior',
 	adult: 'Adulte',
 	senior: 'Senior',
 	free: 'Sans préférence'

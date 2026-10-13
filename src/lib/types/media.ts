@@ -37,13 +37,13 @@ export type CatWithMedia = {
 	isIdentify: boolean;
 	chipId: string | null;
 	focalPoint: string | null;
-	created_at: Date;
-	updated_at: Date;
+	createdAt: Date;
+	updatedAt: Date;
 	media: CatMediaExtended[];
 };
 
 export type AdoptionTrendItem = {
-	created_at: Date;
+	createdAt: Date;
 	_count: {
 		id: number;
 	};

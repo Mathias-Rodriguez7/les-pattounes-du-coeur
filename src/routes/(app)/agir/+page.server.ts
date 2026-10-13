@@ -17,7 +17,7 @@ export const load = async () => {
 
 	const savedThisYear = await prisma.cat.count({
 		where: {
-			created_at: {
+			createdAt: {
 				gte: startOfYear
 			}
 		}

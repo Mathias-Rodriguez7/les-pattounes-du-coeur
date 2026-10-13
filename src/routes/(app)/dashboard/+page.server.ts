@@ -122,7 +122,7 @@ async function getAssociationStats() {
 	] = await Promise.all([
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -478,7 +478,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWS',
-				created_at: {
+				createdAt: {
 					gte: firstDayOfMonth
 				}
 			}
@@ -488,7 +488,7 @@ async function getCommunicationTasks(volunteerId: string) {
 		prisma.news.count({
 			where: {
 				type: 'NEWSLETTER',
-				created_at: {
+				createdAt: {
 					gte: firstDayOfMonth
 				}
 			}
@@ -607,7 +607,7 @@ async function getVolunteerStats(volunteerId: string) {
 		// 2️⃣ TOTAL ADOPTIONS CETTE ANNÉE DANS L'ASSO
 		prisma.adoption.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -623,7 +623,7 @@ async function getVolunteerStats(volunteerId: string) {
 						}
 					}
 				},
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -632,7 +632,7 @@ async function getVolunteerStats(volunteerId: string) {
 		// 3️⃣ TOTAL CANDIDATURES CETTE ANNÉE
 		prisma.form.count({
 			where: {
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}
@@ -645,7 +645,7 @@ async function getVolunteerStats(volunteerId: string) {
 				status: {
 					not: 'PENDING'
 				},
-				created_at: {
+				createdAt: {
 					gte: yearStart
 				}
 			}

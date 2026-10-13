@@ -19,5 +19,5 @@
 		<Badge class={typesColors[news.type]?.color}>{typesColors[news.type]?.label || news.type}</Badge
 		>
 	</Table.Cell>
-	<Table.Cell class="whitespace-nowrap">{formatDateNum(news.created_at)}</Table.Cell>
+	<Table.Cell class="whitespace-nowrap">{formatDateNum(news.createdAt)}</Table.Cell>
 </Table.Row>

@@ -59,10 +59,10 @@ export async function updateForm({
 	request: Request;
 	locals: App.Locals;
 }): Promise<UpdateFormResponse> {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!locals.user) {
 		return {
 			success: false,
-			error: 'Non autorisé',
+			error: 'Non authentifié',
 			errors: {}
 		};
 	}
@@ -94,6 +94,18 @@ export async function updateForm({
 			};
 		}
 
+		// ✅ VÉRIFICATION D'AUTORISATION
+		const isAdmin = locals.user.role === 'ADMIN';
+		const isAssignedToUser = existingForm.assignedToId === locals.user.id;
+
+		if (!isAdmin && !isAssignedToUser) {
+			return {
+				success: false,
+				error: 'Non autorisé à modifier ce formulaire',
+				errors: {}
+			};
+		}
+
 		// 🎯 Récupérer le bon schema selon le type
 		const schema = SCHEMA_MAP[existingForm.type as FormType];
 
@@ -109,6 +121,7 @@ export async function updateForm({
 		const result = schema.safeParse(data);
 
 		if (!result.success) {
+			console.error('❌ ERREUR VALIDATION:', result.error.flatten());
 			return {
 				success: false,
 				error: 'Erreur de validation',
@@ -121,18 +134,22 @@ export async function updateForm({
 		// 🔄 Préparer les données de mise à jour
 		const updateData: Record<string, unknown> = {};
 
-		// Ajouter les champs principaux s'ils existent
-		if ('status' in validatedData && validatedData.status !== undefined) {
-			updateData.status = validatedData.status;
+		// ⚠️ SEUL LES ADMIN PEUVENT MODIFIER status, assignedToId
+		if (isAdmin) {
+			if ('status' in validatedData && validatedData.status !== undefined) {
+				updateData.status = validatedData.status;
+			}
+			if ('assignedToId' in validatedData && validatedData.assignedToId !== undefined) {
+				updateData.assignedToId = validatedData.assignedToId;
+			}
 		}
+
+		// ✅ TOUT LE MONDE PEUT MODIFIER notes ET data
 		if ('email' in validatedData && validatedData.email !== undefined) {
 			updateData.email = validatedData.email;
 		}
 		if ('notes' in validatedData && validatedData.notes !== undefined) {
 			updateData.notes = validatedData.notes;
-		}
-		if ('assignedToId' in validatedData && validatedData.assignedToId !== undefined) {
-			updateData.assignedToId = validatedData.assignedToId;
 		}
 
 		// ✅ Extraire les données spécifiques au formulaire (data JSON)

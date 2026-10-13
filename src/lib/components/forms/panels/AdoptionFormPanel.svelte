@@ -12,22 +12,33 @@
 		sexLabels,
 		furLabels
 	} from '$lib/constants/forms';
-	import { formatAge } from '$lib/utils/age';
+	import { formatAge, getAgeBadge } from '$lib/utils/age';
 	import { formatDate } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Pencil } from '@lucide/svelte';
+	import { getSexIcon } from '$lib/utils/catHelpers';
+	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 
-	const { form } = $props();
+	const { form, catData } = $props();
 
 	let isEditing = $state(false);
 
 	// Type guard pour les données d'adoption
 	const adoptionData = $derived(form.data as Record<string, any>);
 
+	// ✅ catId depuis form.data pour ADOPTION_SPECIFIC
+
 	const assignedName = $derived(
 		form.assignedTo
 			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
+			: 'Non assigné'
+	);
+
+	// ✅ Infos du volunteer responsable du chat (depuis CatVolunteer)
+	const catVolunteerName = $derived(
+		catData?.volunteers?.[0]?.volunteer
+			? `${catData.volunteers[0].volunteer.profil.firstName} ${catData.volunteers[0].volunteer.profil.lastName}`
 			: 'Non assigné'
 	);
 
@@ -62,6 +73,8 @@
 	const handleCancelEdit = () => {
 		isEditing = false;
 	};
+
+	const sexIcon = $derived(catData ? getSexIcon(catData.sex) : null);
 </script>
 
 {#if form}
@@ -81,10 +94,14 @@
 							<Badge class={statusColors[form.status]?.color || 'bg-gray-100 text-gray-800'}>
 								{statusColors[form.status]?.label}
 							</Badge>
+							<!-- ✅ Badge type de formulaire -->
+							<Badge variant="outline" class="text-xs">
+								{form.type === 'ADOPTION_SPECIFIC' ? 'Chat Spécifique' : 'Adoption Flexible'}
+							</Badge>
 						</Card.Description>
 					</div>
 					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
-						<p>{formatDate(form.created_at)}</p>
+						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
 								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
@@ -202,50 +219,91 @@
 				</section>
 				<Separator />
 
-				<!-- 🐱 SECTION CHAT RECHERCHÉ -->
-				<SectionCard
-					icon={FORM_SECTION_CONFIG.cat.icon}
-					title={FORM_SECTION_CONFIG.cat.label}
-					color={FORM_SECTION_CONFIG.cat.color}
-				>
-					<div class="ml-6 space-y-3">
-						<!-- Caractéristiques physiques -->
-						<div class="grid grid-cols-4 gap-4">
-							<div>
-								<p class="text-muted-foreground">Âge</p>
-								<Badge variant="outline" class="text-xs">
-									{ageLabels[adoptionData.catAge] || adoptionData.catAge}
-								</Badge>
-							</div>
-							<div>
-								<p class="text-muted-foreground">Sexe</p>
-								<Badge variant="outline" class="text-xs">
-									{sexLabels[adoptionData.catSex] || adoptionData.catSex}
-								</Badge>
-							</div>
-							<div>
-								<p class="text-muted-foreground">Couleur</p>
-								<p>{adoptionData.color}</p>
-							</div>
-							<div>
-								<p class="text-muted-foreground">Longueur poil</p>
-								<Badge variant="outline" class="text-xs">
-									{furLabels[adoptionData.furLength] || adoptionData.furLength}
-								</Badge>
+				{#if form.type === 'ADOPTION_SPECIFIC' && catData}
+					<!-- 🐱 SECTION CHAT SPÉCIFIQUE -->
+					<SectionCard
+						icon={FORM_SECTION_CONFIG.cat.icon}
+						title={FORM_SECTION_CONFIG.cat.label}
+						color={FORM_SECTION_CONFIG.cat.color}
+					>
+						<div class="ml-6 space-y-3">
+							<!-- Infos du chat -->
+							<div class="grid grid-cols-5 gap-4">
+								<div>
+									<p class="text-muted-foreground">Nom</p>
+									<p class="font-medium">{catData.name || '—'}</p>
+								</div>
+								<div>
+									<p class="text-muted-foreground">Date de naissance</p>
+									<p class="font-medium">{formatDate(catData.birthDate) || '—'}</p>
+								</div>
+								{#if sexIcon}
+									<div title={sexIcon.label}>
+										<p class="text-muted-foreground">Sex</p>
+										<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
+									</div>
+								{/if}
+								<div>
+									<p class="text-muted-foreground">Âge</p>
+									{getAgeBadge(catData.birthDate) || catData.birthDate}
+								</div>
+
+								<!-- Volunteer responsable du chat -->
+								{#if catData.volunteers && catData.volunteers.length > 0}
+									<div class="">
+										<p class="text-muted-foreground text-xs">Responsable du chat</p>
+										<p class="font-medium">{catVolunteerName}</p>
+									</div>
+								{/if}
 							</div>
 						</div>
+					</SectionCard>
+				{:else if form.type === 'ADOPTION_FLEXIBLE'}
+					<!-- 🐱 SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
+					<SectionCard
+						icon={FORM_SECTION_CONFIG.cat.icon}
+						title={FORM_SECTION_CONFIG.cat.label}
+						color={FORM_SECTION_CONFIG.cat.color}
+					>
+						<div class="ml-6 space-y-3">
+							<!-- Caractéristiques physiques -->
+							<div class="grid grid-cols-4 gap-4">
+								<div>
+									<p class="text-muted-foreground">Âge</p>
+									<Badge variant="outline" class="text-xs">
+										{ageLabels[adoptionData.catAge] || adoptionData.catAge}
+									</Badge>
+								</div>
+								{#if sexIcon}
+									<div title={sexIcon.label}>
+										<p class="text-muted-foreground">Sex</p>
+										<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
+									</div>
+								{/if}
+								<div>
+									<p class="text-muted-foreground">Couleur</p>
+									<p>{adoptionData.color}</p>
+								</div>
+								<div>
+									<p class="text-muted-foreground">Longueur poil</p>
+									<Badge variant="outline" class="text-xs">
+										{furLabels[adoptionData.furLength] || adoptionData.furLength}
+									</Badge>
+								</div>
+							</div>
 
-						<!-- Tempérament -->
-						<div class="space-y-1">
-							<p class="text-muted-foreground font-medium">Caractère recherché</p>
-							<p class="font-medium">
-								{adoptionData.temperament}
-							</p>
+							<!-- Tempérament -->
+							<div class="space-y-1">
+								<p class="text-muted-foreground font-medium">Caractère recherché</p>
+								<p class="font-medium">
+									{adoptionData.temperament}
+								</p>
+							</div>
 						</div>
-					</div>
-				</SectionCard>
-
+					</SectionCard>
+				{/if}
 				<Separator />
+
 				<section class="grid grid-cols-3 gap-4">
 					<!-- 🏠 SECTION LOGEMENT -->
 					<SectionCard
@@ -254,23 +312,24 @@
 						color={FORM_SECTION_CONFIG.home.color}
 						class="col-span-1"
 					>
-						<div class="ml-6 space-y-3">
-							<!-- Taille du logement -->
-							<div>
-								<p class="text-muted-foreground">Taille du logement</p>
-								<Badge variant="outline">{adoptionData.housingSize} m²</Badge>
+						<div class="space-y-2 text-xs">
+							<div class="flex items-center justify-between">
+								<span class="items-centern flex gap-1 text-sm">Espace</span>
+								<Badge class="bg-blue-100 text-xs text-blue-800">
+									{adoptionData.housingSize || '—'} m²
+								</Badge>
 							</div>
 
-							<!-- Exterieur -->
-							<div>
-								<span class="text-muted-foreground mb-1 block text-xs">Extérieur</span>
-								<div class="flex items-center gap-2">
-									{#if adoptionData.hasGarden}
-										<Badge class="bg-green-100 text-green-700">Oui</Badge>
-										<Badge variant="outline">{adoptionData.gardenSize} m²</Badge>
-									{:else}
-										<Badge variant="outline">Non</Badge>
-									{/if}
+							<div class="space-y-1">
+								<div class="flex items-center justify-between">
+									<span class="items-centern flex gap-1 text-sm">Exterieur</span>
+									<BooleanIcon value={adoptionData.hasGarden} />
+								</div>
+								<div class="flex items-center justify-between">
+									<span class="items-centern flex gap-1 text-sm">Exterieur</span>
+									<Badge class="bg-blue-100 text-xs text-blue-800">
+										{adoptionData.gardenSize || '—'} m²
+									</Badge>
 								</div>
 							</div>
 						</div>
@@ -287,9 +346,7 @@
 							<!-- Possède des animaux -->
 							<div>
 								<span class="text-muted-foreground mb-1 block text-xs">Animaux actuels</span>
-								<Badge variant={adoptionData.hasPets ? 'default' : 'outline'}>
-									{adoptionData.hasPets ? 'Oui' : 'Non'}
-								</Badge>
+								<BooleanIcon value={adoptionData.hasPets} />
 							</div>
 
 							<!-- Détail des animaux -->
@@ -306,7 +363,7 @@
 								<!-- Autres animaux -->
 								<div>
 									<p class="text-muted-foreground text-xs">Autres</p>
-									<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets}</p>
+									<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
 								</div>
 							</div>
 
@@ -327,7 +384,7 @@
 					color={FORM_SECTION_CONFIG.notes.color}
 				>
 					<div class="ml-6 space-y-3">
-						<p class="font-medium">{form.notes}</p>
+						<p class="font-medium">{form.notes || '—'}</p>
 					</div>
 				</SectionCard>
 			</Card.Content>

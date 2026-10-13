@@ -12,7 +12,7 @@ export const load: PageServerLoad = async () => {
 				}
 			}
 		},
-		orderBy: { created_at: 'desc' }
+		orderBy: { createdAt: 'desc' }
 	});
 
 	// Cats visibles - limité à 4
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async () => {
 		take: 4,
 		where: { isVisible: true },
 		include: { media: true },
-		orderBy: { created_at: 'desc' }
+		orderBy: { createdAt: 'desc' }
 	});
 
 	return {

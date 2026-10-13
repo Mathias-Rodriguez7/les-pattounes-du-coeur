@@ -88,7 +88,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				prisma.host.count({
 					where: {
 						...whereCondition,
-						created_at: {
+						createdAt: {
 							gte: new Date(new Date().getFullYear(), 0, 1)
 						}
 					}
@@ -122,7 +122,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				}
 			},
 			orderBy: {
-				created_at: 'desc'
+				createdAt: 'desc'
 			}
 		});
 

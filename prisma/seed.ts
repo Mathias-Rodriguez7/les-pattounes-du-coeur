@@ -569,37 +569,70 @@ async function main() {
 	// ---------------------
 	console.log('📄 Création des formulaires...');
 
-	// 🎯 Créer 30 formulaires d'ADOPTION
-	console.log("  → 30 formulaires d'adoption...");
-	for (let i = 0; i < 30; i++) {
-		const adoptant = adoptants[i];
+	// 🎯 Créer ~150 formulaires d'ADOPTION_SPECIFIC (10-20 par chat)
+	console.log("  → ~150 formulaires spécifiques d'adoption (10-20 par chat)");
+	for (let i = 0; i < 150; i++) {
+		const randomAdoptant = faker.helpers.arrayElement(adoptants);
+		const randomCat = faker.helpers.arrayElement(cats);
 		const shouldBeAssigned = randomBool(0.7);
 
 		await prisma.form.create({
 			data: {
-				type: 'ADOPTION',
+				type: 'ADOPTION_SPECIFIC',
 				status: faker.helpers.arrayElement(FORM_STATUS),
-				email: adoptant.email,
+				email: randomAdoptant.email,
 				data: {
-					// STEP 1 - Identité
-					firstName: adoptant.firstName,
-					lastName: adoptant.lastName,
+					firstName: randomAdoptant.firstName,
+					lastName: randomAdoptant.lastName,
 					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
-					email: adoptant.email,
-					address: adoptant.address,
-					birthDate: adoptant.birthDate, // ✅ Null check
-					city: adoptant.city,
-					postalCode: adoptant.postalCode,
-					district: adoptant.district ?? 'CENTRE_VILLE', // ✅ District peut être null
+					email: randomAdoptant.email,
+					address: randomAdoptant.address,
+					birthDate: randomAdoptant.birthDate,
+					city: randomAdoptant.city,
+					postalCode: randomAdoptant.postalCode,
+					district: randomAdoptant.district ?? 'CENTRE_VILLE',
+					housingSize: faker.number.int({ min: 20, max: 300 }),
+					hasGarden: randomBool(),
+					gardenSize: randomBool() ? faker.number.int({ min: 10, max: 5000 }) : undefined,
+					hasPets: randomBool(),
+					numberOfCats: faker.number.int({ min: 0, max: 5 }),
+					numberOfDogs: faker.number.int({ min: 0, max: 3 }),
+					otherPets: randomBool(0.3) ? faker.word.noun() : undefined,
+					numberOfChildren: faker.number.int({ min: 0, max: 4 }),
+					catId: randomCat.id // ✅ Cat aléatoire
+				},
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
+				assignedToId: shouldBeAssigned ? faker.helpers.arrayElement(volunteers).id : undefined
+			}
+		});
+	}
 
-					// STEP 2 - Préférences chat
+	// 🎯 Créer ~150 formulaires d'ADOPTION_FLEXIBLE
+	console.log("  → ~150 formulaires flexibles d'adoption");
+	for (let i = 0; i < 150; i++) {
+		const randomAdoptant = faker.helpers.arrayElement(adoptants);
+		const shouldBeAssigned = randomBool(0.7);
+
+		await prisma.form.create({
+			data: {
+				type: 'ADOPTION_FLEXIBLE',
+				status: faker.helpers.arrayElement(FORM_STATUS),
+				email: randomAdoptant.email,
+				data: {
+					firstName: randomAdoptant.firstName,
+					lastName: randomAdoptant.lastName,
+					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
+					email: randomAdoptant.email,
+					address: randomAdoptant.address,
+					birthDate: randomAdoptant.birthDate,
+					city: randomAdoptant.city,
+					postalCode: randomAdoptant.postalCode,
+					district: randomAdoptant.district ?? 'CENTRE_VILLE',
 					catAge: faker.helpers.arrayElement(['kitten', 'adult', 'senior', 'free']),
 					catSex: faker.helpers.arrayElement(['male', 'female', 'free']),
 					color: faker.color.human(),
 					furLength: faker.helpers.arrayElement(['short', 'medium', 'long', 'free']),
 					temperament: faker.lorem.sentences(2),
-
-					// STEP 3 - Logement
 					housingSize: faker.number.int({ min: 20, max: 300 }),
 					hasGarden: randomBool(),
 					gardenSize: randomBool() ? faker.number.int({ min: 10, max: 5000 }) : undefined,
@@ -679,7 +712,7 @@ async function main() {
 	console.log("  → 10 formulaires d'accueil...");
 	for (let i = 0; i < 10; i++) {
 		const shouldBeAssigned = randomBool(0.7);
-		const profilIdx = 37 + i; // À partir des profils non-utilisés
+		const profilIdx = 27 + i; // À partir des profils non-utilisés
 
 		const hasAnimalsAtHome = randomBool(0.6);
 

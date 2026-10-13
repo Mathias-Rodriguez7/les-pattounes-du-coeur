@@ -55,7 +55,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 						},
 						adoptions: { include: { profil: true } }
 					},
-					orderBy: { created_at: 'desc' }
+					orderBy: { createdAt: 'desc' }
 				}),
 
 				prisma.cat.count({
@@ -81,7 +81,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 					where: {
 						...catsWhere,
 						status: 'ADOPTED',
-						updated_at: { gte: yearStart }
+						updatedAt: { gte: yearStart }
 					}
 				})
 			]);

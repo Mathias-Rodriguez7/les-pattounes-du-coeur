@@ -768,7 +768,7 @@
 								<h4 class="font-semibold">Adoption</h4>
 								<div class="flex items-center justify-between">
 									<span class="text-muted-foreground">Date adoption</span>
-									<span>{formatDateNum(adoption.created_at)}</span>
+									<span>{formatDateNum(adoption.createdAt)}</span>
 								</div>
 							</div>
 						</div>

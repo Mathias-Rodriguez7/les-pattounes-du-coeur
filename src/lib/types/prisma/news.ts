@@ -7,8 +7,8 @@ export type PrismaNewsWithCats = Prisma.NewsGetPayload<{
 		type: true;
 		content: true;
 		mediaUrl: true;
-		created_at: true;
-		updated_at: true;
+		createdAt: true;
+		updatedAt: true;
 		cats: {
 			include: {
 				cat: {

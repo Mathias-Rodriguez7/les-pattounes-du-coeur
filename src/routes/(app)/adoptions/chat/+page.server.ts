@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const cats = await prisma.cat.findMany({
 		where: { isVisible: true },
 		include: { media: true },
-		orderBy: { created_at: 'desc' }
+		orderBy: { createdAt: 'desc' }
 	});
 
 	return {

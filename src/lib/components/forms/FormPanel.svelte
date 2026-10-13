@@ -1,3 +1,4 @@
+<!-- FormPanel.svelte -->
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import Icon from '$lib/components/Icon.svelte';
@@ -13,7 +14,8 @@
 </script>
 
 {#if form && PanelComponent}
-	<PanelComponent {form} />
+	<!-- ✅ Passe catData -->
+	<PanelComponent {form} catData={form.catData} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

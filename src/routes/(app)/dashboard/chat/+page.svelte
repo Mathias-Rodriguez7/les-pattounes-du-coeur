@@ -57,7 +57,7 @@
 			visibleCats: scopedCats.filter((c) => c.isVisible).length,
 			socializingCats: scopedCats.filter((c) => c.status === 'SOCIALIZE').length,
 			adoptedThisYear: scopedCats.filter(
-				(c) => c.status === 'ADOPTED' && new Date(c.updated_at) >= yearStart
+				(c) => c.status === 'ADOPTED' && new Date(c.updatedAt) >= yearStart
 			).length
 		};
 	});

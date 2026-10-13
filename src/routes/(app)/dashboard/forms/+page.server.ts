@@ -75,9 +75,33 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			}
 		},
 		orderBy: {
-			created_at: 'desc'
+			createdAt: 'desc'
 		}
 	});
+
+	// ✅ Enrichir les forms avec les données du chat pour ADOPTION_SPECIFIC
+	const enrichedForms = await Promise.all(
+		forms.map(async (form) => {
+			if (form.type === 'ADOPTION_SPECIFIC' && (form.data as any).catId) {
+				const catData = await prisma.cat.findUnique({
+					where: { id: (form.data as any).catId },
+					include: {
+						volunteers: {
+							include: {
+								volunteer: {
+									include: {
+										profil: true
+									}
+								}
+							}
+						}
+					}
+				});
+				return { ...form, catData };
+			}
+			return { ...form, catData: null };
+		})
+	);
 
 	// 📋 Récupérer tous les volunteers pour l'assignment (seulement pour ADMIN)
 	const volunteers = isAdmin
@@ -99,7 +123,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		: [];
 
 	return {
-		forms,
+		forms: enrichedForms,
 		volunteers,
 		stats: {
 			totalForms,

@@ -133,14 +133,57 @@ export type AdoptionForm = z.infer<typeof adoptionFormSchema>;
 // UPDATE SCHEMA (partial + refinements)
 //
 
-export const updateAdoptionFormSchema = adoptionFormSchemaBase
-	.partial()
-	.superRefine(adoptionFormRefinements)
-	.extend({
+//
+// UPDATE SCHEMA
+//
+
+export const updateAdoptionFormSchema = z
+	.object({
+		// Champs optionnels de step 1
+		firstName: optionalString(1, 'Le prénom est obligatoire'),
+		lastName: optionalString(1, 'Le nom est obligatoire'),
+		phone: z
+			.string()
+			.regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide')
+			.optional()
+			.nullable(),
+		email: z.string().email('Email invalide').optional().nullable(),
+		address: optionalString(1, "L'adresse est obligatoire"),
+		birthDate: adultBirthDate.optional(),
+		city: optionalString(1, 'La ville est obligatoire'),
+		postalCode: z
+			.string()
+			.regex(/^\d{5}$/, 'Code postal invalide')
+			.optional()
+			.nullable(),
+		district: z
+			.enum(Object.values(District) as [string, ...string[]])
+			.nullable()
+			.optional(),
+
+		// Champs optionnels de step 2
+		catAge: z.enum(['kitten', 'adult', 'senior', 'free']).optional(),
+		catSex: z.enum(['male', 'female', 'free']).optional(),
+		color: optionalString(2, 'Veuillez indiquer une couleur'),
+		furLength: z.enum(['short', 'medium', 'long', 'free']).optional(),
+		temperament: optionalString(5, 'Le caractère doit contenir au moins 5 caractères'),
+
+		// Champs optionnels de step 3
+		housingSize: optionalNumber(10, 1000),
+		hasGarden: z.boolean().optional(),
+		gardenSize: optionalNumber(1, 10000),
+		hasPets: z.boolean().optional(),
+		numberOfCats: z.coerce.number().int().min(0).optional(),
+		numberOfDogs: z.coerce.number().int().min(0).optional(),
+		otherPets: optionalString(),
+		numberOfChildren: z.coerce.number().int().min(0).optional(),
+
+		// Champs additionnels
 		formId: z.string().uuid('ID invalide'),
 		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
-		notes: z.string().optional(),
+		notes: optionalString().nullable(), // ✅ Utilise optionalString
 		assignedToId: z.string().uuid('ID invalide').optional().nullable()
-	});
+	})
+	.superRefine(adoptionFormRefinements);
 
 export type UpdateAdoptionFormInput = z.infer<typeof updateAdoptionFormSchema>;

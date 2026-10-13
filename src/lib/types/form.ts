@@ -33,7 +33,34 @@ export type VolunteerFormData = {
 };
 
 export type HostFormData = {
-	// À définir...
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	address: string;
+	birthDate: string | Date;
+	city: string;
+	postalCode: string;
+	district: string;
+	space: number;
+	outside: boolean;
+	outsideDescription?: string;
+	hasAnimalsAtHome: boolean;
+	numberOfCatsAtHome?: number;
+	numberOfDogsAtHome?: number;
+	otherAnimalsAtHome?: string;
+	homeDescription: string;
+	type: string;
+	heal: string;
+	socialize: string;
+	car: boolean;
+	babyFeeding: string;
+	catAdult: number;
+	kittyAndKitten: boolean;
+	kitten?: number;
+	presence: string;
+	motivation: string;
+	additionalMessage?: string;
 };
 
 export type CollaborationFormData = {

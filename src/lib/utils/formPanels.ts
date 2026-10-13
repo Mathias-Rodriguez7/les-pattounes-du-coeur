@@ -4,11 +4,12 @@ import HostFormPanel from '$lib/components/forms/panels/HostFormPanel.svelte';
 import ColabFormPanel from '$lib/components/forms/panels/ColabFormPanel.svelte';
 
 export const formPanelMap = {
-	ADOPTION: AdoptionFormPanel,
+	ADOPTION_SPECIFIC: AdoptionFormPanel,
+	ADOPTION_FLEXIBLE: AdoptionFormPanel,
 	VOLUNTEER: VolunteerFormPanel,
 	HOST: HostFormPanel,
 	COLAB: ColabFormPanel,
-	OTHER: AdoptionFormPanel // default fallback
+	OTHER: AdoptionFormPanel
 } as const;
 
 export function getFormPanelComponent(type: string) {
