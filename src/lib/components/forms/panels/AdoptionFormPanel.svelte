@@ -310,9 +310,8 @@
 						icon={FORM_SECTION_CONFIG.home.icon}
 						title={FORM_SECTION_CONFIG.home.label}
 						color={FORM_SECTION_CONFIG.home.color}
-						class="col-span-1"
 					>
-						<div class="space-y-2 text-xs">
+						<div class="grid gap-4 text-xs">
 							<div class="flex items-center justify-between">
 								<span class="items-centern flex gap-1 text-sm">Espace</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
@@ -326,51 +325,54 @@
 									<BooleanIcon value={adoptionData.hasGarden} />
 								</div>
 								<div class="flex items-center justify-between">
-									<span class="items-centern flex gap-1 text-sm">Exterieur</span>
+									<span class="items-centern flex gap-1 text-sm">Espace exterieur</span>
 									<Badge class="bg-blue-100 text-xs text-blue-800">
 										{adoptionData.gardenSize || '—'} m²
 									</Badge>
 								</div>
 							</div>
+							<!-- Enfants -->
+							<div class="flex items-center justify-between">
+								<span class="items-centern flex gap-1 text-sm">Nombre d'enfants</span>
+								<Badge class="bg-blue-100 text-xs text-blue-800"
+									>{adoptionData.numberOfChildren}</Badge
+								>
+							</div>
 						</div>
 					</SectionCard>
 
-					<!-- 🐾 SECTION ANIMAUX ACTUELS ET ENFANTS -->
 					<SectionCard
-						icon={FORM_SECTION_CONFIG.presence.icon}
-						title={FORM_SECTION_CONFIG.presence.label}
-						color={FORM_SECTION_CONFIG.presence.color}
-						class="col-span-2"
+						icon={FORM_SECTION_CONFIG.animals.icon}
+						title={FORM_SECTION_CONFIG.animals.label}
+						color={FORM_SECTION_CONFIG.animals.color}
 					>
 						<div class="ml-6 space-y-3">
 							<!-- Possède des animaux -->
-							<div>
-								<span class="text-muted-foreground mb-1 block text-xs">Animaux actuels</span>
+							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
+								<span class="text-muted-foreground font-medium">Animeaux dans le foyer</span>
 								<BooleanIcon value={adoptionData.hasPets} />
 							</div>
 
 							<!-- Détail des animaux -->
-							<div class="grid grid-cols-3 gap-4">
-								<div>
-									<p class="text-muted-foreground">Chats</p>
-									<Badge variant="outline">{adoptionData.numberOfCats}</Badge>
+							<div class="space-y-1">
+								<div class="flex items-center justify-between">
+									<span class="items-centern flex gap-1 text-sm">🐱 Chats</span>
+									<Badge class="bg-blue-100 text-xs text-blue-800"
+										>{adoptionData.numberOfCats}</Badge
+									>
 								</div>
-								<div>
-									<p class="text-muted-foreground">Chiens</p>
-									<Badge variant="outline">{adoptionData.numberOfDogs}</Badge>
+								<div class="flex items-center justify-between">
+									<span class="items-centern flex gap-1 text-sm">🐕 Chiens</span>
+									<Badge class="bg-blue-100 text-xs text-blue-800"
+										>{adoptionData.numberOfDogs}</Badge
+									>
 								</div>
 
 								<!-- Autres animaux -->
-								<div>
-									<p class="text-muted-foreground text-xs">Autres</p>
+								<div class="flex items-center justify-between">
+									<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
 									<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
 								</div>
-							</div>
-
-							<!-- Enfants -->
-							<div>
-								<p class="text-muted-foreground">Nombre d'enfants</p>
-								<Badge variant="outline">{adoptionData.numberOfChildren}</Badge>
 							</div>
 						</div>
 					</SectionCard>
