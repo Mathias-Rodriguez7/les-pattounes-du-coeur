@@ -8,6 +8,11 @@ const districtEnum = z
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 
+const optionalText = z
+	.string()
+	.nullish()
+	.transform((val) => (val?.trim() ? val.trim() : undefined));
+
 //
 // STEP 1
 //
@@ -28,13 +33,13 @@ export const volunteerStep1Schema = z.object({
 //
 export const volunteerStep2Schema = z.object({
 	hasCatExperience: z.boolean(),
-	catExperienceDescription: z.string().optional(),
+	catExperienceDescription: optionalText,
 
 	hasAssociationExperience: z.boolean(),
-	associationExperienceDescription: z.string().optional(),
+	associationExperienceDescription: optionalText,
 
 	hasMedicalCareExperience: z.boolean(),
-	medicalCareDescription: z.string().optional(),
+	medicalCareDescription: optionalText,
 
 	hasTransportExperience: z.boolean()
 });
@@ -63,8 +68,8 @@ export const volunteerStep3Schema = z.object({
 //
 export const volunteerStep4Schema = z.object({
 	motivation: z.string().min(10),
-	skills: z.string().optional(),
-	additionalInformation: z.string().optional()
+	skills: optionalText,
+	additionalInformation: optionalText
 });
 
 //
@@ -137,7 +142,7 @@ export const updateVolunteerSchema = volunteerFormSchemaBase
 	.extend({
 		formId: z.string().uuid('ID invalide'),
 		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
-		notes: z.string().optional(),
+		notes: z.string().optional().nullable(),
 		assignedToId: z.string().uuid('ID invalide').optional().nullable()
 	});
 

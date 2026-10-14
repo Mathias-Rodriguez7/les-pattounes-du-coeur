@@ -257,9 +257,9 @@
 				<section class="grid grid-cols-8 gap-4">
 					<!-- Experience -->
 					<SectionCard
-						icon={VOLUNTEER_SECTION_CONFIG.Experience.icon}
-						title={VOLUNTEER_SECTION_CONFIG.Experience.label}
-						color={VOLUNTEER_SECTION_CONFIG.Experience.color}
+						icon={VOLUNTEER_SECTION_CONFIG.experience.icon}
+						title={VOLUNTEER_SECTION_CONFIG.experience.label}
+						color={VOLUNTEER_SECTION_CONFIG.experience.color}
 						class="col-span-2"
 					>
 						<div>

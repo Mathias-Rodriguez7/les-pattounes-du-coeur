@@ -29,7 +29,32 @@ export type AdoptionFormData = {
 };
 
 export type VolunteerFormData = {
-	// À définir...
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	address: string;
+	birthDate: string | Date;
+	city: string;
+	postalCode: string;
+	district: string;
+	hasCatExperience: boolean;
+	catExperienceDescription?: string;
+	hasAssociationExperience: boolean;
+	associationExperienceDescription?: string;
+	hasMedicalCareExperience: boolean;
+	medicalCareDescription?: string;
+	hasTransportExperience: boolean;
+	car: boolean;
+	availability: 'LOW' | 'MEDIUM' | 'HIGH';
+	availabilityDuration:
+		'LESS_THAN_1_MONTH' | '1_TO_3_MONTHS' | '3_TO_6_MONTHS' | 'MORE_THAN_6_MONTHS' | 'LONG_TERM';
+	canHelpWeekdays: boolean;
+	canHelpWeekends: boolean;
+	canHelpEmergencies: boolean;
+	motivation: string;
+	skills?: string;
+	additionalInformation?: string;
 };
 
 export type HostFormData = {

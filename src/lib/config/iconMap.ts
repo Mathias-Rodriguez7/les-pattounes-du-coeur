@@ -35,7 +35,10 @@ import {
 	Star,
 	BicepsFlexed,
 	Book,
-	Megaphone
+	Megaphone,
+	SquareText,
+	Info,
+	CalendarDays
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -76,5 +79,8 @@ export const iconMap: Record<string, Component> = {
 	star: Star,
 	biceps: BicepsFlexed,
 	book: Book,
-	megaphone: Megaphone
+	megaphone: Megaphone,
+	note: SquareText,
+	info: Info,
+	calendar: CalendarDays
 };

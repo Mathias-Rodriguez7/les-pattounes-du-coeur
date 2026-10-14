@@ -19,7 +19,7 @@
 
 	let isEditing = $state(false);
 
-	const hostData = $derived(form.data as Record<string, any>);
+	const hostData = $derived(form.data as HostFormData);
 
 	const assignedName = $derived(
 		form.assignedTo
@@ -215,10 +215,6 @@
 								<span class="items-centern flex gap-1 text-sm">Voiture</span>
 								<BooleanIcon value={hostData.car} />
 							</div>
-							<div class="flex items-center justify-between">
-								<span class="items-centern flex gap-1 text-sm">Stock</span>
-								<BooleanIcon value={hostData.isStockFeed} />
-							</div>
 						</div>
 					</SectionCard>
 					<!-- 🐾 SECTION ANIMAUX À LA MAISON -->
@@ -267,7 +263,7 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foregroundfont-medium">Soins</p>
+								<p class="text-muted-foreground font-medium">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{healLabel[hostData.heal as Heal]}
 								</Badge>

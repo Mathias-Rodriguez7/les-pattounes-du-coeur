@@ -17,12 +17,12 @@ type UpdateFormInput =
 
 // 🔧 Map les schemas selon le type de form
 const SCHEMA_MAP = {
-	[FormType.ADOPTION]: updateAdoptionFormSchema,
+	[FormType.ADOPTION_SPECIFIC]: updateAdoptionFormSchema,
+	[FormType.ADOPTION_FLEXIBLE]: updateAdoptionFormSchema,
 	[FormType.VOLUNTEER]: updateVolunteerSchema,
 	[FormType.HOST]: updateHostSchema,
 	[FormType.COLAB]: updateColabSchema,
-	[FormType.OTHER]: updateVolunteerSchema,
-	[FormType.ALERT]: updateVolunteerSchema // ⚠️ Ajouter le type ALERT manquant
+	[FormType.OTHER]: updateVolunteerSchema
 } as const;
 
 function convertFormData(formData: FormData): Record<string, string | boolean | null> {

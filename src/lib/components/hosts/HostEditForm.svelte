@@ -366,27 +366,23 @@
 				/>
 
 				{#if editData.hasAnimalsAtHome}
-					<div class="grid grid-cols-2 gap-2">
-						<label class="text-xs font-medium text-gray-700">Chats</label>
-						<InputField
-							id="numberOfCatsAtHome"
-							name="numberOfCatsAtHome"
-							bind:value={editData.numberOfCatsAtHome}
-							placeholder="0"
-							size="sm"
-						/>
-					</div>
+					<InputField
+						id="numberOfCatsAtHome"
+						name="numberOfCatsAtHome"
+						label="Chats"
+						bind:value={editData.numberOfCatsAtHome}
+						placeholder="0"
+						size="sm"
+					/>
 
-					<div class="grid grid-cols-2 gap-2">
-						<label class="text-xs font-medium text-gray-700">Chiens</label>
-						<InputField
-							id="numberOfDogsAtHome"
-							name="numberOfDogsAtHome"
-							bind:value={editData.numberOfDogsAtHome}
-							placeholder="0"
-							size="sm"
-						/>
-					</div>
+					<InputField
+						id="numberOfDogsAtHome"
+						name="numberOfDogsAtHome"
+						label="Chiens"
+						bind:value={editData.numberOfDogsAtHome}
+						placeholder="0"
+						size="sm"
+					/>
 
 					<TextareaField
 						id="otherAnimalsAtHome"
@@ -405,7 +401,7 @@
 			title={HOST_SECTION_CONFIG.capacity.label}
 			color={HOST_SECTION_CONFIG.capacity.color}
 		>
-			<div class="grid grid-cols-1 gap-4">
+			<div class="grid gap-4">
 				<SelectField
 					id="heal"
 					name="heal"
@@ -441,17 +437,15 @@
 			title={HOST_SECTION_CONFIG.cat.label}
 			color={HOST_SECTION_CONFIG.cat.color}
 		>
-			<div class="grid grid-cols-1 gap-4">
-				<div class="grid grid-cols-2 gap-2">
-					<label class="text-xs font-medium text-gray-700">Chat adulte</label>
-					<InputField
-						id="catAdult"
-						name="catAdult"
-						bind:value={editData.catAdult}
-						placeholder="0"
-						size="sm"
-					/>
-				</div>
+			<div class="grid gap-4">
+				<InputField
+					id="catAdult"
+					name="catAdult"
+					label="Chat adulte"
+					bind:value={editData.catAdult}
+					placeholder="0"
+					size="sm"
+				/>
 
 				<CheckboxField
 					id="kittyAndKitten"
@@ -461,16 +455,14 @@
 					onChange={(value) => (editData.kittyAndKitten = value)}
 				/>
 
-				<div class="grid grid-cols-2 gap-2">
-					<label class="text-xs font-medium text-gray-700">Chaton</label>
-					<InputField
-						id="kitten"
-						name="kitten"
-						bind:value={editData.kitten}
-						placeholder="0"
-						size="sm"
-					/>
-				</div>
+				<InputField
+					id="kitten"
+					name="kitten"
+					label="Chaton"
+					bind:value={editData.kitten}
+					placeholder="0"
+					size="sm"
+				/>
 			</div>
 		</SectionCard>
 	</section>
