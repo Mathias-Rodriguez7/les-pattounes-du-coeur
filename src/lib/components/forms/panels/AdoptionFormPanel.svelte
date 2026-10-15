@@ -5,13 +5,7 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
 	import type { FormEditData, AdoptionFormData } from '$lib/types/form';
-	import {
-		FORM_SECTION_CONFIG,
-		statusColors,
-		ageLabels,
-		sexLabels,
-		furLabels
-	} from '$lib/constants/forms';
+	import { FORM_SECTION_CONFIG, statusColors, ageLabels, furLabels } from '$lib/constants/forms';
 	import { formatAge, getAgeBadge } from '$lib/utils/age';
 	import { formatDate } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
@@ -74,7 +68,9 @@
 		isEditing = false;
 	};
 
-	const sexIcon = $derived(catData ? getSexIcon(catData.sex) : null);
+	const sexIcon = $derived(
+		catData ? getSexIcon(catData.sex) : adoptionData ? getSexIcon(adoptionData.catSex) : null
+	);
 </script>
 
 {#if form}

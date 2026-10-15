@@ -48,7 +48,7 @@ export type SexIconInfo = {
 };
 
 export const getSexIcon = (sex: string | null | undefined): SexIconInfo => {
-	switch (sex) {
+	switch (sex?.toUpperCase()) {
 		case 'MALE':
 			return { icon: 'mars', color: 'text-blue-500', label: 'Mâle' };
 		case 'FEMALE':
