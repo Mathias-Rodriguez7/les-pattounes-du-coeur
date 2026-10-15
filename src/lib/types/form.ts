@@ -88,15 +88,21 @@ export type HostFormData = {
 	additionalMessage?: string;
 };
 
-export type CollaborationFormData = {
-	// À définir...
+export type CollabFormData = {
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	companyName?: string;
+	presentation: string;
+	partnershipProposal: string;
 };
 
 export type OtherFormData = Record<string, any>;
 
 // ===== TYPE UNION =====
 export type AnyFormData =
-	AdoptionFormData | VolunteerFormData | HostFormData | CollaborationFormData | OtherFormData;
+	AdoptionFormData | VolunteerFormData | HostFormData | CollabFormData | OtherFormData;
 
 // ===== ÉDITION =====
 export type FormEditData<T extends AnyFormData = AnyFormData> = {
