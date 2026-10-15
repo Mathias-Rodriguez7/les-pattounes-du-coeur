@@ -172,7 +172,7 @@ export const actions: Actions = {
 			}
 			return result;
 		} catch (error) {
-			console.error('Erreur création bénévole:', error);
+			console.error("Erreur création famille d'accueil:", error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},

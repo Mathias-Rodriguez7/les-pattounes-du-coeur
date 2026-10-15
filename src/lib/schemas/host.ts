@@ -25,7 +25,10 @@ const colabActivityEnum = z
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 
 // ✅ Convertir les strings en booleans
-const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
+const stringToBoolean = z
+	.union([z.boolean(), z.enum(['true', 'false', 'on', 'off', ''])])
+	.transform((v) => v === true || v === 'true' || v === 'on')
+	.optional();
 
 export const createHostSchema = z.object({
 	// Statut

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { createHostSchema } from '$lib/schemas/host';
+	import { createHostSchema } from '$lib/schemas/host';
 	import { getFieldError } from '$lib/utils/zodErrors';
 	import type { FlattenedErrors } from '$lib/utils/zodErrors';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
@@ -24,12 +24,13 @@
 	} from '$lib/constants/host';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 
-	let { open = $bindable(false), onCancel } = $props();
+	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();
+
 	let isSaving = $state(false);
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
-	// ✅ Profil fields
+	// ✅ Profil
 	let firstName = $state('');
 	let lastName = $state('');
 	let birthDate = $state<Date | undefined>(undefined);
@@ -40,7 +41,7 @@
 	let postalCode = $state('34000');
 	let selectedDistrict = $state<string>('');
 
-	// Host spécifiques
+	// ✅ Host
 	let actif = $state('ACTIVE');
 	let selectedType = $state<string>('CLASSIC');
 	let isAvailable = $state(true);
@@ -62,11 +63,12 @@
 	let socialize = $state<string>('NO');
 	let babyFeeding = $state<string>('NO');
 
-	// Cat
+	// Chats
 	let catAdult = $state('');
 	let kittyAndKitten = $state(false);
 	let kitten = $state('');
 
+	// Descriptions
 	let homeDescription = $state('');
 	let presence = $state('');
 	let outsideDescription = $state('');
@@ -78,6 +80,42 @@
 			label
 		}))
 	);
+
+	// ✅ Pré-remplissage uniquement quand initialData change
+	$effect(() => {
+		if (initialData) {
+			firstName = initialData.firstName ?? '';
+			lastName = initialData.lastName ?? '';
+			email = initialData.email ?? '';
+			phone = initialData.phone ?? '';
+			address = initialData.address ?? '';
+			city = initialData.city ?? 'Montpellier';
+			postalCode = initialData.postalCode ?? '34000';
+			birthDate = initialData.birthDate ? new Date(initialData.birthDate) : undefined;
+			selectedDistrict = initialData.district ?? '';
+			space = initialData.space?.toString() ?? '';
+			selectedType = initialData.type ?? 'CLASSIC';
+			actif = initialData.actif ?? 'ACTIVE';
+			isAvailable = initialData.isAvailable ?? true;
+			outside = initialData.outside ?? false;
+			car = initialData.car ?? false;
+			isStockFeed = initialData.isStockFeed ?? false;
+			hasAnimalsAtHome = initialData.hasAnimalsAtHome ?? false;
+			numberOfCatsAtHome = initialData.numberOfCatsAtHome?.toString() ?? '';
+			numberOfDogsAtHome = initialData.numberOfDogsAtHome?.toString() ?? '';
+			otherAnimalsAtHome = initialData.otherAnimalsAtHome ?? '';
+			heal = initialData.heal ?? 'NO';
+			socialize = initialData.socialize ?? 'NO';
+			babyFeeding = initialData.babyFeeding ?? 'NO';
+			catAdult = initialData.catAdult?.toString() ?? '';
+			kittyAndKitten = initialData.kittyAndKitten ?? false;
+			kitten = initialData.kitten?.toString() ?? '';
+			homeDescription = initialData.homeDescription ?? '';
+			presence = initialData.presence ?? '';
+			outsideDescription = initialData.outsideDescription ?? '';
+			additionalInformation = initialData.additionalInformation ?? '';
+		}
+	});
 
 	// ✅ VALIDATION CÔTÉ CLIENT
 	function validateForm(): boolean {
@@ -95,36 +133,36 @@
 
 			// Statut
 			type: selectedType,
-			actif: actif,
+			actif,
 			isAvailable,
 
 			// Zone d'accueil
-			space: space ? parseInt(space) : null,
-			outside: outside,
-			car: car,
-			isStockFeed: isStockFeed,
+			space: space ? parseInt(space) : undefined,
+			outside,
+			car,
+			isStockFeed,
 
 			// Animaux
 			hasAnimalsAtHome,
 			numberOfCatsAtHome: numberOfCatsAtHome ? parseInt(numberOfCatsAtHome) : null,
 			numberOfDogsAtHome: numberOfDogsAtHome ? parseInt(numberOfDogsAtHome) : null,
-			otherAnimalsAtHome: otherAnimalsAtHome?.trim() || undefined,
+			otherAnimalsAtHome: otherAnimalsAtHome.trim() || undefined,
 
 			// Capacités
 			heal,
 			socialize,
 			babyFeeding,
 
-			// Cat
-			catAdult: numberOfCatsAtHome ? parseInt(numberOfCatsAtHome) : null,
+			// Chats
+			catAdult: catAdult ? parseInt(catAdult) : 0,
 			kittyAndKitten,
-			Kitten: numberOfCatsAtHome ? parseInt(numberOfCatsAtHome) : null,
+			kitten: kitten ? parseInt(kitten) : 0,
 
 			// Descriptions
-			homeDescription: homeDescription?.trim() || '',
-			outsideDescription: outsideDescription?.trim() || undefined,
-			additionalInformation: additionalInformation.trim() || '',
-			presence: presence.trim() || undefined
+			homeDescription: homeDescription.trim(),
+			presence: presence.trim(),
+			outsideDescription: outsideDescription.trim() || undefined,
+			additionalInformation: additionalInformation.trim() || undefined
 		};
 
 		const result = createHostSchema.safeParse(formData);
@@ -137,13 +175,11 @@
 			return false;
 		}
 
-		console.log('✅ Validation réussie!', result.data);
 		fieldErrors = {};
 		return true;
 	}
 
 	function resetForm() {
-		// Profil
 		firstName = '';
 		lastName = '';
 		birthDate = undefined;
@@ -154,34 +190,28 @@
 		postalCode = '34000';
 		selectedDistrict = '';
 
-		// Host spécifiques
 		actif = 'ACTIVE';
 		selectedType = 'CLASSIC';
 		isAvailable = true;
 
-		// Zone d'accueil
 		space = '';
 		outside = false;
 		car = false;
 		isStockFeed = false;
 
-		// Animaux
 		hasAnimalsAtHome = false;
 		numberOfCatsAtHome = '';
 		numberOfDogsAtHome = '';
 		otherAnimalsAtHome = '';
 
-		// Capacités
 		heal = 'NO';
 		socialize = 'NO';
 		babyFeeding = 'NO';
 
-		// Cat
 		catAdult = '';
 		kittyAndKitten = false;
 		kitten = '';
 
-		// Descriptions
 		homeDescription = '';
 		presence = '';
 		outsideDescription = '';
@@ -191,13 +221,22 @@
 	}
 
 	// ✅ HANDLER USE:ENHANCE
-	const handleEnhance: SubmitFunction = () => {
-		const isValid = validateForm();
-		if (!isValid) {
-			return async () => {}; // Doit bloquer
+	const handleEnhance: SubmitFunction = ({ formData, cancel }) => {
+		if (!validateForm()) {
+			cancel();
+			return;
 		}
 
-		console.log('✅ Validation réussie - Soumission autorisée');
+		// Booléens envoyés explicitement, indépendamment du rendu DOM
+		formData.set('actif', actif);
+		formData.set('isAvailable', String(isAvailable));
+		formData.set('outside', String(outside));
+		formData.set('car', String(car));
+		formData.set('isStockFeed', String(isStockFeed));
+		formData.set('hasAnimalsAtHome', String(hasAnimalsAtHome));
+		formData.set('kittyAndKitten', String(kittyAndKitten));
+		formData.set('formId', formId);
+
 		isSubmitting = true;
 
 		return async ({ result, update }) => {
@@ -224,7 +263,6 @@
 	};
 
 	const handleCancelClick = () => {
-		console.log('❌ Création annulée');
 		if (onCancel) {
 			onCancel();
 		}
@@ -245,14 +283,14 @@
 		<form method="POST" action="?/createHost" use:enhance={handleEnhance} class="space-y-6">
 			<!-- 📋 SECTION 1: Identité & Contact -->
 
-			<section class="grid grid-cols-2 gap-4">
+			<section class="grid grid-cols-4 gap-4">
 				<!-- Statu -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.statuts.icon}
 					title={HOST_SECTION_CONFIG.statuts.label}
 					color={HOST_SECTION_CONFIG.statuts.color}
 				>
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid gap-4">
 						<SelectField
 							id="type"
 							name="type"
@@ -282,7 +320,7 @@
 					title={HOST_SECTION_CONFIG.profile.label}
 					color={HOST_SECTION_CONFIG.profile.color}
 				>
-					<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
+					<div class="grid gap-4">
 						<InputField
 							id="firstName"
 							name="firstName"
@@ -316,10 +354,7 @@
 						/>
 					</div>
 				</SectionCard>
-			</section>
-			<Separator />
 
-			<section class="grid grid-cols-2 gap-4">
 				<!-- Adresse -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.address.icon}
@@ -362,20 +397,19 @@
 								size="sm"
 								disabled={isSubmitting}
 							/>
-
-							{#if city.toLowerCase() === 'montpellier'}
-								<SelectField
-									id="district"
-									name="district"
-									label="Quartier"
-									bind:value={selectedDistrict}
-									placeholder="Quartier"
-									options={districtOptions}
-									size="sm"
-									disabled={isSubmitting}
-								/>
-							{/if}
 						</div>
+						{#if city.toLowerCase() === 'montpellier'}
+							<SelectField
+								id="district"
+								name="district"
+								label="Quartier"
+								bind:value={selectedDistrict}
+								placeholder="Quartier"
+								options={districtOptions}
+								size="sm"
+								disabled={isSubmitting}
+							/>
+						{/if}
 					</div>
 				</SectionCard>
 
@@ -385,7 +419,7 @@
 					title={HOST_SECTION_CONFIG.contact.label}
 					color={HOST_SECTION_CONFIG.contact.color}
 				>
-					<div class="grid gap-2">
+					<div class="grid gap-4">
 						<InputField
 							id="email"
 							name="email"

@@ -14,10 +14,12 @@
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
 	import type { Heal, Socialize, BabyFeeding } from '@prisma/client';
+	import NewHostDialog from '$lib/components/hosts/NewHostDialog.svelte';
 
 	const { form } = $props();
 
 	let isEditing = $state(false);
+	let showCreateDialog = $state(false);
 
 	const hostData = $derived(form.data as HostFormData);
 
@@ -86,9 +88,14 @@
 							</p>
 						{/if}
 					</div>
-					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
-						<Pencil class="h-5 w-5" />
-					</Button>
+					<div class="grid justify-items-end gap-2">
+						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
+							<Pencil class="h-5 w-5" />
+						</Button>
+						<Button onclick={() => (showCreateDialog = true)} disabled={form.status === 'APPROVED'}>
+							Créer une famille d'accueil
+						</Button>
+					</div>
 				</section>
 			</Card.Header>
 
@@ -388,6 +395,12 @@
 			</Card.Content>
 		{/if}
 	</Card.Root>
+	<NewHostDialog
+		bind:open={showCreateDialog}
+		onCancel={() => (showCreateDialog = false)}
+		initialData={{ ...hostData, email: form.email }}
+		formId={form.id}
+	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

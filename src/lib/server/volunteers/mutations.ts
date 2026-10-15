@@ -5,6 +5,8 @@ import {
 	type CreateVolunteerInput,
 	type UpdateVolunteerInput
 } from '$lib/schemas/volunteer';
+import { hashPassword } from '$lib/server/password';
+import { randomBytes } from 'node:crypto';
 
 const PROFIL_FIELDS = [
 	'firstName',
@@ -126,12 +128,16 @@ export async function createVolunteer({
 			};
 		}
 
+		const tempPassword = randomBytes(12).toString('base64url');
+		const hashedPassword = await hashPassword(tempPassword);
+
 		const newVolunteer = await prisma.volunteer.create({
 			data: {
 				role: validatedData.role,
 				actif: validatedData.actif,
 				breakStart: validatedData.breakStart,
 				breakEnd: validatedData.breakEnd,
+				password: hashedPassword,
 
 				// Créer le profil associé
 				profil: {

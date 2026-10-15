@@ -3,6 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { FormType, FormStatus } from '@prisma/client';
 import { updateForm } from '$lib/server/forms/mutations';
+import { createVolunteer } from '$lib/server/volunteers/mutations';
+import { createHost } from '$lib/server/hosts/mutations';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -140,6 +142,52 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
+	createVolunteer: async ({ request, locals }) => {
+		try {
+			const formData = await request.clone().formData();
+			const formId = formData.get('formId')?.toString();
+
+			const result = await createVolunteer({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+
+			if (formId) {
+				await prisma.form.update({
+					where: { id: formId },
+					data: { status: 'APPROVED' }
+				});
+			}
+
+			return result;
+		} catch (error) {
+			console.error('Erreur création bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	createHost: async ({ request, locals }) => {
+		try {
+			const formData = await request.clone().formData();
+			const formId = formData.get('formId')?.toString();
+
+			const result = await createHost({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			if (formId) {
+				await prisma.form.update({
+					where: { id: formId },
+					data: { status: 'APPROVED' }
+				});
+			}
+			return result;
+		} catch (error) {
+			console.error("Erreur création famille d'accueil:", error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
 	updateForm: async ({ request, locals }) => {
 		try {
 			const result = await updateForm({ request, locals });

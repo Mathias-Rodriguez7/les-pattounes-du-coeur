@@ -16,10 +16,12 @@
 	import { formatDate } from '$lib/utils/date';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import VolunteerEditFormPanel from './VolunteerEditFormPanel.svelte';
+	import NewVolunteerDialog from '$lib/components/volunteers/NewVolunteerDialog.svelte';
 
 	const { form } = $props();
 
 	let isEditing = $state(false);
+	let showCreateDialog = $state(false);
 
 	const VolunteerData = $derived(form.data as VolunteerFormData);
 
@@ -74,9 +76,14 @@
 					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
 						<p>{formatDate(form.createdAt)}</p>
 					</div>
-					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
-						<Pencil class="h-5 w-5" />
-					</Button>
+					<div class="grid justify-items-end gap-2">
+						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
+							<Pencil class="h-5 w-5" />
+						</Button>
+						<Button onclick={() => (showCreateDialog = true)} disabled={form.status === 'APPROVED'}>
+							Créer le bénévole
+						</Button>
+					</div>
 				</section>
 			</Card.Header>
 
@@ -363,6 +370,12 @@
 			</Card.Content>
 		{/if}
 	</Card.Root>
+	<NewVolunteerDialog
+		bind:open={showCreateDialog}
+		onCancel={() => (showCreateDialog = false)}
+		initialData={{ ...VolunteerData, email: form.email }}
+		formId={form.id}
+	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

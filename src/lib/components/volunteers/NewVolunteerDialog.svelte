@@ -15,7 +15,22 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
 
-	let { open = $bindable(false), onCancel } = $props();
+	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();
+
+	$effect(() => {
+		if (open && initialData) {
+			firstName = initialData.firstName ?? '';
+			lastName = initialData.lastName ?? '';
+			email = initialData.email ?? '';
+			phone = initialData.phone ?? '';
+			address = initialData.address ?? '';
+			city = initialData.city ?? '';
+			postalCode = initialData.postalCode ?? '';
+			birthDate = initialData.birthDate ? new Date(initialData.birthDate) : undefined;
+			selectedDistrict = initialData.district ?? '';
+		}
+	});
+
 	let isSaving = $state(false);
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
@@ -52,6 +67,7 @@
 		});
 
 		if (!result.success) {
+			console.log('❌ Erreurs client:', result.error.flatten().fieldErrors);
 			fieldErrors = flattenErrors(result.error);
 			toast.error('Veuillez corriger les erreurs du formulaire');
 			return false;
@@ -76,15 +92,16 @@
 	}
 
 	// ✅ HANDLER USE:ENHANCE
-	const handleEnhance: SubmitFunction = () => {
-		// ✅ Valide avant de soumettre
+	const handleEnhance: SubmitFunction = ({ formData, cancel }) => {
 		if (!validateForm()) {
-			return async () => {};
+			cancel();
+			return;
 		}
-
+		formData.append('formId', formId);
 		isSubmitting = true;
 
 		return async ({ result, update }) => {
+			console.log('📦 Résultat serveur:', result);
 			if (result.type === 'success') {
 				toast.success('Bénévole créé avec succès');
 				resetForm();
@@ -271,8 +288,8 @@
 				color={VOLUNTEER_SECTION_CONFIG.statuts.color}
 			>
 				<SelectField
-					id="selectedRole"
-					name="selectedRole"
+					id="role"
+					name="role"
 					label="Sélectionner un rôle"
 					bind:value={selectedRole}
 					options={VOLUNTEER_ROLE_OPTIONS}
