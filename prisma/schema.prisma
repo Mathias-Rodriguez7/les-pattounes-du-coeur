@@ -28,22 +28,24 @@ model Profil {
 }
 
 model Volunteer {
-  id            String @id @default(uuid()) @db.Uuid
-  password      String @db.VarChar(255)
-  role          VolunteerRole
-  actif         ColabActivity?
-  profilId      String @unique @db.Uuid @map("profil_id")
-  profil        Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  id                  String @id @default(uuid()) @db.Uuid
+  password            String @db.VarChar(255)
+  resetToken          String? @map("reset_token") @db.VarChar(255)
+  resetTokenExpiresAt DateTime? @map("reset_token_expiry")
+  role                VolunteerRole
+  actif               ColabActivity?
+  profilId            String @unique @db.Uuid @map("profil_id")
+  profil              Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
 
-  breakStart    DateTime? @map("break_start")
-  breakEnd      DateTime? @map("break_end")
+  breakStart          DateTime? @map("break_start")
+  breakEnd            DateTime? @map("break_end")
 
-  createdAt     DateTime @default(now()) @map("createdAt")
-  updatedAt     DateTime @default(now()) @updatedAt @map("updatedAt")
+  createdAt           DateTime @default(now()) @map("createdAt")
+  updatedAt           DateTime @default(now()) @updatedAt @map("updatedAt")
   
-  cats          CatVolunteer[]
-  sessions      Session[]
-  assignedForms Form[] @relation("assignedForms")
+  cats                CatVolunteer[]
+  sessions            Session[]
+  assignedForms       Form[] @relation("assignedForms")
 }
 
 model Host {

@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { page } from '$app/state';
+	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
 		Menu,
@@ -20,6 +21,15 @@
 	} from '@lucide/svelte';
 
 	let mobileMenuOpen = $state(false);
+	let loginOpenMobile = $state(false);
+	let loginOpenDesktop = $state(false);
+
+	// Ferme tous les menus à chaque changement de page
+	afterNavigate(() => {
+		mobileMenuOpen = false;
+		loginOpenMobile = false;
+		loginOpenDesktop = false;
+	});
 </script>
 
 <header
@@ -165,7 +175,7 @@
 		<img src="/img/logo.png" alt="logo" class="h-12 w-12" />
 
 		<!-- Login Sheet -->
-		<Sheet.Root>
+		<Sheet.Root bind:open={loginOpenMobile}>
 			<Sheet.Trigger>
 				<img src="/img/cat-sleeping.png" alt="login" class="h-10 w-10" />
 			</Sheet.Trigger>
@@ -182,7 +192,16 @@
 					</div>
 
 					<div class="grid gap-2">
-						<Label>Mot de passe</Label>
+						<div class="flex justify-between">
+							<Label>Mot de passe</Label>
+							<a
+								href={resolve('/forgot-password')}
+								onclick={() => (loginOpenMobile = false)}
+								class="ms-auto inline-block text-sm underline"
+							>
+								Mot de passe oublié ?
+							</a>
+						</div>
 						<Input name="password" type="password" required />
 					</div>
 
@@ -286,9 +305,9 @@
 		</div>
 
 		<!-- LOGIN DESKTOP -->
-		<Sheet.Root>
+		<Sheet.Root bind:open={loginOpenDesktop}>
 			<Sheet.Trigger class={buttonVariants}>
-				<img src="/img/cat-sleeping.png" alt="login" class="h-20 w-20" />
+				<img src="/img/cat-sleeping.png" alt="login" class="h-15 w-20" />
 			</Sheet.Trigger>
 
 			<Sheet.Content side="right" class="w-96">
@@ -303,7 +322,16 @@
 					</div>
 
 					<div class="grid gap-2">
-						<Label>Mot de passe</Label>
+						<div class="flex justify-between">
+							<Label>Mot de passe</Label>
+							<a
+								href={resolve('/forgot-password')}
+								onclick={() => (loginOpenDesktop = false)}
+								class="ms-auto inline-block text-sm underline"
+							>
+								Mot de passe oublié ?
+							</a>
+						</div>
 						<Input name="password" type="password" required />
 					</div>
 
