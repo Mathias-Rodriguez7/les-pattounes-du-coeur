@@ -1,12 +1,10 @@
-<!-- FormPanel.svelte -->
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getFormPanelComponent } from '$lib/utils/formPanels';
 
-	let { form } = $props();
+	let { form, volunteers = [], isAdmin = false } = $props();
 
-	// Force la recalculation quand form change
 	const PanelComponent = $derived.by(() => {
 		if (!form) return null;
 		return getFormPanelComponent(form.type);
@@ -14,8 +12,7 @@
 </script>
 
 {#if form && PanelComponent}
-	<!-- ✅ Passe catData -->
-	<PanelComponent {form} catData={form.catData} />
+	<PanelComponent {form} catData={form.catData} {volunteers} {isAdmin} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

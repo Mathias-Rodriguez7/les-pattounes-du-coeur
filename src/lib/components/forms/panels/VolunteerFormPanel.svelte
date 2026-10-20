@@ -17,13 +17,20 @@
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import VolunteerEditFormPanel from './VolunteerEditFormPanel.svelte';
 	import NewVolunteerDialog from '$lib/components/volunteers/NewVolunteerDialog.svelte';
+	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
-	const { form } = $props();
+	const { form, volunteers = [], isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
 
 	const VolunteerData = $derived(form.data as VolunteerFormData);
+
+	const assignedName = $derived(
+		form.assignedTo
+			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
+			: 'Non assigné'
+	);
 
 	let editData = $state<FormEditData<VolunteerFormData> | null>(null);
 
@@ -75,6 +82,18 @@
 					</div>
 					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
 						<p>{formatDate(form.createdAt)}</p>
+						{#if form.assignedTo}
+							<p class="text-muted-foreground">
+								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
+							</p>
+						{/if}
+						{#if isAdmin}
+							<AssignVolunteerDialog
+								formId={form.id}
+								currentVolunteerId={form.assignedToId}
+								{volunteers}
+							/>
+						{/if}
 					</div>
 					<div class="grid justify-items-end gap-2">
 						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">

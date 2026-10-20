@@ -11,12 +11,19 @@
 	import { statusColors } from '$lib/constants/forms';
 	import { formatDate } from '$lib/utils/date';
 	import ColabEditFormPanel from './ColabEditFormPanel.svelte';
+	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
-	const { form } = $props();
+	const { form, volunteers = [], isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 
 	const colabData = $derived(form.data as CollabFormData);
+
+	const assignedName = $derived(
+		form.assignedTo
+			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
+			: 'Non assigné'
+	);
 
 	let editData = $state<FormEditData<CollabFormData> | null>(null);
 
@@ -68,6 +75,18 @@
 					</div>
 					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
 						<p>{formatDate(form.createdAt)}</p>
+						{#if form.assignedTo}
+							<p class="text-muted-foreground">
+								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
+							</p>
+						{/if}
+						{#if isAdmin}
+							<AssignVolunteerDialog
+								formId={form.id}
+								currentVolunteerId={form.assignedToId}
+								{volunteers}
+							/>
+						{/if}
 					</div>
 					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
 						<Pencil class="h-5 w-5" />

@@ -150,15 +150,23 @@ model Sickness {
 }
 
 model MediaCat {
-  id          String @id @default(uuid()) @db.Uuid
-  catId       String @db.Uuid @map("cat_id")
-  cat         Cat @relation(fields: [catId], references: [id])
-  picture     String? @db.VarChar(255)
-  file        String? @db.VarChar(255)
-  focalPointX Int? @map("focal_point_x")
-  focalPointY Int? @map("focal_point_y")
-  createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
+  id          String    @id @default(uuid()) @db.Uuid
+  catId       String    @db.Uuid @map("cat_id")
+  cat         Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
+
+  type        MediaType
+  url         String    @db.VarChar(255)     // chemin public, ex: /uploads/cats/abc.jpg
+  filename    String    @db.VarChar(255)     // nom d'origine
+  mimeType    String    @db.VarChar(100) @map("mime_type")
+  size        Int                             // en octets
+  isCover     Boolean   @default(false) @map("is_cover")
+  focalPointX Int?      @map("focal_point_x")
+  focalPointY Int?      @map("focal_point_y")
+
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  updatedAt   DateTime  @updatedAt @map("updatedAt")
+
+  @@index([catId])
 }
 
 model News {

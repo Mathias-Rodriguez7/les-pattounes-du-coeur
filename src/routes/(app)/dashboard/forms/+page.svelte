@@ -9,14 +9,15 @@
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '$lib/constants/forms.js';
 	import FormPanel from '$lib/components/forms/FormPanel.svelte';
+	import CardAction from '$lib/components/ui/card/card-action.svelte';
 
 	const { data } = $props();
 
 	let forms = $derived(data.forms);
 	const stats = $derived(data.stats);
 
-	const isAdmin = $derived(data.isAdmin);
-	const volunteers = $derived(data.volunteers);
+	let isAdmin = $derived(data.forms);
+	let volunteers = $derived(data.volunteers);
 
 	let selectedFormId = $state<string | null>(null);
 	let selectedForm = $derived(forms.find((f) => f.id === selectedFormId) ?? null);
@@ -117,6 +118,9 @@
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 				<Card.Title class="text-2xl font-bold">Formulaires</Card.Title>
+				{#if data.isAdmin}
+					<CardAction></CardAction>
+				{/if}
 			</Card.Header>
 			<Card.Content>
 				<!-- Barre de filtres -->
@@ -188,7 +192,7 @@
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
 			{#key selectedFormId}
-				<FormPanel form={selectedForm} />
+				<FormPanel form={selectedForm} isAdmin={data.isAdmin} {volunteers} />
 			{/key}
 		</div>
 	</section>

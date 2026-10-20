@@ -1,3 +1,4 @@
+import { fail } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 import { FormType } from '@prisma/client';
 import {
@@ -201,4 +202,60 @@ export async function updateForm({
 			errors: {}
 		};
 	}
+}
+
+export async function assignVolunteer({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!locals.user) {
+		return { success: false, error: 'Non autorisé' };
+	}
+
+	// Seuls les ADMIN peuvent assigner
+	const currentVolunteer = await prisma.volunteer.findUnique({
+		where: { id: locals.user.id },
+		select: { role: true }
+	});
+
+	if (currentVolunteer?.role !== 'ADMIN') {
+		return { success: false, error: 'Action réservée aux administrateurs' };
+	}
+
+	const formData = await request.formData();
+	const formId = formData.get('formId')?.toString();
+	const volunteerIdRaw = formData.get('volunteerId')?.toString();
+	const volunteerId = volunteerIdRaw ? volunteerIdRaw : null;
+
+	if (!formId) {
+		return { success: false, error: 'Formulaire manquant' };
+	}
+
+	// Vérifier que le bénévole cible existe si on en assigne un
+	if (volunteerId) {
+		const exists = await prisma.volunteer.findUnique({
+			where: { id: volunteerId },
+			select: { id: true }
+		});
+		if (!exists) {
+			return { success: false, error: 'Bénévole introuvable' };
+		}
+	}
+
+	const form = await prisma.form.update({
+		where: { id: formId },
+		data: { assignedToId: volunteerId },
+		include: {
+			assignedTo: {
+				include: {
+					profil: { select: { firstName: true, lastName: true } }
+				}
+			}
+		}
+	});
+
+	return { success: true, form };
 }

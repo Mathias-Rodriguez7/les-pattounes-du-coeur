@@ -15,8 +15,9 @@
 	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
 	import type { Heal, Socialize, BabyFeeding } from '@prisma/client';
 	import NewHostDialog from '$lib/components/hosts/NewHostDialog.svelte';
+	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
-	const { form } = $props();
+	const { form, volunteers = [], isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
@@ -87,11 +88,19 @@
 								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
 							</p>
 						{/if}
+						{#if isAdmin}
+							<AssignVolunteerDialog
+								formId={form.id}
+								currentVolunteerId={form.assignedToId}
+								{volunteers}
+							/>
+						{/if}
 					</div>
 					<div class="grid justify-items-end gap-2">
 						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
 							<Pencil class="h-5 w-5" />
 						</Button>
+
 						<Button onclick={() => (showCreateDialog = true)} disabled={form.status === 'APPROVED'}>
 							Créer une famille d'accueil
 						</Button>
@@ -401,6 +410,7 @@
 		initialData={{ ...hostData, email: form.email }}
 		formId={form.id}
 	/>
+	<AssignVolunteerDialog formId={form.id} currentVolunteerId={form.assignedToId} {volunteers} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

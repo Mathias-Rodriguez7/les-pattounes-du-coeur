@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { FormType, FormStatus } from '@prisma/client';
-import { updateForm } from '$lib/server/forms/mutations';
+import { updateForm, assignVolunteer } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 
@@ -195,6 +195,17 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur mise à jour form:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	assignVolunteer: async ({ request, locals }) => {
+		try {
+			const result = await assignVolunteer({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur assignation bénévole:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}
