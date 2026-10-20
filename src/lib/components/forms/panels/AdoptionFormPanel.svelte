@@ -13,8 +13,9 @@
 	import { Pencil } from '@lucide/svelte';
 	import { getSexIcon } from '$lib/utils/catHelpers';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
-	const { form, catData } = $props();
+	const { form, catData, volunteers = [], isAdmin = false } = $props();
 
 	let isEditing = $state(false);
 
@@ -102,6 +103,15 @@
 							<p class="text-muted-foreground">
 								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
 							</p>
+						{/if}
+						{#if form.type === 'ADOPTION_FLEXIBLE'}
+							{#if isAdmin}
+								<AssignVolunteerDialog
+									formId={form.id}
+									currentVolunteerId={form.assignedToId}
+									{volunteers}
+								/>
+							{/if}
 						{/if}
 					</div>
 					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
