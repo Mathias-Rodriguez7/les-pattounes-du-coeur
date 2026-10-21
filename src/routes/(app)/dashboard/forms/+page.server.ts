@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { FormType, FormStatus } from '@prisma/client';
-import { updateForm, assignVolunteer } from '$lib/server/forms/mutations';
+import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const volunteerId = locals.user.id;
 	const volunteer = await prisma.volunteer.findUnique({
 		where: { id: volunteerId },
-		select: { role: true }
+		select: { role: true, isFlexibleDispatcher: true }
 	});
 
 	if (!volunteer) {
@@ -22,10 +22,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	const isAdmin = volunteer.role === 'ADMIN';
+	const isFlexibleDispatcher = volunteer.isFlexibleDispatcher;
+	const canSeeAllFlexible = isAdmin || isFlexibleDispatcher;
 
-	// 🔍 Récupérer les filtres depuis les query params
+	// 🔍 Filtres
 	const typeParam = url.searchParams.get('type');
 	const statusParam = url.searchParams.get('status');
+	const scopeParam = url.searchParams.get('scope');
 
 	const typeFilter =
 		typeParam && Object.values(FormType).includes(typeParam as FormType)
@@ -37,51 +40,57 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			? (statusParam as FormStatus)
 			: undefined;
 
-	// 🏗️ Construire la condition WHERE
-	const whereCondition = {
+	// 🔀 Mode d'affichage : 'mine' par défaut, 'flexible' seulement si autorisé
+	const requestedScope = scopeParam === 'flexible' ? 'flexible' : 'mine';
+	const scope = requestedScope === 'flexible' && canSeeAllFlexible ? 'flexible' : 'mine';
+
+	const baseFilters = {
 		...(typeFilter && { type: typeFilter }),
-		...(statusFilter && { status: statusFilter }),
-		// Si pas ADMIN, afficher seulement les forms assignés à ce volunteer
-		...(!isAdmin && { assignedToId: volunteerId })
+		...(statusFilter && { status: statusFilter })
 	};
 
-	// 📊 Récupérer les STATS
+	// 🏗️ Condition WHERE selon le mode
+	let whereCondition: Record<string, unknown>;
+
+	if (scope === 'flexible') {
+		// Tous les ADOPTION_FLEXIBLE, sans restriction d'assignation
+		whereCondition = {
+			...baseFilters,
+			type: FormType.ADOPTION_FLEXIBLE
+		};
+	} else {
+		// Uniquement les forms assignés à ce volunteer
+		// Admin : pas de restriction, comme avant
+		whereCondition = isAdmin
+			? baseFilters
+			: {
+					...baseFilters,
+					assignedToId: volunteerId
+				};
+	}
+
+	// 📊 Stats
 	const [totalForms, pendingForms, approvedForms, rejectedForms] = await Promise.all([
-		prisma.form.count({
-			where: whereCondition
-		}),
-		prisma.form.count({
-			where: { ...whereCondition, status: 'PENDING' }
-		}),
-		prisma.form.count({
-			where: { ...whereCondition, status: 'APPROVED' }
-		}),
-		prisma.form.count({
-			where: { ...whereCondition, status: 'REJECTED' }
-		})
+		prisma.form.count({ where: whereCondition }),
+		prisma.form.count({ where: { ...whereCondition, status: 'PENDING' } }),
+		prisma.form.count({ where: { ...whereCondition, status: 'APPROVED' } }),
+		prisma.form.count({ where: { ...whereCondition, status: 'REJECTED' } })
 	]);
 
-	// 📋 Récupérer tous les forms
+	// 📋 Forms
 	const forms = await prisma.form.findMany({
 		where: whereCondition,
 		include: {
 			assignedTo: {
 				include: {
-					profil: {
-						select: {
-							firstName: true,
-							lastName: true
-						}
-					}
+					profil: { select: { firstName: true, lastName: true } }
 				}
 			}
 		},
-		orderBy: {
-			createdAt: 'desc'
-		}
+		orderBy: { createdAt: 'desc' }
 	});
 
-	// ✅ Enrichir les forms avec les données du chat pour ADOPTION_SPECIFIC
+	// ✅ Enrichissement ADOPTION_SPECIFIC (inchangé)
 	const enrichedForms = await Promise.all(
 		forms.map(async (form) => {
 			if (form.type === 'ADOPTION_SPECIFIC' && (form.data as any).catId) {
@@ -90,11 +99,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 					include: {
 						volunteers: {
 							include: {
-								volunteer: {
-									include: {
-										profil: true
-									}
-								}
+								volunteer: { include: { profil: true } }
 							}
 						}
 					}
@@ -105,35 +110,23 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		})
 	);
 
-	// 📋 Récupérer tous les volunteers pour l'assignment (seulement pour ADMIN)
+	// 📋 Volunteers pour l'assignation (admin uniquement)
 	const volunteers = isAdmin
 		? await prisma.volunteer.findMany({
 				include: {
-					profil: {
-						select: {
-							firstName: true,
-							lastName: true
-						}
-					}
+					profil: { select: { firstName: true, lastName: true } }
 				},
-				orderBy: {
-					profil: {
-						firstName: 'asc'
-					}
-				}
+				orderBy: { profil: { firstName: 'asc' } }
 			})
 		: [];
 
 	return {
 		forms: enrichedForms,
 		volunteers,
-		stats: {
-			totalForms,
-			pendingForms,
-			approvedForms,
-			rejectedForms
-		},
+		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
+		canSeeAllFlexible,
+		scope,
 		filters: {
 			type: typeFilter || null,
 			status: statusFilter || null
@@ -206,6 +199,17 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur assignation bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	setFlexibleDispatcher: async ({ request, locals }) => {
+		try {
+			const result = await setFlexibleDispatcher({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur mise à jour dispatcher flexible:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}

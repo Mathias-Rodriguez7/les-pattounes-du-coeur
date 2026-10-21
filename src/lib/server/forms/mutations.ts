@@ -259,3 +259,55 @@ export async function assignVolunteer({
 
 	return { success: true, form };
 }
+
+export async function setFlexibleDispatcher({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!locals.user) {
+		return { success: false, error: 'Non autorisé' };
+	}
+
+	// Seuls les ADMIN peuvent désigner le dispatcher
+	const currentVolunteer = await prisma.volunteer.findUnique({
+		where: { id: locals.user.id },
+		select: { role: true }
+	});
+
+	if (currentVolunteer?.role !== 'ADMIN') {
+		return { success: false, error: 'Action réservée aux administrateurs' };
+	}
+
+	const formData = await request.formData();
+	const volunteerId = formData.get('volunteerId')?.toString();
+
+	if (!volunteerId) {
+		return { success: false, error: 'Bénévole manquant' };
+	}
+
+	const target = await prisma.volunteer.findUnique({
+		where: { id: volunteerId },
+		select: { id: true }
+	});
+
+	if (!target) {
+		return { success: false, error: 'Bénévole introuvable' };
+	}
+
+	// Transaction : on retire le rôle à tous les autres, puis on l'attribue à la cible
+	await prisma.$transaction([
+		prisma.volunteer.updateMany({
+			where: { isFlexibleDispatcher: true, NOT: { id: volunteerId } },
+			data: { isFlexibleDispatcher: false }
+		}),
+		prisma.volunteer.update({
+			where: { id: volunteerId },
+			data: { isFlexibleDispatcher: true }
+		})
+	]);
+
+	return { success: true, message: 'Dispatcher flexible mis à jour' };
+}

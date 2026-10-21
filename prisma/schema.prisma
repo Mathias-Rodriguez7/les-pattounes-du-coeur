@@ -28,24 +28,25 @@ model Profil {
 }
 
 model Volunteer {
-  id                  String @id @default(uuid()) @db.Uuid
-  password            String @db.VarChar(255)
-  resetToken          String? @map("reset_token") @db.VarChar(255)
-  resetTokenExpiresAt DateTime? @map("reset_token_expiry")
-  role                VolunteerRole
-  actif               ColabActivity?
-  profilId            String @unique @db.Uuid @map("profil_id")
-  profil              Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  id                   String @id @default(uuid()) @db.Uuid
+  password             String @db.VarChar(255)
+  resetToken           String? @map("reset_token") @db.VarChar(255)
+  resetTokenExpiresAt  DateTime? @map("reset_token_expiry")
+  role                 VolunteerRole
+  actif                ColabActivity?
+  profilId             String @unique @db.Uuid @map("profil_id")
+  profil               Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  isFlexibleDispatcher Boolean @default(false)
 
-  breakStart          DateTime? @map("break_start")
-  breakEnd            DateTime? @map("break_end")
+  breakStart           DateTime? @map("break_start")
+  breakEnd             DateTime? @map("break_end")
 
-  createdAt           DateTime @default(now()) @map("createdAt")
-  updatedAt           DateTime @default(now()) @updatedAt @map("updatedAt")
+  createdAt            DateTime @default(now()) @map("createdAt")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updatedAt")
   
-  cats                CatVolunteer[]
-  sessions            Session[]
-  assignedForms       Form[] @relation("assignedForms")
+  cats                 CatVolunteer[]
+  sessions             Session[]
+  assignedForms        Form[] @relation("assignedForms")
 }
 
 model Host {
@@ -150,23 +151,15 @@ model Sickness {
 }
 
 model MediaCat {
-  id          String    @id @default(uuid()) @db.Uuid
-  catId       String    @db.Uuid @map("cat_id")
-  cat         Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
-
-  type        MediaType
-  url         String    @db.VarChar(255)     // chemin public, ex: /uploads/cats/abc.jpg
-  filename    String    @db.VarChar(255)     // nom d'origine
-  mimeType    String    @db.VarChar(100) @map("mime_type")
-  size        Int                             // en octets
-  isCover     Boolean   @default(false) @map("is_cover")
-  focalPointX Int?      @map("focal_point_x")
-  focalPointY Int?      @map("focal_point_y")
-
-  createdAt   DateTime  @default(now()) @map("createdAt")
-  updatedAt   DateTime  @updatedAt @map("updatedAt")
-
-  @@index([catId])
+  id          String   @id @default(uuid()) @db.Uuid
+  catId       String   @db.Uuid
+  cat         Cat      @relation(fields: [catId], references: [id])
+  picture     String?  @db.VarChar(255)
+  fille       String?  @db.VarChar(255)
+  focalPointX Int?      @db.Integer
+  focalPointY Int?      @db.Integer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model News {

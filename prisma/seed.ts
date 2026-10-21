@@ -202,6 +202,7 @@ async function main() {
 			password: await hashPassword('admin123'),
 			role: 'ADMIN',
 			actif: 'ACTIVE',
+			isFlexibleDispatcher: true,
 			breakStart: null,
 			breakEnd: null,
 			profilId: adminProfil.id
@@ -213,6 +214,7 @@ async function main() {
 			password: await hashPassword('manager123'),
 			role: 'MANAGER',
 			actif: 'ACTIVE',
+			isFlexibleDispatcher: false,
 			breakStart: null,
 			breakEnd: null,
 			profilId: managerProfil.id
@@ -224,6 +226,7 @@ async function main() {
 			password: await hashPassword('comm123'),
 			role: 'COMMUNICATION',
 			actif: 'ACTIVE',
+			isFlexibleDispatcher: false,
 			breakStart: null,
 			breakEnd: null,
 			profilId: commProfil.id
@@ -243,6 +246,7 @@ async function main() {
 				password: await hashPassword('password'),
 				role: faker.helpers.arrayElement(VOLUNTEER_ROLE),
 				actif: actif,
+				isFlexibleDispatcher: false,
 				breakStart: breakDates.breakStart,
 				breakEnd: breakDates.breakEnd,
 				profilId: profils[i].id
