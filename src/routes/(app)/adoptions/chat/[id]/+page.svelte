@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Form from '$lib/components/ui/form/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import {
@@ -14,8 +12,15 @@
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { get } from 'svelte/store';
 	import type { Cat } from '$lib/types/cat';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { fade, fly } from 'svelte/transition';
+	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import InputField from '$lib/components/fields/InputField.svelte';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import DatePicker from '$lib/components/fields/DatePicker.svelte';
+	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '$lib/components/fields/TextareaField.svelte';
+	import SectionCard from '$lib/components/cards/SectionCard.svelte';
+	import { FORM_SECTION_CONFIG } from '$lib/constants/forms';
 
 	let {
 		data
@@ -45,7 +50,18 @@
 	});
 
 	// ⚠️ IMPORTANT
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors } = form;
+
+	// DatePicker manipule un Date, le schéma attend 'YYYY-MM-DD'
+	let birthDate = $state<Date | undefined>(undefined);
+	function onBirthDateSelect(date: Date) {
+		birthDate = date;
+		$formData.birthDate = date.toISOString().split('T')[0] as never;
+	}
+
+	const districtOptions = $derived(
+		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
+	);
 
 	// ✅ STATE
 	let step = $state(1);
@@ -76,12 +92,6 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
-
-	// ✅ STYLES
-	const fieldClass =
-		'border bg-background px-4 text-left shadow-sm transition hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40';
-
-	const textarea = 'hover:bg-foreground/10 min-h-28 w-full rounded-2xl px-4 py-3';
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -108,193 +118,240 @@
 
 			<Card.Content>
 				<form method="POST" use:enhance class="space-y-6">
-					<!-- 👤 STEP 1 -->
-					<div class:hidden={step !== 1}>
-						<div class="space-y-6">
-							<h2>Profil</h2>
+					<!-- 👤 STEP 1 : PROFIL -->
+					<div class:hidden={step !== 1} class="space-y-4">
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.profile.icon}
+							title={FORM_SECTION_CONFIG.profile.label}
+							color={FORM_SECTION_CONFIG.profile.color}
+						>
 							<div class="grid grid-cols-2 gap-4">
-								<Form.Field {form} name="firstName">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Prénom</Form.Label>
-											<Input {...props} bind:value={$formData.firstName} class={fieldClass} />
-										{/snippet}
-									</Form.Control>
-								</Form.Field>
-
-								<Form.Field {form} name="lastName">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Nom</Form.Label>
-											<Input {...props} bind:value={$formData.lastName} class={fieldClass} />
-										{/snippet}
-									</Form.Control>
-								</Form.Field>
+								<InputField
+									id="firstName"
+									name="firstName"
+									label="Prénom"
+									required
+									size="sm"
+									bind:value={$formData.firstName}
+									placeholder="Jean"
+									error={$errors.firstName?.[0]}
+								/>
+								<InputField
+									id="lastName"
+									name="lastName"
+									label="Nom"
+									required
+									size="sm"
+									bind:value={$formData.lastName}
+									placeholder="Dupont"
+									error={$errors.lastName?.[0]}
+								/>
+								<DatePicker
+									name="birthDate"
+									value={birthDate}
+									onSelect={onBirthDateSelect}
+									label="Date de naissance"
+									error={$errors.birthDate?.[0]}
+								/>
 							</div>
+						</SectionCard>
 
-							<Form.Field {form} name="address">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Adresse</Form.Label>
-										<Input {...props} bind:value={$formData.address} class={fieldClass} />
-									{/snippet}
-								</Form.Control>
-							</Form.Field>
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.contact.icon}
+							title={FORM_SECTION_CONFIG.contact.label}
+							color={FORM_SECTION_CONFIG.contact.color}
+						>
+							<div class="grid grid-cols-2 gap-2">
+								<InputField
+									id="email"
+									name="email"
+									label="Email"
+									type="email"
+									required
+									size="sm"
+									bind:value={$formData.email}
+									placeholder="jean@example.com"
+									error={$errors.email?.[0]}
+								/>
+								<InputField
+									id="phone"
+									name="phone"
+									label="Téléphone"
+									required
+									size="sm"
+									placeholder="06 12 34 56 78"
+									bind:value={$formData.phone}
+									error={$errors.phone?.[0]}
+								/>
+							</div>
+						</SectionCard>
 
-							<Form.Field {form} name="email">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Email</Form.Label>
-										<Input
-											type="email"
-											{...props}
-											bind:value={$formData.email}
-											class={fieldClass}
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.address.icon}
+							title={FORM_SECTION_CONFIG.address.label}
+							color={FORM_SECTION_CONFIG.address.color}
+						>
+							<div class="space-y-4">
+								<InputField
+									id="address"
+									name="address"
+									label="Adresse"
+									required
+									size="sm"
+									bind:value={$formData.address}
+									placeholder="123 rue de la Paix"
+									error={$errors.address?.[0]}
+								/>
+								<div class="grid grid-cols-3 gap-4">
+									<InputField
+										id="city"
+										name="city"
+										label="Ville"
+										required
+										size="sm"
+										bind:value={$formData.city}
+										placeholder="Montpellier"
+										error={$errors.city?.[0]}
+									/>
+									<InputField
+										id="postalCode"
+										name="postalCode"
+										label="Code postal"
+										required
+										size="sm"
+										bind:value={$formData.postalCode}
+										placeholder="34000"
+										error={$errors.postalCode?.[0]}
+									/>
+									{#if $formData.city?.toLowerCase() === 'montpellier'}
+										<SelectField
+											id="district"
+											name="district"
+											label="Quartier"
+											placeholder="Quartier"
+											size="sm"
+											options={districtOptions}
+											bind:value={$formData.district}
 										/>
-									{/snippet}
-								</Form.Control>
-							</Form.Field>
-
-							<div class="grid grid-cols-2 gap-4">
-								<Form.Field {form} name="phone">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Téléphone</Form.Label>
-											<Input {...props} bind:value={$formData.phone} class={fieldClass} />
-										{/snippet}
-									</Form.Control>
-								</Form.Field>
-
-								<Form.Field {form} name="age">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Âge</Form.Label>
-											<Input
-												type="number"
-												{...props}
-												bind:value={$formData.age}
-												class={fieldClass}
-											/>
-										{/snippet}
-									</Form.Control>
-								</Form.Field>
+									{/if}
+								</div>
 							</div>
-						</div>
+						</SectionCard>
+
+						<p class="text-muted-foreground text-xs">
+							<span class="text-destructive">*</span> Champs obligatoires
+						</p>
 					</div>
 
 					<!-- 🏠 STEP 2 -->
-					<div class:hidden={step !== 2}>
-						<div class="space-y-6">
-							<h2>Votre foyer</h2>
-							<!-- LOGEMENT -->
+					<div class:hidden={step !== 2} class="space-y-4">
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.home.icon}
+							title={FORM_SECTION_CONFIG.home.label}
+							color={FORM_SECTION_CONFIG.home.color}
+						>
 							<div class="space-y-4">
-								<Form.Field {form} name="housingSize">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Logement (m²)</Form.Label>
-											<Input type="number" {...props} bind:value={$formData.housingSize} />
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field>
+								<InputField
+									id="housingSize"
+									name="housingSize"
+									label="Logement (m²)"
+									type="number"
+									required
+									size="sm"
+									bind:value={$formData.housingSize}
+									error={$errors.housingSize?.[0]}
+								/>
 
-								<Form.Field {form} name="hasGarden">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Jardin</Form.Label>
-
-											<Checkbox
-												{...props}
-												checked={$formData.hasGarden}
-												onCheckedChange={(v) => ($formData.hasGarden = Boolean(v))}
-											/>
-										{/snippet}
-									</Form.Control>
-								</Form.Field>
+								<CheckboxField
+									id="hasGarden"
+									name="hasGarden"
+									label="J'ai un jardin"
+									checked={$formData.hasGarden}
+									onChange={(v) => ($formData.hasGarden = v)}
+								/>
 
 								{#if $formData.hasGarden}
-									<Form.Field {form} name="gardenSize">
-										<Form.Control>
-											{#snippet children({ props })}
-												<Form.Label>Taille jardin (m²)</Form.Label>
-												<Input type="number" {...props} bind:value={$formData.gardenSize} />
-											{/snippet}
-										</Form.Control>
-										<Form.FieldErrors />
-									</Form.Field>
+									<InputField
+										id="gardenSize"
+										name="gardenSize"
+										label="Taille du jardin (m²)"
+										type="number"
+										size="sm"
+										bind:value={$formData.gardenSize}
+										error={$errors.gardenSize?.[0]}
+									/>
 								{/if}
 							</div>
+						</SectionCard>
 
-							<!-- ANIMAUX -->
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.animals.icon}
+							title={FORM_SECTION_CONFIG.animals.label}
+							color={FORM_SECTION_CONFIG.animals.color}
+						>
 							<div class="space-y-4">
-								<Form.Field {form} name="hasPets">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Vous avez des animaux ?</Form.Label>
-											<Checkbox
-												{...props}
-												checked={$formData.hasPets}
-												onCheckedChange={(v) => ($formData.hasPets = Boolean(v))}
-											/>
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field>
+								<CheckboxField
+									id="hasPets"
+									name="hasPets"
+									label="J'ai des animaux"
+									checked={$formData.hasPets}
+									onChange={(v) => ($formData.hasPets = v)}
+								/>
 
 								{#if $formData.hasPets}
-									<div class="space-y-4">
-										<div class="grid grid-cols-2 gap-4">
-											<Form.Field {form} name="numberOfCats">
-												<Form.Control>
-													{#snippet children({ props })}
-														<Form.Label>Chat</Form.Label>
-														<Input type="number" {...props} bind:value={$formData.numberOfCats} />
-													{/snippet}
-												</Form.Control>
-												<Form.FieldErrors />
-											</Form.Field>
-
-											<Form.Field {form} name="numberOfDogs">
-												<Form.Control>
-													{#snippet children({ props })}
-														<Form.Label>Chien</Form.Label>
-														<Input type="number" {...props} bind:value={$formData.numberOfDogs} />
-													{/snippet}
-												</Form.Control>
-												<Form.FieldErrors />
-											</Form.Field>
-										</div>
-										<Form.Field {form} name="otherPets">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Autres animaux</Form.Label>
-													<Textarea
-														{...props}
-														bind:value={$formData.otherPets}
-														placeholder="Ex: lapin, hamster, perroquet..."
-														class={textarea}
-													/>
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors />
-										</Form.Field>
+									<div class="grid grid-cols-2 gap-4">
+										<InputField
+											id="numberOfCats"
+											name="numberOfCats"
+											label="Chats"
+											type="number"
+											size="sm"
+											bind:value={$formData.numberOfCats}
+											error={$errors.numberOfCats?.[0]}
+										/>
+										<InputField
+											id="numberOfDogs"
+											name="numberOfDogs"
+											label="Chiens"
+											type="number"
+											size="sm"
+											bind:value={$formData.numberOfDogs}
+											error={$errors.numberOfDogs?.[0]}
+										/>
 									</div>
+
+									<TextareaField
+										id="otherPets"
+										name="otherPets"
+										label="Autres animaux"
+										placeholder="Ex: lapin, hamster, perroquet..."
+										bind:value={$formData.otherPets}
+										error={$errors.otherPets?.[0]}
+									/>
 								{/if}
 							</div>
+						</SectionCard>
 
-							<!-- FOYER -->
-							<div class="space-y-4">
-								<Form.Field {form} name="numberOfChildren">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Enfants</Form.Label>
-											<Input type="number" {...props} bind:value={$formData.numberOfChildren} />
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field>
-							</div>
-						</div>
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.foyer.icon}
+							title={FORM_SECTION_CONFIG.foyer.label}
+							color={FORM_SECTION_CONFIG.foyer.color}
+						>
+							<InputField
+								id="numberOfChildren"
+								name="numberOfChildren"
+								label="Enfants"
+								type="number"
+								required
+								size="sm"
+								bind:value={$formData.numberOfChildren}
+								error={$errors.numberOfChildren?.[0]}
+							/>
+						</SectionCard>
+
+						<p class="text-muted-foreground text-xs">
+							<span class="text-destructive">*</span> Champs obligatoires
+						</p>
 					</div>
 
 					<!-- NAVIGATION -->

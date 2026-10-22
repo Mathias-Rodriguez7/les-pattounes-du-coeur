@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Mars, Venus, CircleHelp } from '@lucide/svelte';
+	import { Mars, Venus, CircleQuestionMark } from '@lucide/svelte';
 
 	type Props = {
 		sex: string | null;
@@ -7,12 +7,20 @@
 	};
 
 	let { sex, class: className = '' }: Props = $props();
+
+	const sexColors: Record<string, string> = {
+		MALE: 'text-blue-500',
+		FEMALE: 'text-pink-500',
+		UNKNOWN: 'text-muted-foreground'
+	};
+
+	const colorClass = $derived(sexColors[sex ?? 'UNKNOWN'] ?? sexColors.UNKNOWN);
 </script>
 
 {#if sex === 'MALE'}
-	<Mars class={className} />
+	<Mars class="{colorClass} {className}" />
 {:else if sex === 'FEMALE'}
-	<Venus class={className} />
+	<Venus class="{colorClass} {className}" />
 {:else}
-	<CircleHelp class={className} />
+	<CircleQuestionMark class="{colorClass} {className}" />
 {/if}

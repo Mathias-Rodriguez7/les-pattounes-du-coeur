@@ -26,6 +26,7 @@
 	import type { SicknessStatus } from '@prisma/client';
 	import { getPlacementTypeClass } from '$lib/constants/placement';
 	import * as Accordion from '$lib/components/ui/accordion';
+	import CatMediaGallery from './CatMediaGallery.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -132,6 +133,15 @@
 		isEditing = false;
 	};
 
+	const handleMediaChange = (newMedia: CatFull['media']) => {
+		if (!cat) return;
+		cat.media = newMedia;
+	};
+
+	const handleCloseImageEditor = () => {
+		editingImage = false;
+	};
+
 	// ✅ Maladies actives
 	const activeSicknesses = $derived.by(() => {
 		return cat?.sicknesses?.filter((s) => s.status !== 'RESOLVED') || [];
@@ -187,13 +197,15 @@
 
 {#if cat}
 	<Card.Root>
-		{#if !isEditing}
+		{#if !isEditing && !editingImage}
 			<Card.Header>
 				<section class="flex justify-between gap-6">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">{cat.name}</Card.Title>
-						<Card.Description class="ga-2 flex">
-							{getAgeBadge(cat.birthDate)} ·
+						<Card.Description class="flex gap-2">
+							<div class="text-base">
+								{getAgeBadge(cat.birthDate)}
+							</div>
 							{#if sexIcon}
 								<div title={sexIcon.label}>
 									<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
@@ -222,7 +234,7 @@
 							title={CAT_SECTION_CONFIG.volunteer.label}
 							color={CAT_SECTION_CONFIG.volunteer.color}
 						>
-							<div class="ml-6 grid gap-2 text-sm">
+							<div class="grid gap-2 text-sm">
 								{#if assignedVolunteers.length > 0}
 									<div class="flex gap-4">
 										{#each assignedVolunteers as volunteer, i (i)}
@@ -850,7 +862,17 @@
 					</Accordion.Root>
 				</section>
 			</Card.Content>
+		{:else if editingImage}
+			<Card.Content>
+				<CatMediaGallery
+					catId={cat.id}
+					media={cat.media ?? []}
+					onChange={handleMediaChange}
+					onClose={handleCloseImageEditor}
+				/>
+			</Card.Content>
 		{:else}
+			<!-- Mode édition existant (isEditing === true) -->
 			<Card.Content class="space-y-6 overflow-y-auto">
 				<CatEditForm
 					bind:editData

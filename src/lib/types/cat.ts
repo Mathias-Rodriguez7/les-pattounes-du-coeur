@@ -6,9 +6,9 @@ import type {
 	Vaccinate,
 	Sickness,
 	Volunteer,
+	MediaCat,
 	Adoption,
 	Care,
-	Media,
 	News
 } from '@prisma/client';
 import type { PlacementFull } from './placement';
@@ -54,6 +54,23 @@ export type CatFull = Prisma.CatGetPayload<{
 	vaccinate: Vaccinate;
 };
 
+// Chat en liste (léger, pour les tableaux et cartes)
+export type CatListItem = Prisma.CatGetPayload<{
+	select: {
+		id: true;
+		catNumber: true;
+		name: true;
+		sex: true;
+		status: true;
+		birthDate: true;
+		isVisible: true;
+		media: {
+			where: { isPrimary: true };
+			take: 1;
+		};
+	};
+}>;
+
 // ✅ Type pour l'édition
 export type CatEditData = {
 	catNumber: string;
@@ -93,7 +110,7 @@ export type CatEditData = {
 	volunteers?: Volunteer[];
 	adoptions?: Adoption[];
 	cares?: Care[];
-	media?: Media[];
+	media?: MediaCat[];
 	news?: News[];
 };
 

@@ -113,7 +113,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 								status: true,
 								media: {
 									select: {
-										picture: true
+										id: true,
+										url: true
 									}
 								}
 							}

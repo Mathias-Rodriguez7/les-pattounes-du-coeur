@@ -34,11 +34,14 @@ export function dot(value: boolean): string {
 		: 'inline-block h-3 w-3 rounded-full bg-red-500';
 }
 
-export const focalPointClass: Record<string, string> = {
-	TOP: 'object-top',
-	MID: 'object-center',
-	BOT: 'object-bottom'
-};
+// Remplace focalPointClass : le focal point est désormais un couple X/Y sur le média
+export function focalPointStyle(
+	media: { focalPointX: number; focalPointY: number } | null | undefined
+): string {
+	const x = media?.focalPointX ?? 50;
+	const y = media?.focalPointY ?? 50;
+	return `object-position: ${x}% ${y}%`;
+}
 
 // ✅ Fonction extraite pour obtenir l'icône du sexe
 export type SexIconInfo = {
