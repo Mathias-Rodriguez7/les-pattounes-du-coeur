@@ -1,19 +1,20 @@
 <script lang="ts">
 	import type { MediaCat } from '@prisma/client';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { ImagePlus, Video, FileText, Trash } from '@lucide/svelte';
-	import { X } from '@lucide/svelte';
+	import { ImagePlus, Video, FileText, Trash, X } from '@lucide/svelte';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 
 	type MediaKind = 'IMAGE' | 'VIDEO' | 'DOCUMENT';
 
 	type Props = {
 		catId: string;
+		catName?: string | null;
 		media: MediaCat[];
 		onChange: (media: MediaCat[]) => void;
 		onClose?: () => void;
 	};
 
-	let { catId, media, onChange, onClose }: Props = $props();
+	let { catId, catName, media, onChange, onClose }: Props = $props();
 
 	let imageInput: HTMLInputElement;
 	let videoInput: HTMLInputElement;
@@ -55,10 +56,25 @@
 		input.value = '';
 	};
 
+	const setPrimary = async (item: MediaCat) => {
+		if (item.isPrimary) return;
+
+		const res = await fetch(`/api/cats/${catId}/media/${item.id}/primary`, {
+			method: 'PATCH'
+		});
+
+		if (res.ok) {
+			onChange(await res.json());
+		}
+	};
+
 	const handleDelete = async (item: MediaCat) => {
+		if (!confirm('Supprimer ce fichier ?')) return;
+
 		const res = await fetch(`/api/cats/${catId}/media/${item.id}`, {
 			method: 'DELETE'
 		});
+
 		if (res.ok) {
 			onChange(media.filter((m) => m.id !== item.id));
 		}
@@ -78,7 +94,7 @@
 	<input
 		bind:this={videoInput}
 		type="file"
-		accept="video/mp4"
+		accept="video/*"
 		class="hidden"
 		onchange={handleInput('VIDEO')}
 	/>
@@ -91,7 +107,10 @@
 		onchange={handleInput('DOCUMENT')}
 	/>
 
-	<div class="flex justify-end">
+	<div class="flex items-center justify-between">
+		<h2 class="text-lg font-semibold">
+			Éditer le chat: {catName || 'Sans nom'}
+		</h2>
 		{#if onClose}
 			<Button variant="ghost" onclick={onClose}><X class="h-5 w-5" /></Button>
 		{/if}
@@ -114,7 +133,7 @@
 				Aucune photo
 			</div>
 		{:else}
-			<div class="grid grid-cols-8 gap-3">
+			<div class="grid auto-rows-40 grid-cols-5 gap-3">
 				{#if primary}
 					<div class="group relative col-span-2 row-span-2 overflow-hidden rounded-xl">
 						<img
@@ -138,17 +157,34 @@
 				{/if}
 
 				{#each otherImages as item (item.id)}
-					<div class="group relative aspect-square overflow-hidden rounded-xl">
+					<div
+						role="button"
+						tabindex="0"
+						onclick={() => setPrimary(item)}
+						onkeydown={(e) => e.key === 'Enter' && setPrimary(item)}
+						class="group relative cursor-pointer overflow-hidden rounded-xl"
+						title="Cliquer pour définir comme photo principale"
+					>
 						<img
 							src={item.url}
 							alt={item.originalName ?? 'Photo'}
-							class="h-full w-full object-cover"
+							class="h-full w-full object-cover transition group-hover:scale-105"
 							style={focalStyle(item)}
 						/>
+
+						<div
+							class="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition group-hover:opacity-100"
+						>
+							Mettre en principale
+						</div>
+
 						<button
 							type="button"
-							onclick={() => handleDelete(item)}
-							class="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white opacity-0 transition group-hover:opacity-100"
+							onclick={(e) => {
+								e.stopPropagation();
+								handleDelete(item);
+							}}
+							class="absolute top-2 right-2 z-10 rounded-full bg-black/60 p-2 text-white opacity-0 transition group-hover:opacity-100"
 							aria-label="Supprimer la photo"
 						>
 							<Trash class="h-4 w-4" />
@@ -158,6 +194,8 @@
 			</div>
 		{/if}
 	</section>
+
+	<Separator />
 
 	<!-- ================= VIDÉOS ================= -->
 	<section class="space-y-4">
@@ -179,8 +217,8 @@
 			<div class="grid grid-cols-3 gap-3">
 				{#each videos as item (item.id)}
 					<div class="group relative overflow-hidden rounded-xl bg-black">
-						<video src={item.url} controls class="h-full w-full object-contain">
-							<track kind="captions" />
+						<video src={item.url} controls preload="metadata" class="h-full w-full object-contain">
+							<track kind="captions" srclang="fr" label="Français" />
 						</video>
 						<button
 							type="button"
@@ -195,6 +233,8 @@
 			</div>
 		{/if}
 	</section>
+
+	<Separator />
 
 	<!-- ================= DOCUMENTS ================= -->
 	<section class="space-y-4">
@@ -213,9 +253,9 @@
 				Aucun document
 			</div>
 		{:else}
-			<ul class="divide-y rounded-xl border">
+			<ul>
 				{#each documents as item (item.id)}
-					<li class="flex items-center justify-between gap-4 p-3">
+					<li class="flex items-center justify-between gap-4 border-b p-3 last:border-b-0">
 						<a
 							href={item.url}
 							target="_blank"

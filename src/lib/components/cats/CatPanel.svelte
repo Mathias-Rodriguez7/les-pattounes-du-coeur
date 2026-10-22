@@ -866,6 +866,7 @@
 			<Card.Content>
 				<CatMediaGallery
 					catId={cat.id}
+					catName={cat.name ?? undefined}
 					media={cat.media ?? []}
 					onChange={handleMediaChange}
 					onClose={handleCloseImageEditor}

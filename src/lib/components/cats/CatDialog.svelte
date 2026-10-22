@@ -8,7 +8,7 @@
 	import { focalPointStyle, hairLabel, getLabel } from '$lib/utils/catHelpers';
 	import { getAgeBadge, formatAge } from '$lib/utils/age';
 	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
-	import { FileText, Play } from '@lucide/svelte';
+	import { Play } from '@lucide/svelte';
 
 	let { selectedCat }: { selectedCat: CatFull | null } = $props();
 
