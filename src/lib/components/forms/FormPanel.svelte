@@ -3,7 +3,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { getFormPanelComponent } from '$lib/utils/formPanels';
 
-	let { form, volunteers = [], isAdmin = false } = $props();
+	let { cats, form, volunteers = [], isAdmin = false } = $props();
 
 	const PanelComponent = $derived.by(() => {
 		if (!form) return null;
@@ -12,7 +12,7 @@
 </script>
 
 {#if form && PanelComponent}
-	<PanelComponent {form} catData={form.catData} {volunteers} {isAdmin} />
+	<PanelComponent {cats} {form} catData={form.catData} {volunteers} {isAdmin} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

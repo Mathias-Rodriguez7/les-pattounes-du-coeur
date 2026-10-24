@@ -14,15 +14,23 @@
 	import { getSexIcon } from '$lib/utils/catHelpers';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
+	import AdoptionCreateDialog from './AdoptionCreateDialog.svelte';
+	import CatPicker from '$lib/components/cats/CatPicker.svelte';
 
-	const { form, catData, volunteers = [], isAdmin = false } = $props();
+	const { form, catData, volunteers = [], isAdmin = false, cats = [] } = $props();
 
 	let isEditing = $state(false);
+	let showCreateDialog = $state(false);
+	let showCatPicker = $state(false);
+	let selectedCatId = $state<string>('');
 
 	// Type guard pour les données d'adoption
 	const adoptionData = $derived(form.data as Record<string, any>);
 
-	// ✅ catId depuis form.data pour ADOPTION_SPECIFIC
+	// catId résolu selon le type de formulaire
+	const adoptionCatId = $derived(
+		form?.type === 'ADOPTION_SPECIFIC' ? (catData?.id ?? '') : selectedCatId
+	);
 
 	const assignedName = $derived(
 		form.assignedTo
@@ -30,7 +38,7 @@
 			: 'Non assigné'
 	);
 
-	// ✅ Infos du volunteer responsable du chat (depuis CatVolunteer)
+	// Infos du volunteer responsable du chat (depuis CatVolunteer)
 	const catVolunteerName = $derived(
 		catData?.volunteers?.[0]?.volunteer
 			? `${catData.volunteers[0].volunteer.profil.firstName} ${catData.volunteers[0].volunteer.profil.lastName}`
@@ -39,12 +47,16 @@
 
 	let editData = $state<FormEditData<AdoptionFormData> | null>(null);
 
+	const sexIcon = $derived(
+		catData ? getSexIcon(catData.sex) : adoptionData ? getSexIcon(adoptionData.catSex) : null
+	);
+
 	const startEditing = () => {
 		if (!form) return;
 
 		const adoptionDataCopy = structuredClone(adoptionData as AdoptionFormData);
 
-		// ✅ Convertir la date de string à Date
+		// Convertir la date de string à Date
 		if (typeof adoptionDataCopy.birthDate === 'string') {
 			adoptionDataCopy.birthDate = new Date(adoptionDataCopy.birthDate);
 		}
@@ -60,8 +72,6 @@
 	};
 
 	const handleSuccessfulSave = () => {
-		if (!form) return;
-
 		isEditing = false;
 	};
 
@@ -69,14 +79,34 @@
 		isEditing = false;
 	};
 
-	const sexIcon = $derived(
-		catData ? getSexIcon(catData.sex) : adoptionData ? getSexIcon(adoptionData.catSex) : null
-	);
+	function handleCatSelected(catId: string) {
+		selectedCatId = catId;
+		showCatPicker = false;
+		showCreateDialog = true;
+	}
 </script>
 
 {#if form}
 	<Card.Root>
-		{#if !isEditing}
+		{#if isEditing}
+			<Card.Content class="space-y-6 overflow-y-auto">
+				<AdoptionEditFormPanel
+					bind:editData
+					formId={form.id}
+					onSuccess={handleSuccessfulSave}
+					onCancel={handleCancelEdit}
+				/>
+			</Card.Content>
+		{:else if showCatPicker}
+			<Card.Content class="space-y-6">
+				<CatPicker
+					{cats}
+					{form}
+					onSelect={handleCatSelected}
+					onCancel={() => (showCatPicker = false)}
+				/>
+			</Card.Content>
+		{:else}
 			<Card.Header>
 				<section class="flex justify-between gap-6">
 					<div class="grid gap-2 text-base">
@@ -91,12 +121,12 @@
 							<Badge class={statusColors[form.status]?.color || 'bg-gray-100 text-gray-800'}>
 								{statusColors[form.status]?.label}
 							</Badge>
-							<!-- ✅ Badge type de formulaire -->
 							<Badge variant="outline" class="text-xs">
 								{form.type === 'ADOPTION_SPECIFIC' ? 'Chat Spécifique' : 'Adoption Flexible'}
 							</Badge>
 						</Card.Description>
 					</div>
+
 					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
@@ -104,19 +134,28 @@
 								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
 							</p>
 						{/if}
-						{#if form.type === 'ADOPTION_FLEXIBLE'}
-							{#if isAdmin}
-								<AssignVolunteerDialog
-									formId={form.id}
-									currentVolunteerId={form.assignedToId}
-									{volunteers}
-								/>
-							{/if}
+						{#if form.type === 'ADOPTION_FLEXIBLE' && isAdmin}
+							<AssignVolunteerDialog
+								formId={form.id}
+								currentVolunteerId={form.assignedToId}
+								{volunteers}
+							/>
 						{/if}
 					</div>
-					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
-						<Pencil class="h-5 w-5" />
-					</Button>
+
+					<div class="grid justify-items-end gap-2">
+						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
+							<Pencil class="h-5 w-5" />
+						</Button>
+
+						{#if form.type === 'ADOPTION_SPECIFIC'}
+							<Button type="button" onclick={() => (showCreateDialog = true)}>
+								Créer l'adoption
+							</Button>
+						{:else if form.type === 'ADOPTION_FLEXIBLE'}
+							<Button type="button" onclick={() => (showCatPicker = true)}>Choisir un chat</Button>
+						{/if}
+					</div>
 				</section>
 			</Card.Header>
 
@@ -124,7 +163,7 @@
 				<Separator />
 
 				<section class="grid grid-cols-10 gap-4">
-					<!-- 👤 SECTION CANDIDAT -->
+					<!-- SECTION CANDIDAT -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.profile.icon}
 						title={FORM_SECTION_CONFIG.profile.label}
@@ -132,7 +171,6 @@
 						class="col-span-3"
 					>
 						<div class="ml-6 space-y-3">
-							<!-- Identité -->
 							<div class="grid grid-cols-2 gap-4">
 								<div>
 									<p class="text-muted-foreground">Prénom</p>
@@ -144,7 +182,6 @@
 								</div>
 							</div>
 
-							<!-- Date de naissance -->
 							<div>
 								<p class="text-muted-foreground">Date de naissance</p>
 								<div class="flex items-center gap-2">
@@ -157,7 +194,7 @@
 						</div>
 					</SectionCard>
 
-					<!-- 📧 SECTION CONTACT -->
+					<!-- SECTION CONTACT -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.contact.icon}
 						title={FORM_SECTION_CONFIG.contact.label}
@@ -193,7 +230,7 @@
 						</div>
 					</SectionCard>
 
-					<!-- 🏠 SECTION ADRESSE -->
+					<!-- SECTION ADRESSE -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.address.icon}
 						title={FORM_SECTION_CONFIG.address.label}
@@ -223,17 +260,17 @@
 						</div>
 					</SectionCard>
 				</section>
+
 				<Separator />
 
 				{#if form.type === 'ADOPTION_SPECIFIC' && catData}
-					<!-- 🐱 SECTION CHAT SPÉCIFIQUE -->
+					<!-- SECTION CHAT SPÉCIFIQUE -->
 					<SectionCard
-						icon={FORM_SECTION_CONFIG.cat.icon}
-						title={FORM_SECTION_CONFIG.cat.label}
-						color={FORM_SECTION_CONFIG.cat.color}
+						icon={FORM_SECTION_CONFIG.catSpecific.icon}
+						title={FORM_SECTION_CONFIG.catSpecific.label}
+						color={FORM_SECTION_CONFIG.catSpecific.color}
 					>
 						<div class="ml-6 space-y-3">
-							<!-- Infos du chat -->
 							<div class="grid grid-cols-5 gap-4">
 								<div>
 									<p class="text-muted-foreground">Nom</p>
@@ -254,9 +291,8 @@
 									{getAgeBadge(catData.birthDate) || catData.birthDate}
 								</div>
 
-								<!-- Volunteer responsable du chat -->
 								{#if catData.volunteers && catData.volunteers.length > 0}
-									<div class="">
+									<div>
 										<p class="text-muted-foreground text-xs">Responsable du chat</p>
 										<p class="font-medium">{catVolunteerName}</p>
 									</div>
@@ -265,14 +301,13 @@
 						</div>
 					</SectionCard>
 				{:else if form.type === 'ADOPTION_FLEXIBLE'}
-					<!-- 🐱 SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
+					<!-- SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.cat.icon}
 						title={FORM_SECTION_CONFIG.cat.label}
 						color={FORM_SECTION_CONFIG.cat.color}
 					>
 						<div class="ml-6 space-y-3">
-							<!-- Caractéristiques physiques -->
 							<div class="grid grid-cols-4 gap-4">
 								<div>
 									<p class="text-muted-foreground">Âge</p>
@@ -298,20 +333,18 @@
 								</div>
 							</div>
 
-							<!-- Tempérament -->
 							<div class="space-y-1">
 								<p class="text-muted-foreground font-medium">Caractère recherché</p>
-								<p class="font-medium">
-									{adoptionData.temperament}
-								</p>
+								<p class="font-medium">{adoptionData.temperament}</p>
 							</div>
 						</div>
 					</SectionCard>
 				{/if}
+
 				<Separator />
 
 				<section class="grid grid-cols-3 gap-4">
-					<!-- 🏠 SECTION LOGEMENT -->
+					<!-- SECTION LOGEMENT -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.home.icon}
 						title={FORM_SECTION_CONFIG.home.label}
@@ -337,44 +370,41 @@
 									</Badge>
 								</div>
 							</div>
-							<!-- Enfants -->
+
 							<div class="flex items-center justify-between">
 								<span class="items-centern flex gap-1 text-sm">Nombre d'enfants</span>
-								<Badge class="bg-blue-100 text-xs text-blue-800"
-									>{adoptionData.numberOfChildren}</Badge
-								>
+								<Badge class="bg-blue-100 text-xs text-blue-800">
+									{adoptionData.numberOfChildren}
+								</Badge>
 							</div>
 						</div>
 					</SectionCard>
 
+					<!-- SECTION ANIMAUX -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.animals.icon}
 						title={FORM_SECTION_CONFIG.animals.label}
 						color={FORM_SECTION_CONFIG.animals.color}
 					>
 						<div class="ml-6 space-y-3">
-							<!-- Possède des animaux -->
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-								<span class="text-muted-foreground font-medium">Animeaux dans le foyer</span>
+								<span class="text-muted-foreground font-medium">Animaux dans le foyer</span>
 								<BooleanIcon value={adoptionData.hasPets} />
 							</div>
 
-							<!-- Détail des animaux -->
 							<div class="space-y-1">
 								<div class="flex items-center justify-between">
 									<span class="items-centern flex gap-1 text-sm">🐱 Chats</span>
-									<Badge class="bg-blue-100 text-xs text-blue-800"
-										>{adoptionData.numberOfCats}</Badge
-									>
+									<Badge class="bg-blue-100 text-xs text-blue-800">
+										{adoptionData.numberOfCats}
+									</Badge>
 								</div>
 								<div class="flex items-center justify-between">
 									<span class="items-centern flex gap-1 text-sm">🐕 Chiens</span>
-									<Badge class="bg-blue-100 text-xs text-blue-800"
-										>{adoptionData.numberOfDogs}</Badge
-									>
+									<Badge class="bg-blue-100 text-xs text-blue-800">
+										{adoptionData.numberOfDogs}
+									</Badge>
 								</div>
-
-								<!-- Autres animaux -->
 								<div class="flex items-center justify-between">
 									<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
 									<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
@@ -396,18 +426,16 @@
 					</div>
 				</SectionCard>
 			</Card.Content>
-		{:else}
-			<Card.Content class="space-y-6 overflow-y-auto">
-				<!-- ===== ÉDITION ===== -->
-				<AdoptionEditFormPanel
-					bind:editData
-					formId={form.id}
-					onSuccess={handleSuccessfulSave}
-					onCancel={handleCancelEdit}
-				/>
-			</Card.Content>
 		{/if}
 	</Card.Root>
+
+	<AdoptionCreateDialog
+		bind:open={showCreateDialog}
+		onCancel={() => (showCreateDialog = false)}
+		initialData={{ ...adoptionData, email: form.email }}
+		formId={form.id}
+		catId={adoptionCatId}
+	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

@@ -51,7 +51,8 @@ export const HOST_SECTION_CONFIG = {
 	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' },
 	placements: { icon: 'house', label: 'Placements', color: 'emerald' },
 	motivation: { icon: 'heart', label: 'Motivation', color: 'rose' },
-	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' }
+	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' },
+	documents: { icon: 'file', label: 'Documents', color: 'teal' }
 } as const;
 
 // Couleurs pour les types

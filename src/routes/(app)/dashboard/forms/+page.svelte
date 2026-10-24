@@ -246,7 +246,12 @@
 
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
-			<FormPanel form={selectedForm} volunteers={data.volunteers} isAdmin={data.isAdmin} />
+			<FormPanel
+				cats={data.cats}
+				form={selectedForm}
+				volunteers={data.volunteers}
+				isAdmin={data.isAdmin}
+			/>
 		</div>
 	</section>
 </main>

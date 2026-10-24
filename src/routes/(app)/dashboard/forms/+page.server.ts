@@ -5,6 +5,7 @@ import { FormType, FormStatus } from '@prisma/client';
 import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
+import { getAgeBadge } from '$lib/utils/age';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -120,9 +121,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			})
 		: [];
 
+	// 🐱 Chats disponibles pour l'adoption flexible
+	const cats = await prisma.cat.findMany({
+		where: {
+			status: 'AVAILABLE',
+			isVisible: true
+		},
+		orderBy: { name: 'asc' }
+	});
+
 	return {
 		forms: enrichedForms,
 		volunteers,
+		cats,
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
 		canSeeAllFlexible,
