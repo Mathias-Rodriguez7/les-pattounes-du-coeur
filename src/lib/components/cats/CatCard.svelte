@@ -1,59 +1,42 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
 	import SexIcon from '$lib/components/cats/SexIcon.svelte';
-	import type { CatFull } from '$lib/types/cat';
-	import { focalPointClass } from '$lib/utils/catHelpers';
+	import type { CatListItem } from '$lib/types/cat';
+	import { focalPointStyle } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
+	import { truncate } from '$lib/utils/string';
 
-	type BadgeKey = 'isOkCat' | 'isOkDog' | 'isOkChild' | 'isOutside';
+	const { cat } = $props<{ cat: CatListItem }>();
 
-	const badges: { key: BadgeKey; label: string }[] = [
-		{ key: 'isOkCat', label: 'OK chat' },
-		{ key: 'isOkDog', label: 'OK chien' },
-		{ key: 'isOkChild', label: 'OK enfant' },
-		{ key: 'isOutside', label: 'Jardin' }
-	];
-
-	const { cat } = $props<{ cat: CatFull }>();
+	// Image principale : le load serveur filtre déjà sur isPrimary, on prend la première
+	const primaryMedia = $derived(cat.media[0] ?? null);
+	const imageSrc = $derived(primaryMedia?.url ?? '/img/logo.png');
+	const imageStyle = $derived(focalPointStyle(primaryMedia));
 </script>
 
 <Card.Root
 	class="flex h-full cursor-pointer flex-col overflow-hidden transition duration-300 hover:scale-105"
 >
 	<img
-		src={cat.media?.[0]?.picture ?? '/img/logo.png'}
-		alt={cat.name}
-		class="h-85 w-full object-cover {focalPointClass[cat.focalPoint ?? 'MID']}"
+		src={imageSrc}
+		alt={cat.name ?? cat.catNumber}
+		class="h-85 w-full object-cover"
+		style={imageStyle}
 	/>
 
 	<Card.Header>
-		<Card.Title>{cat.name}</Card.Title>
-		<span class="flex gap-2">
-			<SexIcon sex={cat.sex} class="size-4" />
+		<Card.Title>{cat.name ?? cat.catNumber}</Card.Title>
+		<span class="flex items-center gap-2">
+			<SexIcon sex={cat.sex} class="size-6" />
 			{getAgeBadge(cat.birthDate)}
 		</span>
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-4">
 		<div class="flex flex-wrap gap-2">
-			{#each badges as badge (badge.key)}
-				{#if cat[badge.key]}
-					<Badge variant="soft">
-						{badge.label}
-					</Badge>
-				{/if}
-			{/each}
-
-			{#if cat.ageBadge}
-				<Badge variant="soft">
-					{cat.ageBadge}
-				</Badge>
-			{/if}
+			<p class="text-muted-foreground ml-6 text-sm leading-relaxed">
+				{truncate(cat.description, 45)}...
+			</p>
 		</div>
-
-		<p class="text-muted-foreground line-clamp-3 text-sm">
-			{cat.description}
-		</p>
 	</Card.Content>
 </Card.Root>

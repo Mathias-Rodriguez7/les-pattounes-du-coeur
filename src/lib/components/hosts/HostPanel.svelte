@@ -16,7 +16,7 @@
 	import { formatAge } from '$lib/utils/age';
 	import PlacementCard from '../PlacementCard.svelte';
 	import * as Accordion from '$lib/components/ui/accordion';
-	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
+	import { HOST_SECTION_CONFIG, STATUS_CONFIG, TYPE_COLORS } from '$lib/constants/host';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import { formatDate } from '$lib/utils/date';
 	import { PLACEMENT_TYPE_COLORS, PLACEMENT_TYPE_LABELS } from '$lib/constants/placement';
@@ -174,20 +174,6 @@
 
 	const handleCancelEdit = () => {
 		isEditing = false;
-	};
-
-	const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
-		ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
-		BREAK: { label: 'En pause', icon: 'CirclePause', theme: 'break' },
-		STOP: { label: 'Arrêté', icon: 'CircleX', theme: 'stop' }
-	};
-
-	const TYPE_COLORS: Record<string, { label: string; color: string }> = {
-		CLASSIC: { label: 'Accueil Long', color: 'bg-purple-100 text-purple-800' },
-		SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
-		ADOPT: { label: 'Adoption', color: 'bg-green-100 text-green-800' },
-		PROPRIO: { label: 'Propriétaire', color: 'bg-cyan-100 text-cyan-800' },
-		RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
 	};
 
 	// États dérivés
@@ -515,7 +501,7 @@
 							<div class="flex items-center justify-between">
 								<span class="items-centern flex gap-1 text-sm">Espace</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
-									{host.space || '—'} m2
+									{host.space || '—'} m²
 								</Badge>
 							</div>
 

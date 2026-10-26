@@ -1,61 +1,91 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
+	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Switch } from '$lib/components/ui/switch/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import FormRow from '$lib/components/forms/FormRow.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '$lib/constants/forms.js';
 	import FormPanel from '$lib/components/forms/FormPanel.svelte';
+	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '$lib/constants/forms.js';
+	import CardAction from '$lib/components/ui/card/card-action.svelte';
+	import AssignDispatcherDialog from '$lib/components/forms/AssignDispatcherDialog.svelte';
 
 	const { data } = $props();
 
 	let forms = $derived(data.forms);
-	const stats = $derived(data.stats);
-
-	const isAdmin = $derived(data.isAdmin);
-	const volunteers = $derived(data.volunteers);
 
 	let selectedFormId = $state<string | null>(null);
 	let selectedForm = $derived(forms.find((f) => f.id === selectedFormId) ?? null);
 
 	let searchQuery = $state('');
-	let typeFilter = $state('');
-	let statusFilter = $state('PENDING');
 
-	const handleSelectForm = (formId: string) => {
-		selectedFormId = formId;
-	};
+	// ==========================================
+	// Filtres Select (valeur '' = pas de filtre)
+	// ==========================================
+	let typeFilter = $state(data.filters.type ?? '');
+	let statusFilter = $state(data.filters.status ?? 'PENDING');
 
+	// ==========================================
+	// Portée : admin ou dispatcher flexible = switch, sinon "mes forms"
+	// Le changement passe par l'URL, le serveur recalcule la liste
+	// ==========================================
+	const canSwitchScope = $derived(data.canSeeAllFlexible);
+	const showAllFlexible = $derived(data.scope === 'flexible');
+
+	function setScope(checked: boolean) {
+		selectedFormId = null;
+		const url = new URL(page.url);
+		if (checked) {
+			url.searchParams.set('scope', 'flexible');
+			url.searchParams.set('type', 'ADOPTION_FLEXIBLE');
+			typeFilter = 'ADOPTION_FLEXIBLE';
+		} else {
+			url.searchParams.delete('scope');
+			url.searchParams.delete('type');
+			typeFilter = '';
+		}
+		goto(url, { keepFocus: true, noScroll: true });
+	}
+
+	// ==========================================
+	// Stats (venant du serveur, cohérentes avec la portée)
+	// ==========================================
 	const statCards = $derived([
 		{
-			label: 'Total formulaires',
-			value: stats.totalForms,
-			icon: 'clipboard',
+			label: showAllFlexible ? 'Flexibles (tous)' : 'Mes formulaires',
+			value: data.stats.totalForms,
+			icon: 'file',
 			theme: 'cats'
 		},
 		{
 			label: 'En attente',
-			value: stats.pendingForms,
+			value: data.stats.pendingForms,
 			icon: 'clock',
-			theme: 'pending'
+			theme: 'dog'
 		},
 		{
 			label: 'Approuvés',
-			value: stats.approvedForms,
-			icon: 'CircleCheck',
-			theme: 'activ'
+			value: data.stats.approvedForms,
+			icon: 'check',
+			theme: 'fa'
 		},
 		{
 			label: 'Rejetés',
-			value: stats.rejectedForms,
-			icon: 'CircleX',
-			theme: 'stop'
+			value: data.stats.rejectedForms,
+			icon: 'x',
+			theme: 'socializing'
 		}
 	]);
 
+	// ==========================================
+	// Filtres client : type → status → recherche
+	// (le scope est déjà appliqué par le serveur)
+	// ==========================================
 	const filteredForms = $derived.by(() => {
 		let filtered = forms;
 
@@ -70,17 +100,19 @@
 		const query = searchQuery.trim().toLowerCase();
 		if (query) {
 			filtered = filtered.filter((f) => {
-				const email = f.email?.toLowerCase() ?? '';
-				const assignedName = f.assignedTo
-					? `${f.assignedTo.profil.firstName} ${f.assignedTo.profil.lastName}`.toLowerCase()
-					: '';
-
-				return email.includes(query) || assignedName.includes(query);
+				const name = `${f.email ?? ''}`.toLowerCase();
+				return name.includes(query) || f.id.toLowerCase().includes(query);
 			});
 		}
 
 		return filtered;
 	});
+
+	const hasActiveFilters = $derived(!!typeFilter || !!statusFilter || !!searchQuery.trim());
+
+	const handleSelectForm = (formId: string) => {
+		selectedFormId = formId;
+	};
 
 	function clearFilters() {
 		typeFilter = '';
@@ -116,8 +148,22 @@
 		<!-- Tableau -->
 		<Card.Root class="flex flex-col lg:col-span-2">
 			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
-				<Card.Title class="text-2xl font-bold">Formulaires</Card.Title>
+				<Card.Title class="flex gap-4 text-2xl font-bold">
+					{showAllFlexible ? 'Tous les flexibles' : 'Mes formulaires'}
+					{#if canSwitchScope}
+						<Switch id="scope-toggle" checked={showAllFlexible} onCheckedChange={setScope} />
+					{/if}
+				</Card.Title>
+				<CardAction>
+					{#if data.isAdmin}
+						<AssignDispatcherDialog
+							volunteers={data.volunteers}
+							currentDispatcherId={data.volunteers.find((v) => v.isFlexibleDispatcher)?.id ?? null}
+						/>
+					{/if}
+				</CardAction>
 			</Card.Header>
+
 			<Card.Content>
 				<!-- Barre de filtres -->
 				<div class="grid items-center gap-2">
@@ -130,6 +176,7 @@
 							bind:value={typeFilter}
 							placeholder="Type"
 							class="w-40"
+							disabled={showAllFlexible}
 						/>
 
 						<!-- Status -->
@@ -138,8 +185,8 @@
 							label=""
 							options={FORM_STATUS_OPTIONS}
 							bind:value={statusFilter}
-							placeholder="Statut"
-							class="w-40"
+							placeholder="Status"
+							class="w-30"
 						/>
 					</div>
 
@@ -153,7 +200,7 @@
 							/>
 							<Input
 								type="text"
-								placeholder="Chercher un email ou un bénévole..."
+								placeholder="Chercher un formulaire..."
 								bind:value={searchQuery}
 								class="pl-9"
 							/>
@@ -166,7 +213,7 @@
 						<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
 							<Table.Row>
 								<Table.Head>Type</Table.Head>
-								<Table.Head>Statut</Table.Head>
+								<Table.Head>Status</Table.Head>
 								<Table.Head>Assigné à</Table.Head>
 								<Table.Head>Date</Table.Head>
 							</Table.Row>
@@ -178,6 +225,18 @@
 									onclick={() => handleSelectForm(form.id)}
 									isSelected={selectedFormId === form.id}
 								/>
+							{:else}
+								<Table.Row>
+									<Table.Cell colspan={5} class="py-8 text-center text-gray-500">
+										{#if searchQuery}
+											Aucun formulaire trouvé pour "{searchQuery}"
+										{:else if hasActiveFilters}
+											Aucun formulaire ne correspond aux filtres
+										{:else}
+											Aucun formulaire
+										{/if}
+									</Table.Cell>
+								</Table.Row>
 							{/each}
 						</Table.Body>
 					</Table.Root>
@@ -187,7 +246,12 @@
 
 		<!-- Panel détail -->
 		<div class="col-span-3 overflow-y-auto">
-			<FormPanel form={selectedForm} />
+			<FormPanel
+				cats={data.cats}
+				form={selectedForm}
+				volunteers={data.volunteers}
+				isAdmin={data.isAdmin}
+			/>
 		</div>
 	</section>
 </main>

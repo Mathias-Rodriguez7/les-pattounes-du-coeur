@@ -23,7 +23,7 @@ export interface NewsFull {
 	content: string | null;
 	type: NewsType;
 	mediaUrl: string | null;
-	created_at: Date;
+	createdAt: Date;
 	cats: { cat: { id: string; name: string; catNumber: string; status: CatStatus } }[];
 }
 

@@ -3,13 +3,16 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { getFormPanelComponent } from '$lib/utils/formPanels';
 
-	let { form } = $props();
+	let { cats, form, volunteers = [], isAdmin = false } = $props();
 
-	const PanelComponent = $derived(form ? getFormPanelComponent(form.type) : null);
+	const PanelComponent = $derived.by(() => {
+		if (!form) return null;
+		return getFormPanelComponent(form.type);
+	});
 </script>
 
-{#if form}
-	<PanelComponent {form} />
+{#if form && PanelComponent}
+	<PanelComponent {cats} {form} catData={form.catData} {volunteers} {isAdmin} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">

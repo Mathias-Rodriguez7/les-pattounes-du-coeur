@@ -42,10 +42,10 @@ export type {
 	VolunteerEditFormState
 } from './volunteer';
 
-export type { CatFull, CatMedia, Cat as CatType } from './cat';
+export type { CatFull as CatType } from './cat';
 
 export type { PlacementFull } from './placement';
-export type { CatWithMedia, AdoptionTrendItem } from './media';
+export type { CatWithMedia, AdoptionTrendItem } from './mediaCat';
 
 // Config & labels - TOUT
 export {

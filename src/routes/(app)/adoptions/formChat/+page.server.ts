@@ -28,7 +28,7 @@ export const actions: Actions = {
 		try {
 			await prisma.form.create({
 				data: {
-					type: 'ADOPTION',
+					type: 'ADOPTION_FLEXIBLE',
 					status: 'PENDING',
 					email: form.data.email,
 					data: {

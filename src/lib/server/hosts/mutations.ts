@@ -35,6 +35,9 @@ const HOST_FIELDS = [
 	'hasAnimalsAtHome',
 	'numberOfCatsAtHome',
 	'numberOfDogsAtHome',
+	'catAdult',
+	'kittyAndKitten',
+	'kitten',
 	'otherAnimalsAtHome',
 	'heal',
 	'socialize',
@@ -52,22 +55,14 @@ function convertFormData(formData: FormData): Record<string, string | null> {
 	return data;
 }
 
-async function checkEmailUniqueness(email: string, excludeId?: string): Promise<boolean> {
-	const existing = await prisma.host.findFirst({
-		where: {
-			profil: { email }
-		}
-	});
-	return existing ? excludeId !== existing.id : false;
+async function checkEmailUniqueness(email: string, excludeProfilId?: string): Promise<boolean> {
+	const existing = await prisma.profil.findUnique({ where: { email } });
+	return existing !== null && existing.id !== excludeProfilId;
 }
 
-async function checkPhoneUniqueness(phone: string, excludeId?: string): Promise<boolean> {
-	const existing = await prisma.host.findFirst({
-		where: {
-			profil: { phone }
-		}
-	});
-	return existing ? excludeId !== existing.id : false;
+async function checkPhoneUniqueness(phone: string, excludeProfilId?: string): Promise<boolean> {
+	const existing = await prisma.profil.findUnique({ where: { phone } });
+	return existing !== null && existing.id !== excludeProfilId;
 }
 
 // ✅ Helper pour construire les données du Host
@@ -123,21 +118,25 @@ export async function createHost({ request, locals }: { request: Request; locals
 		const validatedData: CreateHostInput = result.data;
 
 		// 🔍 Vérifier l'email
-		const emailExists = await checkEmailUniqueness(validatedData.email);
-		if (emailExists) {
+		const existingProfil = await prisma.profil.findUnique({
+			where: { email: validatedData.email },
+			include: { host: true }
+		});
+
+		if (existingProfil?.host) {
 			return {
 				success: false,
-				error: 'Cet email est déjà utilisé',
-				errors: { email: ['Email déjà utilisé'] }
+				error: 'Cet email est déjà utilisé par un bénévole',
+				errors: { email: ['Email déjà utilisé par un bénévole'] }
 			};
 		}
 
-		// 🔍 Vérifier le téléphone
-		const phoneExists = await checkPhoneUniqueness(validatedData.phone);
-		if (phoneExists) {
+		// Le téléphone doit appartenir au même profil s'il existe déjà, sinon être libre
+		const phoneTaken = await checkPhoneUniqueness(validatedData.phone, existingProfil?.id);
+		if (phoneTaken) {
 			return {
 				success: false,
-				error: 'Cet téléphone est déjà utilisé',
+				error: 'Ce numéro de téléphone est déjà utilisé',
 				errors: { phone: ['Téléphone déjà utilisé'] }
 			};
 		}
@@ -160,6 +159,9 @@ export async function createHost({ request, locals }: { request: Request; locals
 				hasAnimalsAtHome: validatedData.hasAnimalsAtHome,
 				numberOfCatsAtHome: validatedData.numberOfCatsAtHome,
 				numberOfDogsAtHome: validatedData.numberOfDogsAtHome,
+				catAdult: validatedData.catAdult,
+				kittyAndKitten: validatedData.kittyAndKitten,
+				kitten: validatedData.kitten,
 				otherAnimalsAtHome: validatedData.otherAnimalsAtHome,
 				heal: validatedData.heal,
 				socialize: validatedData.socialize,
@@ -254,8 +256,12 @@ export async function updateHost({ request, locals }: { request: Request; locals
 
 		if (emailChanged || phoneChanged) {
 			const [emailExists, phoneExists] = await Promise.all([
-				emailChanged ? checkEmailUniqueness(validatedData.email!, hostId) : Promise.resolve(false),
-				phoneChanged ? checkPhoneUniqueness(validatedData.phone!, hostId) : Promise.resolve(false)
+				emailChanged
+					? checkEmailUniqueness(validatedData.email!, existingHost.profil.id)
+					: Promise.resolve(false),
+				phoneChanged
+					? checkPhoneUniqueness(validatedData.phone!, existingHost.profil.id)
+					: Promise.resolve(false)
 			]);
 
 			if (emailExists) {

@@ -33,6 +33,6 @@
 		<span class="text-muted-foreground text-sm">{assignedName}</span>
 	</Table.Cell>
 	<Table.Cell>
-		<span class="text-muted-foreground text-sm">{formatDateNum(form.created_at)}</span>
+		<span class="text-muted-foreground text-sm">{formatDateNum(form.createdAt)}</span>
 	</Table.Cell>
 </Table.Row>

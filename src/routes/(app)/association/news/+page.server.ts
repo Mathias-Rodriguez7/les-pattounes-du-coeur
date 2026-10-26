@@ -5,7 +5,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const newsId = url.searchParams.get('news');
 
 	const news = await prisma.news.findMany({
-		orderBy: { created_at: 'desc' },
+		orderBy: { createdAt: 'desc' },
 		include: {
 			cats: {
 				include: {

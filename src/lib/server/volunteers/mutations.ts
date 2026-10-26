@@ -5,6 +5,9 @@ import {
 	type CreateVolunteerInput,
 	type UpdateVolunteerInput
 } from '$lib/schemas/volunteer';
+import { hashPassword } from '$lib/server/password';
+import { randomBytes } from 'node:crypto';
+import { sendVolunteerWelcomeEmail } from '../mailer';
 
 const PROFIL_FIELDS = [
 	'firstName',
@@ -30,22 +33,14 @@ function convertFormData(formData: FormData): Record<string, string | null> {
 	return data;
 }
 
-async function checkEmailUniqueness(email: string, excludeId?: string): Promise<boolean> {
-	const existing = await prisma.host.findFirst({
-		where: {
-			profil: { email }
-		}
-	});
-	return existing ? excludeId !== existing.id : false;
+async function checkEmailUniqueness(email: string, excludeProfilId?: string): Promise<boolean> {
+	const existing = await prisma.profil.findUnique({ where: { email } });
+	return existing !== null && existing.id !== excludeProfilId;
 }
 
-async function checkPhoneUniqueness(phone: string, excludeId?: string): Promise<boolean> {
-	const existing = await prisma.host.findFirst({
-		where: {
-			profil: { phone }
-		}
-	});
-	return existing ? excludeId !== existing.id : false;
+async function checkPhoneUniqueness(phone: string, excludeProfilId?: string): Promise<boolean> {
+	const existing = await prisma.profil.findUnique({ where: { phone } });
+	return existing !== null && existing.id !== excludeProfilId;
 }
 
 // ✅ Helper pour construire les données du Host
@@ -106,25 +101,31 @@ export async function createVolunteer({
 
 		const validatedData: CreateVolunteerInput = result.data;
 
-		// 🔍 Vérifier l'email
-		const emailExists = await checkEmailUniqueness(validatedData.email);
-		if (emailExists) {
+		const existingProfil = await prisma.profil.findUnique({
+			where: { email: validatedData.email },
+			include: { volunteer: true }
+		});
+
+		if (existingProfil?.volunteer) {
 			return {
 				success: false,
-				error: 'Cet email est déjà utilisé',
-				errors: { email: ['Email déjà utilisé'] }
+				error: 'Cet email est déjà utilisé par un bénévole',
+				errors: { email: ['Email déjà utilisé par un bénévole'] }
 			};
 		}
 
-		// 🔍 Vérifier le téléphone
-		const phoneExists = await checkPhoneUniqueness(validatedData.phone);
-		if (phoneExists) {
+		// Le téléphone doit appartenir au même profil s'il existe déjà, sinon être libre
+		const phoneTaken = await checkPhoneUniqueness(validatedData.phone, existingProfil?.id);
+		if (phoneTaken) {
 			return {
 				success: false,
-				error: 'Cet téléphone est déjà utilisé',
+				error: 'Ce numéro de téléphone est déjà utilisé',
 				errors: { phone: ['Téléphone déjà utilisé'] }
 			};
 		}
+
+		const tempPassword = randomBytes(12).toString('base64url');
+		const hashedPassword = await hashPassword(tempPassword);
 
 		const newVolunteer = await prisma.volunteer.create({
 			data: {
@@ -132,30 +133,54 @@ export async function createVolunteer({
 				actif: validatedData.actif,
 				breakStart: validatedData.breakStart,
 				breakEnd: validatedData.breakEnd,
-
-				// Créer le profil associé
-				profil: {
-					create: {
-						firstName: validatedData.firstName,
-						lastName: validatedData.lastName,
-						birthDate: validatedData.birthDate,
-						email: validatedData.email,
-						phone: validatedData.phone,
-						address: validatedData.address,
-						city: validatedData.city,
-						postalCode: validatedData.postalCode,
-						district: validatedData.district
-					}
-				}
+				password: hashedPassword,
+				profil: existingProfil
+					? { connect: { id: existingProfil.id } }
+					: {
+							create: {
+								firstName: validatedData.firstName,
+								lastName: validatedData.lastName,
+								birthDate: validatedData.birthDate,
+								email: validatedData.email,
+								phone: validatedData.phone,
+								address: validatedData.address,
+								city: validatedData.city,
+								postalCode: validatedData.postalCode,
+								district: validatedData.district
+							}
+						}
 			},
 			include: { profil: true }
 		});
 
+		try {
+			const isExistingProfil = Boolean(existingProfil);
+
+			await sendVolunteerWelcomeEmail({
+				to: newVolunteer.profil.email,
+				firstName: newVolunteer.profil.firstName,
+				email: newVolunteer.profil.email,
+				tempPassword,
+				isExistingProfil
+			});
+		} catch (err) {
+			console.error('Échec envoi mail bénévole:', err);
+			// Le volunteer est créé : on signale l'échec sans annuler la création
+			return {
+				success: true,
+				message: "Bénévole créé, mais l'email n'a pas pu être envoyé",
+				data: newVolunteer,
+				errors: {},
+				emailSent: false
+			};
+		}
+
 		return {
 			success: true,
-			message: 'Bénévole créé avec succès',
+			message: 'Bénévole créé et email envoyé',
 			data: newVolunteer,
-			errors: {}
+			errors: {},
+			emailSent: true
 		};
 	} catch (error) {
 		console.error('Erreur création Bénévole:', error);
@@ -240,13 +265,13 @@ export async function updateVolunteer({
 			validatedData.phone && validatedData.phone !== existingVolunteer.profil.phone;
 
 		if (emailChanged || phoneChanged) {
+			const profilId = existingVolunteer.profil.id;
+
 			const [emailExists, phoneExists] = await Promise.all([
 				emailChanged
-					? checkEmailUniqueness(validatedData.email!, volunteerId)
+					? checkEmailUniqueness(validatedData.email!, profilId)
 					: Promise.resolve(false),
-				phoneChanged
-					? checkPhoneUniqueness(validatedData.phone!, volunteerId)
-					: Promise.resolve(false)
+				phoneChanged ? checkPhoneUniqueness(validatedData.phone!, profilId) : Promise.resolve(false)
 			]);
 
 			if (emailExists) {

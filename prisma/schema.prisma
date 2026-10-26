@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js" 
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -10,16 +10,16 @@ model Profil {
   id            String @id @default(uuid()) @db.Uuid
   firstName     String @map("first_name") @db.VarChar(60)
   lastName      String @map("last_name") @db.VarChar(60)
-  birthDate     DateTime?   @db.Date
+  birthDate     DateTime? @map("birth_date") @db.Date
   phone         String @unique @db.VarChar(20)
   email         String @db.VarChar(100) @unique
-  address       String @map("address") @db.VarChar(100)
+  address       String @db.VarChar(100)
   city          String @default("Montpellier") @db.VarChar(80)
   postalCode    String @default("34000") @map("postal_code") @db.VarChar(10)
   district      District?
 
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  createdAt     DateTime @default(now()) @map("createdAt")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updatedAt")
 
   volunteer     Volunteer?
   host          Host?
@@ -28,96 +28,102 @@ model Profil {
 }
 
 model Volunteer {
-  id            String         @id @default(uuid()) @db.Uuid
-  password      String         @db.VarChar(255)
-  role          VolunteerRole
-  actif         ColabActivity?
-  profilId      String         @unique @db.Uuid
-  profil        Profil         @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  id                   String @id @default(uuid()) @db.Uuid
+  password             String @db.VarChar(255)
+  resetToken           String? @map("reset_token") @db.VarChar(255)
+  resetTokenExpiresAt  DateTime? @map("reset_token_expiry")
+  role                 VolunteerRole
+  actif                ColabActivity?
+  profilId             String @unique @db.Uuid @map("profil_id")
+  profil               Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  isFlexibleDispatcher Boolean @default(false)
 
-  breakStart    DateTime?
-  breakEnd      DateTime?
+  breakStart           DateTime? @map("break_start")
+  breakEnd             DateTime? @map("break_end")
 
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @default(now()) @updatedAt
-  cats          CatVolunteer[]
-  sessions      Session[]
-  assignedForms Form[]        @relation("assignedForms")
+  createdAt            DateTime @default(now()) @map("createdAt")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  cats                 CatVolunteer[]
+  sessions             Session[]
+  assignedForms        Form[] @relation("assignedForms")
 }
 
 model Host {
-  id                    String      @id @default(uuid()) @db.Uuid
-  profilId              String      @unique @db.Uuid
-  profil                Profil      @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  id                    String @id @default(uuid()) @db.Uuid
+  profilId              String @unique @db.Uuid @map("profil_id")
+  profil                Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
   type                  HostType?
   actif                 ColabActivity?
-  catAdult              Int?       @map("cat_adult") @db.Integer
-  kittyAndKitten        Boolean     @default(true) @db.Boolean
-  kitten                Int?       @map("kitten") @db.Integer     
-  isAvailable           Boolean     @default(true) @db.Boolean
-  additionalInformation String?      @db.Text
-  hasAnimalsAtHome      Boolean     @map("is_animals-at-home") @db.Boolean
-  numberOfCatsAtHome    Int?
-  numberOfDogsAtHome    Int?
-  otherAnimalsAtHome    String?
-  space                 Int         
-  homeDescription       String      @map("home_description") @db.Text
-  presence              String      @db.VarChar(255)
-  outside               Boolean     @db.Boolean
-  outsideDescription    String?     @map("outside_desciption") @db.Text
-  isStockFeed           Boolean     @db.Boolean
+  catAdult              Int? @map("cat_adult")
+  kittyAndKitten        Boolean @default(true)
+  kitten                Int?
+  isAvailable           Boolean @default(true) @map("is_available")
+  additionalInformation String? @db.Text
+  hasAnimalsAtHome      Boolean @map("has_animals_at_home")
+  numberOfCatsAtHome    Int? @map("number_of_cats_at_home")
+  numberOfDogsAtHome    Int? @map("number_of_dogs_at_home")
+  otherAnimalsAtHome    String? @map("other_animals_at_home")
+  space                 Int
+  homeDescription       String @map("home_description") @db.Text
+  presence              String @db.VarChar(255)
+  outside               Boolean
+  outsideDescription    String? @map("outside_description") @db.Text
+  isStockFeed           Boolean @map("is_stock_feed")
   heal                  Heal
   socialize             Socialize
-  car                   Boolean     @db.Boolean
+  car                   Boolean
   babyFeeding           BabyFeeding @map("baby_feeding")
-  stopActivity          String?      @db.Text
+  stopActivity          String? @db.Text @map("stop_activity")
 
-  breakStart            DateTime?
-  breakEnd              DateTime?
+  breakStart            DateTime? @map("break_start")
+  breakEnd              DateTime? @map("break_end")
 
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @default(now()) @updatedAt
+  createdAt             DateTime @default(now()) @map("createdAt")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updatedAt")
+
   placements            Placement[]
 }
 
 model BlacklistHistoric {
-  id            String   @id @default(uuid()) @db.Uuid
-  profilId      String   @db.Uuid
-  profil        Profil   @relation(fields: [profilId], references: [id])
-  email         String   @db.VarChar(255)
-  description   String   @db.Text
-  isBlacklisted Boolean  @default(false) @db.Boolean
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  id            String @id @default(uuid()) @db.Uuid
+  profilId      String @db.Uuid @map("profil_id")
+  profil        Profil @relation(fields: [profilId], references: [id])
+  email         String @db.VarChar(255)
+  description   String @db.Text
+  isBlacklisted Boolean @default(false)
+  createdAt     DateTime @default(now()) @map("createdAt")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updatedAt")
 }
 
 model Cat {
-  id                  String      @id @default(uuid()) @db.Uuid
-  catNumber           String      @unique  @db.VarChar(8)
-  name                String?     @db.VarChar(255)
+  id                  String @id @default(uuid()) @db.Uuid
+  catNumber           String @unique @db.VarChar(8) @map("cat_number")
+  name                String? @db.VarChar(255)
   sex                 SexCat
-  birthDate           DateTime?   @db.Date
-  isVisible           Boolean     @default(false) @db.Boolean
+  birthDate           DateTime? @map("birth_date") @db.Date
+  isVisible           Boolean @default(false) @map("is_visible")
   status              CatStatus
-  hairLength          HairLength?
-  color               String?     @db.VarChar(255)
-  origin              String?     @db.VarChar(255)
-  isSterilize         Boolean     @default(false) @db.Boolean
-  isAlreadySterilized Boolean     @default(false) @db.Boolean
+  hairLength          HairLength? @map("hair_length")
+  color               String? @db.VarChar(255)
+  origin              String? @db.VarChar(255)
+  isSterilize         Boolean @default(false) @map("is_sterilize")
+  isAlreadySterilized Boolean @default(false) @map("is_already_sterilized")
   vaccinate           Vaccinate?
-  isFivTest           Boolean     @default(false) @db.Boolean
-  isDeworming         Boolean     @default(false) @db.Boolean
-  description         String?     @db.Text
-  isOkCat             Boolean?    @default(false) @db.Boolean
-  isOkDog             Boolean?    @default(false) @db.Boolean
-  isOkChild           Boolean?    @default(false) @db.Boolean
-  isOutside           Boolean?    @default(false) @db.Boolean
-  isIdentify          Boolean     @default(false) @db.Boolean
-  chipId              String?     @unique@db.VarChar(255)         
+  isFivTest           Boolean @default(false) @map("is_fiv_test")
+  isDeworming         Boolean @default(false) @map("is_deworming")
+  description         String? @db.Text
+  isOkCat             Boolean? @default(false) @map("is_ok_cat")
+  isOkDog             Boolean? @default(false) @map("is_ok_dog")
+  isOkChild           Boolean? @default(false) @map("is_ok_child")
+  isOutside           Boolean? @default(false) @map("is_outside")
+  isIdentify          Boolean @default(false) @map("is_identify")
+  chipId              String? @unique @db.VarChar(255) @map("chip_id")
 
-  created_at          DateTime       @default(now())
-  updated_at          DateTime       @default(now()) @updatedAt
-  sicknesses          Sickness[] 
+  createdAt           DateTime @default(now()) @map("createdAt")
+  updatedAt           DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  sicknesses          Sickness[]
   media               MediaCat[]
   volunteers          CatVolunteer[]
   placements          Placement[]
@@ -127,92 +133,105 @@ model Cat {
 }
 
 model Sickness {
-  id          String   @id @default(uuid())
-  catId       String   @db.Uuid
-  cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
-  
-  name        String   @db.VarChar(255)
+  id          String @id @default(uuid()) @db.Uuid
+  catId       String @db.Uuid @map("cat_id")
+  cat         Cat @relation(fields: [catId], references: [id], onDelete: Cascade)
+
+  name        String @db.VarChar(255)
   description String?
   treatment   String?
-  startDate   DateTime?
-  endDate     DateTime?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
   status      SicknessStatus @default(ACTIVE)
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
 
   @@index([catId])
 }
 
 model MediaCat {
-  id          String   @id @default(uuid()) @db.Uuid
-  catId       String   @db.Uuid
-  cat         Cat      @relation(fields: [catId], references: [id])
-  picture     String?  @db.VarChar(255)
-  fille       String?  @db.VarChar(255)
-  focalPointX Int?      @db.Integer
-  focalPointY Int?      @db.Integer
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  id           String    @id @default(uuid()) @db.Uuid
+  catId        String    @db.Uuid @map("cat_id")
+  cat          Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
+
+  type         MediaType
+  url          String    @db.Text
+  storageKey   String    @map("storage_key") @db.Text   // clé de l'objet (suppression R2)
+  mimeType     String    @map("mime_type") @db.VarChar(100)
+  sizeBytes    Int       @map("size_bytes")
+  originalName String?   @map("original_name") @db.VarChar(255)
+
+  isPrimary    Boolean   @default(false) @map("is_primary")
+
+  // Point focal en pourcentage (0 à 100), utilisé pour object-position
+  focalPointX  Float     @default(50) @map("focal_point_x")
+  focalPointY  Float     @default(50) @map("focal_point_y")
+
+  createdAt    DateTime  @default(now()) @map("createdAt")
+  updatedAt    DateTime  @updatedAt @map("updatedAt")
+
+  @@index([catId])
 }
 
 model News {
-  id         String    @id @default(uuid()) @db.Uuid
-  title      String    @db.VarChar(255)
-  type       NewsType
-  content    String?   @db.Text
-  mediaUrl   String?   @db.Text
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
-  cats       NewsCat[]
+  id        String @id @default(uuid()) @db.Uuid
+  title     String @db.VarChar(255)
+  type      NewsType
+  content   String? @db.Text
+  mediaUrl  String? @map("media_url") @db.Text
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  cats      NewsCat[]
 }
 
 model NewsCat {
-  newsId     String   @db.Uuid
-  news       News     @relation(fields: [newsId], references: [id])
-  catId      String   @db.Uuid
-  cat        Cat      @relation(fields: [catId], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  newsId    String @db.Uuid @map("news_id")
+  news      News @relation(fields: [newsId], references: [id])
+  catId     String @db.Uuid @map("cat_id")
+  cat       Cat @relation(fields: [catId], references: [id])
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 
   @@id([newsId, catId])
 }
 
 model CatVolunteer {
-  catId       String    @db.Uuid
-  cat         Cat       @relation(fields: [catId], references: [id])
-  volunteerId String    @db.Uuid
+  catId       String @db.Uuid @map("cat_id")
+  cat         Cat @relation(fields: [catId], references: [id])
+  volunteerId String @db.Uuid @map("volunteer_id")
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
 
   @@id([catId, volunteerId])
 }
 
 model Placement {
-  id            String    @id @default(uuid()) @db.Uuid
-  catId         String    @db.Uuid
-  cat           Cat       @relation(fields: [catId], references: [id])
-  hostId        String    @db.Uuid
-  host          Host      @relation(fields: [hostId], references: [id])
-  status        ColabActivity
-  type          PlacementType @default(LONG)
-  startDate     DateTime? @db.Date
-  endDate       DateTime? @db.Date
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @default(now()) @updatedAt
+  id        String @id @default(uuid()) @db.Uuid
+  catId     String @db.Uuid @map("cat_id")
+  cat       Cat @relation(fields: [catId], references: [id])
+  hostId    String @db.Uuid @map("host_id")
+  host      Host @relation(fields: [hostId], references: [id])
+  status    ColabActivity
+  type      PlacementType @default(LONG)
+  startDate DateTime? @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 }
 
 model Adoption {
-  id          String @id @default(uuid()) @db.Uuid
-  catId       String @db.Uuid
-  cat         Cat    @relation(fields: [catId], references: [id])
+  id        String @id @default(uuid()) @db.Uuid
+  catId     String @db.Uuid @map("cat_id")
+  cat       Cat @relation(fields: [catId], references: [id])
 
-  profilId    String @db.Uuid
-  profil      Profil @relation(fields: [profilId], references: [id])
+  profilId  String @db.Uuid @map("profil_id")
+  profil    Profil @relation(fields: [profilId], references: [id])
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 
   @@unique([catId])
 }
@@ -221,47 +240,50 @@ model Session {
   id          String @id @default(uuid()) @db.Uuid
   token       String @unique @db.VarChar(255)
 
-  volunteerId String @db.Uuid
+  volunteerId String @db.Uuid @map("volunteer_id")
   volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
 
   expiresAt   DateTime @map("expires_at")
 
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
 }
 
 model Form {
-  id            String     @id @default(uuid()) @db.Uuid
-  type          FormType
-  status        FormStatus
-  email         String     @db.VarChar(255)
-  data          Json
-  assignedToId  String? @db.Uuid
+  id           String @id @default(uuid()) @db.Uuid
+  type         FormType
+  status       FormStatus @default(PENDING)
+  email        String @db.VarChar(255)
+  data         Json @default("{}")
 
-  assignedTo    Volunteer? @relation("assignedForms", fields: [assignedToId], references: [id])
+  assignedToId String? @db.Uuid @map("assigned_to_id")
+  assignedTo   Volunteer? @relation("assignedForms", fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  notes         String? @db.Text
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @default(now()) @updatedAt
+  notes        String? @db.Text
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  @@index([type])
+  @@index([status])
+  @@index([assignedToId])
 }
 
 model Care {
-  id          String   @id @default(uuid()) @db.Uuid
-  catId       String   @db.Uuid
-  cat         Cat      @relation(fields: [catId], references: [id])
+  id          String @id @default(uuid()) @db.Uuid
+  catId       String @db.Uuid @map("cat_id")
+  cat         Cat @relation(fields: [catId], references: [id])
   type        CareType
-  veterinary  String?  @db.VarChar(255)
-  description String?  @db.Text
-  reason      String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
+  veterinary  String? @db.VarChar(255)
+  description String? @db.Text
+  reason      String @db.Text
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
 }
 
 //////////////////////////
 // Enums
 //////////////////////////
 
-//PROFIL
 enum District {
   HOPITAUX_FACULTES
   CROIX_D_ARGENT
@@ -272,21 +294,18 @@ enum District {
   MOSSON
 }
 
-// VOLUNTEER AND HOST
 enum ColabActivity {
   ACTIVE
   BREAK
   STOP
 }
 
-// VOLUNTEER
 enum VolunteerRole {
   ADMIN
   MANAGER
   COMMUNICATION
 }
 
-// HOST
 enum HostType {
   CLASSIC
   SOS
@@ -316,12 +335,12 @@ enum BabyFeeding {
   RELAY
 }
 
-// CAT
 enum SexCat {
   MALE
   FEMALE
   UNKNOWN
 }
+
 enum CatStatus {
   AVAILABLE
   SOCIALIZE
@@ -342,7 +361,6 @@ enum Vaccinate {
   PARTIAL
 }
 
-// CARE 
 enum CareType {
   VACCINE
   TREATMENT
@@ -352,7 +370,6 @@ enum CareType {
   STERILIZE
 }
 
-// NEWS
 enum NewsType {
   NEWS
   NEWSLETTER
@@ -361,21 +378,20 @@ enum NewsType {
   EVENT
 }
 
-// PLACEMENT
 enum PlacementType {
   PROPOSAL
   TRANSFER
-  LONG    
-  SHORT  
+  LONG
+  SHORT
 }
 
-// FORM
 enum FormType {
-  ADOPTION
+  ADOPTION_SPECIFIC
+  ADOPTION_FLEXIBLE
   VOLUNTEER
   HOST
   COLAB
-  OTHER
+  OTHER // supp
 }
 
 enum FormStatus {
@@ -384,7 +400,6 @@ enum FormStatus {
   REJECTED
 }
 
-// SICKNESS
 enum SicknessStatus {
   ACTIVE
   TREATED

@@ -88,7 +88,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				prisma.host.count({
 					where: {
 						...whereCondition,
-						created_at: {
+						createdAt: {
 							gte: new Date(new Date().getFullYear(), 0, 1)
 						}
 					}
@@ -113,7 +113,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 								status: true,
 								media: {
 									select: {
-										picture: true
+										id: true,
+										url: true
 									}
 								}
 							}
@@ -122,7 +123,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				}
 			},
 			orderBy: {
-				created_at: 'desc'
+				createdAt: 'desc'
 			}
 		});
 
@@ -172,7 +173,7 @@ export const actions: Actions = {
 			}
 			return result;
 		} catch (error) {
-			console.error('Erreur création bénévole:', error);
+			console.error("Erreur création famille d'accueil:", error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},

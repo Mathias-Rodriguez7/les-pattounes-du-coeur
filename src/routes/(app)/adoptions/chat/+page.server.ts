@@ -5,9 +5,9 @@ export const load: PageServerLoad = async ({ url }) => {
 	const catId = url.searchParams.get('cat');
 
 	const cats = await prisma.cat.findMany({
-		where: { isVisible: true },
+		where: { isVisible: true, status: 'AVAILABLE' },
 		include: { media: true },
-		orderBy: { created_at: 'desc' }
+		orderBy: { createdAt: 'desc' }
 	});
 
 	return {

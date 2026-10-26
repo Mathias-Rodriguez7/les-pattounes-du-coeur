@@ -49,7 +49,10 @@ export const HOST_SECTION_CONFIG = {
 	outsideDescription: { icon: 'trees', label: 'Description du jardin', color: 'green' },
 	stopActivity: { icon: 'CircleX', label: "Raison d'arrêt", color: 'red' },
 	additionalInformation: { icon: 'plus', label: 'Infos additionnelles', color: 'gray' },
-	placements: { icon: 'house', label: 'Placements', color: 'emerald' }
+	placements: { icon: 'house', label: 'Placements', color: 'emerald' },
+	motivation: { icon: 'heart', label: 'Motivation', color: 'rose' },
+	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' },
+	documents: { icon: 'file', label: 'Documents', color: 'teal' }
 } as const;
 
 // Couleurs pour les types
@@ -88,4 +91,18 @@ export const babyFeedingColors: Record<string, { label: string; color: string }>
 	WITHOUT_EX: { label: 'Sans xp', color: 'bg-purple-100 text-purple-800' },
 	EXPERIENCED: { label: 'Expérimenté', color: 'bg-pink-100 text-pink-800' },
 	RELAY: { label: 'Relais', color: 'bg-blue-100 text-blue-800' }
+};
+
+export const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
+	ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },
+	BREAK: { label: 'En pause', icon: 'CirclePause', theme: 'break' },
+	STOP: { label: 'Arrêté', icon: 'CircleX', theme: 'stop' }
+};
+
+export const TYPE_COLORS: Record<string, { label: string; color: string }> = {
+	CLASSIC: { label: 'Accueil Long', color: 'bg-purple-100 text-purple-800' },
+	SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
+	ADOPT: { label: 'Adoption', color: 'bg-green-100 text-green-800' },
+	PROPRIO: { label: 'Propriétaire', color: 'bg-cyan-100 text-cyan-800' },
+	RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
 };

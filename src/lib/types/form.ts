@@ -1,23 +1,113 @@
-import type { FormType, Form, User, Profil } from '@prisma/client';
+import type { FormStatus } from '@prisma/client';
 
-export type News = {
-	id: string;
-	title: string | null;
-	content: string | null;
-	type: FormType;
-	mediaUrl: string | null;
-	createdAt: Date;
-	formattedDate: string;
-	image: string;
-	cats: any[]; // À typer selon ton besoin
+export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'OTHER';
+
+// ===== DONNÉES SPÉCIFIQUES PAR TYPE =====
+
+export type AdoptionFormData = {
+	firstName: string;
+	lastName: string;
+	birthDate: Date;
+	phone: string;
+	address: string;
+	city: string;
+	postalCode: string;
+	district: string;
+	catAge: string;
+	catSex: string;
+	color: string;
+	furLength: string;
+	temperament: string;
+	housingSize: number;
+	hasGarden: boolean;
+	gardenSize?: number;
+	hasPets: boolean;
+	numberOfCats: number;
+	numberOfDogs: number;
+	otherPets: string;
+	numberOfChildren: number;
 };
 
-export type FormWithRelations = Form & {
-	assignedTo?:
-		| (User & {
-				profil: Profil;
-		  })
-		| null;
+export type VolunteerFormData = {
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	address: string;
+	birthDate: string | Date;
+	city: string;
+	postalCode: string;
+	district: string;
+	hasCatExperience: boolean;
+	catExperienceDescription?: string;
+	hasAssociationExperience: boolean;
+	associationExperienceDescription?: string;
+	hasMedicalCareExperience: boolean;
+	medicalCareDescription?: string;
+	hasTransportExperience: boolean;
+	car: boolean;
+	availability: 'LOW' | 'MEDIUM' | 'HIGH';
+	availabilityDuration:
+		'LESS_THAN_1_MONTH' | '1_TO_3_MONTHS' | '3_TO_6_MONTHS' | 'MORE_THAN_6_MONTHS' | 'LONG_TERM';
+	canHelpWeekdays: boolean;
+	canHelpWeekends: boolean;
+	canHelpEmergencies: boolean;
+	motivation: string;
+	skills?: string;
+	additionalInformation?: string;
 };
 
-export type SOSType = 'abandon' | 'feeding_spot' | 'found' | 'danger' | 'autre';
+export type HostFormData = {
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	address: string;
+	birthDate: string | Date;
+	city: string;
+	postalCode: string;
+	district: string;
+	space: number;
+	outside: boolean;
+	outsideDescription?: string;
+	hasAnimalsAtHome: boolean;
+	numberOfCatsAtHome?: number;
+	numberOfDogsAtHome?: number;
+	otherAnimalsAtHome?: string;
+	homeDescription: string;
+	type: string;
+	heal: string;
+	socialize: string;
+	car: boolean;
+	babyFeeding: string;
+	catAdult: number;
+	kittyAndKitten: boolean;
+	kitten?: number;
+	presence: string;
+	motivation: string;
+	additionalMessage?: string;
+};
+
+export type CollabFormData = {
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	companyName?: string;
+	presentation: string;
+	partnershipProposal: string;
+};
+
+export type OtherFormData = Record<string, any>;
+
+// ===== TYPE UNION =====
+export type AnyFormData =
+	AdoptionFormData | VolunteerFormData | HostFormData | CollabFormData | OtherFormData;
+
+// ===== ÉDITION =====
+export type FormEditData<T extends AnyFormData = AnyFormData> = {
+	status: FormStatus;
+	email: string;
+	data: T;
+	notes?: string | null;
+};

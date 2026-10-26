@@ -57,8 +57,8 @@ export type VolunteerEditFormProps = {
 };
 
 export type CatVolunteerWithRelations = {
-	created_at: Date;
-	updated_at: Date;
+	createdAt: Date;
+	updatedAt: Date;
 	catId: string;
 	volunteerId: string;
 	cat: {

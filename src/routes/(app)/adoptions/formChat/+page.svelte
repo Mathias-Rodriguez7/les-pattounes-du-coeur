@@ -21,7 +21,12 @@
 	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
 	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
-	import { FORM_SECTION_CONFIG } from '$lib/constants/forms';
+	import {
+		ADOPTION_AGE_OPTIONS,
+		ADOPTION_FUR_OPTIONS,
+		ADOPTION_SEX_OPTIONS,
+		FORM_SECTION_CONFIG
+	} from '$lib/constants/forms';
 
 	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 
@@ -77,26 +82,6 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
-
-	const catAge = [
-		{ value: 'free', label: 'Sans préférence' },
-		{ value: 'kitten', label: 'Chaton' },
-		{ value: 'adult', label: 'Adulte' },
-		{ value: 'senior', label: 'Senior' }
-	];
-
-	const catSex = [
-		{ value: 'free', label: 'Sans préférence' },
-		{ value: 'male', label: 'Mâle' },
-		{ value: 'female', label: 'Femelle' }
-	];
-
-	const furLength = [
-		{ value: 'free', label: 'Sans préférence' },
-		{ value: 'short', label: 'Courts' },
-		{ value: 'medium', label: 'Moyen' },
-		{ value: 'long', label: 'Longs' }
-	];
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -270,7 +255,7 @@
 										label="Âge du chat"
 										required
 										size="sm"
-										options={catAge}
+										options={ADOPTION_AGE_OPTIONS}
 										bind:value={$formData.catAge}
 									/>
 									<SelectField
@@ -279,7 +264,7 @@
 										label="Sexe"
 										required
 										size="sm"
-										options={catSex}
+										options={ADOPTION_SEX_OPTIONS}
 										bind:value={$formData.catSex}
 									/>
 								</div>
@@ -290,7 +275,7 @@
 									label="Longueur du poil"
 									required
 									size="sm"
-									options={furLength}
+									options={ADOPTION_FUR_OPTIONS}
 									bind:value={$formData.furLength}
 								/>
 

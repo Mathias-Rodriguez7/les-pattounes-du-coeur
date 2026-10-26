@@ -2,7 +2,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import type { CatFull } from '$lib/types/cat';
-	import { focalPointClass, getSexIcon } from '$lib/utils/catHelpers';
+	import { focalPointStyle, getSexIcon } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
 	import { Badge } from '$lib/components/ui/badge';
 
@@ -13,6 +13,9 @@
 	}: { cat: CatFull; onclick: () => void; isSelected?: boolean } = $props();
 
 	const sexIcon = getSexIcon(cat.sex);
+	const primaryMedia = $derived(cat.media[0] ?? null);
+	const imageSrc = $derived(primaryMedia?.url ?? '/img/logo.png');
+	const imageStyle = $derived(focalPointStyle(primaryMedia));
 
 	// Récupère les maladies actives
 	const activeSicknesses = cat.sicknesses.filter((s) => s.status !== 'RESOLVED');
@@ -26,9 +29,10 @@
 >
 	<Table.Cell>
 		<img
-			src={cat.media?.[0]?.picture ?? '/img/logo.png'}
-			alt={cat.name ?? 'Sans nom'}
-			class="h-12 w-12 rounded-full object-cover {focalPointClass[cat.focalPointX ?? 'MID']}"
+			src={imageSrc}
+			alt={cat.name ?? cat.catNumber}
+			class="h-12 w-12 rounded-full object-cover"
+			style={imageStyle}
 		/>
 	</Table.Cell>
 	<Table.Cell class="text-xs">{cat.catNumber}</Table.Cell>
