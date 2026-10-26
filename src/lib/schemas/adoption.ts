@@ -9,12 +9,7 @@ const districtEnum = z
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 
-// ✅ Convertir les strings en booleans
-const stringToBoolean = z
-	.union([z.boolean(), z.enum(['true', 'false', 'on', 'off', ''])])
-	.transform((v) => v === true || v === 'true' || v === 'on')
-	.optional();
-
+// schemas/adoption.ts
 export const createAdoptionSchema = z.object({
 	// PROFIL
 	firstName: z.string().min(1, 'Le prénom est obligatoire'),
@@ -29,15 +24,9 @@ export const createAdoptionSchema = z.object({
 	postalCode: z.string().min(5, 'Code postal invalide'),
 	district: districtEnum.nullable().optional(),
 
-	// HOST - Domicile
-	space: z.coerce
-		.number()
-		.int()
-		.min(10)
-		.positive("L'espace doit être un nombre positif d'au moins 10 m²"),
-	outside: stringToBoolean.default(false),
-	isStockFeed: stringToBoolean.default(false),
-	car: stringToBoolean.default(false)
+	// Adoption
+	catId: z.uuid('ID de chat invalide'), // obligatoire pour créer une adoption
+	formId: z.uuid('ID de formulaire invalide')
 });
 
 export const updateAdoptionSchema = createAdoptionSchema.partial().extend({

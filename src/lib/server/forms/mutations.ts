@@ -1,4 +1,3 @@
-import { fail } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 import { FormType } from '@prisma/client';
 import {
@@ -25,6 +24,9 @@ const SCHEMA_MAP = {
 	[FormType.COLAB]: updateColabSchema,
 	[FormType.OTHER]: updateVolunteerSchema
 } as const;
+
+// 🐱 Types de forms qui peuvent être liés à un chat
+const CAT_LINKED_TYPES: FormType[] = [FormType.ADOPTION_SPECIFIC, FormType.ADOPTION_FLEXIBLE];
 
 function convertFormData(formData: FormData): Record<string, string | boolean | null> {
 	const data: Record<string, string | boolean | null> = {};
@@ -132,6 +134,33 @@ export async function updateForm({
 
 		const validatedData = result.data as UpdateFormInput;
 
+		// 🐱 Validation du chat sélectionné (uniquement pour les forms liés à un chat)
+		const isCatLinked = CAT_LINKED_TYPES.includes(existingForm.type as FormType);
+		const catId = 'catId' in validatedData ? validatedData.catId : undefined;
+
+		if (isCatLinked && catId) {
+			const cat = await prisma.cat.findUnique({
+				where: { id: catId },
+				select: { id: true, status: true, isVisible: true }
+			});
+
+			if (!cat) {
+				return {
+					success: false,
+					error: 'Chat introuvable',
+					errors: { catId: ['Chat introuvable'] }
+				};
+			}
+
+			if (cat.status !== 'AVAILABLE' || !cat.isVisible) {
+				return {
+					success: false,
+					error: "Ce chat n'est plus disponible",
+					errors: { catId: ["Ce chat n'est plus disponible"] }
+				};
+			}
+		}
+
 		// 🔄 Préparer les données de mise à jour
 		const updateData: Record<string, unknown> = {};
 
@@ -145,7 +174,7 @@ export async function updateForm({
 			}
 		}
 
-		// ✅ TOUT LE MONDE PEUT MODIFIER notes ET data
+		// ✅ TOUT LE MONDE PEUT MODIFIER email ET notes
 		if ('email' in validatedData && validatedData.email !== undefined) {
 			updateData.email = validatedData.email;
 		}
@@ -155,7 +184,7 @@ export async function updateForm({
 
 		// ✅ Extraire les données spécifiques au formulaire (data JSON)
 		const dataFields: Record<string, unknown> = {};
-		const reservedFields = ['formId', 'status', 'email', 'notes', 'assignedToId'];
+		const reservedFields = ['formId', 'status', 'email', 'notes', 'assignedToId', 'catId'];
 
 		Object.entries(validatedData).forEach(([key, value]) => {
 			if (!reservedFields.includes(key) && value !== undefined) {
@@ -163,9 +192,20 @@ export async function updateForm({
 			}
 		});
 
+		// 🐱 Gestion de catId dans le JSON data
+		const existingData = { ...((existingForm.data as Record<string, unknown>) || {}) };
+
+		if (isCatLinked && 'catId' in validatedData) {
+			if (validatedData.catId === null) {
+				// Désélection : on retire la clé
+				delete existingData.catId;
+			} else if (validatedData.catId !== undefined) {
+				dataFields.catId = validatedData.catId;
+			}
+		}
+
 		// Fusionner avec les données existantes
-		if (Object.keys(dataFields).length > 0) {
-			const existingData = (existingForm.data as Record<string, unknown>) || {};
+		if (Object.keys(dataFields).length > 0 || 'catId' in validatedData) {
 			updateData.data = { ...existingData, ...dataFields };
 		}
 

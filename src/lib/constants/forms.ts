@@ -25,6 +25,7 @@ export const ADOPTION_SECTION_CONFIG = {
 	cat: { icon: 'cat', label: 'Type de chats', color: 'fuchsia' },
 	homeDescription: { icon: 'house', label: 'Description du domicile', color: 'blue' },
 	foyer: { icon: 'house', label: 'Description du foyer', color: 'blue' },
+	temperament: { icon: 'cat', label: 'Tempérament du chat', color: 'fuchsia' },
 	notes: { icon: 'note', label: 'Notes de la bénévole', color: 'gray' }
 } as const;
 

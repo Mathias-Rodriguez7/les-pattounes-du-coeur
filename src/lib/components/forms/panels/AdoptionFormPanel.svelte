@@ -5,7 +5,13 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
 	import type { FormEditData, AdoptionFormData } from '$lib/types/form';
-	import { FORM_SECTION_CONFIG, statusColors, ageLabels, furLabels } from '$lib/constants/forms';
+	import {
+		FORM_SECTION_CONFIG,
+		statusColors,
+		ageLabels,
+		furLabels,
+		ADOPTION_SECTION_CONFIG
+	} from '$lib/constants/forms';
 	import { formatAge, getAgeBadge } from '$lib/utils/age';
 	import { formatDate } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
@@ -84,6 +90,11 @@
 		showCatPicker = false;
 		showCreateDialog = true;
 	}
+
+	function handleCancelCreate() {
+		showCreateDialog = false;
+		selectedCatId = '';
+	}
 </script>
 
 {#if form}
@@ -99,12 +110,7 @@
 			</Card.Content>
 		{:else if showCatPicker}
 			<Card.Content class="space-y-6">
-				<CatPicker
-					{cats}
-					{form}
-					onSelect={handleCatSelected}
-					onCancel={() => (showCatPicker = false)}
-				/>
+				<CatPicker {cats} {form} onSelect={handleCatSelected} onCancel={handleCancelCreate} />
 			</Card.Content>
 		{:else}
 			<Card.Header>
@@ -149,7 +155,11 @@
 						</Button>
 
 						{#if form.type === 'ADOPTION_SPECIFIC'}
-							<Button type="button" onclick={() => (showCreateDialog = true)}>
+							<Button
+								type="button"
+								disabled={!adoptionCatId}
+								onclick={() => (showCreateDialog = true)}
+							>
 								Créer l'adoption
 							</Button>
 						{:else if form.type === 'ADOPTION_FLEXIBLE'}
@@ -263,87 +273,75 @@
 
 				<Separator />
 
-				{#if form.type === 'ADOPTION_SPECIFIC' && catData}
-					<!-- SECTION CHAT SPÉCIFIQUE -->
-					<SectionCard
-						icon={FORM_SECTION_CONFIG.catSpecific.icon}
-						title={FORM_SECTION_CONFIG.catSpecific.label}
-						color={FORM_SECTION_CONFIG.catSpecific.color}
-					>
-						<div class="ml-6 space-y-3">
-							<div class="grid grid-cols-5 gap-4">
-								<div>
+				<section class="grid grid-cols-3 gap-4">
+					{#if form.type === 'ADOPTION_SPECIFIC' && catData}
+						<!-- SECTION CHAT SPÉCIFIQUE -->
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.catSpecific.icon}
+							title={FORM_SECTION_CONFIG.catSpecific.label}
+							color={FORM_SECTION_CONFIG.catSpecific.color}
+						>
+							<div class="grid gap-4 text-xs">
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Nom</p>
 									<p class="font-medium">{catData.name || '—'}</p>
 								</div>
-								<div>
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Date de naissance</p>
 									<p class="font-medium">{formatDate(catData.birthDate) || '—'}</p>
 								</div>
 								{#if sexIcon}
-									<div title={sexIcon.label}>
+									<div class="flex items-center justify-between" title={sexIcon.label}>
 										<p class="text-muted-foreground">Sex</p>
 										<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
 									</div>
 								{/if}
-								<div>
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Âge</p>
 									{getAgeBadge(catData.birthDate) || catData.birthDate}
 								</div>
 
 								{#if catData.volunteers && catData.volunteers.length > 0}
-									<div>
+									<div class="flex items-center justify-between">
 										<p class="text-muted-foreground text-xs">Responsable du chat</p>
 										<p class="font-medium">{catVolunteerName}</p>
 									</div>
 								{/if}
 							</div>
-						</div>
-					</SectionCard>
-				{:else if form.type === 'ADOPTION_FLEXIBLE'}
-					<!-- SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
-					<SectionCard
-						icon={FORM_SECTION_CONFIG.cat.icon}
-						title={FORM_SECTION_CONFIG.cat.label}
-						color={FORM_SECTION_CONFIG.cat.color}
-					>
-						<div class="ml-6 space-y-3">
-							<div class="grid grid-cols-4 gap-4">
-								<div>
+						</SectionCard>
+					{:else if form.type === 'ADOPTION_FLEXIBLE'}
+						<!-- SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
+						<SectionCard
+							icon={FORM_SECTION_CONFIG.cat.icon}
+							title={FORM_SECTION_CONFIG.cat.label}
+							color={FORM_SECTION_CONFIG.cat.color}
+						>
+							<div class="grid gap-4 text-xs">
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Âge</p>
 									<Badge variant="outline" class="text-xs">
 										{ageLabels[adoptionData.catAge] || adoptionData.catAge}
 									</Badge>
 								</div>
 								{#if sexIcon}
-									<div title={sexIcon.label}>
+									<div class="flex items-center justify-between" title={sexIcon.label}>
 										<p class="text-muted-foreground">Sex</p>
 										<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
 									</div>
 								{/if}
-								<div>
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Couleur</p>
 									<p>{adoptionData.color}</p>
 								</div>
-								<div>
+								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Longueur poil</p>
 									<Badge variant="outline" class="text-xs">
 										{furLabels[adoptionData.furLength] || adoptionData.furLength}
 									</Badge>
 								</div>
 							</div>
-
-							<div class="space-y-1">
-								<p class="text-muted-foreground font-medium">Caractère recherché</p>
-								<p class="font-medium">{adoptionData.temperament}</p>
-							</div>
-						</div>
-					</SectionCard>
-				{/if}
-
-				<Separator />
-
-				<section class="grid grid-cols-3 gap-4">
+						</SectionCard>
+					{/if}
 					<!-- SECTION LOGEMENT -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.home.icon}
@@ -413,6 +411,19 @@
 						</div>
 					</SectionCard>
 				</section>
+
+				{#if form.type === 'ADOPTION_FLEXIBLE'}
+					<SectionCard
+						icon={ADOPTION_SECTION_CONFIG.temperament.icon}
+						title={ADOPTION_SECTION_CONFIG.temperament.label}
+						color={ADOPTION_SECTION_CONFIG.temperament.color}
+					>
+						<div class="space-y-1">
+							<p class="text-muted-foreground font-medium">Caractère recherché</p>
+							<p class="font-medium">{adoptionData.temperament}</p>
+						</div>
+					</SectionCard>
+				{/if}
 
 				<Separator />
 

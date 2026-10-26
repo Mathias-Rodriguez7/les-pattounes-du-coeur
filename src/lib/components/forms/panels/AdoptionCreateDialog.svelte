@@ -194,6 +194,8 @@
 		</Dialog.Header>
 
 		<form method="POST" action="?/createAdoption" use:enhance={handleEnhance} class="space-y-6">
+			<input type="hidden" name="catId" value={catId} />
+			<input type="hidden" name="formId" value={formId} />
 			<!-- 📋 SECTION 1: Identité & Contact -->
 			<section class="grid grid-cols-2 gap-4">
 				<!-- Profil -->

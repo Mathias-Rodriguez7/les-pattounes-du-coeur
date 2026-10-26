@@ -8,7 +8,11 @@
 	import { getLabel, getSexIcon, hairLabel } from '$lib/utils/catHelpers';
 	import type { CatFull } from '$lib/types/cat';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { ageLabels, furLabels } from '$lib/constants/forms';
+	import { ADOPTION_SECTION_CONFIG, ageLabels, furLabels } from '$lib/constants/forms';
+	import { X } from '@lucide/svelte';
+	import SectionCard from '$lib/components/cards/SectionCard.svelte';
+	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
+	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 
 	let {
 		cats = [] as CatFull[],
@@ -45,39 +49,134 @@
 		selectedId = id;
 	}
 
-	const formSummary = $derived({
-		name: `${adoptionData.firstName ?? ''} ${adoptionData.lastName ?? ''}`.trim(),
-		catAge: adoptionData.catAge,
-		furLength: adoptionData.furLength,
-		color: adoptionData.color,
-		temperament: adoptionData.temperament
-	});
+	const handleCancelClick = () => {
+		console.log('❌ Édition annulée');
+		if (onCancel) {
+			onCancel();
+		}
+	};
+
+	const catSex = $derived(adoptionData.catSex ?? adoptionData.catSex);
+	const preferredSexIcon = $derived(catSex ? getSexIcon(catSex) : null);
 </script>
 
-<div
-	class="bg-muted/50 border-muted grid grid-cols-2 gap-3 rounded-xl border p-3 text-sm md:grid-cols-4"
->
-	<div>
-		<p class="text-muted-foreground text-xs">Candidat</p>
-		<p class="font-medium">{formSummary.name || '—'}</p>
-	</div>
-	<div>
-		<p class="text-muted-foreground text-xs">Âge souhaité</p>
-		<Badge variant="outline" class="text-xs">
-			{ageLabels[formSummary.catAge] ?? formSummary.catAge ?? '—'}
-		</Badge>
-	</div>
-	<div>
-		<p class="text-muted-foreground text-xs">Poil / couleur</p>
-		<p class="font-medium">
-			{furLabels[formSummary.furLength] ?? '—'} · {formSummary.color ?? '—'}
-		</p>
-	</div>
-	<div class="col-span-2 md:col-span-4">
-		<p class="text-muted-foreground text-xs">Caractère recherché</p>
-		<p class="font-medium">{formSummary.temperament || '—'}</p>
-	</div>
+<div class="flex items-center justify-between">
+	<h2 class="text-lg font-semibold">
+		Éditer: la demande de {adoptionData.firstName || 'Sans nom'}
+		{adoptionData.lastName || '—'}
+	</h2>
+
+	<Button variant="ghost" size="icon" onclick={handleCancelClick}>
+		<X class="h-5 w-5" />
+	</Button>
 </div>
+
+<div class="grid grid-cols-2 gap-3 p-3 text-sm md:grid-cols-3">
+	<SectionCard
+		icon={HOST_SECTION_CONFIG.cat.icon}
+		title={HOST_SECTION_CONFIG.cat.label}
+		color={HOST_SECTION_CONFIG.cat.color}
+	>
+		<div class="grid gap-4 text-xs">
+			<div class="flex items-center justify-between">
+				<p class="text-muted-foreground">Âge</p>
+				<Badge variant="outline" class="text-xs">
+					{ageLabels[adoptionData.catAge] || adoptionData.catAge}
+				</Badge>
+			</div>
+			<div class="flex items-center justify-between">
+				<p class="text-muted-foreground">Couleur / poil</p>
+				<p>
+					{adoptionData.color} /
+					<Badge variant="outline" class="text-xs">
+						{furLabels[adoptionData.furLength] || adoptionData.furLength}
+					</Badge>
+				</p>
+			</div>
+			{#if preferredSexIcon}
+				<div class="flex items-center justify-between" title={preferredSexIcon.label}>
+					<p class="text-muted-foreground">Sexe souhaité</p>
+					<Icon name={preferredSexIcon.icon} class="h-6 w-6 {preferredSexIcon.color}" />
+				</div>
+			{/if}
+		</div>
+	</SectionCard>
+
+	<SectionCard
+		icon={HOST_SECTION_CONFIG.home.icon}
+		title={HOST_SECTION_CONFIG.home.label}
+		color={HOST_SECTION_CONFIG.home.color}
+	>
+		<div class="grid gap-4 text-xs">
+			<div class="flex items-center justify-between">
+				<span class="items-centern flex gap-1 text-sm">Espace</span>
+				<Badge class="bg-blue-100 text-xs text-blue-800">
+					{adoptionData.housingSize || '—'} m²
+				</Badge>
+			</div>
+
+			<div class="space-y-1">
+				<div class="flex items-center justify-between">
+					<span class="items-centern flex gap-1 text-sm">Exterieur</span>
+					<BooleanIcon value={adoptionData.hasGarden} />
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="items-centern flex gap-1 text-sm">Espace exterieur</span>
+					<Badge class="bg-blue-100 text-xs text-blue-800">
+						{adoptionData.gardenSize || '—'} m²
+					</Badge>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-between">
+				<span class="items-centern flex gap-1 text-sm">Nombre d'enfants</span>
+				<Badge class="bg-blue-100 text-xs text-blue-800">
+					{adoptionData.numberOfChildren}
+				</Badge>
+			</div>
+		</div>
+	</SectionCard>
+
+	<SectionCard
+		icon={HOST_SECTION_CONFIG.animals.icon}
+		title={HOST_SECTION_CONFIG.animals.label}
+		color={HOST_SECTION_CONFIG.animals.color}
+	>
+		<div class="ml-6 space-y-3">
+			<div class="flex items-center justify-between border-b border-orange-100 pb-2">
+				<span class="text-muted-foreground font-medium">Animaux dans le foyer</span>
+				<BooleanIcon value={adoptionData.hasPets} />
+			</div>
+
+			<div class="space-y-1">
+				<div class="flex items-center justify-between">
+					<span class="items-centern flex gap-1 text-sm">🐱 Chats</span>
+					<Badge class="bg-blue-100 text-xs text-blue-800">
+						{adoptionData.numberOfCats}
+					</Badge>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="items-centern flex gap-1 text-sm">🐕 Chiens</span>
+					<Badge class="bg-blue-100 text-xs text-blue-800">
+						{adoptionData.numberOfDogs}
+					</Badge>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
+					<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
+				</div>
+			</div>
+		</div>
+	</SectionCard>
+</div>
+<SectionCard
+	icon={ADOPTION_SECTION_CONFIG.temperament.icon}
+	title={ADOPTION_SECTION_CONFIG.temperament.label}
+	color={ADOPTION_SECTION_CONFIG.temperament.color}
+>
+	<p class="text-muted-foreground text-xs">Caractère recherché</p>
+	<p class="font-medium">{adoptionData.temperament || '—'}</p>
+</SectionCard>
 <Separator />
 <div class="space-y-4">
 	{#if cats.length === 0}
@@ -107,8 +206,7 @@
 							<Table.Head>Nom</Table.Head>
 							<Table.Head>Âge</Table.Head>
 							<Table.Head>Sexe</Table.Head>
-							<Table.Head>Couleur</Table.Head>
-							<Table.Head>Poil</Table.Head>
+							<Table.Head>Couleur / Poil</Table.Head>
 							<Table.Head>Description</Table.Head>
 						</Table.Row>
 					</Table.Header>
@@ -153,9 +251,8 @@
 									</span>
 								</Table.Cell>
 
-								<Table.Cell>{cat.color ?? '—'}</Table.Cell>
-
-								<Table.Cell>
+								<Table.Cell
+									>{cat.color ?? '—'} /
 									{#if cat.hairLength}
 										<Badge variant="outline" class="text-xs">
 											{getLabel(hairLabel, cat.hairLength)}

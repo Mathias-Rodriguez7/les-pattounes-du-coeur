@@ -179,10 +179,12 @@ export const updateAdoptionFormSchema = z
 		numberOfChildren: z.coerce.number().int().min(0).optional(),
 
 		// Champs additionnels
-		formId: z.string().uuid('ID invalide'),
+		formId: z.uuid('ID invalide'),
 		status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
 		notes: optionalString().nullable(), // ✅ Utilise optionalString
-		assignedToId: z.string().uuid('ID invalide').optional().nullable()
+		assignedToId: z.uuid('ID invalide').optional().nullable(),
+
+		catId: z.uuid('ID de chat invalide').optional().nullable()
 	})
 	.superRefine(adoptionFormRefinements);
 

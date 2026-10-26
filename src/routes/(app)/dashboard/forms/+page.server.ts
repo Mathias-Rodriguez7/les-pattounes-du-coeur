@@ -5,7 +5,8 @@ import { FormType, FormStatus } from '@prisma/client';
 import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
-import { getAgeBadge } from '$lib/utils/age';
+import { createAdoptionSchema } from '$lib/schemas/adoption';
+import { createAdoption } from '$lib/server/adoptions/mutations';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -222,6 +223,26 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Erreur mise à jour dispatcher flexible:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	createAdoption: async ({ request }) => {
+		const formData = await request.formData();
+		const raw = Object.fromEntries(formData);
+
+		const parsed = createAdoptionSchema.safeParse(raw);
+		if (!parsed.success) {
+			return fail(400, {
+				errors: parsed.error.flatten().fieldErrors
+			});
+		}
+
+		try {
+			const adoption = await createAdoption(parsed.data);
+			return { success: true, adoptionId: adoption.id };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Erreur inconnue';
+			return fail(400, { error: message });
 		}
 	}
 };
