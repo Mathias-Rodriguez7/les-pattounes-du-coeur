@@ -1,17 +1,10 @@
-import type { VolunteerRole } from '$generated/prisma';
+import type { VolunteerRole } from '@prisma/client';
+import type { AppUser } from '$lib/types/user';
 
 declare global {
 	namespace App {
 		interface Locals {
-			user: {
-				id: string;
-				role: VolunteerRole;
-				profil: {
-					firstName: string;
-					lastName: string;
-					email: string;
-				};
-			} | null;
+			user: AppUser | null;
 			session: {
 				id: string;
 				token: string;
@@ -19,12 +12,8 @@ declare global {
 				expiresAt: Date;
 				volunteer: {
 					id: string;
-					role: import('$generated/prisma').VolunteerRole;
-					profil: {
-						firstName: string;
-						lastName: string;
-						email: string;
-					};
+					role: VolunteerRole;
+					profil: AppUser['profil'];
 				};
 			} | null;
 		}

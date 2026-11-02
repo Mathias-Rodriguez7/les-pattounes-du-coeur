@@ -48,8 +48,7 @@ export const actions = {
 		cookies.set('session', sessionToken, {
 			path: '/',
 			httpOnly: true,
-			sameSite: 'strict',
-			secure: false
+			sameSite: 'strict'
 		});
 
 		throw redirect(303, '/dashboard');

@@ -5,7 +5,7 @@ import prisma from '$lib/server/prisma';
  * Vérifie et met à jour le statut des hosts/volunteers
  * dont la période de pause est terminée
  */
-export async function updateExpiredBreaks() {
+export async function startCrons() {
 	const now = new Date();
 
 	try {

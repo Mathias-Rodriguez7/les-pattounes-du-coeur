@@ -1,3 +1,4 @@
+// src/lib/types/cat.ts
 import type {
 	Prisma,
 	SexCat,
@@ -54,21 +55,25 @@ export type CatFull = Prisma.CatGetPayload<{
 	vaccinate: Vaccinate;
 };
 
+// ✅ Select réutilisable pour la liste (source unique de vérité)
+export const catListSelect = {
+	id: true,
+	catNumber: true,
+	name: true,
+	sex: true,
+	status: true,
+	birthDate: true,
+	isVisible: true,
+	description: true,
+	media: {
+		where: { isPrimary: true },
+		take: 1
+	}
+} satisfies Prisma.CatSelect;
+
 // Chat en liste (léger, pour les tableaux et cartes)
 export type CatListItem = Prisma.CatGetPayload<{
-	select: {
-		id: true;
-		catNumber: true;
-		name: true;
-		sex: true;
-		status: true;
-		birthDate: true;
-		isVisible: true;
-		media: {
-			where: { isPrimary: true };
-			take: 1;
-		};
-	};
+	select: typeof catListSelect;
 }>;
 
 // ✅ Type pour l'édition

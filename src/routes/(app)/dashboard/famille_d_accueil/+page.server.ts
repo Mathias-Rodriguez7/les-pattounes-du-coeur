@@ -191,8 +191,12 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteProfile: async ({ request }) => {
+	deleteProfile: async ({ request, locals }) => {
 		try {
+			if (!locals.user || locals.user.role !== 'ADMIN') {
+				return fail(403, { success: false, error: 'Non autorisé' });
+			}
+
 			const data = await request.formData();
 			const profileId = data.get('profileId') as string;
 

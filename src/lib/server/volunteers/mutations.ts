@@ -43,6 +43,14 @@ async function checkPhoneUniqueness(phone: string, excludeProfilId?: string): Pr
 	return existing !== null && existing.id !== excludeProfilId;
 }
 
+// Compare deux valeurs, en gérant le cas particulier des dates
+function isSameValue(a: unknown, b: unknown): boolean {
+	if (a instanceof Date && b instanceof Date) {
+		return a.getTime() === b.getTime();
+	}
+	return a === b;
+}
+
 // ✅ Helper pour construire les données du Host
 function buildVolunteerData(data: CreateVolunteerInput | UpdateVolunteerInput) {
 	return VOLUNTEER_FIELDS.reduce(
@@ -257,6 +265,30 @@ export async function updateVolunteer({
 				error: 'Bénévole non trouvé',
 				errors: {}
 			};
+		}
+
+		if (!isAdmin && validatedData.role && validatedData.role !== existingVolunteer.role) {
+			return {
+				success: false,
+				error: 'Non autorisé à modifier le rôle',
+				errors: {}
+			};
+		}
+
+		// Seul un ADMIN peut modifier les champs de VOLUNTEER_FIELDS
+		if (!isAdmin) {
+			for (const field of VOLUNTEER_FIELDS) {
+				const newValue = validatedData[field];
+				const currentValue = existingVolunteer[field];
+
+				if (newValue !== undefined && !isSameValue(newValue, currentValue)) {
+					return {
+						success: false,
+						error: `Non autorisé à modifier : ${field}`,
+						errors: {}
+					};
+				}
+			}
 		}
 
 		const emailChanged =

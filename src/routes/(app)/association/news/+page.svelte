@@ -1,8 +1,9 @@
+<!-- app/association/news/+page.svelte -->
 <script lang="ts">
 	import NewsDialog from '$lib/components/news/NewsDialog.svelte';
 	import NewsCard from '$lib/components/news/NewsCard.svelte';
 	import NewsCatCard from '$lib/components/news/NewsCatCard.svelte';
-	import type { News } from '$lib/types/news';
+	import type { NewsFull } from '$lib/types/news';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Checkbox } from '$lib/components/ui/checkbox';
@@ -13,16 +14,16 @@
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
-		news: News[];
+		news: NewsFull[];
 		selectedNewsId?: string | null;
 	};
 
 	let { data }: { data: PageData } = $props();
 
-	let selectedNews = $state<News | null>(null);
+	let selectedNews = $state<NewsFull | null>(null);
 	let isOpen = $state(false);
 
-	function openNews(news: News) {
+	function openNews(news: NewsFull) {
 		selectedNews = news;
 		isOpen = true;
 	}

@@ -1,79 +1,60 @@
 import type { Handle } from '@sveltejs/kit';
-import type { VolunteerRole } from '@prisma/client';
 import { building } from '$app/environment';
-import cron from 'node-cron';
 import prisma from '$lib/server/prisma';
-import { updateExpiredBreaks } from '$lib/server/cron/updateHostVolunteerStatus';
+import type { AppUser } from '$lib/types/user';
+import { startCrons } from '$lib/server/cron/updateHostVolunteerStatus';
 
-// ✅ Définir le type de l'utilisateur
-export interface AppUser {
+// Lance les crons une seule fois au démarrage du serveur (pas pendant le build)
+if (!building) startCrons();
+
+// Transforme un volontaire Prisma en AppUser (ne garde que les champs utiles)
+// Renvoie null si le profil n'existe pas
+function toAppUser(volunteer: {
 	id: string;
-	role: VolunteerRole;
-	profil: {
-		firstName: string;
-		lastName: string;
-		email: string;
+	role: AppUser['role'];
+	profil: AppUser['profil'] | null;
+}): AppUser | null {
+	if (!volunteer.profil) return null;
+	return {
+		id: volunteer.id,
+		role: volunteer.role,
+		profil: {
+			firstName: volunteer.profil.firstName,
+			lastName: volunteer.profil.lastName,
+			email: volunteer.profil.email
+		}
 	};
 }
 
-// ✅ Initialiser les crons (une seule fois au démarrage)
-if (!building) {
-	console.log('[CRON] 🚀 Initialisation des tâches programmées...');
-
-	// Toutes les heures
-	cron.schedule('0 * * * *', async () => {
-		console.log('[CRON] 🕐 Vérification des pauses expirées...');
-		try {
-			const result = await updateExpiredBreaks();
-			console.log(`[CRON] ✅ ${result.hosts} hosts, ${result.volunteers} volunteers mis à jour`);
-		} catch (error) {
-			console.error('[CRON] ❌ Erreur:', error);
-		}
-	});
-
-	console.log('[CRON] 📋 Tâches programmées avec succès');
-}
-
-// ✅ Gestion des sessions (inchangé)
+// Exécuté à CHAQUE requête, avant le rendu de la page ou l'exécution d'une action
 export const handle: Handle = async ({ event, resolve }) => {
+	// 1. Par défaut, aucun utilisateur connecté
+	event.locals.user = null;
+
+	// 2. Lecture du cookie de session
 	const token = event.cookies.get('session');
+	// Pas de cookie → visiteur anonyme, on laisse passer
+	if (!token) return resolve(event);
 
-	if (!token) {
-		event.locals.user = null;
-		return resolve(event);
-	}
-
+	// 3. Recherche de la session en base, avec le volontaire et son profil
 	const session = await prisma.session.findUnique({
 		where: { token },
-		include: {
-			volunteer: {
-				include: { profil: true }
-			}
-		}
+		include: { volunteer: { include: { profil: true } } }
 	});
 
+	// 4. Session inexistante ou expirée → nettoyage et visiteur anonyme
 	if (!session || session.expiresAt < new Date()) {
-		if (session) {
-			await prisma.session.delete({
-				where: { token: session.token }
-			});
-		}
-
+		// Supprime la session expirée en base
+		if (session) await prisma.session.delete({ where: { token } });
+		// Supprime le cookie côté navigateur
 		event.cookies.delete('session', { path: '/' });
-		event.locals.user = null;
-
 		return resolve(event);
 	}
 
-	event.locals.user = {
-		id: session.volunteer.id,
-		role: session.volunteer.role,
-		profil: {
-			firstName: session.volunteer.profil!.firstName,
-			lastName: session.volunteer.profil!.lastName,
-			email: session.volunteer.profil!.email
-		}
-	};
+	// 5. Session valide → on expose l'utilisateur dans event.locals
+	// Accessible ensuite dans les +page.server.ts via locals.user
+	event.locals.user = toAppUser(session.volunteer);
 
+	// 6. Passe la main à SvelteKit pour la suite du traitement
 	return resolve(event);
 };

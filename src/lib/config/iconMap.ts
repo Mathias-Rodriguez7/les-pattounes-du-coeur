@@ -39,7 +39,8 @@ import {
 	SquareText,
 	Info,
 	CalendarDays,
-	FileText
+	FileText,
+	CalendarCheck2
 } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
@@ -84,5 +85,6 @@ export const iconMap: Record<string, Component> = {
 	note: SquareText,
 	info: Info,
 	calendar: CalendarDays,
-	file: FileText
+	file: FileText,
+	calendarCheck: CalendarCheck2
 };

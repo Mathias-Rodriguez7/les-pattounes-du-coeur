@@ -1,3 +1,5 @@
-export const truncate = (text: string, length: number): string => {
-	return text.length > length ? text.slice(0, length) : text;
-};
+// src/lib/utils/string.ts
+export function truncate(text: string | null | undefined, max: number): string {
+	if (!text) return '';
+	return text.length > max ? text.slice(0, max) + '…' : text;
+}

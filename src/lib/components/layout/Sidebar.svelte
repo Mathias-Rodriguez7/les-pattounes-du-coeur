@@ -11,7 +11,8 @@
 		ChevronLeft,
 		ChevronRight,
 		Newspaper,
-		ClipboardList
+		ClipboardList,
+		FileQuestionMark
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { Route } from '@sveltejs/kit';
@@ -66,6 +67,12 @@
 			label: 'Formulaire',
 			icon: ClipboardList,
 			href: '/dashboard/forms' as const,
+			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
+		},
+		{
+			label: 'Information',
+			icon: FileQuestionMark,
+			href: '/dashboard/information' as const,
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION'] as VolunteerRole[]
 		}
 	];

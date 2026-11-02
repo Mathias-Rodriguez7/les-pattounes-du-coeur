@@ -10,6 +10,7 @@
 	import { enhance } from '$app/forms';
 	import { Lock, Mail, AlertCircle, CheckCircle2, Eye, EyeOff } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
+	import { fade, fly } from 'svelte/transition';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -62,8 +63,11 @@
 	});
 </script>
 
-<main class="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 px-4 py-8">
-	<div class="mx-auto max-w-2xl">
+<main
+	in:fade={{ duration: 200 }}
+	class="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 px-4 py-8"
+>
+	<div in:fly={{ y: 20, duration: 300 }} class="mx-auto max-w-2xl">
 		<!-- HEADER -->
 		<div class="mb-8">
 			<h1 class="text-3xl font-bold text-slate-900">Mon Profil</h1>
@@ -105,17 +109,11 @@
 		<!-- TABS -->
 		<Tabs.Root value="email" class="w-full">
 			<Tabs.List class="mb-6 grid w-full grid-cols-2">
-				<Tabs.Trigger
-					value="email"
-					class="flex items-center gap-2 transition-colors data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
-				>
+				<Tabs.Trigger value="email" class="flex items-center gap-2">
 					<Mail class="h-4 w-4" />
 					<span>Email</span>
 				</Tabs.Trigger>
-				<Tabs.Trigger
-					value="password"
-					class="flex items-center gap-2 transition-colors data-[state=active]:border-b-2 data-[state=active]:border-emerald-600 data-[state=active]:text-emerald-600"
-				>
+				<Tabs.Trigger value="password" class="flex items-center gap-2">
 					<Lock class="h-4 w-4" />
 					<span>Mot de passe</span>
 				</Tabs.Trigger>

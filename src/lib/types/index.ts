@@ -45,7 +45,6 @@ export type {
 export type { CatFull as CatType } from './cat';
 
 export type { PlacementFull } from './placement';
-export type { CatWithMedia, AdoptionTrendItem } from './mediaCat';
 
 // Config & labels - TOUT
 export {
