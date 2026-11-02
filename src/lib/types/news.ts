@@ -1,21 +1,5 @@
-import type { Cat } from '$lib/types/cat';
-import type { NewsType, CatStatus } from '@prisma/client';
-
-export type News = {
-	id: string;
-	title: string | null;
-	content: string | null;
-	type: NewsType;
-
-	mediaUrl: string | null;
-
-	createdAt: Date;
-	formattedDate: string;
-
-	image: string;
-
-	cats: Cat[];
-};
+import type { NewsType } from '@prisma/client';
+import type { CatListItem } from '$lib/types/cat';
 
 export interface NewsFull {
 	id: string;
@@ -24,7 +8,7 @@ export interface NewsFull {
 	type: NewsType;
 	mediaUrl: string | null;
 	createdAt: Date;
-	cats: { cat: { id: string; name: string; catNumber: string; status: CatStatus } }[];
+	cats: CatListItem[];
 }
 
 export interface NewsEditData {

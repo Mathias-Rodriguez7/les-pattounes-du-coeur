@@ -14,6 +14,7 @@
 	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '$lib/constants/forms.js';
 	import CardAction from '$lib/components/ui/card/card-action.svelte';
 	import AssignDispatcherDialog from '$lib/components/forms/AssignDispatcherDialog.svelte';
+	import { fade, fly } from 'svelte/transition';
 
 	const { data } = $props();
 
@@ -66,19 +67,19 @@
 			label: 'En attente',
 			value: data.stats.pendingForms,
 			icon: 'clock',
-			theme: 'dog'
+			theme: 'pending'
 		},
 		{
 			label: 'Approuvés',
 			value: data.stats.approvedForms,
-			icon: 'check',
+			icon: 'CircleCheck',
 			theme: 'fa'
 		},
 		{
 			label: 'Rejetés',
 			value: data.stats.rejectedForms,
-			icon: 'x',
-			theme: 'socializing'
+			icon: 'CircleX',
+			theme: 'stop'
 		}
 	]);
 
@@ -121,137 +122,142 @@
 	}
 </script>
 
-<main class="flex flex-col gap-4 p-8">
-	<!-- Bandeau stats -->
-	<section class="grid grid-cols-4 gap-4">
-		{#each statCards as card (card.label)}
-			<Card.Root>
-				<Card.Header class="flex flex-row items-center justify-between pb-2">
-					<Card.Title class="text-sm font-medium">{card.label}</Card.Title>
-					<Icon
-						name={card.icon}
-						withWrapper={true}
-						wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
-						style="background: {getGradientStyle(card.theme)}"
-						iconClass="h-5 w-5"
-					/>
-				</Card.Header>
-				<Card.Content>
-					<p class="text-2xl font-bold">{card.value}</p>
-				</Card.Content>
-			</Card.Root>
-		{/each}
-	</section>
-
-	<!-- Tableau + Panel détail -->
-	<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-		<!-- Tableau -->
-		<Card.Root class="flex flex-col lg:col-span-2">
-			<Card.Header class="flex shrink-0 flex-row items-center justify-between">
-				<Card.Title class="flex gap-4 text-2xl font-bold">
-					{showAllFlexible ? 'Tous les flexibles' : 'Mes formulaires'}
-					{#if canSwitchScope}
-						<Switch id="scope-toggle" checked={showAllFlexible} onCheckedChange={setScope} />
-					{/if}
-				</Card.Title>
-				<CardAction>
-					{#if data.isAdmin}
-						<AssignDispatcherDialog
-							volunteers={data.volunteers}
-							currentDispatcherId={data.volunteers.find((v) => v.isFlexibleDispatcher)?.id ?? null}
+<main in:fade={{ duration: 200 }}>
+	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-10">
+		<!-- Bandeau stats -->
+		<section class="grid grid-cols-4 gap-4">
+			{#each statCards as card (card.label)}
+				<Card.Root>
+					<Card.Header class="flex flex-row items-center justify-between pb-2">
+						<Card.Title class="text-sm font-medium">{card.label}</Card.Title>
+						<Icon
+							name={card.icon}
+							withWrapper={true}
+							wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+							style="background: {getGradientStyle(card.theme)}"
+							iconClass="h-5 w-5"
 						/>
-					{/if}
-				</CardAction>
-			</Card.Header>
+					</Card.Header>
+					<Card.Content>
+						<p class="text-2xl font-bold">{card.value}</p>
+					</Card.Content>
+				</Card.Root>
+			{/each}
+		</section>
 
-			<Card.Content>
-				<!-- Barre de filtres -->
-				<div class="grid items-center gap-2">
-					<div class="flex flex-wrap gap-2">
-						<!-- Type -->
-						<SelectField
-							id="form-type-filter"
-							label=""
-							options={FORM_TYPE_OPTIONS}
-							bind:value={typeFilter}
-							placeholder="Type"
-							class="w-40"
-							disabled={showAllFlexible}
-						/>
-
-						<!-- Status -->
-						<SelectField
-							id="form-status-filter"
-							label=""
-							options={FORM_STATUS_OPTIONS}
-							bind:value={statusFilter}
-							placeholder="Status"
-							class="w-30"
-						/>
-					</div>
-
-					<div class="flex items-center gap-2">
-						<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
-
-						<div class="relative flex-1">
-							<Icon
-								name="search"
-								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+		<!-- Tableau + Panel détail -->
+		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
+			<!-- Tableau -->
+			<Card.Root class="flex flex-col lg:col-span-2">
+				<Card.Header class="flex shrink-0 flex-row items-center justify-between">
+					<Card.Title class="flex gap-4 text-2xl font-bold">
+						{showAllFlexible ? 'Tous les flexibles' : 'Mes formulaires'}
+						{#if canSwitchScope}
+							<Switch id="scope-toggle" checked={showAllFlexible} onCheckedChange={setScope} />
+						{/if}
+					</Card.Title>
+					<CardAction>
+						{#if data.isAdmin}
+							<AssignDispatcherDialog
+								volunteers={data.volunteers}
+								currentDispatcherId={data.volunteers.find((v) => v.isFlexibleDispatcher)?.id ??
+									null}
 							/>
-							<Input
-								type="text"
-								placeholder="Chercher un formulaire..."
-								bind:value={searchQuery}
-								class="pl-9"
+						{/if}
+					</CardAction>
+				</Card.Header>
+
+				<Card.Content>
+					<!-- Barre de filtres -->
+					<div class="grid items-center gap-2">
+						<div class="flex flex-wrap gap-2">
+							<!-- Type -->
+							<SelectField
+								id="form-type-filter"
+								label=""
+								options={FORM_TYPE_OPTIONS}
+								bind:value={typeFilter}
+								placeholder="Type"
+								class="w-40"
+								disabled={showAllFlexible}
+							/>
+
+							<!-- Status -->
+							<SelectField
+								id="form-status-filter"
+								label=""
+								options={FORM_STATUS_OPTIONS}
+								bind:value={statusFilter}
+								placeholder="Status"
+								class="w-30"
 							/>
 						</div>
-					</div>
-				</div>
 
-				<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
-					<Table.Root containerClass="overflow-visible">
-						<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
-							<Table.Row>
-								<Table.Head>Type</Table.Head>
-								<Table.Head>Status</Table.Head>
-								<Table.Head>Assigné à</Table.Head>
-								<Table.Head>Date</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body>
-							{#each filteredForms as form (form.id)}
-								<FormRow
-									{form}
-									onclick={() => handleSelectForm(form.id)}
-									isSelected={selectedFormId === form.id}
+						<div class="flex items-center gap-2">
+							<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
+
+							<div class="relative flex-1">
+								<Icon
+									name="search"
+									class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
 								/>
-							{:else}
-								<Table.Row>
-									<Table.Cell colspan={5} class="py-8 text-center text-gray-500">
-										{#if searchQuery}
-											Aucun formulaire trouvé pour "{searchQuery}"
-										{:else if hasActiveFilters}
-											Aucun formulaire ne correspond aux filtres
-										{:else}
-											Aucun formulaire
-										{/if}
-									</Table.Cell>
-								</Table.Row>
-							{/each}
-						</Table.Body>
-					</Table.Root>
-				</div>
-			</Card.Content>
-		</Card.Root>
+								<Input
+									type="text"
+									placeholder="Chercher un formulaire..."
+									bind:value={searchQuery}
+									class="pl-9"
+								/>
+							</div>
+						</div>
+					</div>
 
-		<!-- Panel détail -->
-		<div class="col-span-3 overflow-y-auto">
-			<FormPanel
-				cats={data.cats}
-				form={selectedForm}
-				volunteers={data.volunteers}
-				isAdmin={data.isAdmin}
-			/>
-		</div>
-	</section>
+					<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
+						<Table.Root containerClass="overflow-visible">
+							<Table.Header
+								class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+							>
+								<Table.Row>
+									<Table.Head>Type</Table.Head>
+									<Table.Head>Status</Table.Head>
+									<Table.Head>Assigné à</Table.Head>
+									<Table.Head>Date</Table.Head>
+								</Table.Row>
+							</Table.Header>
+							<Table.Body>
+								{#each filteredForms as form (form.id)}
+									<FormRow
+										{form}
+										onclick={() => handleSelectForm(form.id)}
+										isSelected={selectedFormId === form.id}
+									/>
+								{:else}
+									<Table.Row>
+										<Table.Cell colspan={5} class="py-8 text-center text-gray-500">
+											{#if searchQuery}
+												Aucun formulaire trouvé pour "{searchQuery}"
+											{:else if hasActiveFilters}
+												Aucun formulaire ne correspond aux filtres
+											{:else}
+												Aucun formulaire
+											{/if}
+										</Table.Cell>
+									</Table.Row>
+								{/each}
+							</Table.Body>
+						</Table.Root>
+					</div>
+				</Card.Content>
+			</Card.Root>
+
+			<!-- Panel détail -->
+			<div class="col-span-3 overflow-y-auto">
+				<FormPanel
+					cats={data.cats}
+					form={selectedForm}
+					volunteers={data.volunteers}
+					isAdmin={data.isAdmin}
+				/>
+			</div>
+		</section>
+	</div>
 </main>

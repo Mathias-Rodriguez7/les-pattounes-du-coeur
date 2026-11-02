@@ -11,6 +11,7 @@
 	import NewsEditForm from './NewsEditForm.svelte';
 	import { NEWS_SECTION_CONFIG, NEWS_TYPE_CONFIG } from '$lib/constants/news';
 	import type { NewsFull, NewsEditData } from '$lib/types/news';
+	import NewsCatsPanel from './NewsCatsPanel.svelte';
 
 	const {
 		news,
@@ -122,18 +123,17 @@
 				</section>
 
 				<Separator />
-
-				<!-- media -->
-				<!-- media -->
-				<SectionCard
-					icon={NEWS_SECTION_CONFIG.media.icon}
-					title={NEWS_SECTION_CONFIG.media.label}
-					color={NEWS_SECTION_CONFIG.media.color}
-				>
-					{#if news.mediaUrl}
-						{#if news.mediaUrl.endsWith('.pdf')}
-							<!-- 📄 PDF -->
-							<div>
+				{#if news.type === 'NEWSCATS'}
+					<!-- 🐱 Mode chats : remplace le média -->
+					<NewsCatsPanel cats={news.cats} />
+				{:else}
+					<SectionCard
+						icon={NEWS_SECTION_CONFIG.media.icon}
+						title={NEWS_SECTION_CONFIG.media.label}
+						color={NEWS_SECTION_CONFIG.media.color}
+					>
+						{#if news.mediaUrl}
+							{#if news.mediaUrl.endsWith('.pdf')}
 								<object
 									data={news.mediaUrl}
 									type="application/pdf"
@@ -141,34 +141,29 @@
 									aria-label="PDF viewer"
 								>
 									<p class="text-muted-foreground text-sm">
-										Impossible d'afficher le PDF. <a
-											href={news.mediaUrl}
-											target="_blank"
-											class="underline">Télécharger</a
-										>
+										Impossible d'afficher le PDF.
+										<a href={news.mediaUrl} target="_blank" class="underline">Télécharger</a>
 									</p>
 								</object>
-							</div>
-						{:else if news.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)}
-							<!-- 🖼️ IMAGE -->
-							<div class="overflow-hidden rounded-lg">
-								<img src={news.mediaUrl} alt="Media" class="h-full w-full object-cover" />
-							</div>
+							{:else if news.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)}
+								<div class="overflow-hidden rounded-lg">
+									<img src={news.mediaUrl} alt="Media" class="h-full w-full object-cover" />
+								</div>
+							{:else}
+								<a
+									href={news.mediaUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="ml-6 block text-sm text-blue-600 underline hover:text-blue-800"
+								>
+									{news.mediaUrl}
+								</a>
+							{/if}
 						{:else}
-							<!-- 🔗 LIEN GÉNÉRIQUE -->
-							<a
-								href={news.mediaUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="ml-6 block text-sm text-blue-600 underline hover:text-blue-800"
-							>
-								{news.mediaUrl}
-							</a>
+							<p class="text-muted-foreground ml-6 text-sm italic">Aucun média</p>
 						{/if}
-					{:else}
-						<p class="text-muted-foreground ml-6 text-sm italic">Aucun média</p>
-					{/if}
-				</SectionCard>
+					</SectionCard>
+				{/if}
 			</Card.Content>
 		{:else}
 			<Card.Content class="grid grid-cols-1 gap-6">

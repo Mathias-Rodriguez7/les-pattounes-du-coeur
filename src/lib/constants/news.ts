@@ -1,8 +1,8 @@
 export const NEWS_TYPE_OPTIONS = [
-	{ value: 'NEWS', label: 'Actualité' },
+	{ value: 'NEWS', label: 'News' },
 	{ value: 'NEWSLETTER', label: 'Newsletter' },
 	{ value: 'HISTORY', label: 'Histoire' },
-	{ value: 'NEWSCATS', label: 'Nouvelles des chats' },
+	{ value: 'NEWSCATS', label: 'Nouveaux chats' },
 	{ value: 'EVENT', label: 'Évènement' }
 ];
 

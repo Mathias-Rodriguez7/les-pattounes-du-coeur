@@ -6,7 +6,7 @@
 	import { getAgeBadge } from '$lib/utils/age';
 	import { truncate } from '$lib/utils/string';
 
-	const { cat } = $props<{ cat: CatListItem }>();
+	let { cat }: { cat: CatListItem } = $props();
 
 	// Image principale : le load serveur filtre déjà sur isPrimary, on prend la première
 	const primaryMedia = $derived(cat.media[0] ?? null);
@@ -33,10 +33,8 @@
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-4">
-		<div class="flex flex-wrap gap-2">
-			<p class="text-muted-foreground ml-6 text-sm leading-relaxed">
-				{truncate(cat.description, 45)}...
-			</p>
-		</div>
+		<p class="text-muted-foreground text-sm leading-relaxed">
+			{truncate(cat.description, 60)}...
+		</p>
 	</Card.Content>
 </Card.Root>

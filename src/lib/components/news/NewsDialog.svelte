@@ -1,38 +1,28 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
-	import type { News } from '$lib/types/news';
+	import type { NewsFull } from '$lib/types/news';
 	import NewsCatDialog from '$lib/components/news/NewsCatDialog.svelte';
+	import { formatDate } from '$lib/utils/date';
 
-	let { selectedNews }: { selectedNews: News | null } = $props();
-
-	// Extrait les vrais chats depuis la relation
-	const extractedCats = $derived(
-		selectedNews?.type === 'NEWSCATS' && selectedNews?.cats
-			? selectedNews.cats
-					.map((item: any) => item.cat || item) // Gère les deux formats
-					.filter((cat: any) => cat && cat.id)
-			: []
-	);
-
-	console.log('Extracted cats:', extractedCats);
+	let { selectedNews }: { selectedNews: NewsFull | null } = $props();
 </script>
 
 <Dialog.Content size="xl" class="bg-background">
 	{#if selectedNews}
-		<Dialog.Header class="flex justify-between p-6">
-			<div class="flex justify-between">
-				<Dialog.Title>{selectedNews.title}</Dialog.Title>
-				<p class="text-sm opacity-70">{selectedNews.formattedDate}</p>
-			</div>
-		</Dialog.Header>
-
-		<div class="">
+		<div>
 			<!-- 🐱 MODE NEWSCATS -->
 			{#if selectedNews.type === 'NEWSCATS'}
-				<NewsCatDialog cats={extractedCats} />
+				<NewsCatDialog {selectedNews} cats={selectedNews.cats} />
 
 				<!-- 📄 MODE PDF -->
 			{:else if selectedNews.mediaUrl}
+				<Dialog.Header class="flex justify-between p-6">
+					<div class="flex justify-between">
+						<Dialog.Title>{selectedNews.title}</Dialog.Title>
+						<p class="text-sm opacity-70">{formatDate(selectedNews.createdAt)}</p>
+					</div>
+				</Dialog.Header>
+
 				<object
 					data={selectedNews.mediaUrl}
 					type="application/pdf"

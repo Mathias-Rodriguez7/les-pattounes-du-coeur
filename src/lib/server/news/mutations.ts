@@ -8,14 +8,14 @@ import {
 
 const NEWS_FIELDS = ['title', 'type', 'content', 'mediaUrl'] as const;
 
-function convertFormData(formData: FormData): Record<string, string | null> {
-	const data: Record<string, string | null> = {};
+function convertFormData(formData: FormData): Record<string, string | string[] | null> {
+	const data: Record<string, string | string[] | null> = {};
 
 	for (const [key, value] of formData.entries()) {
 		if (key === 'catIds') {
 			// Gérer les catIds comme array
 			if (!data.catIds) data.catIds = [];
-			(data.catIds as unknown as string[]).push(value as string);
+			(data.catIds as string[]).push(value as string);
 		} else {
 			data[key] = (value as string) || null;
 		}
@@ -37,6 +37,19 @@ function buildNewsData(data: CreateNewsInput | UpdateNewsInput) {
 	);
 }
 
+// ✅ Chats éligibles pour une news NEWSCATS
+async function getEligibleCatIds(): Promise<string[]> {
+	const cats = await prisma.cat.findMany({
+		where: {
+			isVisible: true,
+			status: 'AVAILABLE'
+		},
+		select: { id: true }
+	});
+
+	return cats.map((c) => c.id);
+}
+
 export async function createNews({ request, locals }: { request: Request; locals: App.Locals }) {
 	if (!locals.user || locals.user.role !== 'ADMIN') {
 		return {
@@ -51,7 +64,7 @@ export async function createNews({ request, locals }: { request: Request; locals
 		const data = convertFormData(formData);
 
 		// Parser catIds
-		const catIds = (data.catIds as unknown as string[]) || [];
+		const catIds = (data.catIds as string[]) || [];
 		const parsedData = {
 			...data,
 			catIds
@@ -70,17 +83,21 @@ export async function createNews({ request, locals }: { request: Request; locals
 
 		const validatedData: CreateNewsInput = result.data;
 
+		// Pour NEWSCATS : pas de PDF, et les chats viennent de la BDD
+		const isCatsNews = validatedData.type === 'NEWSCATS';
+		const finalCatIds = isCatsNews ? await getEligibleCatIds() : validatedData.catIds;
+		const mediaUrl = isCatsNews ? null : (validatedData.mediaUrl ?? null);
+
 		const newNews = await prisma.news.create({
 			data: {
 				title: validatedData.title,
 				type: validatedData.type,
 				content: validatedData.content ?? null,
-				mediaUrl: validatedData.mediaUrl ?? null,
+				mediaUrl,
 
-				// Créer les relations avec les catégories
-				...(validatedData.catIds.length > 0 && {
+				...(finalCatIds.length > 0 && {
 					cats: {
-						create: validatedData.catIds.map((catId) => ({
+						create: finalCatIds.map((catId) => ({
 							catId
 						}))
 					}
@@ -135,7 +152,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		}
 
 		// Parser catIds
-		const catIds = (data.catIds as unknown as string[]) || [];
+		const catIds = (data.catIds as string[]) || [];
 		const parsedData = {
 			...data,
 			catIds
@@ -167,22 +184,29 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			};
 		}
 
+		// Une news NEWSCATS garde sa sélection automatique : on ignore les catIds envoyés
+		const isCatsNews = existingNews.type === 'NEWSCATS';
 		const newsData = buildNewsData(validatedData);
+
+		if (isCatsNews) {
+			delete newsData.mediaUrl;
+		}
 
 		const updatedNews = await prisma.news.update({
 			where: { id: newsId },
 			data: {
 				...newsData,
 
-				// Mettre à jour les catégories si fournies
-				...(validatedData.catIds && {
-					cats: {
-						deleteMany: {}, // Supprimer toutes les anciennes relations
-						create: validatedData.catIds.map((catId) => ({
-							catId
-						}))
-					}
-				})
+				// Mettre à jour les catégories si fournies (et pas NEWSCATS)
+				...(!isCatsNews &&
+					validatedData.catIds && {
+						cats: {
+							deleteMany: {},
+							create: validatedData.catIds.map((catId) => ({
+								catId
+							}))
+						}
+					})
 			},
 			include: {
 				cats: {
@@ -230,13 +254,14 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 			};
 		}
 
-		// Valider
-		const result = deleteNewsSchema.safeParse({ newsId });
+		const existingNews = await prisma.news.findUnique({
+			where: { id: newsId }
+		});
 
-		if (!result.success) {
+		if (!existingNews) {
 			return {
 				success: false,
-				error: 'ID invalide',
+				error: 'News non trouvée',
 				errors: {}
 			};
 		}
@@ -264,4 +289,29 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 			errors: {}
 		};
 	}
+}
+
+// ✅ Génération automatique (cron du dimanche) ou manuelle depuis l'admin
+export async function generateCatsNews({ title }: { title?: string } = {}) {
+	const catIds = await getEligibleCatIds();
+
+	const now = new Date();
+	const defaultTitle = `Les chats à l'adoption – semaine du ${now.toLocaleDateString('fr-FR', {
+		timeZone: 'Europe/Paris'
+	})}`;
+
+	return prisma.news.create({
+		data: {
+			title: title?.trim() || defaultTitle,
+			type: 'NEWSCATS',
+			content: null,
+			mediaUrl: null,
+			cats: {
+				create: catIds.map((catId) => ({ catId }))
+			}
+		},
+		include: {
+			cats: { include: { cat: true } }
+		}
+	});
 }
