@@ -4,7 +4,7 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
-import { hashPassword } from '../src/lib/server/password';
+import { hashPassword } from '../src/lib/server/hashing';
 
 // ---------------------
 // DB

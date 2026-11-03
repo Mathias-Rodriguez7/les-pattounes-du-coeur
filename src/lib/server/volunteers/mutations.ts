@@ -5,7 +5,7 @@ import {
 	type CreateVolunteerInput,
 	type UpdateVolunteerInput
 } from '$lib/schemas/volunteer';
-import { hashPassword } from '$lib/server/password';
+import { hashPassword } from '$lib/server/hashing';
 import { randomBytes } from 'node:crypto';
 import { sendVolunteerWelcomeEmail } from '../mailer';
 
