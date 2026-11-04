@@ -6,6 +6,7 @@ import {
 	type CreateHostInput,
 	type UpdateHostInput
 } from '../../schemas/host';
+import { isEmailBlacklisted } from '../accountStatus';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -116,6 +117,14 @@ export async function createHost({ request, locals }: { request: Request; locals
 		}
 
 		const validatedData: CreateHostInput = result.data;
+
+		if (await isEmailBlacklisted(validatedData.email)) {
+			return {
+				success: false,
+				error: 'Cette personne est sur la liste noire',
+				errors: { email: ['Email présent dans la liste noire'] }
+			};
+		}
 
 		// 🔍 Vérifier l'email
 		const existingProfil = await prisma.profil.findUnique({

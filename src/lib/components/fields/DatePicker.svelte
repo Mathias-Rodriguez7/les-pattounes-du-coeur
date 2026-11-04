@@ -32,32 +32,18 @@
 	const id = crypto.getRandomValues(new Uint8Array(4)).reduce((acc, x) => acc + x.toString(16), '');
 
 	let open = $state(false);
-	let calendarValue = $state<CalendarDateType | undefined>();
-	let hiddenValue = $state<string>('');
 
-	// ✅ REACTIVE : Met à jour calendarValue si value change
-	$effect(() => {
-		if (value) {
-			calendarValue = new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate());
-		} else {
-			calendarValue = undefined;
-		}
-	});
+	// Se recalcule quand `value` change, mais l'utilisateur peut la modifier via le calendrier
+	let calendarValue = $derived<CalendarDateType | undefined>(
+		value ? new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate()) : undefined
+	);
 
-	// ✅ Sync la valeur hidden avec calendarValue
-	$effect(() => {
-		if (calendarValue) {
-			const date = calendarValue.toDate(getLocalTimeZone());
-			hiddenValue = date.toISOString().split('T')[0]; // ✅ Format YYYY-MM-DD
-		} else {
-			hiddenValue = '';
-		}
-	});
+	// Valeur envoyée au serveur, au format AAAA-MM-JJ, sans conversion de fuseau horaire
+	const hiddenValue = $derived(calendarValue ? calendarValue.toString() : '');
 
 	const handleValueChange = () => {
 		if (calendarValue && onSelect) {
-			const date = calendarValue.toDate(getLocalTimeZone());
-			onSelect(date);
+			onSelect(calendarValue.toDate(getLocalTimeZone()));
 		}
 		open = false;
 	};

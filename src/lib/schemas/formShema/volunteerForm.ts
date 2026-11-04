@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
+import { emailField } from '$lib/schemas/fields';
 
 const districtEnum = z
 	.enum(Object.values(District) as [string, ...string[]])
@@ -20,7 +21,7 @@ export const volunteerStep1Schema = z.object({
 	firstName: z.string().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().min(1, 'Le nom est obligatoire'),
 	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
-	email: z.email('Email invalide'),
+	email: emailField(),
 	address: z.string().min(1, "L'adresse est obligatoire"),
 	birthDate: stringToDate,
 	city: z.string().min(1, 'La ville est obligatoire'),

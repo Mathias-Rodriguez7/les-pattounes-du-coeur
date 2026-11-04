@@ -3,6 +3,7 @@ import { building } from '$app/environment';
 import prisma from '$lib/server/prisma';
 import type { AppUser } from '$lib/types/user';
 import { startCrons } from '$lib/server/cron/updateHostVolunteerStatus';
+import { activeBlacklists, isAccountDisabled } from '$lib/server/accountStatus';
 
 // Lance les crons une seule fois au démarrage du serveur (pas pendant le build)
 if (!building) startCrons();
@@ -39,11 +40,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// 3. Recherche de la session en base, avec le volontaire et son profil
 	const session = await prisma.session.findUnique({
 		where: { token },
-		include: { volunteer: { include: { profil: true } } }
+		include: {
+			volunteer: {
+				include: {
+					profil: { include: { blacklists: activeBlacklists } }
+				}
+			}
+		}
 	});
 
 	// 4. Session inexistante ou expirée → nettoyage et visiteur anonyme
-	if (!session || session.expiresAt < new Date()) {
+	if (!session || session.expiresAt < new Date() || isAccountDisabled(session.volunteer)) {
 		// Supprime la session expirée en base
 		if (session) await prisma.session.delete({ where: { token } });
 		// Supprime le cookie côté navigateur

@@ -172,7 +172,7 @@ async function main() {
 				firstName: faker.person.firstName().slice(0, 60),
 				lastName: faker.person.lastName().slice(0, 60),
 				birthDate: faker.date.birthdate({ min: 18, max: 70, mode: 'age' }),
-				email: `${faker.string.alphanumeric(8)}_${i}@test.com`,
+				email: `${faker.string.alphanumeric({ length: 8, casing: 'lower' })}_${i}@test.com`,
 				phone: faker.string.numeric(10),
 				address: faker.location.streetAddress().slice(0, 100),
 				city: 'Montpellier',
@@ -769,12 +769,12 @@ async function main() {
 			data: {
 				type: 'COLAB',
 				status: faker.helpers.arrayElement(FORM_STATUS),
-				email: faker.internet.email(),
+				email: faker.internet.email().toLowerCase(),
 				data: {
 					firstName: faker.person.firstName(),
 					lastName: faker.person.lastName(),
 					companyName: randomBool(0.8) ? faker.company.name() : undefined,
-					email: faker.internet.email(),
+					email: faker.internet.email().toLowerCase(),
 					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
 					presentation: faker.lorem.paragraphs(1),
 					partnershipProposal: faker.lorem.paragraphs(1)

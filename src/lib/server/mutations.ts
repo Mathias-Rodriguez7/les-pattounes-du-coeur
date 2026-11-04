@@ -67,17 +67,9 @@ export async function blacklistProfile(profileId: string, email: string, descrip
 		await prisma.blacklistHistoric.create({
 			data: {
 				profilId: profileId,
-				email,
+				email: email.trim().toLowerCase(),
 				description,
 				isBlacklisted: true
-			}
-		});
-
-		// ✅ Met à jour le profil (ou volunteer/host selon ton modèle)
-		await prisma.profil.update({
-			where: { id: profileId },
-			data: {
-				isBlacklisted: true // ou un champ similaire
 			}
 		});
 

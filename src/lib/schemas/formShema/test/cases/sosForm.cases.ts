@@ -35,6 +35,11 @@ export const sosFormCases = {
 			expected: false
 		},
 		{
+			name: 'email with spaces and uppercase',
+			override: { email: '  Jean@Example.COM  ' },
+			expected: true
+		},
+		{
 			name: 'invalid phone',
 			override: {
 				phone: '123'

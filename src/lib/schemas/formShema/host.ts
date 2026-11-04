@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailField } from '$lib/schemas/fields';
 
 export const hostTypeEnum = z.enum(['CLASSIC', 'SOS', 'ADOPT', 'PROPRIO']);
 
@@ -17,7 +18,7 @@ export const createHostSchema = z
 		firstName: z.string().min(1, 'Le prénom est obligatoire').max(60),
 		lastName: z.string().min(1, 'Le nom est obligatoire').max(60),
 		birthDate: stringToDate,
-		email: z.string().email('Email invalide'),
+		email: emailField(),
 		phone: z
 			.string()
 			.regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro invalide')

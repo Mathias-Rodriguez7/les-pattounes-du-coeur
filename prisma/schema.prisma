@@ -87,8 +87,8 @@ model Host {
 
 model BlacklistHistoric {
   id            String @id @default(uuid()) @db.Uuid
-  profilId      String @db.Uuid @map("profil_id")
-  profil        Profil @relation(fields: [profilId], references: [id])
+  profilId      String? @db.Uuid @map("profil_id")
+  profil        Profil? @relation(fields: [profilId], references: [id], onDelete: SetNull)
   email         String @db.VarChar(255)
   description   String @db.Text
   isBlacklisted Boolean @default(false)

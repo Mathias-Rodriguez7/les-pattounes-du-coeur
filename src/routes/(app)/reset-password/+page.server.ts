@@ -59,15 +59,20 @@ export const actions: Actions = {
 
 		const hashed = await hashPassword(password);
 
-		// Mise à jour du mot de passe et invalidation immédiate du token
-		await prisma.volunteer.update({
-			where: { id: volunteer.id },
-			data: {
-				password: hashed,
-				resetToken: null,
-				resetTokenExpiresAt: null
-			}
-		});
+		// Mise à jour du mot de passe + déconnexion de tous les appareils, en une seule opération
+		await prisma.$transaction([
+			prisma.volunteer.update({
+				where: { id: volunteer.id },
+				data: {
+					password: hashed,
+					resetToken: null,
+					resetTokenExpiresAt: null
+				}
+			}),
+			prisma.session.deleteMany({
+				where: { volunteerId: volunteer.id }
+			})
+		]);
 
 		redirect(303, '/login?reset=success');
 	}

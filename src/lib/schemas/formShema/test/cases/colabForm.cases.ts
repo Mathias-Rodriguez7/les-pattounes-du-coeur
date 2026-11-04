@@ -6,6 +6,11 @@ export const colabFormCases = {
 			expected: false
 		},
 		{
+			name: 'email with spaces and uppercase',
+			override: { email: '  Jean@Example.COM  ' },
+			expected: true
+		},
+		{
 			name: 'missing first name',
 			override: { firstName: '' },
 			expected: false

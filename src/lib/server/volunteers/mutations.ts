@@ -8,6 +8,7 @@ import {
 import { hashPassword } from '$lib/server/hashing';
 import { randomBytes } from 'node:crypto';
 import { sendVolunteerWelcomeEmail } from '../mailer';
+import { isEmailBlacklisted } from '../accountStatus';
 
 const PROFIL_FIELDS = [
 	'firstName',
@@ -109,6 +110,14 @@ export async function createVolunteer({
 
 		const validatedData: CreateVolunteerInput = result.data;
 
+		if (await isEmailBlacklisted(validatedData.email)) {
+			return {
+				success: false,
+				error: 'Cette personne est sur la liste noire',
+				errors: { email: ['Email présent dans la liste noire'] }
+			};
+		}
+
 		const existingProfil = await prisma.profil.findUnique({
 			where: { email: validatedData.email },
 			include: { volunteer: true }
@@ -158,7 +167,8 @@ export async function createVolunteer({
 							}
 						}
 			},
-			include: { profil: true }
+			include: { profil: true },
+			omit: { password: true, resetToken: true, resetTokenExpiresAt: true }
 		});
 
 		try {
@@ -201,10 +211,10 @@ export async function createVolunteer({
 }
 
 export async function updateVolunteer({
-	request,
+	formData,
 	locals
 }: {
-	request: Request;
+	formData: FormData;
 	locals: App.Locals;
 }) {
 	if (!locals.user) {
@@ -216,7 +226,6 @@ export async function updateVolunteer({
 	}
 
 	try {
-		const formData = await request.formData();
 		const data = convertFormData(formData);
 
 		const volunteerId = data.volunteerId as string;
@@ -289,6 +298,16 @@ export async function updateVolunteer({
 					};
 				}
 			}
+			if (
+				validatedData.email !== undefined &&
+				validatedData.email !== existingVolunteer.profil.email
+			) {
+				return {
+					success: false,
+					error: "Utilisez le formulaire dédié pour modifier l'email",
+					errors: {}
+				};
+			}
 		}
 
 		const emailChanged =
@@ -334,7 +353,8 @@ export async function updateVolunteer({
 					profil: { update: profilData }
 				})
 			},
-			include: { profil: true }
+			include: { profil: true },
+			omit: { password: true, resetToken: true, resetTokenExpiresAt: true }
 		});
 
 		return {
