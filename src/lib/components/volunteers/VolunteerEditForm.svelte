@@ -29,128 +29,116 @@
 		onCancel
 	} = $props();
 
-	// États
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
 	let isBlacklisting = $state(false);
 
-	let formErrors = $state({
-		firstName: '',
-		lastName: '',
-		email: '',
-		phone: '',
-		address: '',
-		city: '',
-		postalCode: ''
-	});
+	// Erreurs renvoyées par le serveur (format Zod : { champ: ['message'] })
+	let serverErrors = $state<Record<string, string[] | undefined>>({});
 
-	// ✅ DERIVED : Afficher DateRangePicker si statut = 'BREAK'
-	let showBreakDateRange = $derived(editData.actif === 'BREAK');
+	function fieldError(field: string): string {
+		return serverErrors[field]?.[0] ?? '';
+	}
 
-	// Dérivés
-	let districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
+	const showBreakDateRange = $derived(editData.actif === 'BREAK');
 
-	// Handlers
+	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
+		value,
+		label
+	}));
+
 	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
 		isSaving = true;
-
+		serverErrors = {};
 		formData.append('volunteerId', volunteerId || '');
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('la Bénévole mis à jour avec succès ! ✅');
-				if (onSuccess) {
-					onSuccess();
-				}
+				toast.success('Bénévole mis à jour avec succès');
+				await update();
+				onSuccess?.();
 			} else if (result.type === 'failure') {
-				console.error('Erreur mise à jour:', result.data);
-				toast.error(result.data?.error || 'Erreur lors de la mise à jour');
+				serverErrors = (result.data?.errors as Record<string, string[] | undefined>) ?? {};
+				toast.error((result.data?.error as string) || 'Erreur lors de la mise à jour');
+				await update({ reset: false });
 			}
-
-			await update();
 			isSaving = false;
 		};
 	};
 
-	const handleCancelClick = () => {
-		console.log('❌ Édition annulée');
-		if (onCancel) {
-			onCancel();
-		}
-	};
+	const handleCancelClick = () => onCancel?.();
 
 	const handleDeleted = () => {
 		isDeleting = false;
-		if (onSuccess) {
-			onSuccess();
-		}
+		onSuccess?.();
 	};
 
 	const handleBlacklisted = () => {
 		isBlacklisting = false;
-		if (onSuccess) {
-			onSuccess();
-		}
+		onSuccess?.();
 	};
 
-	// ✅ Handler pour la plage de dates
 	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
 		editData.breakStartDate = dates.start;
 		editData.breakEndDate = dates.end;
 	};
 </script>
 
-<!-- ✅ FORMULAIRE UPDATE -->
 <form method="POST" action="?/updateVolunteer" use:enhance={handleUpdateEnhance} class="space-y-6">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">
-			Éditer la FA: {editData.firstName || 'Sans nom'}
+	<!-- EN-TÊTE -->
+	<div class="flex items-center justify-between gap-2">
+		<h2 class="min-w-0 truncate text-lg font-semibold">
+			Modifier : {editData.firstName || 'Sans prénom'}
 			{editData.lastName || 'Sans nom'}
 		</h2>
-
-		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
-			<X class="h-5 w-5" />
+		<Button
+			variant="ghost"
+			size="icon"
+			class="shrink-0"
+			onclick={handleCancelClick}
+			aria-label="Annuler la modification"
+		>
+			<X class="size-5" />
 		</Button>
 	</div>
-	<section class="grid grid-cols-2 gap-4">
-		<!-- Statu -->
+
+	<!-- STATUT + PROFIL : empilés, ou côte à côte si le panneau est large -->
+	<section class="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
 		<SectionCard
 			icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
 			title={VOLUNTEER_SECTION_CONFIG.statuts.label}
 			color={VOLUNTEER_SECTION_CONFIG.statuts.color}
 		>
-			<div class="grid grid-cols-2 gap-4">
+			<div class="grid grid-cols-1 gap-4 @md:grid-cols-2">
 				<SelectField
 					id="actif"
 					name="actif"
-					label="Statut activité"
+					label="Statut d'activité"
 					bind:value={editData.actif}
 					options={VOLUNTEER_STATUS_OPTIONS}
+					class="w-full"
 					size="sm"
 					required
 				/>
-
 				<SelectField
 					id="role"
 					name="role"
 					label="Rôle"
 					bind:value={editData.role}
 					options={VOLUNTEER_ROLE_OPTIONS}
+					class="w-full"
 					size="sm"
 					required
 				/>
 
-				<!-- ✅ AFFICHAGE CONDITIONNEL : DateRangePicker apparaît si statut = 'BREAK' -->
 				{#if showBreakDateRange}
-					<div class="col-span-2">
+					<div class="@md:col-span-2">
 						<DateRangePicker
 							startValue={editData.breakStart}
 							endValue={editData.breakEnd}
 							startName="breakStart"
 							endName="breakEnd"
-							label="Période de congé"
+							label="Période de pause"
 							onSelect={handleBreakDateRangeSelect}
 						/>
 					</div>
@@ -158,116 +146,116 @@
 			</div>
 		</SectionCard>
 
-		<!-- Profil -->
 		<SectionCard
 			icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
 			title={VOLUNTEER_SECTION_CONFIG.profile.label}
 			color={VOLUNTEER_SECTION_CONFIG.profile.color}
 		>
-			<div class="grid grid-cols-2 gap-4">
+			<div class="grid grid-cols-1 gap-4 @md:grid-cols-2">
 				<InputField
 					id="firstName"
 					name="firstName"
 					label="Prénom"
 					bind:value={editData.firstName}
-					error={formErrors.firstName}
+					error={fieldError('firstName')}
 					size="sm"
 					required
 				/>
-
 				<InputField
 					id="lastName"
 					name="lastName"
 					label="Nom"
 					bind:value={editData.lastName}
-					error={formErrors.lastName}
+					error={fieldError('lastName')}
 					size="sm"
 					required
 				/>
-
-				<DatePicker
-					name="birthDate"
-					value={editData.birthDate}
-					onSelect={(date) => (editData.birthDate = date)}
-					label="Date de naissance"
-				/>
+				<div class="@md:col-span-2">
+					<DatePicker
+						name="birthDate"
+						value={editData.birthDate}
+						onSelect={(date) => (editData.birthDate = date)}
+						label="Date de naissance"
+						error={fieldError('birthDate')}
+					/>
+				</div>
 			</div>
 		</SectionCard>
 	</section>
+
 	<Separator />
 
-	<section class="grid grid-cols-2 gap-4">
-		<!-- Adresse -->
+	<!-- ADRESSE + CONTACT -->
+	<section class="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
 		<SectionCard
 			icon={VOLUNTEER_SECTION_CONFIG.address.icon}
 			title={VOLUNTEER_SECTION_CONFIG.address.label}
 			color={VOLUNTEER_SECTION_CONFIG.address.color}
 		>
-			<div class="space-y-4">
+			<div class="grid grid-cols-1 gap-4 @md:grid-cols-2">
+				<div class="@md:col-span-2">
+					<InputField
+						id="address"
+						name="address"
+						label="Rue"
+						bind:value={editData.address}
+						placeholder="Adresse"
+						error={fieldError('address')}
+						size="sm"
+						required
+					/>
+				</div>
 				<InputField
-					id="address"
-					name="address"
-					label="Rue"
-					bind:value={editData.address}
-					placeholder="Adresse"
-					error={formErrors.address}
-					required
+					id="city"
+					name="city"
+					label="Ville"
+					bind:value={editData.city}
+					placeholder="Ville"
+					error={fieldError('city')}
 					size="sm"
+					required
 				/>
-
-				<div class="flex gap-4">
-					<InputField
-						id="city"
-						name="city"
-						label="Ville"
-						bind:value={editData.city}
-						placeholder="Ville"
-						error={formErrors.city}
-						required
-						size="sm"
-					/>
-
-					<InputField
-						id="postalCode"
-						name="postalCode"
-						label="Code postal"
-						bind:value={editData.postalCode}
-						placeholder="75000"
-						error={formErrors.postalCode}
-						required
-						size="sm"
-					/>
-
+				<InputField
+					id="postalCode"
+					name="postalCode"
+					label="Code postal"
+					bind:value={editData.postalCode}
+					placeholder="34000"
+					error={fieldError('postalCode')}
+					size="sm"
+					required
+				/>
+				<div class="@md:col-span-2">
 					<SelectField
 						id="district"
 						name="district"
 						label="Quartier"
 						bind:value={editData.district}
 						options={districtOptions}
+						class="w-full"
 						size="sm"
 					/>
 				</div>
 			</div>
 		</SectionCard>
 
-		<!-- Contact -->
 		<SectionCard
 			icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
 			title={VOLUNTEER_SECTION_CONFIG.contact.label}
 			color={VOLUNTEER_SECTION_CONFIG.contact.color}
 		>
-			<div class="grid gap-2">
+			<div class="grid gap-4">
 				<InputField
 					id="phone"
 					name="phone"
 					label="Téléphone"
+					type="tel"
 					bind:value={editData.phone}
-					placeholder="06 12 34 56 78"
-					error={formErrors.phone}
-					required
+					placeholder="0612345678"
+					error={fieldError('phone')}
 					size="sm"
+					required
 				/>
-
 				<InputField
 					id="email"
 					name="email"
@@ -275,9 +263,9 @@
 					type="email"
 					bind:value={editData.email}
 					placeholder="jean@example.com"
-					error={formErrors.email}
-					required
+					error={fieldError('email')}
 					size="sm"
+					required
 				/>
 			</div>
 		</SectionCard>
@@ -285,9 +273,10 @@
 
 	<Separator />
 
-	<!-- ✅ SECTION 4: BOUTONS ACTION -->
-	<section class="flex justify-between">
-		<div class="flex gap-4">
+	<!-- ACTIONS -->
+	<!-- Étroit : Enregistrer en haut, actions dangereuses en dessous | Large : sur une ligne -->
+	<section class="flex flex-col-reverse gap-4 @xl:flex-row @xl:items-center @xl:justify-between">
+		<div class="flex flex-wrap gap-2">
 			<BlacklistButton
 				{profileId}
 				firstName={editData.firstName}
@@ -297,11 +286,10 @@
 				{isSaving}
 				{isDeleting}
 				showBlacklist={true}
-				actionName="?/blacklistVolunteer"
-				buttonLabel="Ajouter à la liste noire"
+				actionName="?/blacklistProfile"
+				buttonLabel="Liste noire"
 				onSuccess={handleBlacklisted}
 			/>
-
 			<DeleteButton
 				entityId={profileId}
 				firstName={editData.firstName}

@@ -27,6 +27,7 @@
 	import { format } from 'date-fns';
 	import { fr } from 'date-fns/locale';
 	import { VOLUNTEER_STATUS_OPTIONS, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -152,14 +153,15 @@
 
 <main
 	in:fade={{ duration: 200 }}
-	class="flex min-h-screen items-center justify-center bg-[url('/img/background.png')] bg-cover bg-center px-4 py-6"
+	class="flex min-h-full items-center justify-center bg-[url('/img/background.png')] bg-cover bg-center px-4 py-6 sm:px-6 lg:py-10"
 >
 	<div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-3">
 		<!-- ================= COLONNE GAUCHE ================= -->
-		<aside class="space-y-6">
+		<!-- Téléphone : empilé | Tablette : 2 cartes côte à côte | Desktop : colonne -->
+		<aside class="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
 			<!-- CARTE D'IDENTITÉ -->
 			<Card.Root class="gap-0 overflow-hidden py-0">
-				<!-- Bandeau aux couleurs du thème -->
+				<!-- Seul dégradé de la page : c'est le point fort visuel -->
 				<div class="from-primary/80 to-accent h-20 bg-linear-to-r"></div>
 
 				<Card.Content class="-mt-10 flex flex-col items-center px-6 pb-6 text-center">
@@ -173,6 +175,7 @@
 						{data.volunteer.firstName}
 						{data.volunteer.lastName}
 					</h1>
+
 					<div class="mt-2 flex flex-wrap items-center justify-center gap-2">
 						<span class="bg-primary/10 text-primary rounded-full px-3 py-0.5 text-xs font-medium">
 							{roleLabel}
@@ -217,21 +220,21 @@
 			</Card.Root>
 
 			<!-- SÉCURITÉ -->
-			<Card.Root class="gap-0 py-0">
-				<Card.Header
-					class="bg- from-secondary/80 to-secondary/20 h-20 bg-linear-to-r px-6 pt-5 pb-3"
-				>
+			<Card.Root class="gap-0 self-start py-0">
+				<Card.Header class="px-6 py-4">
 					<Card.Title class="flex items-center gap-2 text-base">
-						<ShieldCheck class="text-primary size-8" />
+						<ShieldCheck class="text-primary size-4" />
 						Sécurité
 					</Card.Title>
 				</Card.Header>
 
-				<Card.Content class="px-3 pb-3">
+				<Separator />
+
+				<Card.Content class="p-3">
 					<button
 						type="button"
 						onclick={() => (emailDialogOpen = true)}
-						class="hover:bg-muted flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors"
+						class="hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors"
 					>
 						<Mail class="text-muted-foreground size-4 shrink-0" />
 						<div class="min-w-0 flex-1">
@@ -259,14 +262,16 @@
 
 		<!-- ================= COLONNE DROITE : INFORMATIONS ================= -->
 		<Card.Root class="gap-0 py-0 lg:col-span-2">
-			<Card.Header class="bg- from-accent/80 to-primary h-20 bg-linear-to-r px-6 pt-5 pb-3">
+			<Card.Header class="px-4 py-4 sm:px-6">
 				<Card.Title class="text-lg">Informations personnelles</Card.Title>
-				<Card.Description class="text-black">
+				<Card.Description>
 					Ces informations permettent à l'association de vous contacter.
 				</Card.Description>
 			</Card.Header>
 
-			<Card.Content class="flex flex-1 flex-col p-6">
+			<Separator />
+
+			<Card.Content class="flex flex-1 flex-col p-4 sm:p-6">
 				<form
 					method="POST"
 					action="?/updateProfile"
@@ -280,7 +285,8 @@
 					}}
 				>
 					<div class="grid gap-4">
-						<div class="grid grid-cols-2 gap-4">
+						<!-- Prénom / Nom -->
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<InputField
 								id="firstName"
 								label="Prénom"
@@ -297,7 +303,8 @@
 							/>
 						</div>
 
-						<div class="grid grid-cols-3 gap-4">
+						<!-- Naissance / Téléphone / (Rôle) : 3 colonnes seulement si le Rôle est affiché -->
+						<div class="grid grid-cols-1 gap-4 {isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">
 							<DatePicker
 								name="birthDate"
 								label="Date de naissance"
@@ -313,7 +320,6 @@
 								error={errorFor('updateProfile', 'phone')}
 								required
 							/>
-
 							{#if isAdmin}
 								<SelectField
 									id="role"
@@ -326,49 +332,47 @@
 							{/if}
 						</div>
 
-						<div class="grid gap-y-4">
-							<div class="sm:col-span-2">
-								<InputField
-									id="address"
-									label="Adresse"
-									value={data.volunteer.address}
-									error={errorFor('updateProfile', 'address')}
-									required
-								/>
-							</div>
+						<!-- Adresse -->
+						<InputField
+							id="address"
+							label="Adresse"
+							value={data.volunteer.address}
+							error={errorFor('updateProfile', 'address')}
+							required
+						/>
 
-							<div class="grid grid-cols-3 gap-4">
-								<InputField
-									id="city"
-									label="Ville"
-									value={data.volunteer.city}
-									error={errorFor('updateProfile', 'city')}
-									required
-								/>
-								<InputField
-									id="postalCode"
-									label="Code postal"
-									placeholder="34000"
-									value={data.volunteer.postalCode}
-									error={errorFor('updateProfile', 'postalCode')}
-									required
-								/>
-
-								<SelectField
-									id="district"
-									label="Quartier"
-									options={DISTRICT_OPTIONS}
-									value={data.volunteer.district ?? ''}
-									placeholder="Aucun"
-									class="w-full"
-									wrapperClass="space-y-2"
-								/>
-							</div>
+						<!-- Ville / Code postal / Quartier -->
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<InputField
+								id="city"
+								label="Ville"
+								value={data.volunteer.city}
+								error={errorFor('updateProfile', 'city')}
+								required
+							/>
+							<InputField
+								id="postalCode"
+								label="Code postal"
+								placeholder="34000"
+								value={data.volunteer.postalCode}
+								error={errorFor('updateProfile', 'postalCode')}
+								required
+							/>
+							<SelectField
+								id="district"
+								label="Quartier"
+								options={DISTRICT_OPTIONS}
+								value={data.volunteer.district ?? ''}
+								placeholder="Aucun"
+								class="w-full"
+								wrapperClass="space-y-2"
+							/>
 						</div>
 					</div>
 
-					<div class="mt-auto flex justify-end pt-5">
-						<Button type="submit" disabled={profileIsSubmitting}>
+					<!-- Bouton : pleine largeur sur téléphone, à droite sur écran plus large -->
+					<div class="mt-auto flex justify-end pt-6">
+						<Button type="submit" class="w-full sm:w-auto" disabled={profileIsSubmitting}>
 							{#if profileIsSubmitting}
 								<LoaderCircle class="animate-spin" />
 								Enregistrement…

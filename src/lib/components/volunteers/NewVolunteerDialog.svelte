@@ -14,6 +14,7 @@
 	import SelectField from '../fields/SelectField.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import { format } from 'date-fns';
 
 	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();
 
@@ -31,7 +32,6 @@
 		}
 	});
 
-	let isSaving = $state(false);
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
@@ -56,7 +56,7 @@
 		const result = createVolunteerSchema.safeParse({
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
-			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
+			birthDate: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
 			email: email.trim(),
 			phone: phone.trim(),
 			address: address.trim(),
@@ -135,123 +135,74 @@
 </script>
 
 <!-- Template -->
-<Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content size="md" class="max-h-[90vh] overflow-y-auto">
-		<Dialog.Header>
+<Dialog.Root bind:open>
+	<!-- Hauteur limitée à l'écran visible : le contenu défile, le bouton reste en bas -->
+	<Dialog.Content size="md" class="flex max-h-[90dvh] flex-col gap-0 p-0">
+		<Dialog.Header class="p-4 sm:p-6">
 			<Dialog.Title>Créer un nouveau bénévole</Dialog.Title>
 			<Dialog.Description>
-				Remplissez tous les champs pour ajouter un nouveau bénévole au système
+				Un email avec un mot de passe temporaire lui sera envoyé.
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<form method="POST" action="?/createVolunteer" use:enhance={handleEnhance} class="space-y-6">
-			<!-- Profil -->
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
-				title={VOLUNTEER_SECTION_CONFIG.profile.label}
-				color={VOLUNTEER_SECTION_CONFIG.profile.color}
-			>
-				<div class="grid grid-cols-2 gap-4">
-					<InputField
-						id="firstName"
-						name="firstName"
-						label="Prénom"
-						bind:value={firstName}
-						placeholder="Jean"
-						error={getFieldError(fieldErrors, 'firstName')}
-						required
-						size="sm"
-						disabled={isSubmitting}
-					/>
+		<Separator />
 
-					<InputField
-						id="lastName"
-						name="lastName"
-						label="Nom"
-						bind:value={lastName}
-						placeholder="Dupont"
-						error={getFieldError(fieldErrors, 'lastName')}
-						required
-						size="sm"
-						disabled={isSubmitting}
-					/>
-
-					<DatePicker
-						name="birthDate"
-						value={birthDate}
-						onSelect={(date) => (birthDate = date)}
-						label="Date de naissance"
-						error={getFieldError(fieldErrors, 'birthDate')}
-					/>
-				</div>
-			</SectionCard>
-			<Separator />
-
-			<section class="grid grid-cols-2 gap-4">
-				<!-- Adresse -->
+		<form
+			method="POST"
+			action="?/createVolunteer"
+			use:enhance={handleEnhance}
+			class="flex min-h-0 flex-1 flex-col"
+		>
+			<!-- Zone qui défile -->
+			<div class="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
+				<!-- PROFIL -->
 				<SectionCard
-					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
-					title={VOLUNTEER_SECTION_CONFIG.address.label}
-					color={VOLUNTEER_SECTION_CONFIG.address.color}
+					icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
+					title={VOLUNTEER_SECTION_CONFIG.profile.label}
+					color={VOLUNTEER_SECTION_CONFIG.profile.color}
 				>
-					<div class="space-y-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<InputField
-							id="address"
-							name="address"
-							label="Rue"
-							bind:value={address}
-							placeholder="123 rue de la Paix"
-							error={getFieldError(fieldErrors, 'address')}
+							id="firstName"
+							name="firstName"
+							label="Prénom"
+							bind:value={firstName}
+							placeholder="Jean"
+							error={getFieldError(fieldErrors, 'firstName')}
 							required
 							size="sm"
 							disabled={isSubmitting}
 						/>
-						<div class="flex gap-4">
-							<InputField
-								id="city"
-								name="city"
-								label="Ville"
-								bind:value={city}
-								placeholder="Montpellier"
-								error={getFieldError(fieldErrors, 'city')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
-
-							<InputField
-								id="postalCode"
-								name="postalCode"
-								label="Code Postal"
-								bind:value={postalCode}
-								placeholder="34000"
-								error={getFieldError(fieldErrors, 'postalCode')}
-								required
-								size="sm"
-								disabled={isSubmitting}
+						<InputField
+							id="lastName"
+							name="lastName"
+							label="Nom"
+							bind:value={lastName}
+							placeholder="Dupont"
+							error={getFieldError(fieldErrors, 'lastName')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
+						<div class="sm:col-span-2">
+							<DatePicker
+								name="birthDate"
+								value={birthDate}
+								onSelect={(date) => (birthDate = date)}
+								label="Date de naissance"
+								error={getFieldError(fieldErrors, 'birthDate')}
 							/>
 						</div>
-						{#if city.toLowerCase() === 'montpellier'}
-							<SelectField
-								id="district"
-								name="district"
-								label="Quartier"
-								bind:value={selectedDistrict}
-								options={districtOptions}
-								size="sm"
-								disabled={isSubmitting}
-							/>
-						{/if}
 					</div>
 				</SectionCard>
 
-				<!-- Contact -->
+				<!-- CONTACT -->
 				<SectionCard
 					icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
 					title={VOLUNTEER_SECTION_CONFIG.contact.label}
 					color={VOLUNTEER_SECTION_CONFIG.contact.color}
 				>
-					<div class="grid gap-2">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<InputField
 							id="email"
 							name="email"
@@ -264,13 +215,13 @@
 							size="sm"
 							disabled={isSubmitting}
 						/>
-
 						<InputField
 							id="phone"
 							name="phone"
 							label="Téléphone"
+							type="tel"
 							bind:value={phone}
-							placeholder="06 12 34 56 78"
+							placeholder="0612345678"
 							error={getFieldError(fieldErrors, 'phone')}
 							required
 							size="sm"
@@ -278,31 +229,90 @@
 						/>
 					</div>
 				</SectionCard>
-			</section>
+
+				<!-- ADRESSE -->
+				<SectionCard
+					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
+					title={VOLUNTEER_SECTION_CONFIG.address.label}
+					color={VOLUNTEER_SECTION_CONFIG.address.color}
+				>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div class="sm:col-span-2">
+							<InputField
+								id="address"
+								name="address"
+								label="Rue"
+								bind:value={address}
+								placeholder="123 rue de la Paix"
+								error={getFieldError(fieldErrors, 'address')}
+								required
+								size="sm"
+								disabled={isSubmitting}
+							/>
+						</div>
+						<InputField
+							id="city"
+							name="city"
+							label="Ville"
+							bind:value={city}
+							placeholder="Montpellier"
+							error={getFieldError(fieldErrors, 'city')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
+						<InputField
+							id="postalCode"
+							name="postalCode"
+							label="Code postal"
+							bind:value={postalCode}
+							placeholder="34000"
+							error={getFieldError(fieldErrors, 'postalCode')}
+							required
+							size="sm"
+							disabled={isSubmitting}
+						/>
+						{#if city.trim().toLowerCase() === 'montpellier'}
+							<div class="sm:col-span-2">
+								<SelectField
+									id="district"
+									name="district"
+									label="Quartier"
+									bind:value={selectedDistrict}
+									options={districtOptions}
+									class="w-full"
+									size="sm"
+									disabled={isSubmitting}
+								/>
+							</div>
+						{/if}
+					</div>
+				</SectionCard>
+
+				<!-- RÔLE -->
+				<SectionCard
+					icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
+					title={VOLUNTEER_SECTION_CONFIG.statuts.label}
+					color={VOLUNTEER_SECTION_CONFIG.statuts.color}
+				>
+					<SelectField
+						id="role"
+						name="role"
+						label="Rôle"
+						bind:value={selectedRole}
+						options={VOLUNTEER_ROLE_OPTIONS}
+						class="w-full sm:w-64"
+						size="sm"
+						disabled={isSubmitting}
+					/>
+				</SectionCard>
+			</div>
+
 			<Separator />
 
-			<!-- Statu -->
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.statuts.icon}
-				title={VOLUNTEER_SECTION_CONFIG.statuts.label}
-				color={VOLUNTEER_SECTION_CONFIG.statuts.color}
-			>
-				<SelectField
-					id="role"
-					name="role"
-					label="Sélectionner un rôle"
-					bind:value={selectedRole}
-					options={VOLUNTEER_ROLE_OPTIONS}
-					size="sm"
-					disabled={isSubmitting}
-				/>
-			</SectionCard>
-
-			<Separator />
-
-			<!-- BUTTONS -->
-			<div>
-				<SaveCancelButtons onCancel={handleCancelClick} {isSaving} />
+			<!-- Pied fixe : toujours visible, même en faisant défiler le formulaire -->
+			<div class="bg-muted/40 p-4 sm:px-6">
+				<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
 			</div>
 		</form>
 	</Dialog.Content>
