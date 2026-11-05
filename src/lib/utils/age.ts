@@ -1,4 +1,4 @@
-function getAgeInMonths(birthDate: Date | null): number {
+export function getAgeInMonths(birthDate: Date | null): number {
 	if (!birthDate) return 0;
 	const now = new Date();
 	const birth = new Date(birthDate);

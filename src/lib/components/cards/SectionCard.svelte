@@ -39,11 +39,14 @@
 	};
 
 	type Props = {
-		icon: string;
+		icon?: string;
 		title: string;
 		color?: ColorVariant;
+		/** 'card' : bloc encadré et coloré | 'plain' : titre seul, qui regroupe d'autres blocs */
+		variant?: 'card' | 'plain';
 		class?: string;
 		separator?: boolean;
+		action?: import('svelte').Snippet;
 		children?: import('svelte').Snippet;
 	};
 
@@ -51,9 +54,11 @@
 		icon,
 		title,
 		color = 'gray',
+		variant = 'card',
 		separator = false,
 		children,
-		class: classList
+		action,
+		class: classList = ''
 	}: Props = $props();
 
 	const colorConfig: Record<ColorVariant, ColorConfig> = {
@@ -208,16 +213,34 @@
 	const current = $derived(colorConfig[color]);
 </script>
 
-<div class={`rounded-lg border ${current.border} ${current.bg} ${classList} p-4`}>
-	<div class="mb-4 flex items-center gap-2">
-		<Icon name={icon} class={`h-5 w-5  ${current.icon}`} />
-		<h4 class="text-sm font-semibold text-gray-900">{title}</h4>
+<div
+	class="{variant === 'card'
+		? `rounded-lg border p-4 ${current.border} ${current.bg}`
+		: ''} {classList}"
+>
+	<div class="flex items-center gap-2 {variant === 'card' ? 'mb-4' : 'mb-3'}">
+		{#if icon}
+			<Icon
+				name={icon}
+				class="h-5 w-5 {variant === 'card' ? current.icon : 'text-muted-foreground'}"
+			/>
+		{/if}
+		<h4
+			class="font-semibold {variant === 'card'
+				? 'text-sm text-gray-900'
+				: 'text-foreground text-base'}"
+		>
+			{title}
+		</h4>
+		{#if action}
+			<div class="ml-auto flex shrink-0 items-center gap-1">
+				{@render action()}
+			</div>
+		{/if}
 	</div>
 
 	<div>
-		{#if children}
-			{@render children()}
-		{/if}
+		{@render children?.()}
 	</div>
 
 	{#if separator}

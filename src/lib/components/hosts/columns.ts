@@ -15,6 +15,7 @@ export type ColumnDef = {
 	header: string;
 	accessor: (row: HostFull) => any;
 	sortable?: boolean;
+	mobile?: boolean;
 	filter?: {
 		type: FilterType;
 		options?: { label: string; value: string }[];
@@ -27,6 +28,7 @@ export const columns: ColumnDef[] = [
 		header: 'Nom',
 		accessor: (row) => `${truncate(row.profil.firstName, 20)} ${truncate(row.profil.lastName, 1)}.`,
 		sortable: true,
+		mobile: true,
 		filter: { type: 'text' }
 	},
 	{
@@ -49,6 +51,7 @@ export const columns: ColumnDef[] = [
 		id: 'type',
 		header: 'Type',
 		accessor: (row) => row.type ?? '—',
+		mobile: true,
 		filter: {
 			type: 'select',
 			options: HOST_TYPE_OPTIONS
@@ -91,6 +94,7 @@ export const columns: ColumnDef[] = [
 		id: 'socialize',
 		header: 'Socia',
 		accessor: (row) => row.socialize,
+		mobile: true,
 		filter: {
 			type: 'select',
 			options: HOST_SOCIALIZE_OPTIONS
@@ -117,7 +121,9 @@ export const columns: ColumnDef[] = [
 	{
 		id: 'activePlacements',
 		header: 'Chats actuels',
-		accessor: (row) => (row.placements ?? []).filter((p) => p.status === 'ACTIVE').length,
+		accessor: (row) =>
+			(row.placements ?? []).filter((p) => p.status === 'ACTIVE' && p.type !== 'PROPOSAL').length,
+
 		sortable: true
 	},
 	{

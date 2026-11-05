@@ -107,22 +107,31 @@
 		onchange={handleInput('DOCUMENT')}
 	/>
 
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">
-			Éditer le chat: {catName || 'Sans nom'}
+	<div class="flex items-center justify-between gap-2">
+		<h2 class="min-w-0 truncate text-lg font-semibold">
+			Médias : {catName || 'Sans nom'}
 		</h2>
 		{#if onClose}
-			<Button variant="ghost" onclick={onClose}><X class="h-5 w-5" /></Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="shrink-0"
+				onclick={onClose}
+				aria-label="Fermer les médias"
+			>
+				<X class="h-5 w-5" />
+			</Button>
 		{/if}
 	</div>
 
-	<!-- ================= IMAGES ================= -->
+	<!-- ================= PHOTOS ================= -->
 	<section class="space-y-4">
-		<div class="flex items-center justify-between">
+		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h3 class="text-lg font-semibold">Photos ({images.length})</h3>
 			<Button variant="outline" onclick={() => imageInput.click()}>
-				<ImagePlus class="mr-2 h-4 w-4" />
-				Ajouter une photo
+				<ImagePlus class="h-4 w-4" />
+				<span class="hidden sm:inline">Ajouter une photo</span>
+				<span class="sm:hidden">Ajouter</span>
 			</Button>
 		</div>
 
@@ -133,9 +142,12 @@
 				Aucune photo
 			</div>
 		{:else}
-			<div class="grid auto-rows-40 grid-cols-5 gap-3">
+			<!-- PC : 5 colonnes de 160 px de haut (comme avant) | Mobile : 3 colonnes de carrés -->
+			<div class="grid grid-cols-3 gap-2 sm:gap-3 lg:auto-rows-40 lg:grid-cols-5">
 				{#if primary}
-					<div class="group relative col-span-2 row-span-2 overflow-hidden rounded-xl">
+					<div
+						class="group relative col-span-2 row-span-2 aspect-square overflow-hidden rounded-xl lg:aspect-auto"
+					>
 						<img
 							src={primary.url}
 							alt={primary.originalName ?? 'Photo principale'}
@@ -148,8 +160,8 @@
 						<button
 							type="button"
 							onclick={() => handleDelete(primary)}
-							class="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white opacity-0 transition group-hover:opacity-100"
-							aria-label="Supprimer la photo"
+							class="absolute top-2 right-2 rounded-full bg-black/60 p-2.5 text-white transition pointer-fine:p-2 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
+							aria-label="Supprimer la photo principale"
 						>
 							<Trash class="h-4 w-4" />
 						</button>
@@ -157,34 +169,40 @@
 				{/if}
 
 				{#each otherImages as item (item.id)}
-					<div
-						role="button"
-						tabindex="0"
-						onclick={() => setPrimary(item)}
-						onkeydown={(e) => e.key === 'Enter' && setPrimary(item)}
-						class="group relative cursor-pointer overflow-hidden rounded-xl"
-						title="Cliquer pour définir comme photo principale"
-					>
-						<img
-							src={item.url}
-							alt={item.originalName ?? 'Photo'}
-							class="h-full w-full object-cover transition group-hover:scale-105"
-							style={focalStyle(item)}
-						/>
+					<div class="group relative aspect-square overflow-hidden rounded-xl lg:aspect-auto">
+						<!-- Clic sur la photo = la mettre en principale -->
+						<button
+							type="button"
+							onclick={() => setPrimary(item)}
+							class="block h-full w-full cursor-pointer"
+							title="Définir comme photo principale"
+							aria-label="Définir comme photo principale"
+						>
+							<img
+								src={item.url}
+								alt={item.originalName ?? 'Photo'}
+								loading="lazy"
+								class="h-full w-full object-cover transition pointer-fine:group-hover:scale-105"
+								style={focalStyle(item)}
+							/>
+						</button>
 
+						<!-- Souris : indication au survol | Tactile : petite étoile toujours visible -->
 						<div
-							class="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition group-hover:opacity-100"
+							class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition pointer-fine:flex pointer-fine:group-hover:opacity-100"
 						>
 							Mettre en principale
 						</div>
+						<span
+							class="pointer-events-none absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white pointer-fine:hidden"
+						>
+							☆ Principale
+						</span>
 
 						<button
 							type="button"
-							onclick={(e) => {
-								e.stopPropagation();
-								handleDelete(item);
-							}}
-							class="absolute top-2 right-2 z-10 rounded-full bg-black/60 p-2 text-white opacity-0 transition group-hover:opacity-100"
+							onclick={() => handleDelete(item)}
+							class="absolute top-1.5 right-1.5 z-10 rounded-full bg-black/60 p-2 text-white transition pointer-fine:top-2 pointer-fine:right-2 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
 							aria-label="Supprimer la photo"
 						>
 							<Trash class="h-4 w-4" />
@@ -199,11 +217,12 @@
 
 	<!-- ================= VIDÉOS ================= -->
 	<section class="space-y-4">
-		<div class="flex items-center justify-between">
+		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h3 class="text-lg font-semibold">Vidéos ({videos.length})</h3>
 			<Button variant="outline" onclick={() => videoInput.click()}>
-				<Video class="mr-2 h-4 w-4" />
-				Ajouter une vidéo
+				<Video class="h-4 w-4" />
+				<span class="hidden sm:inline">Ajouter une vidéo</span>
+				<span class="sm:hidden">Ajouter</span>
 			</Button>
 		</div>
 
@@ -214,7 +233,8 @@
 				Aucune vidéo
 			</div>
 		{:else}
-			<div class="grid grid-cols-3 gap-3">
+			<!-- PC : 3 colonnes (comme avant) | Tablette : 2 | Mobile : 1 -->
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{#each videos as item (item.id)}
 					<div class="group relative overflow-hidden rounded-xl bg-black">
 						<video src={item.url} controls preload="metadata" class="h-full w-full object-contain">
@@ -223,7 +243,7 @@
 						<button
 							type="button"
 							onclick={() => handleDelete(item)}
-							class="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white opacity-0 transition group-hover:opacity-100"
+							class="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white transition pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
 							aria-label="Supprimer la vidéo"
 						>
 							<Trash class="h-4 w-4" />
@@ -238,11 +258,12 @@
 
 	<!-- ================= DOCUMENTS ================= -->
 	<section class="space-y-4">
-		<div class="flex items-center justify-between">
+		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h3 class="text-lg font-semibold">Documents ({documents.length})</h3>
 			<Button variant="outline" onclick={() => documentInput.click()}>
-				<FileText class="mr-2 h-4 w-4" />
-				Ajouter un document
+				<FileText class="h-4 w-4" />
+				<span class="hidden sm:inline">Ajouter un document</span>
+				<span class="sm:hidden">Ajouter</span>
 			</Button>
 		</div>
 
@@ -260,15 +281,15 @@
 							href={item.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="flex items-center gap-3 hover:underline"
+							class="flex min-w-0 items-center gap-3 hover:underline"
 						>
-							<FileText class="h-5 w-5 text-red-500" />
+							<FileText class="h-5 w-5 shrink-0 text-red-500" />
 							<span class="truncate">{item.originalName ?? 'Document PDF'}</span>
 						</a>
 						<button
 							type="button"
 							onclick={() => handleDelete(item)}
-							class="text-muted-foreground hover:text-destructive p-2"
+							class="text-muted-foreground hover:text-destructive shrink-0 p-2"
 							aria-label="Supprimer le document"
 						>
 							<Trash class="h-4 w-4" />

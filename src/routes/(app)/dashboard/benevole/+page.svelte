@@ -25,6 +25,11 @@
 
 	let selectedVolunteerId = $state<string | null>(null);
 	const selectedVolunteer = $derived(volunteers.find((v) => v.id === selectedVolunteerId) ?? null);
+	const selectedVolunteerName = $derived(
+		selectedVolunteer
+			? `${selectedVolunteer.profil.firstName} ${selectedVolunteer.profil.lastName}`
+			: 'Détail du bénévole'
+	);
 
 	// Tiroir du détail : utilisé uniquement sur mobile
 	let mobilePanelOpen = $state(false);
@@ -85,12 +90,6 @@
 		{ icon: 'cat', theme: 'cats', title: 'Chats suivis' },
 		{ icon: 'clipboard', theme: 'pending', title: 'Formulaires assignés' }
 	];
-
-	const selectedVolunteerName = $derived(
-		selectedVolunteer
-			? `${selectedVolunteer.profil.firstName} ${selectedVolunteer.profil.lastName}`
-			: 'Détail du bénévole'
-	);
 </script>
 
 <svelte:head>
@@ -125,109 +124,111 @@
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-			<!-- LISTE -->
-			<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
-				<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
-					<Card.Title class="text-xl font-bold sm:text-2xl">
-						Bénévoles
-						<span class="text-muted-foreground text-base font-normal">
-							({filteredVolunteers.length})
-						</span>
-					</Card.Title>
-					<Button class="rounded-2xl" size="sm" onclick={() => (newVolunteerOpen = true)}>
-						<Icon name="plus" class="h-4 w-4" />
-						<span class="hidden sm:inline">Nouveau bénévole</span>
-						<span class="sm:hidden">Ajouter</span>
-					</Button>
-				</Card.Header>
-
-				<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
-					<!-- Filtres -->
-					<div class="flex flex-wrap items-center gap-2">
-						<SelectField
-							id="volunteer-status-filter"
-							label=""
-							options={VOLUNTEER_STATUS_OPTIONS}
-							bind:value={actifFilter}
-							placeholder="Statut"
-							class="w-32"
-						/>
-						<SelectField
-							id="volunteer-role-filter"
-							label=""
-							options={VOLUNTEER_ROLE_OPTIONS}
-							bind:value={roleFilter}
-							placeholder="Rôle"
-							class="w-32"
-						/>
-						<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
-							Réinitialiser
+			<!-- LISTE : sur PC, sa hauteur suit celle du panneau (avec une hauteur minimale) -->
+			<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
+				<Card.Root class="flex flex-col lg:absolute lg:inset-0">
+					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
+						<Card.Title class="text-xl font-bold sm:text-2xl">
+							Bénévoles
+							<span class="text-muted-foreground text-base font-normal">
+								({filteredVolunteers.length})
+							</span>
+						</Card.Title>
+						<Button class="rounded-2xl" size="sm" onclick={() => (newVolunteerOpen = true)}>
+							<Icon name="plus" class="h-4 w-4" />
+							<span class="hidden sm:inline">Nouveau bénévole</span>
+							<span class="sm:hidden">Ajouter</span>
 						</Button>
-					</div>
+					</Card.Header>
 
-					<!-- Recherche -->
-					<div class="relative">
-						<Icon
-							name="search"
-							class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-						/>
-						<Input
-							type="search"
-							placeholder="Chercher un bénévole…"
-							aria-label="Chercher un bénévole"
-							bind:value={searchQuery}
-							class="pl-9"
-						/>
-					</div>
+					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
+						<!-- Filtres -->
+						<div class="flex flex-wrap items-center gap-2">
+							<SelectField
+								id="volunteer-status-filter"
+								label=""
+								options={VOLUNTEER_STATUS_OPTIONS}
+								bind:value={actifFilter}
+								placeholder="Statut"
+								class="w-32"
+							/>
+							<SelectField
+								id="volunteer-role-filter"
+								label=""
+								options={VOLUNTEER_ROLE_OPTIONS}
+								bind:value={roleFilter}
+								placeholder="Rôle"
+								class="w-32"
+							/>
+							<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
+								Réinitialiser
+							</Button>
+						</div>
 
-					<!-- Tableau : défile dans sa carte sur ordinateur, suit la page sur mobile -->
-					<div
-						class="overflow-x-auto rounded-md lg:h-[calc(100dvh-24rem)] lg:min-h-80 lg:overflow-y-auto"
-					>
-						<Table.Root containerClass="overflow-visible">
-							<Table.Header
-								class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
-							>
-								<Table.Row>
-									<Table.Head>Nom</Table.Head>
-									<Table.Head>Rôle</Table.Head>
-									<Table.Head class="hidden sm:table-cell">Quartier</Table.Head>
-									{#each countColumns as col (col.title)}
-										<Table.Head title={col.title} class="hidden text-center sm:table-cell">
-											<div class="flex justify-center text-white">
-												<Icon
-													name={col.icon}
-													withWrapper={true}
-													wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
-													style="background: {getGradientStyle(col.theme)}"
-													iconClass="h-5 w-5"
-												/>
-											</div>
-										</Table.Head>
-									{/each}
-									<!-- Colonne de la flèche : mobile uniquement -->
-									<Table.Head class="w-8 sm:hidden"><span class="sr-only">Ouvrir</span></Table.Head>
-								</Table.Row>
-							</Table.Header>
-							<Table.Body>
-								{#each filteredVolunteers as volunteer (volunteer.id)}
-									<VolunteerRow
-										{volunteer}
-										onclick={() => handleSelectVolunteer(volunteer.id)}
-										isSelected={selectedVolunteerId === volunteer.id}
-									/>
-								{:else}
+						<!-- Recherche -->
+						<div class="relative">
+							<Icon
+								name="search"
+								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+							/>
+							<Input
+								type="search"
+								placeholder="Chercher un bénévole…"
+								aria-label="Chercher un bénévole"
+								bind:value={searchQuery}
+								class="pl-9"
+							/>
+						</div>
+
+						<!-- Tableau : prend l'espace restant et défile dans la carte sur PC -->
+						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
+							<Table.Root containerClass="overflow-visible">
+								<Table.Header
+									class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+								>
 									<Table.Row>
-										<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
-											Aucun bénévole ne correspond à ces filtres.
-										</Table.Cell>
+										<Table.Head>Nom</Table.Head>
+										<Table.Head>Rôle</Table.Head>
+										<Table.Head class="hidden sm:table-cell">Quartier</Table.Head>
+										{#each countColumns as col (col.title)}
+											<Table.Head title={col.title} class="hidden text-center sm:table-cell">
+												<div class="flex justify-center text-white">
+													<Icon
+														name={col.icon}
+														withWrapper={true}
+														wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
+														style="background: {getGradientStyle(col.theme)}"
+														iconClass="h-5 w-5"
+													/>
+												</div>
+											</Table.Head>
+										{/each}
+										<!-- Colonne de la flèche : mobile uniquement -->
+										<Table.Head class="w-8 sm:hidden">
+											<span class="sr-only">Ouvrir</span>
+										</Table.Head>
 									</Table.Row>
-								{/each}
-							</Table.Body>
-						</Table.Root>
-					</div>
-				</Card.Content>
-			</Card.Root>
+								</Table.Header>
+								<Table.Body>
+									{#each filteredVolunteers as volunteer (volunteer.id)}
+										<VolunteerRow
+											{volunteer}
+											onclick={() => handleSelectVolunteer(volunteer.id)}
+											isSelected={selectedVolunteerId === volunteer.id}
+										/>
+									{:else}
+										<Table.Row>
+											<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
+												Aucun bénévole ne correspond à ces filtres.
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
+						</div>
+					</Card.Content>
+				</Card.Root>
+			</div>
 
 			<!-- DÉTAIL : à côté de la liste, sur ordinateur uniquement -->
 			{#if isDesktop.current}

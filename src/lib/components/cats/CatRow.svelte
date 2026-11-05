@@ -5,6 +5,7 @@
 	import { focalPointStyle, getSexIcon } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
 	import { Badge } from '$lib/components/ui/badge';
+	import { ChevronRight } from '@lucide/svelte';
 
 	const {
 		cat,
@@ -12,13 +13,14 @@
 		isSelected = false
 	}: { cat: CatFull; onclick: () => void; isSelected?: boolean } = $props();
 
-	const sexIcon = getSexIcon(cat.sex);
+	// $derived : recalculés quand `cat` change (ex : après un rechargement des données)
+	const sexIcon = $derived(getSexIcon(cat.sex));
 	const primaryMedia = $derived(cat.media[0] ?? null);
 	const imageSrc = $derived(primaryMedia?.url ?? '/img/logo.png');
 	const imageStyle = $derived(focalPointStyle(primaryMedia));
-
-	// Récupère les maladies actives
-	const activeSicknesses = cat.sicknesses.filter((s) => s.status !== 'RESOLVED');
+	const activeSicknessesCount = $derived(
+		cat.sicknesses.filter((s) => s.status !== 'RESOLVED').length
+	);
 </script>
 
 <Table.Row
@@ -31,25 +33,41 @@
 		<img
 			src={imageSrc}
 			alt={cat.name ?? cat.catNumber}
-			class="h-12 w-12 rounded-full object-cover"
+			loading="lazy"
+			class="size-9 rounded-full object-cover sm:size-12"
 			style={imageStyle}
 		/>
 	</Table.Cell>
-	<Table.Cell class="text-xs">{cat.catNumber}</Table.Cell>
-	<Table.Cell class="font-medium">{cat.name ?? 'Sans nom'}</Table.Cell>
+
+	<!-- Num : sa propre colonne à partir de 640 px -->
+	<Table.Cell class="hidden text-xs sm:table-cell">{cat.catNumber}</Table.Cell>
+
+	<!-- Nom (+ numéro dessous sur mobile) -->
+	<Table.Cell class="max-w-28 font-medium sm:max-w-40">
+		<span class="block truncate">{cat.name ?? 'Sans nom'}</span>
+		<span class="text-muted-foreground block text-xs sm:hidden">{cat.catNumber}</span>
+	</Table.Cell>
+
 	<Table.Cell class="text-center">
-		<div title={sexIcon.label}>
-			<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
+		<div title={sexIcon.label} class="flex justify-center">
+			<Icon name={sexIcon.icon} class="size-5 sm:size-6 {sexIcon.color}" />
 		</div>
 	</Table.Cell>
-	<Table.Cell class="text-sm">{getAgeBadge(cat.birthDate)}</Table.Cell>
-	<Table.Cell>
-		{#if activeSicknesses.length > 0}
-			<div class="flex items-center gap-2">
-				<Badge variant="outline" class="text-xs">{activeSicknesses.length}</Badge>
-			</div>
+
+	<Table.Cell class="text-xs sm:text-sm">{getAgeBadge(cat.birthDate)}</Table.Cell>
+
+	<Table.Cell class="text-center sm:text-left">
+		{#if activeSicknessesCount > 0}
+			<Badge variant="outline" class="text-xs">{activeSicknessesCount}</Badge>
 		{:else}
-			<span class="text-muted-foreground text-xs">Aucune maladie</span>
+			<span class="text-muted-foreground text-xs">
+				<span class="sm:hidden">—</span>
+				<span class="hidden sm:inline">Aucune</span>
+			</span>
 		{/if}
+	</Table.Cell>
+
+	<Table.Cell class="text-muted-foreground w-6 px-0 sm:hidden">
+		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

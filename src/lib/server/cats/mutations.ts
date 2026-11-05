@@ -60,7 +60,7 @@ function buildCatData(data: CreateCatInput | UpdateCatInput) {
 }
 
 export async function createCat({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || !['ADMIN', 'MANAGER'].includes(locals.user.role)) {
+	if (!locals.user || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(locals.user.role)) {
 		return { success: false, error: 'Non autorisé', errors: {} };
 	}
 
@@ -141,7 +141,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 }
 
 export async function updateCat({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || !['ADMIN', 'MANAGER'].includes(locals.user.role)) {
+	if (!locals.user || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(locals.user.role)) {
 		return { success: false, error: 'Non autorisé', errors: {} };
 	}
 
