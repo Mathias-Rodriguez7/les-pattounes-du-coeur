@@ -243,7 +243,7 @@
 					</div>
 
 					{#if item.type === 'DOCUMENT' && item.url}
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- URL locale (blob:), pas une route -->
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 						<a
 							href={item.url}
 							target="_blank"
@@ -256,6 +256,7 @@
 							<Eye class="size-4" />
 							<span class="hidden sm:inline">Aperçu</span>
 						</a>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{/if}
 
 					<Button

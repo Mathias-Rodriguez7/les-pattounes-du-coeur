@@ -129,7 +129,6 @@
 				label="Type"
 				options={NEWS_TYPE_OPTIONS}
 				bind:value={editData.type}
-				error={fieldError('type')}
 				required
 			/>
 		</div>

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Icon from '$lib/components/Icon.svelte';
-	import { Pencil, FileText } from '@lucide/svelte';
+	import { Pencil } from '@lucide/svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { formatDate } from '$lib/utils/date';
 	import SectionCard from '../cards/SectionCard.svelte';
@@ -12,6 +12,7 @@
 	import NewsCatsPanel from './NewsCatsPanel.svelte';
 	import { NEWS_SECTION_CONFIG, NEWS_TYPE_CONFIG } from '$lib/constants/news';
 	import type { NewsFull, NewsEditData } from '$lib/types/news';
+	import MediaPreview from '../media/MediaPreview.svelte';
 
 	interface Props {
 		news: NewsFull | null;
@@ -59,9 +60,6 @@
 			? NEWS_TYPE_CONFIG[news.type]
 			: NEWS_TYPE_CONFIG.NEWS
 	);
-
-	const isPdf = $derived(!!news?.mediaUrl && /\.pdf$/i.test(news.mediaUrl));
-	const isImage = $derived(!!news?.mediaUrl && /\.(jpe?g|png|gif|webp)$/i.test(news.mediaUrl));
 </script>
 
 {#if news}
@@ -142,52 +140,12 @@
 						color={NEWS_SECTION_CONFIG.media.color}
 					>
 						{#if news.mediaUrl}
-							{#if isPdf}
-								<!-- PC : lecteur intégré -->
-								<object
-									data={news.mediaUrl}
-									type="application/pdf"
-									class="hidden h-200 w-full rounded-lg border border-gray-200 lg:block"
-									aria-label="Lecteur PDF"
-								>
-									<p class="text-muted-foreground text-sm">
-										Impossible d'afficher le PDF.
-										<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- lien vers un média/externe, pas une route -->
-										<a
-											href={news.mediaUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="underline">Télécharger</a
-										>
-									</p>
-								</object>
-
-								<!-- Mobile : les navigateurs affichent mal les PDF intégrés -->
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- lien vers un média/externe, pas une route -->
-								<a
-									href={news.mediaUrl}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="{buttonVariants({ variant: 'outline' })} w-full lg:hidden"
-								>
-									<FileText class="h-4 w-4" />
-									Ouvrir le PDF
-								</a>
-							{:else if isImage}
-								<div class="overflow-hidden rounded-lg">
-									<img src={news.mediaUrl} alt={news.title} class="h-full w-full object-cover" />
-								</div>
-							{:else}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- lien vers un média/externe, pas une route -->
-								<a
-									href={news.mediaUrl}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="block text-sm break-all text-blue-600 underline hover:text-blue-800 sm:ml-6"
-								>
-									{news.mediaUrl}
-								</a>
-							{/if}
+							<MediaPreview
+								src={news.mediaUrl}
+								name={news.title}
+								alt={news.title}
+								variant="embed"
+							/>
 						{:else}
 							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun média</p>
 						{/if}

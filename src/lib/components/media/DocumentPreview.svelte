@@ -31,7 +31,7 @@
 			</p>
 		</div>
 
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- fichier média, pas une route -->
+		<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 		<a
 			href={src}
 			target="_blank"
@@ -42,6 +42,7 @@
 			<ExternalLink class="size-4" />
 			<span class="hidden sm:inline">Ouvrir</span>
 		</a>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	</div>
 {/snippet}
 

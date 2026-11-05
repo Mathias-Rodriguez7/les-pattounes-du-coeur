@@ -88,7 +88,7 @@ function getLocalPdf() {
 function pdfMedia(folder: string, originalName: string, isPrivate: boolean) {
 	return {
 		type: 'DOCUMENT' as const,
-		storageKey: `${isPrivate ? 'private' : 'public'}/${folder}/${randomUUID()}.pdf`,
+		storageKey: `${folder}/${randomUUID()}.pdf`,
 		mimeType: 'application/pdf',
 		sizeBytes: faker.number.int({ min: 80_000, max: 3_000_000 }),
 		originalName,

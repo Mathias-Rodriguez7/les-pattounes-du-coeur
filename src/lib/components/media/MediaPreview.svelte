@@ -43,7 +43,7 @@
 	<DocumentPreview {src} {name} {sizeBytes} {variant} class={classList} />
 {:else}
 	<!-- Type inconnu : simple lien -->
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- lien externe, pas une route -->
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 	<a
 		href={src}
 		target="_blank"
@@ -52,4 +52,5 @@
 	>
 		{name ?? src}
 	</a>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {/if}

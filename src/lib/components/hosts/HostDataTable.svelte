@@ -29,8 +29,11 @@
 
 	const DEFAULT_FILTERS: Record<string, string> = { actif: 'ACTIVE' };
 
-	// Tri par défaut : par compatibilité (meilleures FA en haut) si on a un chat
+	// Valeurs initiales voulues : la Dialog recrée le tableau à chaque ouverture,
+	// donc `cat` ne change pas pendant que le tableau est affiché.
+	// svelte-ignore state_referenced_locally
 	const DEFAULT_SORT_COLUMN = cat ? 'compatibility' : null;
+	// svelte-ignore state_referenced_locally
 	const DEFAULT_SORT_DIRECTION: 'asc' | 'desc' = cat ? 'desc' : 'asc';
 
 	// --- État global ---
@@ -38,6 +41,8 @@
 	let columnFilters = $state<Record<string, string>>({ ...DEFAULT_FILTERS });
 	let sortColumn = $state<string | null>(DEFAULT_SORT_COLUMN);
 	let sortDirection = $state<'asc' | 'desc'>(DEFAULT_SORT_DIRECTION);
+	// Sélection de départ seulement : ensuite, le tableau gère la sienne
+	// svelte-ignore state_referenced_locally
 	let internalSelected = $state<string[]>(selectedHostIds);
 	let compareMode = $state(false);
 	let showFilters = $state(false);
@@ -158,12 +163,10 @@
 		return [...filteredHosts].sort((a, b) => {
 			const va = col.accessor(a);
 			const vb = col.accessor(b);
-			let cmp = 0;
-			if (typeof va === 'number' && typeof vb === 'number') {
-				cmp = va - vb;
-			} else {
-				cmp = String(va ?? '').localeCompare(String(vb ?? ''));
-			}
+			const cmp =
+				typeof va === 'number' && typeof vb === 'number'
+					? va - vb
+					: String(va ?? '').localeCompare(String(vb ?? ''));
 			return sortDirection === 'asc' ? cmp : -cmp;
 		});
 	});
