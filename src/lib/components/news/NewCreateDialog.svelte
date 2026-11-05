@@ -1,70 +1,79 @@
+<!-- src/lib/components/news/NewCreateDialog.svelte -->
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import { LoaderCircle } from '@lucide/svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
+	import MediaUpload from '../media/MediaUpload.svelte';
 	import { NEWS_TYPE_OPTIONS } from '$lib/constants/news.js';
 	import { enhance } from '$app/forms';
+	import { toast } from 'svelte-sonner';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
-	let { open = $bindable(false), onCancel } = $props();
+	interface Props {
+		open?: boolean;
+		onCancel?: () => void;
+	}
+
+	let { open = $bindable(false), onCancel }: Props = $props();
 
 	let title = $state('');
 	let type = $state('NEWS');
 	let content = $state('');
-	let file = $state<File | null>(null);
-	let fileInput = $state<HTMLInputElement | null>(null);
+	let files = $state<File[]>([]);
 	let submitting = $state(false);
 
-	function handleFileChange(e: Event) {
-		const target = e.currentTarget as HTMLInputElement;
-		const selected = target.files?.[0] ?? null;
+	// Une News chats n'a pas de document : ses chats sont générés automatiquement
+	const needsMedia = $derived(type !== 'NEWSCATS');
 
-		if (selected && selected.type !== 'application/pdf') {
-			alert('Seuls les fichiers PDF sont acceptés.');
-			target.value = '';
-			file = null;
-			return;
-		}
-
-		if (selected && selected.size > 10 * 1024 * 1024) {
-			alert('Le fichier ne doit pas dépasser 10 Mo.');
-			target.value = '';
-			file = null;
-			return;
-		}
-
-		file = selected;
+	function resetForm() {
+		title = '';
+		type = 'NEWS';
+		content = '';
+		files = [];
 	}
 
-	function removeFile() {
-		file = null;
-		if (fileInput) fileInput.value = '';
-	}
+	// À chaque fermeture (Échap, croix, clic à côté, succès) : formulaire vide
+	$effect(() => {
+		if (!open) resetForm();
+	});
+
+	const handleEnhance: SubmitFunction = () => {
+		submitting = true;
+
+		// ⏳ Étape 5 : le PDF de `files` sera envoyé directement à S3 ici,
+		// puis seul son identifiant (mediaId) partira dans le formulaire.
+
+		return async ({ result, update }) => {
+			submitting = false;
+
+			if (result.type === 'success') {
+				toast.success('News créée');
+				open = false;
+				await update();
+			} else if (result.type === 'failure') {
+				toast.error((result.data?.error as string) ?? 'Erreur lors de la création');
+				await update({ reset: false });
+			} else {
+				await update();
+			}
+		};
+	};
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content>
+	<Dialog.Content class="max-h-[90dvh] overflow-y-auto sm:max-w-lg lg:max-w-2xl">
 		<Dialog.Header>
 			<Dialog.Title>Nouvelle news</Dialog.Title>
+			<Dialog.Description>Elle sera visible sur la page publique des news.</Dialog.Description>
 		</Dialog.Header>
 
-		<form
-			method="POST"
-			action="?/create"
-			enctype="multipart/form-data"
-			class="flex flex-col gap-4"
-			use:enhance={() => {
-				submitting = true;
-				return async ({ update }) => {
-					submitting = false;
-					await update();
-				};
-			}}
-		>
-			<div class="grid grid-cols-2 gap-4">
+		<form method="POST" action="?/create" class="flex flex-col gap-4" use:enhance={handleEnhance}>
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<InputField
-					id="title"
+					id="new-news-title"
 					name="title"
 					label="Titre"
 					bind:value={title}
@@ -84,39 +93,38 @@
 			</div>
 
 			<TextareaField
-				id="content"
+				id="new-news-content"
 				name="content"
 				label="Description"
 				bind:value={content}
 				placeholder="Description..."
 			/>
 
-			<!-- 📎 UPLOAD PDF -->
-			<div class="flex flex-col gap-2">
-				<label for="media" class="text-sm font-medium">Document (PDF)</label>
-				<input
-					id="media"
-					name="media"
-					type="file"
-					accept="application/pdf"
-					bind:this={fileInput}
-					onchange={handleFileChange}
-					class="file:bg-muted hover:file:bg-accent text-sm file:mr-4 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm"
+			{#if needsMedia}
+				<MediaUpload
+					id="new-news-media"
+					accept={['DOCUMENT']}
+					bind:files
+					label="Document (PDF)"
+					disabled={submitting}
 				/>
-				{#if file}
-					<div class="text-muted-foreground flex items-center justify-between text-sm">
-						<span class="truncate">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} Mo)</span>
-						<Button type="button" variant="ghost" size="sm" onclick={removeFile}>Retirer</Button>
-					</div>
-				{/if}
-			</div>
+			{:else}
+				<p class="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
+					Les chats à l'adoption seront ajoutés automatiquement à cette news.
+				</p>
+			{/if}
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={onCancel} disabled={submitting}>
 					Annuler
 				</Button>
 				<Button type="submit" disabled={submitting}>
-					{submitting ? 'Création...' : 'Créer'}
+					{#if submitting}
+						<LoaderCircle class="size-4 animate-spin" />
+						Création…
+					{:else}
+						Créer
+					{/if}
 				</Button>
 			</Dialog.Footer>
 		</form>

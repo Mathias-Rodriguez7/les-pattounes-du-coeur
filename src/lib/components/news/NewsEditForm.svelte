@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { X, Search } from '@lucide/svelte';
+	import { X, Search, Trash2, Undo2 } from '@lucide/svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
@@ -10,8 +11,13 @@
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
+	import MediaPreview from '../media/MediaPreview.svelte';
+	import MediaUpload from '../media/MediaUpload.svelte';
 	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS } from '$lib/constants/news';
 	import type { NewsEditData } from '$lib/types/news';
+	import { enhance } from '$app/forms';
+	import { toast } from 'svelte-sonner';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 
@@ -33,9 +39,18 @@
 		onCancel
 	}: Props = $props();
 
-	// États d'envoi : on les branchera avec les actions
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
+
+	// ===== ERREURS SERVEUR =====
+	let serverErrors = $state<Record<string, string[] | undefined>>({});
+	const fieldError = (field: string) => serverErrors[field]?.[0] ?? '';
+
+	// ===== MÉDIA =====
+	let files = $state<File[]>([]); // nouveau PDF choisi (envoi : étape 5)
+	let removeCurrent = $state(false); // retirer le document actuel à l'enregistrement
+
+	const hasCurrentMedia = $derived(!!editData.mediaUrl && !removeCurrent);
 
 	// ===== CHATS =====
 	let catSearch = $state('');
@@ -60,10 +75,34 @@
 			? [...editData.catIds, catId]
 			: editData.catIds.filter((id) => id !== catId);
 	}
+
+	// ===== ENVOI =====
+	const handleEnhance: SubmitFunction = () => {
+		isSaving = true;
+		serverErrors = {};
+
+		// ⏳ Étape 5 : si `files` contient un PDF, on l'enverra ici à S3,
+		// puis on ajoutera son mediaId au formulaire.
+
+		return async ({ result, update }) => {
+			isSaving = false;
+
+			if (result.type === 'success') {
+				toast.success('News mise à jour');
+				await update();
+				onSuccess?.();
+			} else if (result.type === 'failure') {
+				serverErrors = (result.data?.errors as Record<string, string[] | undefined>) ?? {};
+				toast.error((result.data?.error as string) ?? 'Erreur lors de la mise à jour');
+				await update({ reset: false });
+			} else {
+				await update();
+			}
+		};
+	};
 </script>
 
-<!-- Pour l'instant : envoi classique (rechargement). use:enhance arrive avec les actions -->
-<form method="POST" action="?/update" class="flex flex-col gap-6">
+<form method="POST" action="?/update" class="flex flex-col gap-6" use:enhance={handleEnhance}>
 	<input type="hidden" name="newsId" value={newsId} />
 
 	<!-- ===== RÉSUMÉ ===== -->
@@ -80,6 +119,7 @@
 					label="Titre"
 					bind:value={editData.title}
 					placeholder="Titre de la news"
+					error={fieldError('title')}
 					required
 				/>
 			</div>
@@ -89,6 +129,7 @@
 				label="Type"
 				options={NEWS_TYPE_OPTIONS}
 				bind:value={editData.type}
+				error={fieldError('type')}
 				required
 			/>
 		</div>
@@ -105,11 +146,12 @@
 			name="content"
 			bind:value={editData.content}
 			placeholder="Contenu de la news…"
+			error={fieldError('content')}
 			rows={6}
 		/>
 	</SectionCard>
 
-	<!-- ===== MÉDIA ou CHATS selon le type ===== -->
+	<!-- ===== CHATS ou DOCUMENT selon le type ===== -->
 	{#if isCatsNews}
 		<SectionCard
 			icon={NEWS_SECTION_CONFIG.cats.icon}
@@ -117,7 +159,6 @@
 			color={NEWS_SECTION_CONFIG.cats.color}
 		>
 			<div class="flex flex-col gap-3">
-				<!-- Chats sélectionnés : on peut les retirer d'un clic -->
 				{#if selectedCats.length > 0}
 					<div class="flex flex-wrap gap-2">
 						{#each selectedCats as cat (cat.id)}
@@ -138,7 +179,6 @@
 					<p class="text-muted-foreground text-sm italic">Aucun chat sélectionné</p>
 				{/if}
 
-				<!-- Recherche -->
 				<div class="relative">
 					<Search class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
 					<Input
@@ -150,7 +190,6 @@
 					/>
 				</div>
 
-				<!-- Liste à cocher -->
 				<div class="max-h-60 overflow-y-auto rounded-md border p-2">
 					{#each filteredCats as cat (cat.id)}
 						<div class="hover:bg-muted/50 rounded-md px-2 py-1.5">
@@ -167,9 +206,13 @@
 						</p>
 					{/each}
 				</div>
+
+				{#if fieldError('catIds')}
+					<p class="text-destructive text-sm">{fieldError('catIds')}</p>
+				{/if}
 			</div>
 
-			<!-- Ce qui part vraiment au serveur : un champ caché par chat -->
+			<!-- Ce qui part au serveur : un champ caché par chat -->
 			{#each editData.catIds as catId (catId)}
 				<input type="hidden" name="catIds" value={catId} />
 			{/each}
@@ -180,17 +223,45 @@
 			title={NEWS_SECTION_CONFIG.media.label}
 			color={NEWS_SECTION_CONFIG.media.color}
 		>
-			<InputField
-				id="edit-news-media"
-				name="mediaUrl"
-				label="Lien du média"
-				type="url"
-				bind:value={editData.mediaUrl}
-				placeholder="https://… ou /news/fichier.pdf"
-			/>
-			<p class="text-muted-foreground mt-1 text-xs">
-				Lien vers un PDF, une image ou une page externe.
-			</p>
+			<div class="flex flex-col gap-3">
+				<!-- Document actuel -->
+				{#if hasCurrentMedia && editData.mediaUrl}
+					<MediaPreview src={editData.mediaUrl} name="Document actuel" variant="card" />
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						class="text-destructive hover:text-destructive self-start"
+						onclick={() => (removeCurrent = true)}
+						disabled={isSaving}
+					>
+						<Trash2 class="size-4" />
+						Retirer ce document
+					</Button>
+				{:else if removeCurrent}
+					<div
+						class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed p-3 text-sm"
+					>
+						<span class="text-muted-foreground">Le document sera retiré à l'enregistrement.</span>
+						<Button type="button" variant="ghost" size="sm" onclick={() => (removeCurrent = false)}>
+							<Undo2 class="size-4" />
+							Annuler
+						</Button>
+					</div>
+					<!-- Vide → convertFormData le transforme en null → mediaUrl effacé -->
+					<input type="hidden" name="mediaUrl" value="" />
+				{/if}
+
+				<!-- Nouveau document -->
+				<MediaUpload
+					id="edit-news-media"
+					accept={['DOCUMENT']}
+					bind:files
+					label={hasCurrentMedia ? 'Remplacer par un autre PDF' : 'Ajouter un PDF'}
+					error={fieldError('mediaUrl')}
+					disabled={isSaving}
+				/>
+			</div>
 		</SectionCard>
 	{/if}
 

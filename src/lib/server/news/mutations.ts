@@ -185,36 +185,28 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			};
 		}
 
-		// Une news NEWSCATS garde sa sélection automatique : on ignore les catIds envoyés
-		const isCatsNews = existingNews.type === 'NEWSCATS';
+		// Le type FINAL compte (il peut avoir changé dans le formulaire)
+		const finalType = validatedData.type ?? existingNews.type;
+		const isCatsNews = finalType === 'NEWSCATS';
 		const newsData = buildNewsData(validatedData);
 
-		if (isCatsNews) {
-			delete newsData.mediaUrl;
-		}
+		// Une News chats n'a jamais de document
+		if (isCatsNews) newsData.mediaUrl = null;
 
 		const updatedNews = await prisma.news.update({
 			where: { id: newsId },
 			data: {
 				...newsData,
-
-				// Mettre à jour les catégories si fournies (et pas NEWSCATS)
-				...(!isCatsNews &&
-					validatedData.catIds && {
-						cats: {
-							deleteMany: {},
-							create: validatedData.catIds.map((catId) => ({
-								catId
-							}))
-						}
-					})
+				// Les chats ne concernent que les News chats : pour les autres types, on n'y touche pas
+				...(isCatsNews && {
+					cats: {
+						deleteMany: {},
+						create: (validatedData.catIds ?? []).map((catId) => ({ catId }))
+					}
+				})
 			},
 			include: {
-				cats: {
-					include: {
-						cat: true
-					}
-				}
+				cats: { include: { cat: true } }
 			}
 		});
 
