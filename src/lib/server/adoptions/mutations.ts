@@ -20,10 +20,11 @@ export async function createAdoption(input: CreateAdoptionInput) {
 			throw new Error(`Le chat ${cat.name} n'est plus disponible`);
 		}
 
-		// 2. Vérifier qu'il n'a pas déjà une adoption (contrainte @@unique([catId]))
-		const existingAdoption = await tx.adoption.findUnique({
-			where: { catId: input.catId }
+		// 2. Vérifier qu'il n'a pas déjà une adoption
+		const existingAdoption = await tx.adoption.findFirst({
+			where: { catId: input.catId, status: 'ACTIVE' }
 		});
+
 		if (existingAdoption) throw new Error('Ce chat a déjà une adoption');
 
 		// 3. Créer ou mettre à jour le profil (upsert sur l'email)

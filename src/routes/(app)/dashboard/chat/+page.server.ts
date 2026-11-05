@@ -53,7 +53,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 								volunteer: { include: { profil: true } }
 							}
 						},
-						adoptions: { include: { profil: true } }
+						adoptions: {
+							where: { status: 'ACTIVE' },
+							include: { profil: true }
+						}
 					},
 					orderBy: { createdAt: 'desc' }
 				}),

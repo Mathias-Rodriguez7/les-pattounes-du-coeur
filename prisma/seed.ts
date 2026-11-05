@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
 import { hashPassword } from '../src/lib/server/hashing';
+import { randomUUID } from 'node:crypto';
 
 // ---------------------
 // DB
@@ -45,7 +46,17 @@ const NEWS_TYPES = ['NEWS', 'NEWSLETTER', 'HISTORY', 'NEWSCATS', 'EVENT'] as con
 const FORM_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
 const SICKNESS_STATUS = ['ACTIVE', 'TREATED', 'RESOLVED'] as const;
-const CARE_TYPE = ['VACCINE', 'TREATMENT', 'SURGERY', 'OTHER', 'CONTROL', 'STERILIZE'] as const;
+const CARE_TYPE = [
+	'VACCINE',
+	'TREATMENT',
+	'SURGERY',
+	'OTHER',
+	'CONTROL',
+	'STERILIZE',
+	'DEWORMING',
+	'FIV_TEST',
+	'IDENTIFICATION'
+] as const;
 const PLACEMENT_TYPE = ['PROPOSAL', 'TRANSFER', 'LONG', 'SHORT'] as const;
 
 // ---------------------
@@ -69,6 +80,54 @@ function randomImage(i: number) {
 function getLocalPdf() {
 	return '/pdf/newsletter.pdf';
 }
+
+/**
+ * Données d'un PDF fictif, à utiliser dans un `create` imbriqué.
+ * La storageKey est unique (UUID) : elle imite une vraie clé S3, rien n'est envoyé.
+ */
+function pdfMedia(folder: string, originalName: string, isPrivate: boolean) {
+	return {
+		type: 'DOCUMENT' as const,
+		storageKey: `${isPrivate ? 'private' : 'public'}/${folder}/${randomUUID()}.pdf`,
+		mimeType: 'application/pdf',
+		sizeBytes: faker.number.int({ min: 80_000, max: 3_000_000 }),
+		originalName,
+		isPrivate
+	};
+}
+
+const DOC_FILE_NAMES = {
+	SURRENDER: 'acte-abandon',
+	ADOPTION_CONTRACT: 'contrat-adoption',
+	ADOPTION_RETURN: 'retour-adoption',
+	OTHER: 'document'
+} as const;
+
+async function createCatDocument(
+	cat: { id: string; catNumber: string },
+	kind: keyof typeof DOC_FILE_NAMES,
+	date: Date,
+	adoptionId?: string
+) {
+	return prisma.catDocument.create({
+		data: {
+			cat: { connect: { id: cat.id } },
+			kind,
+			date,
+			...(adoptionId ? { adoption: { connect: { id: adoptionId } } } : {}),
+			media: {
+				create: pdfMedia(
+					`cats/${cat.id}/documents`,
+					`${cat.catNumber}_${DOC_FILE_NAMES[kind]}.pdf`,
+					true
+				)
+			}
+		}
+	});
+}
+
+/** Une date aléatoire entre deux dates */
+const dateBetween = (from: Date, to: Date) => faker.date.between({ from, to });
 
 // Format CAAMMnnn sur 8 caractères : C + YY + MM + SSS
 function generateCatNumber(sequenceNumber: number): string {
@@ -143,6 +202,8 @@ async function main() {
 	// CLEAN
 	// ---------------------
 	console.log('🧹 Nettoyage de la BDD...');
+	await prisma.careDocument.deleteMany();
+	await prisma.catDocument.deleteMany();
 	await prisma.newsCat.deleteMany();
 	await prisma.catVolunteer.deleteMany();
 	await prisma.placement.deleteMany();
@@ -152,6 +213,7 @@ async function main() {
 	await prisma.mediaCat.deleteMany();
 
 	await prisma.news.deleteMany();
+	await prisma.media.deleteMany(); // après News, CatDocument et CareDocument
 	await prisma.cat.deleteMany();
 	await prisma.volunteer.deleteMany();
 	await prisma.host.deleteMany();
@@ -418,11 +480,15 @@ async function main() {
 	// 🤒 SICKNESSES
 	// ---------------------
 	console.log('🤒 Création des maladies...');
+	// catId → ids de ses maladies (pour relier les soins ensuite)
+	const sicknessIdsByCat = new Map<string, string[]>();
+
 	for (const cat of cats) {
 		const sicknessCount = faker.number.int({ min: 0, max: 3 });
+		const ids: string[] = [];
 
 		for (let i = 0; i < sicknessCount; i++) {
-			await prisma.sickness.create({
+			const sickness = await prisma.sickness.create({
 				data: {
 					catId: cat.id,
 					name: faker.lorem.word(),
@@ -433,7 +499,10 @@ async function main() {
 					status: faker.helpers.arrayElement(SICKNESS_STATUS)
 				}
 			});
+			ids.push(sickness.id);
 		}
+
+		sicknessIdsByCat.set(cat.id, ids);
 	}
 
 	// ---------------------
@@ -493,20 +562,47 @@ async function main() {
 	}
 
 	// ---------------------
-	// 💊 CARES
+	// 💊 CARES + documents véto
 	// ---------------------
-	console.log('💊 Création des soins...');
+	console.log('💊 Création des soins et des documents véto...');
+	const CARE_DOC_NAMES = ['ordonnance', 'facture', 'compte-rendu', 'resultats-analyses'];
+
 	for (const cat of cats.slice(0, 100)) {
 		const careCount = faker.number.int({ min: 1, max: 3 });
+		const catSicknesses = sicknessIdsByCat.get(cat.id) ?? [];
 
 		for (let i = 0; i < careCount; i++) {
+			const type = faker.helpers.arrayElement(CARE_TYPE);
+
+			// Seuls un traitement ou un contrôle peuvent concerner une maladie
+			const canHaveSickness = type === 'TREATMENT' || type === 'CONTROL';
+			const sicknessId =
+				canHaveSickness && catSicknesses.length > 0 && randomBool(0.7)
+					? faker.helpers.arrayElement(catSicknesses)
+					: null;
+
+			// 0 à 2 documents par soin
+			const docNames = faker.helpers.arrayElements(
+				CARE_DOC_NAMES,
+				faker.number.int({ min: 0, max: 2 })
+			);
+
 			await prisma.care.create({
 				data: {
 					catId: cat.id,
-					type: faker.helpers.arrayElement(CARE_TYPE),
+					type,
+					date: faker.date.recent({ days: 365 }),
 					reason: faker.lorem.sentence(),
 					description: faker.lorem.sentence(),
-					veterinary: randomBool(0.7) ? faker.company.name() : null
+					veterinary: randomBool(0.7) ? faker.company.name() : null,
+					sicknessId,
+					documents: {
+						create: docNames.map((name) => ({
+							media: {
+								create: pdfMedia(`cats/${cat.id}/cares`, `${cat.catNumber}_${name}.pdf`, true)
+							}
+						}))
+					}
 				}
 			});
 		}
@@ -518,13 +614,19 @@ async function main() {
 	console.log('📰 Création des news...');
 	for (let i = 0; i < 30; i++) {
 		const relatedCats = faker.helpers.arrayElements(cats, faker.number.int({ min: 2, max: 5 }));
+		const type = faker.helpers.arrayElement(NEWS_TYPES);
 
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
 				type: faker.helpers.arrayElement(NEWS_TYPES),
 				content: faker.lorem.paragraph(),
-				mediaUrl: getLocalPdf(),
+				// Ancien champ, encore lu par NewsPanel en attendant le module S3
+				mediaUrl: type === 'NEWSCATS' ? null : getLocalPdf(),
+				// Nouveau : un PDF public par news (sauf News chats, qui n'en ont pas)
+				...(type === 'NEWSCATS'
+					? {}
+					: { media: { create: pdfMedia('news', 'newsletter.pdf', false) } }),
 				cats: {
 					create: relatedCats.map((c) => ({ catId: c.id }))
 				}
@@ -533,27 +635,65 @@ async function main() {
 	}
 
 	// ---------------------
-	// 🐾 ADOPTIONS
+	// 🐾 ADOPTIONS (+ contrats, retours)
 	// ---------------------
 	console.log('🐾 Création des adoptions...');
 	const adoptants = profils.slice(110, 150);
 	const adoptedCats = cats.slice(0, 30);
+	const now = new Date();
+	const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
 	for (let i = 0; i < Math.min(adoptedCats.length, adoptants.length); i++) {
 		const adoptedCat = adoptedCats[i];
 		const adoptant = adoptants[i];
+
+		// Les 5 premiers chats ont d'abord eu une adoption annulée (retour à l'asso)
+		if (i < 5) {
+			const firstAdoptant = adoptants[adoptants.length - 1 - i];
+			const startedAt = dateBetween(oneYearAgo, new Date(now.getTime() - 120 * 86_400_000));
+			const endedAt = new Date(
+				startedAt.getTime() + faker.number.int({ min: 15, max: 60 }) * 86_400_000
+			);
+
+			const cancelled = await prisma.adoption.create({
+				data: {
+					catId: adoptedCat.id,
+					profilId: firstAdoptant.id,
+					status: 'CANCELLED',
+					endDate: endedAt,
+					createdAt: startedAt
+				}
+			});
+
+			await createCatDocument(adoptedCat, 'ADOPTION_CONTRACT', startedAt, cancelled.id);
+			await createCatDocument(adoptedCat, 'ADOPTION_RETURN', endedAt, cancelled.id);
+		}
+
+		// Adoption en cours
+		const adoptedAt = faker.date.recent({ days: 90 });
 
 		await prisma.cat.update({
 			where: { id: adoptedCat.id },
 			data: { status: 'ADOPTED' }
 		});
 
-		await prisma.adoption.create({
+		const adoption = await prisma.adoption.create({
 			data: {
 				catId: adoptedCat.id,
-				profilId: adoptant.id
+				profilId: adoptant.id,
+				createdAt: adoptedAt
 			}
 		});
+
+		await createCatDocument(adoptedCat, 'ADOPTION_CONTRACT', adoptedAt, adoption.id);
+	}
+
+	// ---------------------
+	// 📄 ABANDONS (chat cédé par son propriétaire, sans profil)
+	// ---------------------
+	console.log('📄 Création des actes d’abandon...');
+	for (const cat of cats.slice(120, 135)) {
+		await createCatDocument(cat, 'SURRENDER', faker.date.recent({ days: 365 }));
 	}
 
 	// ---------------------

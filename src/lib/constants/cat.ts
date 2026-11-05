@@ -33,14 +33,14 @@ export const CAT_AGE = [
 
 export const CAT_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
-	volunteer: { icon: 'users', label: 'Bénévole', color: 'emerald' },
-	host: { icon: 'house', label: 'FA', color: 'emerald' },
+	volunteer: { icon: 'users', label: 'Bénévole', color: 'teal' },
+	host: { icon: 'house', label: 'FA', color: 'violet' },
 	health: { icon: 'cat', label: 'Santé', color: 'fuchsia' },
 	sicknesses: { icon: 'syringe', label: 'Maladies', color: 'lime' },
 	placements: { icon: 'house', label: 'Accueil', color: 'blue' },
 	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
 	compatibility: { icon: 'paw', label: 'Compatibilité', color: 'orange' },
 	description: { icon: 'plus', label: 'Description', color: 'gray' },
-	adoptions: { icon: 'heart', label: 'Adoptions', color: 'green' },
+	adoptions: { icon: 'heart', label: 'Adoptions', color: 'pink' },
 	history: { icon: 'history', label: 'Historique des placements', color: 'gray' }
 } as const;
