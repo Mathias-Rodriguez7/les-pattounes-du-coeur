@@ -4,24 +4,39 @@ import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { catListSelect } from '$lib/types/cat';
 import { createNews, updateNews, deleteNews, generateCatsNews } from '$lib/server/news/mutations';
+import { canManageNews, canDeleteNews } from '$lib/permissions/news';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const news = await prisma.news.findMany({
-		orderBy: { createdAt: 'desc' },
-		select: {
-			id: true,
-			title: true,
-			content: true,
-			type: true,
-			mediaUrl: true,
-			createdAt: true,
-			cats: {
-				select: {
-					cat: { select: catListSelect }
+	const role = locals.user?.role;
+	const canManage = canManageNews(role);
+
+	// Requêtes indépendantes → lancées en parallèle
+	const [news, cats] = await Promise.all([
+		prisma.news.findMany({
+			orderBy: { createdAt: 'desc' },
+			select: {
+				id: true,
+				title: true,
+				content: true,
+				type: true,
+				mediaUrl: true,
+				createdAt: true,
+				cats: {
+					select: {
+						cat: { select: catListSelect }
+					}
 				}
 			}
-		}
-	});
+		}),
+		// Liste des chats pour le formulaire d'édition : seulement pour ceux qui éditent,
+		// et seulement les champs utiles (tout ce que renvoie le load part au navigateur)
+		canManage
+			? prisma.cat.findMany({
+					select: { id: true, name: true, catNumber: true },
+					orderBy: { catNumber: 'asc' }
+				})
+			: Promise.resolve([])
+	]);
 
 	const stats = {
 		total: news.length,
@@ -37,9 +52,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 			...n,
 			cats: n.cats.map((nc) => nc.cat)
 		})),
+		cats,
 		stats,
-		// même logique que tes autres pages, adapte selon locals
-		isAdmin: locals.user?.role === 'ADMIN'
+		canManageNews: canManage,
+		canDeleteNews: canDeleteNews(role)
 	};
 };
 
@@ -69,7 +85,7 @@ export const actions: Actions = {
 	},
 
 	generateCats: async ({ request, locals }) => {
-		if (!locals.user || locals.user.role !== 'ADMIN') {
+		if (!locals.user || !canManageNews(locals.user.role)) {
 			return fail(403, {
 				success: false,
 				error: 'Non autorisé',

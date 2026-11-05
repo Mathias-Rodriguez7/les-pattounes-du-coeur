@@ -5,6 +5,7 @@ import {
 	type CreateNewsInput,
 	type UpdateNewsInput
 } from '$lib/schemas/news';
+import { canManageNews, canDeleteNews } from '$lib/permissions/news';
 
 const NEWS_FIELDS = ['title', 'type', 'content', 'mediaUrl'] as const;
 
@@ -51,7 +52,7 @@ async function getEligibleCatIds(): Promise<string[]> {
 }
 
 export async function createNews({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!locals.user || !canManageNews(locals.user.role)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -129,7 +130,7 @@ export async function createNews({ request, locals }: { request: Request; locals
 }
 
 export async function updateNews({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!locals.user || !canManageNews(locals.user.role)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -234,7 +235,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 }
 
 export async function deleteNews({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!locals.user || !canDeleteNews(locals.user.role)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
