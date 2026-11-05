@@ -10,6 +10,7 @@
 		getMediaTypeFromMime,
 		validateFile
 	} from '$lib/media/rules';
+	import { fileKey } from '$lib/media/upload';
 
 	interface Props {
 		/** Types acceptés, ex : ['DOCUMENT'] ou ['IMAGE', 'VIDEO'] */
@@ -24,6 +25,7 @@
 		/** Erreur renvoyée par le serveur */
 		error?: string;
 		preview?: boolean;
+		progress?: Record<string, number>;
 	}
 
 	let {
@@ -35,7 +37,8 @@
 		id,
 		disabled = false,
 		error,
-		preview = true
+		preview = true,
+		progress = {}
 	}: Props = $props();
 
 	const uid = $props.id();
@@ -55,7 +58,6 @@
 	const canAddMore = $derived(files.length < maxFiles);
 
 	// Identifie un fichier pour éviter les doublons et servir de clé dans {#each}
-	const fileKey = (f: File) => `${f.name}-${f.size}-${f.lastModified}`;
 
 	// ===== AJOUT / RETRAIT =====
 	function addFiles(list: FileList | null | undefined) {
@@ -239,7 +241,28 @@
 
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium" title={item.file.name}>{item.file.name}</p>
-						<p class="text-muted-foreground text-xs">{formatBytes(item.file.size)}</p>
+						{#if progress[item.key] !== undefined}
+							<div class="mt-1 flex items-center gap-2">
+								<div
+									class="bg-muted h-1.5 flex-1 overflow-hidden rounded-full"
+									role="progressbar"
+									aria-valuenow={progress[item.key]}
+									aria-valuemin={0}
+									aria-valuemax={100}
+									aria-label="Envoi de {item.file.name}"
+								>
+									<div
+										class="bg-primary h-full transition-[width] duration-200"
+										style:width="{progress[item.key]}%"
+									></div>
+								</div>
+								<span class="text-muted-foreground w-9 text-right text-xs tabular-nums">
+									{progress[item.key]} %
+								</span>
+							</div>
+						{:else}
+							<p class="text-muted-foreground text-xs">{formatBytes(item.file.size)}</p>
+						{/if}
 					</div>
 
 					{#if item.type === 'DOCUMENT' && item.url}
