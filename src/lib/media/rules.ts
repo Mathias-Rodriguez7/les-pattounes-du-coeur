@@ -91,3 +91,7 @@ export function guessMediaTypeFromUrl(url: string): MediaType | null {
 	if (/\.(mp4|webm|mov)$/.test(path)) return 'VIDEO';
 	return null;
 }
+
+/** Les raisons possibles d'un envoi. Le serveur en déduit le bucket, le dossier et les droits. */
+export const UPLOAD_PURPOSES = ['news', 'catDocument', 'careDocument', 'catGallery'] as const;
+export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];
