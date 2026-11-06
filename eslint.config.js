@@ -37,6 +37,14 @@ export default defineConfig(
 		}
 	},
 	{
+		// Composants shadcn (générés) : ils transmettent le href reçu, sans savoir
+		// s'il s'agit d'une route. C'est à l'appelant d'utiliser resolve().
+		files: ['src/lib/components/ui/**/*.svelte'],
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off'
+		}
+	},
+	{
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
 		rules: {}

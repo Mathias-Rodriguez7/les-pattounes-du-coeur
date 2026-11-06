@@ -44,6 +44,18 @@ export type CatFull = Prisma.CatGetPayload<{
 				profil: true;
 			};
 		};
+		documents: {
+			include: {
+				media: { select: { id: true; originalName: true; sizeBytes: true } };
+				adoption: {
+					select: {
+						id: true;
+						status: true;
+						profil: { select: { firstName: true; lastName: true } };
+					};
+				};
+			};
+		};
 
 		news: true;
 	};

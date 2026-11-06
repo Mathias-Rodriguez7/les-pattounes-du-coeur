@@ -73,7 +73,7 @@
 <Dialog bind:open>
 	<DialogTrigger>
 		{#snippet child({ props })}
-			<Button {...props} type="button" variant="outline" size="sm" class="gap-1">
+			<Button {...props} type="button" variant="outline" size="sm" class="gap-1 rounded-2xl">
 				<Plus class="h-4 w-4" />
 				Ajouter un bénévole
 			</Button>

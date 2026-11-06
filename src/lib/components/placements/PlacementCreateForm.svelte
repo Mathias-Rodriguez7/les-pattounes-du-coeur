@@ -81,7 +81,7 @@
 <Dialog.Root bind:open>
 	<!-- Le déclencheur est HORS du {#if} : il reste affiché pendant la confirmation -->
 	<!-- buttonVariants : le Trigger EST le bouton (avant : un bouton dans un bouton) -->
-	<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'sm' })}>
+	<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'sm', class: 'rounded-2xl' })}>
 		<Plus class="h-4 w-4" />
 		<span class="hidden sm:inline">Ajouter un placement</span>
 		<span class="sm:hidden">Ajouter</span>

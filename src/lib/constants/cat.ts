@@ -1,3 +1,5 @@
+import type { CatDocumentKind } from '@prisma/client';
+
 export const CAT_SEX = [
 	{ value: 'MALE', label: 'Mâle' },
 	{ value: 'FEMALE', label: 'Femelle' },
@@ -42,5 +44,19 @@ export const CAT_SECTION_CONFIG = {
 	compatibility: { icon: 'paw', label: 'Compatibilité', color: 'orange' },
 	description: { icon: 'plus', label: 'Description', color: 'gray' },
 	adoptions: { icon: 'heart', label: 'Adoptions', color: 'pink' },
-	history: { icon: 'history', label: 'Historique des placements', color: 'gray' }
+	history: { icon: 'history', label: 'Historique des placements', color: 'gray' },
+	documents: { icon: 'file', label: 'Documents', color: 'amber' }
 } as const;
+
+/** Types de documents administratifs d'un chat */
+export const CAT_DOCUMENT_KIND = {
+	SURRENDER: { label: "Acte d'abandon", color: 'bg-orange-100 text-orange-800' },
+	ADOPTION_CONTRACT: { label: "Contrat d'adoption", color: 'bg-green-100 text-green-800' },
+	ADOPTION_RETURN: { label: "Retour d'adoption", color: 'bg-red-100 text-red-800' },
+	OTHER: { label: 'Autre document', color: 'bg-gray-100 text-gray-800' }
+} satisfies Record<CatDocumentKind, { label: string; color: string }>;
+
+/** Les mêmes, au format attendu par SelectField */
+export const CAT_DOCUMENT_KIND_OPTIONS = Object.entries(CAT_DOCUMENT_KIND).map(
+	([value, { label }]) => ({ value, label })
+);

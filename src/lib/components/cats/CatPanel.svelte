@@ -33,6 +33,7 @@
 	import CatVolunteerRemoveButton from '../catVolunteer/CatVolunteerRemoveButton.svelte';
 	import SicknessEditForm from '../sickness/SicknessEditForm.svelte';
 	import { focalPointStyle } from '$lib/utils/catHelpers';
+	import CatDocuments from './CatDocuments.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -686,7 +687,15 @@
 				<Separator />
 
 				<!-- ============================================================ -->
-				<!-- 5. HISTORIQUE                                                 -->
+				<!-- 5. DOCUMENTS                                                  -->
+				<!-- ============================================================ -->
+				<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
+				<CatDocuments {cat} canManage={canManageSicknesses} />
+
+				<Separator />
+
+				<!-- ============================================================ -->
+				<!-- 6. HISTORIQUE                                                 -->
 				<!-- ============================================================ -->
 				<Accordion.Root type="single">
 					<Accordion.Item value="history" class="border-0">

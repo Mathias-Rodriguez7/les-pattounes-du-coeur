@@ -81,14 +81,14 @@
 				<Pencil class="h-4 w-4" />
 			</Button>
 		{:else}
-			<Button variant="outline" size="sm">
+			<Button variant="outline" size="sm" class="rounded-2xl">
 				<Plus class="mr-1 h-4 w-4" />
 				Ajouter une maladie
 			</Button>
 		{/if}
 	</Dialog.Trigger>
 
-	<Dialog.Content class="sm:max-w-[500px]">
+	<Dialog.Content class="sm:max-w-125">
 		<Dialog.Header>
 			<Dialog.Title>{isEdit ? 'Modifier' : 'Ajouter'} une maladie</Dialog.Title>
 		</Dialog.Header>

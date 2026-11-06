@@ -2,7 +2,6 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { createCat, updateCat } from '$lib/server/cats/mutations';
-import { deleteProfile } from '$lib/server/mutations';
 import {
 	createPlacements,
 	updatePlacement,
@@ -11,6 +10,8 @@ import {
 import type { UpdatePlacementInput } from '$lib/schemas/placement';
 import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
 import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
+import { createCatDocument, deleteCatDocument } from '$lib/server/catDocuments/mutations';
+import { canManageCat, canManagePlacement } from '$lib/server/permissions/cat';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -53,9 +54,24 @@ export const load: PageServerLoad = async ({ locals }) => {
 								volunteer: { include: { profil: true } }
 							}
 						},
+						// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 						adoptions: {
-							where: { status: 'ACTIVE' },
+							orderBy: { createdAt: 'desc' },
 							include: { profil: true }
+						},
+						documents: {
+							orderBy: { date: 'desc' },
+							include: {
+								// Jamais la storageKey : la page passe par /api/media/<id>
+								media: { select: { id: true, originalName: true, sizeBytes: true } },
+								adoption: {
+									select: {
+										id: true,
+										status: true,
+										profil: { select: { firstName: true, lastName: true } }
+									}
+								}
+							}
 						}
 					},
 					orderBy: { createdAt: 'desc' }
@@ -151,34 +167,22 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteProfile: async ({ request }) => {
-		try {
-			const data = await request.formData();
-			const profileId = data.get('profileId') as string;
-
-			if (!profileId) {
-				return fail(400, { success: false, error: 'ID manquant' });
-			}
-
-			return await deleteProfile(profileId);
-		} catch (error) {
-			console.error('Erreur suppression profil:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
-		}
-	},
-
 	// ==========================================
 	// ACTION: Placement
+	// Mêmes droits que le chat : admin, ou bénévole associée
 	// ==========================================
-	createPlacement: async ({ request }) => {
+	createPlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 
 			const catId = formData.get('catId')?.toString() ?? '';
 			const hostIds = formData.getAll('hostIds').map((v) => v.toString());
 			const type = formData.get('type')?.toString() ?? '';
 			const status = formData.get('status')?.toString() ?? '';
-			const notes = formData.get('notes')?.toString() || '';
 
 			if (!catId) {
 				return fail(400, { success: false, error: 'catId manquant' });
@@ -188,7 +192,11 @@ export const actions: Actions = {
 				return fail(400, { success: false, error: 'Aucun hôte sélectionné' });
 			}
 
-			const result = await createPlacements({ catId, hostIds, type, status, notes });
+			if (!(await canManageCat(locals.user, catId))) {
+				return fail(403, { success: false, error: "Vous n'avez pas le droit de placer ce chat" });
+			}
+
+			const result = await createPlacements({ catId, hostIds, type, status });
 
 			if (!result.success) {
 				return fail(400, result);
@@ -201,8 +209,12 @@ export const actions: Actions = {
 		}
 	},
 
-	updatePlacement: async ({ request }) => {
+	updatePlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 			const placementId = formData.get('placementId')?.toString();
 
@@ -210,13 +222,21 @@ export const actions: Actions = {
 				return fail(400, { success: false, error: 'placementId manquant' });
 			}
 
+			// Le chat est lu en base, pas dans le formulaire
+			if (!(await canManagePlacement(locals.user, placementId))) {
+				return fail(403, {
+					success: false,
+					error: "Vous n'avez pas le droit de modifier ce placement"
+				});
+			}
+
+			// ⚠️ Mêmes noms que les champs de PlacementEditForm (startDate / endDate)
 			const input = {
 				hostId: formData.get('hostId')?.toString() || undefined,
 				type: formData.get('type')?.toString() || undefined,
 				status: formData.get('status')?.toString() || undefined,
-				startedDate: formData.get('startedDate')?.toString() || null,
-				endedDate: formData.get('endedDate')?.toString() || null,
-				notes: formData.get('notes')?.toString() || undefined
+				startDate: formData.get('startDate')?.toString() || null,
+				endDate: formData.get('endDate')?.toString() || null
 			};
 
 			const result = await updatePlacement(placementId, input as UpdatePlacementInput);
@@ -232,13 +252,24 @@ export const actions: Actions = {
 		}
 	},
 
-	deletePlacement: async ({ request }) => {
+	deletePlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 			const placementId = formData.get('placementId')?.toString();
 
 			if (!placementId) {
 				return fail(400, { success: false, error: 'placementId manquant' });
+			}
+
+			if (!(await canManagePlacement(locals.user, placementId))) {
+				return fail(403, {
+					success: false,
+					error: "Vous n'avez pas le droit de supprimer ce placement"
+				});
 			}
 
 			const result = await deletePlacement(placementId);
@@ -321,6 +352,31 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur removeCatVolunteer:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Documents du chat
+	// ==========================================
+	createCatDocument: async ({ request, locals }) => {
+		try {
+			const result = await createCatDocument({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur createCatDocument:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCatDocument: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatDocument({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCatDocument:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}
