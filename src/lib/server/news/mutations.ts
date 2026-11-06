@@ -6,6 +6,8 @@ import {
 	type UpdateNewsInput
 } from '$lib/schemas/news';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
+import { prepareMedia, deleteMedia, type MediaData } from '$lib/server/media/mutations';
+import { deleteFiles } from '$lib/server/storage';
 
 const NEWS_FIELDS = ['title', 'type', 'content', 'mediaUrl'] as const;
 
@@ -59,6 +61,8 @@ export async function createNews({ request, locals }: { request: Request; locals
 			errors: {}
 		};
 	}
+	// Clé du fichier vérifié : à supprimer de S3 si la création échoue ensuite
+	let uploadedKey: string | null = null;
 
 	try {
 		const formData = await request.formData();
@@ -87,29 +91,36 @@ export async function createNews({ request, locals }: { request: Request; locals
 		// Pour NEWSCATS : pas de PDF, et les chats viennent de la BDD
 		const isCatsNews = validatedData.type === 'NEWSCATS';
 		const finalCatIds = isCatsNews ? await getEligibleCatIds() : validatedData.catIds;
-		const mediaUrl = isCatsNews ? null : (validatedData.mediaUrl ?? null);
+		// Document (pas pour une News chats)
+		let media: MediaData | null = null;
+		if (!isCatsNews && validatedData.mediaStorageKey) {
+			const prepared = await prepareMedia('news', {
+				storageKey: validatedData.mediaStorageKey,
+				originalName: validatedData.mediaOriginalName
+			});
+			if (!prepared.ok) {
+				return { success: false, error: prepared.error, errors: { media: [prepared.error] } };
+			}
+			media = prepared.data;
+			uploadedKey = media.storageKey;
+		}
 
 		const newNews = await prisma.news.create({
 			data: {
 				title: validatedData.title,
 				type: validatedData.type,
 				content: validatedData.content ?? null,
-				mediaUrl,
+				// La news et sa ligne Media sont créées ensemble
+				...(media && { media: { create: media } }),
 
 				...(finalCatIds.length > 0 && {
 					cats: {
-						create: finalCatIds.map((catId) => ({
-							catId
-						}))
+						create: finalCatIds.map((catId) => ({ catId }))
 					}
 				})
 			},
 			include: {
-				cats: {
-					include: {
-						cat: true
-					}
-				}
+				cats: { include: { cat: true } }
 			}
 		});
 
@@ -121,6 +132,8 @@ export async function createNews({ request, locals }: { request: Request; locals
 		};
 	} catch (error) {
 		console.error('Erreur création News:', error);
+		// Le fichier est sur S3 mais la news n'a pas été créée : on le supprime
+		if (uploadedKey) await deleteFiles([{ storageKey: uploadedKey, isPrivate: false }]);
 		return {
 			success: false,
 			error: 'Erreur lors de la création',
@@ -137,6 +150,9 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			errors: {}
 		};
 	}
+
+	// Clé du fichier vérifié : à supprimer de S3 si la création échoue ensuite
+	let uploadedKey: string | null = null;
 
 	try {
 		const formData = await request.formData();
@@ -174,7 +190,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 
 		const existingNews = await prisma.news.findUnique({
 			where: { id: newsId },
-			include: { cats: true }
+			include: { cats: true, media: true }
 		});
 
 		if (!existingNews) {
@@ -191,12 +207,45 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		const newsData = buildNewsData(validatedData);
 
 		// Une News chats n'a jamais de document
-		if (isCatsNews) newsData.mediaUrl = null;
+		// ===== Document =====
+		const oldMedia = existingNews.media;
+		let mediaChange: { create: MediaData } | { disconnect: true } | undefined;
+		let deleteOldMedia = false;
+
+		if (isCatsNews) {
+			// News chats : jamais de document
+			newsData.mediaUrl = null;
+			if (oldMedia) {
+				mediaChange = { disconnect: true };
+				deleteOldMedia = true;
+			}
+		} else if (validatedData.mediaStorageKey) {
+			// Nouveau document : il remplace l'ancien (même si « Retirer » a été cliqué avant)
+			const prepared = await prepareMedia('news', {
+				storageKey: validatedData.mediaStorageKey,
+				originalName: validatedData.mediaOriginalName
+			});
+			if (!prepared.ok) {
+				return { success: false, error: prepared.error, errors: { media: [prepared.error] } };
+			}
+			uploadedKey = prepared.data.storageKey;
+			newsData.mediaUrl = null;
+			mediaChange = { create: prepared.data };
+			deleteOldMedia = oldMedia !== null;
+		} else if (validatedData.removeMedia) {
+			// « Retirer ce document », sans nouveau fichier
+			newsData.mediaUrl = null;
+			if (oldMedia) {
+				mediaChange = { disconnect: true };
+				deleteOldMedia = true;
+			}
+		}
 
 		const updatedNews = await prisma.news.update({
 			where: { id: newsId },
 			data: {
 				...newsData,
+				...(mediaChange && { media: mediaChange }),
 				// Les chats ne concernent que les News chats : pour les autres types, on n'y touche pas
 				...(isCatsNews && {
 					cats: {
@@ -210,6 +259,9 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			}
 		});
 
+		// L'ancien document n'est plus utilisé : on supprime sa ligne et son fichier
+		if (deleteOldMedia && oldMedia) await deleteMedia([oldMedia]);
+
 		return {
 			success: true,
 			message: 'News mise à jour avec succès',
@@ -218,6 +270,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		};
 	} catch (error) {
 		console.error('Erreur mise à jour News:', error);
+		if (uploadedKey) await deleteFiles([{ storageKey: uploadedKey, isPrivate: false }]);
 		return {
 			success: false,
 			error: 'Erreur lors de la mise à jour',
@@ -248,7 +301,8 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 		}
 
 		const existingNews = await prisma.news.findUnique({
-			where: { id: newsId }
+			where: { id: newsId },
+			include: { media: true }
 		});
 
 		if (!existingNews) {
@@ -268,6 +322,9 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 		await prisma.news.delete({
 			where: { id: newsId }
 		});
+
+		// Puis son document (ligne Media + fichier sur S3)
+		if (existingNews.media) await deleteMedia([existingNews.media]);
 
 		return {
 			success: true,

@@ -45,7 +45,7 @@
 			title: news.title,
 			content: news.content ?? '',
 			type: news.type,
-			mediaUrl: news.mediaUrl ?? '',
+			mediaUrl: news.mediaFile?.url ?? news.mediaUrl ?? '',
 			catIds: news.cats.map((cat) => cat.id) // les chats sont déjà aplatis par le load
 		};
 		isEditing = true;
@@ -139,7 +139,17 @@
 						title={NEWS_SECTION_CONFIG.media.label}
 						color={NEWS_SECTION_CONFIG.media.color}
 					>
-						{#if news.mediaUrl}
+						{#if news.mediaFile}
+							<MediaPreview
+								src={news.mediaFile.url}
+								mimeType={news.mediaFile.mimeType}
+								sizeBytes={news.mediaFile.sizeBytes}
+								name={news.mediaFile.name ?? news.title}
+								alt={news.title}
+								variant="embed"
+							/>
+						{:else if news.mediaUrl}
+							<!-- Anciennes news (avant S3) -->
 							<MediaPreview
 								src={news.mediaUrl}
 								name={news.title}

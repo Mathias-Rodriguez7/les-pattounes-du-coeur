@@ -11,6 +11,7 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
 
 	interface Props {
 		open?: boolean;
@@ -24,6 +25,7 @@
 	let content = $state('');
 	let files = $state<File[]>([]);
 	let submitting = $state(false);
+	let progress = $state<Record<string, number>>({});
 
 	// Une News chats n'a pas de document : ses chats sont générés automatiquement
 	const needsMedia = $derived(type !== 'NEWSCATS');
@@ -40,12 +42,29 @@
 		if (!open) resetForm();
 	});
 
-	const handleEnhance: SubmitFunction = () => {
+	const handleEnhance: SubmitFunction = async ({ formData, cancel }) => {
 		submitting = true;
 
-		// ⏳ Étape 5 : le PDF de `files` sera envoyé directement à S3 ici,
-		// puis seul son identifiant (mediaId) partira dans le formulaire.
+		// 1. Le PDF part d'abord à S3, puis seule sa clé rejoint le formulaire
+		const file = needsMedia ? files[0] : undefined;
+		if (file) {
+			try {
+				const uploaded = await uploadFile(file, {
+					purpose: 'news',
+					onProgress: (percent) => (progress = { [fileKey(file)]: percent })
+				});
+				formData.set('mediaStorageKey', uploaded.storageKey);
+				formData.set('mediaOriginalName', uploaded.originalName);
+			} catch (e) {
+				submitting = false;
+				progress = {};
+				toast.error(e instanceof UploadError ? e.message : "Échec de l'envoi du document");
+				cancel();
+				return;
+			}
+		}
 
+		// 2. Puis le formulaire part normalement
 		return async ({ result, update }) => {
 			submitting = false;
 
@@ -105,6 +124,7 @@
 					id="new-news-media"
 					accept={['DOCUMENT']}
 					bind:files
+					{progress}
 					label="Document (PDF)"
 					disabled={submitting}
 				/>

@@ -22,7 +22,12 @@ export const createNewsSchema = z.object({
 	type: newsTypeEnum,
 	content: z.string().optional().nullable(),
 	mediaUrl: mediaUrlField,
-	catIds: z.array(z.string().uuid()).default([])
+	catIds: z.array(z.uuid()).default([]),
+	// Document envoyé sur S3 : on reçoit seulement sa clé (le serveur revérifie tout)
+	mediaStorageKey: z.string().min(1).max(500).optional().nullable(),
+	mediaOriginalName: z.string().max(255).optional().nullable(),
+	// Édition : retirer le document actuel
+	removeMedia: z.enum(['true']).optional().nullable()
 });
 
 // ✅ Schéma de mise à jour (tout optionnel sauf l'ID)

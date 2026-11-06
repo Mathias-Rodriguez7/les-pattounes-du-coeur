@@ -7,6 +7,8 @@ export interface NewsFull {
 	content: string | null;
 	type: NewsType;
 	mediaUrl: string | null;
+	/** Document stocké sur S3 (nouveau système). mediaUrl reste pour les anciennes news */
+	mediaFile: { url: string; mimeType: string; sizeBytes: number; name: string | null } | null;
 	createdAt: Date;
 	cats: CatListItem[];
 }

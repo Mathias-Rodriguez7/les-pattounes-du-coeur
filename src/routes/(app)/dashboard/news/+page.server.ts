@@ -1,13 +1,18 @@
 // app/dashboard/news/+page.server.ts
-import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { catListSelect } from '$lib/types/cat';
 import { createNews, updateNews, deleteNews, generateCatsNews } from '$lib/server/news/mutations';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
+import { getPublicUrl } from '$lib/server/storage';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const role = locals.user?.role;
+	// Même règle que la barre latérale, mais appliquée par le serveur
+	if (!locals.user) redirect(302, '/');
+	if (!canManageNews(locals.user.role)) redirect(302, '/dashboard');
+
+	const role = locals.user.role;
 	const canManage = canManageNews(role);
 
 	// Requêtes indépendantes → lancées en parallèle
@@ -25,6 +30,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 					select: {
 						cat: { select: catListSelect }
 					}
+				},
+				media: {
+					select: { storageKey: true, mimeType: true, sizeBytes: true, originalName: true }
 				}
 			}
 		}),
@@ -48,9 +56,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 
 	return {
-		news: news.map((n) => ({
+		news: news.map(({ media, ...n }) => ({
 			...n,
-			cats: n.cats.map((nc) => nc.cat)
+			cats: n.cats.map((nc) => nc.cat),
+			mediaFile: media
+				? {
+						url: getPublicUrl(media.storageKey),
+						mimeType: media.mimeType,
+						sizeBytes: media.sizeBytes,
+						name: media.originalName
+					}
+				: null
 		})),
 		cats,
 		stats,

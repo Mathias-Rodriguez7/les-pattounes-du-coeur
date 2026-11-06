@@ -18,6 +18,7 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 
@@ -41,6 +42,7 @@
 
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
+	let progress = $state<Record<string, number>>({});
 
 	// ===== ERREURS SERVEUR =====
 	let serverErrors = $state<Record<string, string[] | undefined>>({});
@@ -77,13 +79,31 @@
 	}
 
 	// ===== ENVOI =====
-	const handleEnhance: SubmitFunction = () => {
+	const handleEnhance: SubmitFunction = async ({ formData, cancel }) => {
 		isSaving = true;
 		serverErrors = {};
 
-		// ⏳ Étape 5 : si `files` contient un PDF, on l'enverra ici à S3,
-		// puis on ajoutera son mediaId au formulaire.
+		// 1. Le PDF part d'abord à S3, puis seule sa clé rejoint le formulaire.
+		//    Une News chats n'a pas de document : on n'envoie rien, même si un fichier a été choisi avant de changer le type.
+		const file = isCatsNews ? undefined : files[0];
+		if (file) {
+			try {
+				const uploaded = await uploadFile(file, {
+					purpose: 'news',
+					onProgress: (percent) => (progress = { [fileKey(file)]: percent })
+				});
+				formData.set('mediaStorageKey', uploaded.storageKey);
+				formData.set('mediaOriginalName', uploaded.originalName);
+			} catch (e) {
+				isSaving = false;
+				progress = {};
+				toast.error(e instanceof UploadError ? e.message : "Échec de l'envoi du document");
+				cancel();
+				return;
+			}
+		}
 
+		// 2. Puis le formulaire part normalement
 		return async ({ result, update }) => {
 			isSaving = false;
 
@@ -105,6 +125,7 @@
 <form method="POST" action="?/update" class="flex flex-col gap-6" use:enhance={handleEnhance}>
 	<input type="hidden" name="newsId" value={newsId} />
 
+	<input type="hidden" name="removeMedia" value="true" />
 	<!-- ===== RÉSUMÉ ===== -->
 	<SectionCard
 		icon={NEWS_SECTION_CONFIG.summary.icon}
@@ -256,8 +277,9 @@
 					id="edit-news-media"
 					accept={['DOCUMENT']}
 					bind:files
+					{progress}
 					label={hasCurrentMedia ? 'Remplacer par un autre PDF' : 'Ajouter un PDF'}
-					error={fieldError('mediaUrl')}
+					error={fieldError('media')}
 					disabled={isSaving}
 				/>
 			</div>

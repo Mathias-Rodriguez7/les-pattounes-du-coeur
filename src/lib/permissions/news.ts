@@ -7,7 +7,7 @@ export function canManageNews(role: VolunteerRole | undefined | null): boolean {
 	return !!role && NEWS_EDITORS.includes(role);
 }
 
-/** Supprimer : action irréversible → réservée aux admins */
+/** Supprimer : action irréversible → réservée aux admins et au communication */
 export function canDeleteNews(role: VolunteerRole | undefined | null): boolean {
 	return !!role && NEWS_EDITORS.includes(role);
 }
