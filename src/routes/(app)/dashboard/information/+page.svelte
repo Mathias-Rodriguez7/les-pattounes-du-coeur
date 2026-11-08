@@ -145,7 +145,6 @@
 					Guides, procédures et modèles utiles dans vos missions.
 				</p>
 			</div>
-			<!-- Étape 3c : bouton « Ajouter » (admins) -->
 			{#if data.isAdmin}
 				<InfoDocumentCreateDialog />
 			{/if}
@@ -229,7 +228,7 @@
 									<ul class="flex flex-col gap-1">
 										{#each group.docs as doc (doc.id)}
 											{@const active = selected?.id === doc.id}
-											<li>
+											<li class="flex items-center gap-1">
 												<!-- PC : affiche le document dans l'aperçu -->
 												<button
 													id="doc-{doc.id}"
@@ -238,7 +237,7 @@
 													onclick={() => (selectedId = doc.id)}
 													onkeydown={(e) => onKeydown(e, doc)}
 													class="group focus-visible:ring-ring hidden w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:outline-none lg:flex
-														{active
+			{active
 														? 'bg-background ring-primary/30 shadow-sm ring-1'
 														: 'hover:bg-background/70 hover:ring-primary/20 hover:translate-x-0.5 hover:shadow-sm hover:ring-1'}"
 												>
@@ -251,11 +250,28 @@
 													href={isWord(doc) ? doc.downloadUrl : doc.url}
 													target={isWord(doc) ? undefined : '_blank'}
 													rel="noopener noreferrer"
-													class="group active:bg-background/70 flex items-center gap-3 rounded-xl p-2.5 transition-colors lg:hidden"
+													class="group active:bg-background/70 flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2.5 transition-colors lg:hidden"
 												>
 													{@render docRow(doc, false)}
 												</a>
 												<!-- eslint-enable svelte/no-navigation-without-resolve -->
+
+												<!-- Mobile, admins : sur PC, ces boutons sont dans l'en-tête de l'aperçu -->
+												{#if data.isAdmin}
+													<div class="flex shrink-0 items-center lg:hidden">
+														<InfoDocumentEditDialog {doc} iconOnly />
+														<DeleteButton
+															iconOnly
+															entityId={doc.id}
+															firstName={doc.title}
+															lastName=""
+															showDelete={true}
+															actionName="?/deleteInfoDocument"
+															fieldName="documentId"
+															deleteConfirmMessage="Supprimer ce document ? Le fichier sera définitivement effacé."
+														/>
+													</div>
+												{/if}
 											</li>
 										{/each}
 									</ul>
