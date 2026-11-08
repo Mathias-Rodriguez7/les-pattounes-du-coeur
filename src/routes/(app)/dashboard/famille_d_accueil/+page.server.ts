@@ -4,26 +4,14 @@ import prisma from '$lib/server/prisma';
 import { District } from '@prisma/client';
 import { createHost, updateHost } from '$lib/server/hosts/mutations';
 import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
+import { hostFullArgs } from '$lib/types/host';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	// ✅ Vérifier que l'user existe ET est ADMIN
-	if (!locals.user) {
-		redirect(302, '/');
-	}
+	// Accès : avant le try, pour que le catch n'attrape pas la redirection
+	if (!locals.user) redirect(302, '/');
+	if (locals.user.role !== 'ADMIN') redirect(302, '/');
 
 	try {
-		const volunteerId = locals.user.id;
-
-		// Vérifier que l'utilisateur est ADMIN
-		const volunteer = await prisma.volunteer.findUnique({
-			where: { id: volunteerId },
-			select: { role: true }
-		});
-
-		if (volunteer?.role !== 'ADMIN') {
-			redirect(302, '/');
-		}
-
 		// 🔍 Récupérer les filtres depuis les query params
 		const districtParam = url.searchParams.get('district');
 
@@ -98,33 +86,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		// 📋 Récupérer toutes les familles avec leurs données (avec filtres)
 		const hosts = await prisma.host.findMany({
 			where: whereCondition,
-			include: {
-				profil: {
-					include: {
-						volunteer: true
-					}
-				},
-				placements: {
-					include: {
-						cat: {
-							select: {
-								id: true,
-								name: true,
-								status: true,
-								media: {
-									select: {
-										id: true,
-										url: true
-									}
-								}
-							}
-						}
-					}
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			}
+			...hostFullArgs,
+			orderBy: { createdAt: 'desc' }
 		});
 
 		// ✅ NOUVEAU : Calculer les stats de placements pour chaque host

@@ -12,6 +12,8 @@
 		INFO_DOCUMENT_CATEGORY_ORDER
 	} from '$lib/constants/infoDocument';
 	import InfoDocumentCreateDialog from '$lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
+	import InfoDocumentEditDialog from '$lib/components/infoDocuments/InfoDocumentEditDialog.svelte';
+	import DeleteButton from '$lib/components/buttons/DeleteButton.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -266,7 +268,7 @@
 				<!-- ===== APERÇU (PC uniquement) ===== -->
 				<section
 					aria-live="polite"
-					class="bg-card hidden min-h-[70vh] flex-col overflow-hidden rounded-2xl border shadow-sm lg:flex"
+					class="bg-card hidden min-h-[70vh] flex-col overflow-hidden rounded-2xl shadow-sm lg:flex"
 				>
 					{#if selected}
 						<header class="flex items-start justify-between gap-4 border-b px-5 py-4">
@@ -283,13 +285,26 @@
 							</div>
 
 							<div class="flex shrink-0 items-center gap-2">
-								<!-- Étape 3c : Modifier / Supprimer (admins) -->
 								<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 								<a href={selected.downloadUrl} class="{buttonVariants({ size: 'sm' })} rounded-2xl">
 									<Download class="size-4" />
 									Télécharger
 								</a>
 								<!-- eslint-enable svelte/no-navigation-without-resolve -->
+								<!-- Étape 3c : Modifier / Supprimer (admins) -->
+								{#if data.isAdmin}
+									<InfoDocumentEditDialog doc={selected} />
+									<DeleteButton
+										iconOnly
+										entityId={selected.id}
+										firstName={selected.title}
+										lastName=""
+										showDelete={true}
+										actionName="?/deleteInfoDocument"
+										fieldName="documentId"
+										deleteConfirmMessage="Supprimer ce document ? Le fichier sera définitivement effacé."
+									/>
+								{/if}
 							</div>
 						</header>
 
