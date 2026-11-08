@@ -10,7 +10,6 @@ export const newsListSelect = {
 	title: true,
 	content: true,
 	type: true,
-	mediaUrl: true, // ancien champ : supprimé à l'étape suivante
 	createdAt: true,
 	cats: { select: { cat: { select: catListSelect } } },
 	// Jamais l'id ni isPrivate : seulement de quoi construire l'adresse et la carte

@@ -93,18 +93,6 @@ export function formatBytes(bytes: number): string {
 	return `${(bytes / MB).toFixed(1).replace('.', ',')} Mo`;
 }
 
-/**
- * ⚠️ TRANSITOIRE : devine le type d'après l'URL, pour les anciens News.mediaUrl
- * qui n'ont pas de mimeType. À supprimer en même temps que mediaUrl.
- */
-export function guessMediaTypeFromUrl(url: string): MediaType | null {
-	const path = url.split(/[?#]/)[0].toLowerCase(); // retire ?X-Amz-Signature=… et #page=2
-	if (path.endsWith('.pdf')) return 'DOCUMENT';
-	if (/\.(jpe?g|png|webp|gif)$/.test(path)) return 'IMAGE';
-	if (/\.(mp4|webm|mov)$/.test(path)) return 'VIDEO';
-	return null;
-}
-
 /** Les raisons possibles d'un envoi. Le serveur en déduit le bucket, le dossier et les droits. */
 export const UPLOAD_PURPOSES = [
 	'news',

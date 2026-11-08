@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MediaType } from '@prisma/client';
-	import { getMediaTypeFromMime, guessMediaTypeFromUrl } from '$lib/media/rules';
+	import { getMediaTypeFromMime } from '$lib/media/rules';
 	import ImagePreview from './ImagePreview.svelte';
 	import VideoPreview from './VideoPreview.svelte';
 	import DocumentPreview from './DocumentPreview.svelte';
@@ -29,10 +29,8 @@
 		class: classList = ''
 	}: Props = $props();
 
-	// Du plus fiable au moins fiable
-	const resolvedType = $derived(
-		type ?? getMediaTypeFromMime(mimeType) ?? guessMediaTypeFromUrl(src)
-	);
+	// Le type enregistré en base, sinon celui déduit du mimeType
+	const resolvedType = $derived(type ?? getMediaTypeFromMime(mimeType));
 </script>
 
 {#if resolvedType === 'IMAGE'}

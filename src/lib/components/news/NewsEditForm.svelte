@@ -52,7 +52,7 @@
 	let files = $state<File[]>([]); // nouveau PDF choisi (envoi : étape 5)
 	let removeCurrent = $state(false); // retirer le document actuel à l'enregistrement
 
-	const hasCurrentMedia = $derived(!!editData.mediaUrl && !removeCurrent);
+	const hasCurrentMedia = $derived(!!editData.currentMedia && !removeCurrent);
 
 	// ===== CHATS =====
 	let catSearch = $state('');
@@ -125,7 +125,6 @@
 <form method="POST" action="?/update" class="flex flex-col gap-6" use:enhance={handleEnhance}>
 	<input type="hidden" name="newsId" value={newsId} />
 
-	<input type="hidden" name="removeMedia" value="true" />
 	<!-- ===== RÉSUMÉ ===== -->
 	<SectionCard
 		icon={NEWS_SECTION_CONFIG.summary.icon}
@@ -245,8 +244,14 @@
 		>
 			<div class="flex flex-col gap-3">
 				<!-- Document actuel -->
-				{#if hasCurrentMedia && editData.mediaUrl}
-					<MediaPreview src={editData.mediaUrl} name="Document actuel" variant="card" />
+				{#if hasCurrentMedia && editData.currentMedia}
+					<MediaPreview
+						src={editData.currentMedia.url}
+						mimeType={editData.currentMedia.mimeType}
+						sizeBytes={editData.currentMedia.sizeBytes}
+						name={editData.currentMedia.name ?? 'Document actuel'}
+						variant="card"
+					/>
 					<Button
 						type="button"
 						variant="ghost"
@@ -268,8 +273,8 @@
 							Annuler
 						</Button>
 					</div>
-					<!-- Vide → convertFormData le transforme en null → mediaUrl effacé -->
-					<input type="hidden" name="mediaUrl" value="" />
+					<!-- Envoyé SEULEMENT quand on a cliqué « Retirer » -->
+					<input type="hidden" name="removeMedia" value="true" />
 				{/if}
 
 				<!-- Nouveau document -->

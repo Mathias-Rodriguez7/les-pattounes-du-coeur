@@ -82,6 +82,13 @@ const s3 = new S3Client({
 });
 const PUBLIC_BUCKET = process.env.S3_BUCKET_PUBLIC ?? 'pattounes-public';
 
+const PRIVATE_BUCKET = process.env.S3_BUCKET_PRIVATE ?? 'pattounes-private';
+
+// Un vrai PDF d'exemple : envoyé une fois dans chaque bucket, puis copié pour chaque document
+const SAMPLE_PDF_PATH = 'prisma/data/samples/sample.pdf';
+const SAMPLE_PDF_KEY = 'seed/sample.pdf';
+let samplePdfSize = 0;
+
 type Sample = {
 	path: string; // dans static/
 	type: 'IMAGE' | 'VIDEO';
@@ -121,6 +128,19 @@ async function uploadSamples() {
 			})
 		);
 	}
+
+	const pdf = await readFile(SAMPLE_PDF_PATH);
+	samplePdfSize = pdf.length;
+	for (const Bucket of [PUBLIC_BUCKET, PRIVATE_BUCKET]) {
+		await s3.send(
+			new PutObjectCommand({
+				Bucket,
+				Key: SAMPLE_PDF_KEY,
+				Body: pdf,
+				ContentType: 'application/pdf'
+			})
+		);
+	}
 }
 
 /** Copie un exemple dans la galerie d'un chat. La copie se fait DANS S3 : rien ne transite par le seed */
@@ -136,20 +156,27 @@ async function copySampleToCat(catId: string, sample: Sample) {
 	return storageKey;
 }
 
-function getLocalPdf() {
-	return '/pdf/newsletter.pdf';
-}
-
 /**
- * Données d'un PDF fictif, à utiliser dans un `create` imbriqué.
- * La storageKey est unique (UUID) : elle imite une vraie clé S3, rien n'est envoyé.
+ * Copie le PDF d'exemple dans S3, puis renvoie les données de sa ligne Media
+ * (à utiliser dans un `create` imbriqué). La copie se fait DANS S3.
  */
-function pdfMedia(folder: string, originalName: string, isPrivate: boolean) {
+async function pdfMedia(folder: string, originalName: string, isPrivate: boolean) {
+	const Bucket = isPrivate ? PRIVATE_BUCKET : PUBLIC_BUCKET;
+	const storageKey = `${folder}/${randomUUID()}.pdf`;
+
+	await s3.send(
+		new CopyObjectCommand({
+			Bucket,
+			CopySource: `${Bucket}/${SAMPLE_PDF_KEY}`,
+			Key: storageKey
+		})
+	);
+
 	return {
 		type: 'DOCUMENT' as const,
-		storageKey: `${folder}/${randomUUID()}.pdf`,
+		storageKey,
 		mimeType: 'application/pdf',
-		sizeBytes: faker.number.int({ min: 80_000, max: 3_000_000 }),
+		sizeBytes: samplePdfSize,
 		originalName,
 		isPrivate
 	};
@@ -175,7 +202,7 @@ async function createCatDocument(
 			date,
 			...(adoptionId ? { adoption: { connect: { id: adoptionId } } } : {}),
 			media: {
-				create: pdfMedia(
+				create: await pdfMedia(
 					`cats/${cat.id}/documents`,
 					`${cat.catNumber}_${DOC_FILE_NAMES[kind]}.pdf`,
 					true
@@ -619,6 +646,14 @@ async function main() {
 				faker.number.int({ min: 0, max: 2 })
 			);
 
+			// 1. D'abord les PDF : on attend que TOUTES les copies S3 soient finies
+			const careMedias = await Promise.all(
+				docNames.map((name) =>
+					pdfMedia(`cats/${cat.id}/cares`, `${cat.catNumber}_${name}.pdf`, true)
+				)
+			);
+
+			// 2. Ensuite le soin, avec des données déjà prêtes (plus aucune promesse dedans)
 			await prisma.care.create({
 				data: {
 					catId: cat.id,
@@ -629,11 +664,7 @@ async function main() {
 					veterinary: randomBool(0.7) ? faker.company.name() : null,
 					sicknessId,
 					documents: {
-						create: docNames.map((name) => ({
-							media: {
-								create: pdfMedia(`cats/${cat.id}/cares`, `${cat.catNumber}_${name}.pdf`, true)
-							}
-						}))
+						create: careMedias.map((media) => ({ media: { create: media } }))
 					}
 				}
 			});
@@ -648,15 +679,15 @@ async function main() {
 		const relatedCats = faker.helpers.arrayElements(cats, faker.number.int({ min: 2, max: 5 }));
 		const type = faker.helpers.arrayElement(NEWS_TYPES);
 
+		// Un PDF public par news, sauf pour les News chats
+		const media = type === 'NEWSCATS' ? null : await pdfMedia('news', 'newsletter.pdf', false);
+
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
-				type: faker.helpers.arrayElement(NEWS_TYPES),
+				type, // ✅ le MÊME tirage que celui qui décide du PDF
 				content: faker.lorem.paragraph(),
-				// Nouveau : un PDF public par news (sauf News chats, qui n'en ont pas)
-				...(type === 'NEWSCATS'
-					? {}
-					: { media: { create: pdfMedia('news', 'newsletter.pdf', false) } }),
+				...(media && { media: { create: media } }),
 				cats: {
 					create: relatedCats.map((c) => ({ catId: c.id }))
 				}

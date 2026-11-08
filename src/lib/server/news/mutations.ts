@@ -9,7 +9,7 @@ import { canManageNews, canDeleteNews } from '$lib/permissions/news';
 import { prepareMedia, deleteMedia, type MediaData } from '$lib/server/media/mutations';
 import { deleteFiles } from '$lib/server/storage';
 
-const NEWS_FIELDS = ['title', 'type', 'content', 'mediaUrl'] as const;
+const NEWS_FIELDS = ['title', 'type', 'content'] as const;
 
 function convertFormData(formData: FormData): Record<string, string | string[] | null> {
 	const data: Record<string, string | string[] | null> = {};
@@ -213,8 +213,6 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		let deleteOldMedia = false;
 
 		if (isCatsNews) {
-			// News chats : jamais de document
-			newsData.mediaUrl = null;
 			if (oldMedia) {
 				mediaChange = { disconnect: true };
 				deleteOldMedia = true;
@@ -229,12 +227,9 @@ export async function updateNews({ request, locals }: { request: Request; locals
 				return { success: false, error: prepared.error, errors: { media: [prepared.error] } };
 			}
 			uploadedKey = prepared.data.storageKey;
-			newsData.mediaUrl = null;
 			mediaChange = { create: prepared.data };
 			deleteOldMedia = oldMedia !== null;
 		} else if (validatedData.removeMedia) {
-			// « Retirer ce document », sans nouveau fichier
-			newsData.mediaUrl = null;
 			if (oldMedia) {
 				mediaChange = { disconnect: true };
 				deleteOldMedia = true;
@@ -355,7 +350,6 @@ export async function generateCatsNews({ title }: { title?: string } = {}) {
 			title: title?.trim() || defaultTitle,
 			type: 'NEWSCATS',
 			content: null,
-			mediaUrl: null,
 			cats: {
 				create: catIds.map((catId) => ({ catId }))
 			}

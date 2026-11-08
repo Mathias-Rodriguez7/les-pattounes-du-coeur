@@ -7,18 +7,7 @@
 
 	let { selectedNews }: { selectedNews: NewsFull | null } = $props();
 
-	const pdf = $derived(
-		selectedNews?.mediaFile
-			? {
-					src: selectedNews.mediaFile.url,
-					name: selectedNews.mediaFile.name,
-					sizeBytes: selectedNews.mediaFile.sizeBytes,
-					mimeType: selectedNews.mediaFile.mimeType
-				}
-			: selectedNews?.mediaUrl
-				? { src: selectedNews.mediaUrl, name: null, sizeBytes: null, mimeType: null }
-				: null
-	);
+	const pdf = $derived(selectedNews?.mediaFile ?? null);
 </script>
 
 <Dialog.Content size="xl" class="bg-background">
@@ -39,7 +28,7 @@
 				<!-- PC : lecteur intégré ; mobile : une carte qui ouvre la visionneuse du téléphone -->
 				<DocumentPreview
 					variant="embed"
-					src={pdf.src}
+					src={pdf.url}
 					name={pdf.name ?? selectedNews.title}
 					sizeBytes={pdf.sizeBytes}
 					mimeType={pdf.mimeType}
