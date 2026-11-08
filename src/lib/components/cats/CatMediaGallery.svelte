@@ -1,116 +1,191 @@
 <script lang="ts">
-	import type { MediaCat } from '@prisma/client';
+	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { ImagePlus, Video, FileText, Trash, X } from '@lucide/svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { X, Star, Crosshair, LoaderCircle } from '@lucide/svelte';
+	import MediaUpload from '../media/MediaUpload.svelte';
+	import VideoPreview from '../media/VideoPreview.svelte';
+	import DeleteButton from '../buttons/DeleteButton.svelte';
+	import FocusPointDialog from './FocusPointDialog.svelte';
+	import { publicMediaUrl } from '$lib/media/urls';
+	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import { focalPointStyle } from '$lib/utils/catHelpers';
+	import type { CatFull } from '$lib/types/cat';
 
-	type MediaKind = 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+	type GalleryItem = CatFull['media'][number];
 
-	type Props = {
-		catId: string;
-		catName?: string | null;
-		media: MediaCat[];
-		onChange: (media: MediaCat[]) => void;
+	interface Props {
+		cat: CatFull;
 		onClose?: () => void;
-	};
+	}
 
-	let { catId, catName, media, onChange, onClose }: Props = $props();
+	let { cat, onClose }: Props = $props();
 
-	let imageInput: HTMLInputElement;
-	let videoInput: HTMLInputElement;
-	let documentInput: HTMLInputElement;
+	const MAX_FILES = 10;
+	const catLabel = $derived(cat.name ?? cat.catNumber);
 
-	// Découpage par type
-	const images = $derived(media.filter((m) => m.type === 'IMAGE'));
-	const videos = $derived(media.filter((m) => m.type === 'VIDEO'));
-	const documents = $derived(media.filter((m) => m.type === 'DOCUMENT'));
-
-	// Photo principale : parmi les images, celle marquée isPrimary, sinon la première
+	// La requête trie déjà : photo principale d'abord, puis par ordre d'ajout
+	const images = $derived(cat.media.filter((m) => m.file.type === 'IMAGE'));
+	const videos = $derived(cat.media.filter((m) => m.file.type === 'VIDEO'));
 	const primary = $derived(images.find((m) => m.isPrimary) ?? images[0] ?? null);
 	const otherImages = $derived(images.filter((m) => m.id !== primary?.id));
 
-	const focalStyle = (m: MediaCat) => `object-position: ${m.focalPointX}% ${m.focalPointY}%`;
+	// ===== ENVOI =====
+	let files = $state<File[]>([]);
+	let progress = $state<Record<string, number>>({});
+	let uploading = $state(false);
 
-	const uploadFiles = async (files: File[], kind: MediaKind) => {
-		if (!files.length) return;
-
-		const formData = new FormData();
-		formData.append('type', kind);
-		files.forEach((f) => formData.append('files', f));
-
-		const res = await fetch(`/api/cats/${catId}/media`, {
-			method: 'POST',
-			body: formData
-		});
-
-		if (res.ok) {
-			const newMedia: MediaCat[] = await res.json();
-			onChange([...media, ...newMedia]);
+	const handleUpload: SubmitFunction = async ({ formData, cancel }) => {
+		if (files.length === 0) {
+			cancel();
+			return;
 		}
-	};
+		uploading = true;
 
-	const handleInput = (kind: MediaKind) => async (e: Event) => {
-		const input = e.currentTarget as HTMLInputElement;
-		const files = Array.from(input.files ?? []);
-		await uploadFiles(files, kind);
-		input.value = '';
-	};
-
-	const setPrimary = async (item: MediaCat) => {
-		if (item.isPrimary) return;
-
-		const res = await fetch(`/api/cats/${catId}/media/${item.id}/primary`, {
-			method: 'PATCH'
-		});
-
-		if (res.ok) {
-			onChange(await res.json());
+		try {
+			for (const file of files) {
+				const uploaded = await uploadFile(file, {
+					purpose: 'catGallery',
+					targetId: cat.id,
+					onProgress: (percent) => (progress = { ...progress, [fileKey(file)]: percent })
+				});
+				formData.append('mediaStorageKey', uploaded.storageKey);
+				formData.append('mediaOriginalName', uploaded.originalName);
+			}
+		} catch (e) {
+			uploading = false;
+			progress = {};
+			toast.error(e instanceof UploadError ? e.message : "Échec de l'envoi d'un fichier");
+			cancel();
+			return;
 		}
+
+		return async ({ result, update }) => {
+			uploading = false;
+			progress = {};
+			if (result.type === 'success') {
+				toast.success((result.data?.message as string) ?? 'Fichiers ajoutés');
+				files = [];
+			} else if (result.type === 'failure') {
+				toast.error((result.data?.error as string) ?? "Erreur lors de l'ajout");
+			}
+			await update();
+		};
 	};
 
-	const handleDelete = async (item: MediaCat) => {
-		if (!confirm('Supprimer ce fichier ?')) return;
+	// ===== PETITES ACTIONS (photo principale) =====
+	const quickAction =
+		(successMessage: string): SubmitFunction =>
+		() =>
+		async ({ result, update }) => {
+			if (result.type === 'success') toast.success(successMessage);
+			else if (result.type === 'failure')
+				toast.error((result.data?.error as string) ?? 'Action impossible');
+			await update();
+		};
 
-		const res = await fetch(`/api/cats/${catId}/media/${item.id}`, {
-			method: 'DELETE'
-		});
+	// ===== CADRAGE =====
+	let focalOpen = $state(false);
+	let focalItem = $state<GalleryItem | null>(null);
 
-		if (res.ok) {
-			onChange(media.filter((m) => m.id !== item.id));
-		}
-	};
+	const focalMedia = $derived(
+		focalItem
+			? {
+					id: focalItem.id,
+					url: publicMediaUrl(focalItem.file.storageKey),
+					alt: focalItem.file.originalName ?? `Photo de ${catLabel}`,
+					focalPointX: focalItem.focalPointX,
+					focalPointY: focalItem.focalPointY
+				}
+			: null
+	);
+
+	function openFocal(item: GalleryItem) {
+		focalItem = item;
+		focalOpen = true;
+	}
+
+	const overlayButton =
+		'flex size-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80';
 </script>
 
-<div class="space-y-8">
-	<!-- Inputs cachés -->
-	<input
-		bind:this={imageInput}
-		type="file"
-		accept="image/*"
-		multiple
-		class="hidden"
-		onchange={handleInput('IMAGE')}
-	/>
-	<input
-		bind:this={videoInput}
-		type="file"
-		accept="video/*"
-		class="hidden"
-		onchange={handleInput('VIDEO')}
-	/>
-	<input
-		bind:this={documentInput}
-		type="file"
-		accept="application/pdf"
-		multiple
-		class="hidden"
-		onchange={handleInput('DOCUMENT')}
-	/>
+<!-- ===== UNE PHOTO (principale ou non) ===== -->
+{#snippet photoTile(item: GalleryItem, isPrimary: boolean)}
+	<div
+		class="group relative overflow-hidden rounded-xl {isPrimary
+			? 'col-span-2 row-span-2 aspect-square lg:aspect-auto'
+			: 'aspect-square lg:aspect-auto'}"
+	>
+		<img
+			src={publicMediaUrl(item.file.storageKey)}
+			alt={item.file.originalName ?? (isPrimary ? `Photo principale de ${catLabel}` : 'Photo')}
+			loading={isPrimary ? 'eager' : 'lazy'}
+			class="h-full w-full object-cover"
+			style={focalPointStyle(item)}
+		/>
 
+		{#if isPrimary}
+			<span class="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-xs text-white">
+				★ Principale
+			</span>
+		{/if}
+
+		<!-- Souris : visibles au survol | Tactile : toujours visibles -->
+		<div
+			class="absolute top-1.5 right-1.5 flex gap-1 transition pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100"
+		>
+			{#if !isPrimary}
+				<form
+					method="POST"
+					action="?/setPrimaryCatMedia"
+					use:enhance={quickAction('Photo principale modifiée')}
+				>
+					<input type="hidden" name="mediaId" value={item.id} />
+					<button
+						type="submit"
+						class={overlayButton}
+						aria-label="Définir comme photo principale"
+						title="Définir comme photo principale"
+					>
+						<Star class="size-4" />
+					</button>
+				</form>
+			{/if}
+
+			<button
+				type="button"
+				class={overlayButton}
+				onclick={() => openFocal(item)}
+				aria-label="Régler le cadrage"
+				title="Régler le cadrage"
+			>
+				<Crosshair class="size-4" />
+			</button>
+
+			<div class="rounded-full bg-white/90">
+				<DeleteButton
+					iconOnly
+					entityId={item.id}
+					firstName={isPrimary ? 'la photo principale' : 'cette photo'}
+					showDelete={true}
+					actionName="?/deleteCatMedia"
+					fieldName="mediaId"
+					successMessage="Photo supprimée"
+					deleteConfirmMessage={isPrimary
+						? 'Supprimer la photo principale ? La photo suivante prendra sa place.'
+						: 'Supprimer cette photo ? Cette action est définitive.'}
+				/>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
+<div class="space-y-8">
+	<!-- ===== EN-TÊTE ===== -->
 	<div class="flex items-center justify-between gap-2">
-		<h2 class="min-w-0 truncate text-lg font-semibold">
-			Médias : {catName || 'Sans nom'}
-		</h2>
+		<h2 class="min-w-0 truncate text-lg font-semibold">Médias : {catLabel}</h2>
 		{#if onClose}
 			<Button
 				variant="ghost"
@@ -124,16 +199,41 @@
 		{/if}
 	</div>
 
-	<!-- ================= PHOTOS ================= -->
+	<!-- ===== AJOUT ===== -->
+	<form method="POST" action="?/addCatMedia" use:enhance={handleUpload} class="space-y-3">
+		<input type="hidden" name="catId" value={cat.id} />
+
+		<MediaUpload
+			id="gallery-files"
+			accept={['IMAGE', 'VIDEO']}
+			bind:files
+			{progress}
+			multiple
+			maxFiles={MAX_FILES}
+			preview={false}
+			label="Ajouter des photos ou des vidéos"
+			disabled={uploading}
+		/>
+
+		{#if files.length > 0}
+			<div class="flex justify-end">
+				<Button type="submit" class="rounded-2xl" disabled={uploading}>
+					{#if uploading}
+						<LoaderCircle class="size-4 animate-spin" />
+						Envoi…
+					{:else}
+						Envoyer {files.length} fichier{files.length > 1 ? 's' : ''}
+					{/if}
+				</Button>
+			</div>
+		{/if}
+	</form>
+
+	<Separator />
+
+	<!-- ===== PHOTOS ===== -->
 	<section class="space-y-4">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<h3 class="text-lg font-semibold">Photos ({images.length})</h3>
-			<Button variant="outline" onclick={() => imageInput.click()}>
-				<ImagePlus class="h-4 w-4" />
-				<span class="hidden sm:inline">Ajouter une photo</span>
-				<span class="sm:hidden">Ajouter</span>
-			</Button>
-		</div>
+		<h3 class="text-lg font-semibold">Photos ({images.length})</h3>
 
 		{#if images.length === 0}
 			<div
@@ -142,72 +242,13 @@
 				Aucune photo
 			</div>
 		{:else}
-			<!-- PC : 5 colonnes de 160 px de haut (comme avant) | Mobile : 3 colonnes de carrés -->
+			<!-- PC : 5 colonnes de 160 px de haut | Mobile : 3 colonnes de carrés -->
 			<div class="grid grid-cols-3 gap-2 sm:gap-3 lg:auto-rows-40 lg:grid-cols-5">
 				{#if primary}
-					<div
-						class="group relative col-span-2 row-span-2 aspect-square overflow-hidden rounded-xl lg:aspect-auto"
-					>
-						<img
-							src={primary.url}
-							alt={primary.originalName ?? 'Photo principale'}
-							class="h-full w-full object-cover"
-							style={focalStyle(primary)}
-						/>
-						<span class="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-xs text-white">
-							Principale
-						</span>
-						<button
-							type="button"
-							onclick={() => handleDelete(primary)}
-							class="absolute top-2 right-2 rounded-full bg-black/60 p-2.5 text-white transition pointer-fine:p-2 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-							aria-label="Supprimer la photo principale"
-						>
-							<Trash class="h-4 w-4" />
-						</button>
-					</div>
+					{@render photoTile(primary, true)}
 				{/if}
-
 				{#each otherImages as item (item.id)}
-					<div class="group relative aspect-square overflow-hidden rounded-xl lg:aspect-auto">
-						<!-- Clic sur la photo = la mettre en principale -->
-						<button
-							type="button"
-							onclick={() => setPrimary(item)}
-							class="block h-full w-full cursor-pointer"
-							title="Définir comme photo principale"
-							aria-label="Définir comme photo principale"
-						>
-							<img
-								src={item.url}
-								alt={item.originalName ?? 'Photo'}
-								loading="lazy"
-								class="h-full w-full object-cover transition pointer-fine:group-hover:scale-105"
-								style={focalStyle(item)}
-							/>
-						</button>
-
-						<!-- Souris : indication au survol | Tactile : petite étoile toujours visible -->
-						<div
-							class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition pointer-fine:flex pointer-fine:group-hover:opacity-100"
-						>
-							Mettre en principale
-						</div>
-						<span
-							class="pointer-events-none absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white pointer-fine:hidden"
-						>
-							☆ Principale
-						</span>
-
-						<button
-							type="button"
-							onclick={() => handleDelete(item)}
-							class="absolute top-1.5 right-1.5 z-10 rounded-full bg-black/60 p-2 text-white transition pointer-fine:top-2 pointer-fine:right-2 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-							aria-label="Supprimer la photo"
-						>
-							<Trash class="h-4 w-4" />
-						</button>
-					</div>
+					{@render photoTile(item, false)}
 				{/each}
 			</div>
 		{/if}
@@ -215,16 +256,9 @@
 
 	<Separator />
 
-	<!-- ================= VIDÉOS ================= -->
+	<!-- ===== VIDÉOS ===== -->
 	<section class="space-y-4">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<h3 class="text-lg font-semibold">Vidéos ({videos.length})</h3>
-			<Button variant="outline" onclick={() => videoInput.click()}>
-				<Video class="h-4 w-4" />
-				<span class="hidden sm:inline">Ajouter une vidéo</span>
-				<span class="sm:hidden">Ajouter</span>
-			</Button>
-		</div>
+		<h3 class="text-lg font-semibold">Vidéos ({videos.length})</h3>
 
 		{#if videos.length === 0}
 			<div
@@ -233,70 +267,32 @@
 				Aucune vidéo
 			</div>
 		{:else}
-			<!-- PC : 3 colonnes (comme avant) | Tablette : 2 | Mobile : 1 -->
+			<!-- PC : 3 colonnes | Tablette : 2 | Mobile : 1 -->
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{#each videos as item (item.id)}
-					<div class="group relative overflow-hidden rounded-xl bg-black">
-						<video src={item.url} controls preload="metadata" class="h-full w-full object-contain">
-							<track kind="captions" srclang="fr" label="Français" />
-						</video>
-						<button
-							type="button"
-							onclick={() => handleDelete(item)}
-							class="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white transition pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-							aria-label="Supprimer la vidéo"
-						>
-							<Trash class="h-4 w-4" />
-						</button>
+					<div class="relative">
+						<VideoPreview
+							src={publicMediaUrl(item.file.storageKey)}
+							mimeType={item.file.mimeType}
+							label={item.file.originalName ?? `Vidéo de ${catLabel}`}
+						/>
+						<div class="absolute top-2 right-2 rounded-full bg-white/90">
+							<DeleteButton
+								iconOnly
+								entityId={item.id}
+								firstName="cette vidéo"
+								showDelete={true}
+								actionName="?/deleteCatMedia"
+								fieldName="mediaId"
+								successMessage="Vidéo supprimée"
+								deleteConfirmMessage="Supprimer cette vidéo ? Cette action est définitive."
+							/>
+						</div>
 					</div>
 				{/each}
 			</div>
 		{/if}
 	</section>
-
-	<Separator />
-
-	<!-- ================= DOCUMENTS ================= -->
-	<section class="space-y-4">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<h3 class="text-lg font-semibold">Documents ({documents.length})</h3>
-			<Button variant="outline" onclick={() => documentInput.click()}>
-				<FileText class="h-4 w-4" />
-				<span class="hidden sm:inline">Ajouter un document</span>
-				<span class="sm:hidden">Ajouter</span>
-			</Button>
-		</div>
-
-		{#if documents.length === 0}
-			<div
-				class="text-muted-foreground flex h-32 items-center justify-center rounded-xl border-2 border-dashed"
-			>
-				Aucun document
-			</div>
-		{:else}
-			<ul>
-				{#each documents as item (item.id)}
-					<li class="flex items-center justify-between gap-4 border-b p-3 last:border-b-0">
-						<a
-							href={item.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="flex min-w-0 items-center gap-3 hover:underline"
-						>
-							<FileText class="h-5 w-5 shrink-0 text-red-500" />
-							<span class="truncate">{item.originalName ?? 'Document PDF'}</span>
-						</a>
-						<button
-							type="button"
-							onclick={() => handleDelete(item)}
-							class="text-muted-foreground hover:text-destructive shrink-0 p-2"
-							aria-label="Supprimer le document"
-						>
-							<Trash class="h-4 w-4" />
-						</button>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</section>
 </div>
+
+<FocusPointDialog bind:open={focalOpen} media={focalMedia} />

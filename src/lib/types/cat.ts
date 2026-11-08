@@ -15,12 +15,21 @@ import type {
 import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
 
+// ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
+// Jamais d'URL stockée : elle est calculée à partir de la storageKey.
+export const catGalleryArgs = {
+	orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+	include: {
+		file: { select: { id: true, type: true, storageKey: true, mimeType: true, originalName: true } }
+	}
+} satisfies Prisma.Cat$mediaArgs;
+
 // ✅ Types Prisma avec relations
 // ✅ UNE seule définition de ce que charge la fiche d'un chat :
 // la requête (load) ET le type (CatFull) en découlent, ils ne peuvent plus diverger.
 export const catFullArgs = {
 	include: {
-		media: true,
+		media: catGalleryArgs,
 		sicknesses: true,
 		placements: {
 			include: { host: { include: { profil: true } } }
@@ -77,7 +86,8 @@ export const catListSelect = {
 	description: true,
 	media: {
 		where: { isPrimary: true },
-		take: 1
+		take: 1,
+		select: { focalPointX: true, focalPointY: true, file: { select: { storageKey: true } } }
 	}
 } satisfies Prisma.CatSelect;
 

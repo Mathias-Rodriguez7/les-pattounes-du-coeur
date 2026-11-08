@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
+import { catGalleryArgs } from '$lib/types/cat';
 
 export const load: PageServerLoad = async () => {
 	// News avec les cats associés - limité à 4
@@ -19,7 +20,7 @@ export const load: PageServerLoad = async () => {
 	const cats = await prisma.cat.findMany({
 		take: 4,
 		where: { isVisible: true },
-		include: { media: true },
+		include: { media: catGalleryArgs },
 		orderBy: { createdAt: 'desc' }
 	});
 

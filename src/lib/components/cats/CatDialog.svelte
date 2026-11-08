@@ -9,21 +9,14 @@
 	import { getAgeBadge, formatAge } from '$lib/utils/age';
 	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
 	import { Play } from '@lucide/svelte';
+	import { publicMediaUrl } from '$lib/media/urls';
 
 	let { selectedCat }: { selectedCat: CatFull | null } = $props();
 
 	// ----- Médias -----
 
-	// Photos et vidéos mélangées dans le carrousel, photo principale en premier
 	const gallery = $derived(
-		(selectedCat?.media ?? [])
-			.filter((m) => m.type === 'IMAGE' || m.type === 'VIDEO')
-			.sort((a, b) => {
-				// Photo principale d'abord, puis images avant vidéos
-				if (a.isPrimary !== b.isPrimary) return Number(b.isPrimary) - Number(a.isPrimary);
-				if (a.type !== b.type) return a.type === 'IMAGE' ? -1 : 1;
-				return 0;
-			})
+		(selectedCat?.media ?? []).filter((m) => m.file.type === 'IMAGE' || m.file.type === 'VIDEO')
 	);
 
 	let currentIndex = $state(0);
@@ -67,19 +60,19 @@
 			{#if current}
 				<div class="space-y-2">
 					<div class="overflow-hidden rounded-2xl bg-black">
-						{#if current.type === 'VIDEO'}
+						{#if current.file.type === 'VIDEO'}
 							<video
-								src={current.url}
+								src={publicMediaUrl(current.file.storageKey)}
 								controls
 								preload="metadata"
 								class="h-72 w-full object-contain"
-								aria-label={current.originalName ?? `Vidéo de ${selectedCat.name}`}
+								aria-label={current.file.originalName ?? `Vidéo de ${selectedCat.name}`}
 							>
 								<track kind="captions" />
 							</video>
 						{:else}
 							<img
-								src={current.url}
+								src={publicMediaUrl(current.file.storageKey)}
 								alt={selectedCat.name ?? selectedCat.catNumber}
 								class="h-72 w-full object-cover"
 								style={focalPointStyle(current)}
@@ -97,16 +90,16 @@
 									currentIndex
 										? 'border-primary'
 										: 'border-transparent opacity-60 hover:opacity-100'}"
-									aria-label={m.type === 'VIDEO' ? `Vidéo ${i + 1}` : `Photo ${i + 1}`}
+									aria-label={m.file.type === 'VIDEO' ? `Vidéo ${i + 1}` : `Photo ${i + 1}`}
 								>
-									{#if m.type === 'VIDEO'}
+									{#if m.file.type === 'VIDEO'}
 										<!-- Vignette vidéo : fond sombre avec icône play -->
 										<div class="flex h-full w-full items-center justify-center bg-black">
 											<Play class="h-5 w-5 text-white" />
 										</div>
 									{:else}
 										<img
-											src={m.url}
+											src={publicMediaUrl(m.file.storageKey)}
 											alt=""
 											class="h-full w-full object-cover"
 											style={focalPointStyle(m)}

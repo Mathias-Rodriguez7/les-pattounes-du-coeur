@@ -6,6 +6,8 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
 import { hashPassword } from '../src/lib/server/hashing';
 import { randomUUID } from 'node:crypto';
+import { S3Client, PutObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
+import { readFile } from 'node:fs/promises';
 
 // ---------------------
 // DB
@@ -64,17 +66,74 @@ const PLACEMENT_TYPE = ['PROPOSAL', 'TRANSFER', 'LONG', 'SHORT'] as const;
 // ---------------------
 const randomBool = (p = 0.5) => Math.random() < p;
 
-const CAT_IMAGES = [
-	'/img/cats/cat1.jpg',
-	'/img/cats/cat2.jpg',
-	'/img/cats/cat3.jpg',
-	'/img/cats/cat4.jpg'
-] as const;
+// ---------------------
+// S3 (RustFS en local)
+// ---------------------
+const s3 = new S3Client({
+	endpoint: process.env.S3_ENDPOINT,
+	region: process.env.S3_REGION,
+	forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+	credentials: {
+		accessKeyId: process.env.S3_ACCESS_KEY_ID ?? '',
+		secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? ''
+	},
+	requestChecksumCalculation: 'WHEN_REQUIRED',
+	responseChecksumValidation: 'WHEN_REQUIRED'
+});
+const PUBLIC_BUCKET = process.env.S3_BUCKET_PUBLIC ?? 'pattounes-public';
 
-const CAT_VIDEO = '/videos/cat.mp4';
+type Sample = {
+	path: string; // dans static/
+	type: 'IMAGE' | 'VIDEO';
+	mimeType: string;
+	extension: string;
+	sizeBytes: number; // rempli à l'envoi
+};
 
-function randomImage(i: number) {
-	return CAT_IMAGES[i % CAT_IMAGES.length];
+const SAMPLE_IMAGES: Sample[] = ['cat1', 'cat2', 'cat3', 'cat4'].map((name) => ({
+	path: `img/cats/${name}.jpg`,
+	type: 'IMAGE',
+	mimeType: 'image/jpeg',
+	extension: 'jpg',
+	sizeBytes: 0
+}));
+const SAMPLE_VIDEO: Sample = {
+	path: 'videos/cat.mp4',
+	type: 'VIDEO',
+	mimeType: 'video/mp4',
+	extension: 'mp4',
+	sizeBytes: 0
+};
+
+const sampleKey = (sample: Sample) => `seed/${sample.path.split('/').pop()}`;
+
+/** Envoie une fois les fichiers d'exemple dans le bucket public */
+async function uploadSamples() {
+	for (const sample of [...SAMPLE_IMAGES, SAMPLE_VIDEO]) {
+		const body = await readFile(`static/${sample.path}`);
+		sample.sizeBytes = body.length;
+		await s3.send(
+			new PutObjectCommand({
+				Bucket: PUBLIC_BUCKET,
+				Key: sampleKey(sample),
+				Body: body,
+				ContentType: sample.mimeType
+			})
+		);
+	}
+}
+
+/** Copie un exemple dans la galerie d'un chat. La copie se fait DANS S3 : rien ne transite par le seed */
+async function copySampleToCat(catId: string, sample: Sample) {
+	const storageKey = `cats/${catId}/gallery/${randomUUID()}.${sample.extension}`;
+	await s3.send(
+		new CopyObjectCommand({
+			Bucket: PUBLIC_BUCKET,
+			CopySource: `${PUBLIC_BUCKET}/${sampleKey(sample)}`,
+			Key: storageKey
+		})
+	);
+	return storageKey;
 }
 
 function getLocalPdf() {
@@ -221,6 +280,9 @@ async function main() {
 	await prisma.form.deleteMany();
 	await prisma.session.deleteMany();
 	await prisma.profil.deleteMany();
+
+	console.log('📤 Envoi des fichiers d’exemple dans S3...');
+	await uploadSamples();
 
 	// ---------------------
 	// 👤 PROFILS FAKE (150)
@@ -411,66 +473,36 @@ async function main() {
 	}
 
 	// ---------------------
-	// 🖼️ MEDIA
+	// 🖼️ GALERIE (copies des fichiers d'exemple dans S3)
 	// ---------------------
-	console.log('🖼️ Création des médias...');
+	console.log('🖼️ Création des galeries...');
 
 	for (const cat of cats) {
-		const imageCount = faker.number.int({ min: 3, max: 8 });
-		const documentCount = faker.number.int({ min: 3, max: 8 });
+		// 1 à 4 photos, et une vidéo pour 1 chat sur 5
+		const gallery = [
+			...faker.helpers.arrayElements(SAMPLE_IMAGES, faker.number.int({ min: 1, max: 4 })),
+			...(randomBool(0.2) ? [SAMPLE_VIDEO] : [])
+		];
 
-		const medias: Array<{
-			type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-			url: string;
-			mimeType: string;
-			originalName: string;
-		}> = [];
-
-		// Images : entre 3 et 8
-		for (let j = 0; j < imageCount; j++) {
-			const url = randomImage(j);
-			medias.push({
-				type: 'IMAGE',
-				url,
-				mimeType: 'image/jpeg',
-				originalName: url.split('/').pop() ?? 'cat.jpg'
-			});
-		}
-
-		// Vidéo : exactement 1
-		medias.push({
-			type: 'VIDEO',
-			url: CAT_VIDEO,
-			mimeType: 'video/mp4',
-			originalName: 'cat.mp4'
-		});
-
-		// Documents : entre 3 et 8
-		for (let j = 0; j < documentCount; j++) {
-			const url = getLocalPdf();
-			medias.push({
-				type: 'DOCUMENT',
-				url,
-				mimeType: 'application/pdf',
-				originalName: url.split('/').pop() ?? 'document.pdf'
-			});
-		}
-
-		// La première image est la photo principale
-		for (let k = 0; k < medias.length; k++) {
-			const m = medias[k];
+		for (let k = 0; k < gallery.length; k++) {
+			const sample = gallery[k];
+			const storageKey = await copySampleToCat(cat.id, sample);
 
 			await prisma.mediaCat.create({
 				data: {
-					catId: cat.id,
-					type: m.type,
-					url: m.url,
-					storageKey: m.url,
-					mimeType: m.mimeType,
-					sizeBytes: faker.number.int({ min: 50_000, max: 2_000_000 }),
-					originalName: m.originalName,
-					isPrimary: k === 0,
-					...generateFocalPoint()
+					cat: { connect: { id: cat.id } },
+					isPrimary: k === 0, // la première image est la photo principale
+					...generateFocalPoint(),
+					file: {
+						create: {
+							type: sample.type,
+							storageKey,
+							mimeType: sample.mimeType,
+							sizeBytes: sample.sizeBytes,
+							originalName: sample.path.split('/').pop(),
+							isPrivate: false
+						}
+					}
 				}
 			});
 		}

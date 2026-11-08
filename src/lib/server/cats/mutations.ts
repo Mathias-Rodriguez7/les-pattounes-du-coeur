@@ -243,7 +243,7 @@ export async function deleteCat({ request, locals }: { request: Request; locals:
 		where: { id: catId },
 		select: {
 			_count: { select: { adoptions: true, documents: true } },
-			media: { select: { storageKey: true } },
+			media: { select: { file: { select: { id: true, storageKey: true, isPrivate: true } } } },
 			documents: { select: { media: { select: { id: true, storageKey: true, isPrivate: true } } } },
 			cares: {
 				select: {
@@ -268,10 +268,10 @@ export async function deleteCat({ request, locals }: { request: Request; locals:
 
 	// Lignes Media (documents et soins) + fichiers de la galerie
 	const mediaRows = [
+		...cat.media.map((m) => m.file),
 		...cat.documents.map((d) => d.media),
 		...cat.cares.flatMap((care) => care.documents.map((d) => d.media))
 	];
-	const galleryFiles = cat.media.map((m) => ({ storageKey: m.storageKey, isPrivate: false }));
 
 	try {
 		await prisma.$transaction(async (tx) => {
@@ -296,10 +296,7 @@ export async function deleteCat({ request, locals }: { request: Request; locals:
 	}
 
 	// 4. Les fichiers, une fois la base à jour
-	await deleteFiles([
-		...mediaRows.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate })),
-		...galleryFiles
-	]);
+	await deleteFiles([...mediaRows.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate }))]);
 
 	return { success: true, message: 'Chat supprimé' };
 }

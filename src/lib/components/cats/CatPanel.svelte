@@ -35,6 +35,7 @@
 	import { focalPointStyle } from '$lib/utils/catHelpers';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
+	import { publicMediaUrl } from '$lib/media/urls';
 
 	interface Props {
 		cat: CatFull | null;
@@ -112,19 +113,12 @@
 		isEditing = false;
 	};
 
-	const handleMediaChange = (newMedia: CatFull['media']) => {
-		if (!cat) return;
-		cat.media = newMedia;
-	};
-
 	const handleCloseImageEditor = () => {
 		editingImage = false;
 	};
 
 	// Photo principale : celle marquée isPrimary, sinon la première image
-	const primaryMedia = $derived(
-		cat?.media?.find((m) => m.isPrimary) ?? cat?.media?.find((m) => m.type === 'IMAGE') ?? null
-	);
+	const primaryMedia = $derived(cat?.media?.find((m) => m.file.type === 'IMAGE') ?? null);
 	const primaryStyle = $derived(primaryMedia ? focalPointStyle(primaryMedia) : '');
 
 	// ===== DROITS =====
@@ -268,7 +262,7 @@
 				>
 					{#if primaryMedia}
 						<img
-							src={primaryMedia.url}
+							src={publicMediaUrl(primaryMedia.file.storageKey)}
 							alt={cat.name ?? cat.catNumber}
 							class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 pointer-fine:group-hover:scale-105"
 							style={primaryStyle}
@@ -731,13 +725,7 @@
 			</Card.Content>
 		{:else if editingImage}
 			<Card.Content>
-				<CatMediaGallery
-					catId={cat.id}
-					catName={cat.name ?? undefined}
-					media={cat.media ?? []}
-					onChange={handleMediaChange}
-					onClose={handleCloseImageEditor}
-				/>
+				<CatMediaGallery {cat} onClose={handleCloseImageEditor} />
 			</Card.Content>
 		{:else}
 			<Card.Content class="space-y-6">

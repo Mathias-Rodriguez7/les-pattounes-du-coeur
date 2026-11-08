@@ -6,6 +6,7 @@
 	import { getAgeBadge } from '$lib/utils/age';
 	import { Badge } from '$lib/components/ui/badge';
 	import { ChevronRight } from '@lucide/svelte';
+	import { publicMediaUrl } from '$lib/media/urls';
 
 	const {
 		cat,
@@ -15,8 +16,11 @@
 
 	// $derived : recalculés quand `cat` change (ex : après un rechargement des données)
 	const sexIcon = $derived(getSexIcon(cat.sex));
+	// La galerie est triée : la photo principale arrive en premier
 	const primaryMedia = $derived(cat.media[0] ?? null);
-	const imageSrc = $derived(primaryMedia?.url ?? '/img/logo.png');
+	const imageSrc = $derived(
+		primaryMedia ? publicMediaUrl(primaryMedia.file.storageKey) : '/img/logo.png'
+	);
 	const imageStyle = $derived(focalPointStyle(primaryMedia));
 	const activeSicknessesCount = $derived(
 		cat.sicknesses.filter((s) => s.status !== 'RESOLVED').length

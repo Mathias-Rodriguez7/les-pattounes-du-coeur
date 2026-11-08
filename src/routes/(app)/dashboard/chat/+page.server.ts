@@ -15,6 +15,12 @@ import { canManageCat, canManagePlacement } from '$lib/server/permissions/cat';
 import { catFullArgs } from '$lib/types/cat';
 import { hostFullArgs } from '$lib/types/host';
 import { createCare, deleteCare } from '$lib/server/cares/mutations';
+import {
+	addCatMedia,
+	setPrimaryCatMedia,
+	deleteCatMedia,
+	updateCatMediaFocalPoint
+} from '$lib/server/catMedia/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -384,6 +390,53 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCare:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Media du chat
+	// ==========================================
+	addCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await addCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur addCatMedia:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	setPrimaryCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await setPrimaryCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur setPrimaryCatMedia:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	updateCatMediaFocalPoint: async ({ request, locals }) => {
+		try {
+			const result = await updateCatMediaFocalPoint({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur updateCatMediaFocalPoint:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCatMedia:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}

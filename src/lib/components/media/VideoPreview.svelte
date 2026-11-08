@@ -30,6 +30,11 @@
 	// Respecte le réglage système « réduire les animations »
 	const reducedMotion = new MediaQuery('prefers-reduced-motion: reduce');
 	const autoplay = $derived(mode === 'ambient' && !reducedMotion.current);
+
+	// « video/quicktime » fait abandonner Chrome et Firefox AVANT d'essayer,
+	// alors qu'un .mov contient souvent de la vidéo H.264 qu'ils savent lire.
+	// Sans type, le navigateur regarde le fichier lui-même et décide.
+	const sourceType = $derived(mimeType && mimeType !== 'video/quicktime' ? mimeType : undefined);
 </script>
 
 {#if mode === 'ambient'}
@@ -44,7 +49,7 @@
 		aria-label={label}
 		class="h-full w-full object-cover {classList}"
 	>
-		<source {src} type={mimeType ?? undefined} />
+		<source {src} type={sourceType} />
 	</video>
 {:else}
 	<video
@@ -55,7 +60,7 @@
 		aria-label={label}
 		class="w-full rounded-lg bg-black {classList}"
 	>
-		<source {src} type={mimeType ?? undefined} />
+		<source {src} type={sourceType} />
 		<!-- Le son peut être activé → piste de sous-titres attendue (vide pour l'instant) -->
 		<track kind="captions" />
 	</video>
