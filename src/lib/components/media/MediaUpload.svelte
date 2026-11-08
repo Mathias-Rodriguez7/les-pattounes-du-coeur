@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MediaType } from '@prisma/client';
-	import { Upload, X, FileText, Film, Eye } from '@lucide/svelte';
+	import { Upload, X, FileText, Film, Eye, FileType } from '@lucide/svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import ImagePreview from './ImagePreview.svelte';
 	import {
@@ -8,7 +8,8 @@
 		formatBytes,
 		getAcceptAttribute,
 		getMediaTypeFromMime,
-		validateFile
+		validateFile,
+		DOCX_MIME
 	} from '$lib/media/rules';
 	import { fileKey } from '$lib/media/upload';
 
@@ -22,6 +23,7 @@
 		label?: string;
 		id?: string;
 		disabled?: boolean;
+		allowWord?: boolean;
 		/** Erreur renvoyée par le serveur */
 		error?: string;
 		preview?: boolean;
@@ -36,6 +38,7 @@
 		label,
 		id,
 		disabled = false,
+		allowWord = false,
 		error,
 		preview = true,
 		progress = {}
@@ -51,7 +54,10 @@
 	// Texte d'aide : « PDF · 20 Mo max »
 	const hint = $derived(
 		accept
-			.map((t) => `${MEDIA_RULES[t].label} · ${formatBytes(MEDIA_RULES[t].maxBytes)} max`)
+			.map(
+				(t) =>
+					`${MEDIA_RULES[t].label}${t === 'DOCUMENT' && allowWord ? ' ou Word' : ''} · ${formatBytes(MEDIA_RULES[t].maxBytes)} max`
+			)
 			.join(' — ')
 	);
 
@@ -67,7 +73,7 @@
 		const errors: { name: string; error: string }[] = [];
 
 		for (const file of Array.from(list)) {
-			const check = validateFile(file, accept);
+			const check = validateFile(file, accept, { allowWord });
 			if (check.ok) accepted.push(file);
 			else errors.push({ name: file.name, error: check.error });
 		}
@@ -163,7 +169,7 @@
 		id={inputId}
 		type="file"
 		class="sr-only"
-		accept={getAcceptAttribute(accept)}
+		accept={getAcceptAttribute(accept, { allowWord })}
 		{multiple}
 		{disabled}
 		aria-describedby={hintId}
@@ -234,6 +240,8 @@
 							<ImagePreview src={item.url} alt="" />
 						{:else if item.type === 'VIDEO'}
 							<Film class="text-muted-foreground size-5" />
+						{:else if item.file.type === DOCX_MIME}
+							<FileType class="size-5 text-blue-600" />
 						{:else}
 							<FileText class="size-5 text-red-600" />
 						{/if}

@@ -70,7 +70,7 @@ const bucketFor = (isPrivate: boolean) =>
 
 /** Les dossiers autorisés. TypeScript refuse tout autre chemin. */
 export type StorageFolder =
-	'news' | `cats/${string}/gallery` | `cats/${string}/documents` | `cats/${string}/cares`;
+	'news' | `cats/${string}/gallery` | `cats/${string}/documents` | `cats/${string}/cares` | 'info';
 
 const EXTENSIONS: Record<string, string> = {
 	'application/pdf': 'pdf',
@@ -79,7 +79,8 @@ const EXTENSIONS: Record<string, string> = {
 	'image/webp': 'webp',
 	'video/mp4': 'mp4',
 	'video/webm': 'webm',
-	'video/quicktime': 'mov'
+	'video/quicktime': 'mov',
+	'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
 };
 
 /** "cats/<id>/documents" + "application/pdf" → "cats/<id>/documents/<uuid>.pdf" */
@@ -134,8 +135,9 @@ export async function verifyUpload(params: {
 	isPrivate: boolean;
 	expectedFolder: StorageFolder;
 	allowed: MediaType[];
+	allowWord?: boolean;
 }): Promise<VerifiedUpload> {
-	const { storageKey, isPrivate, expectedFolder, allowed } = params;
+	const { storageKey, isPrivate, expectedFolder, allowed, allowWord } = params;
 
 	// Empêche d'attacher un fichier qui appartient à un autre chat ou à une autre news
 	if (!storageKey.startsWith(`${expectedFolder}/`) || storageKey.includes('..')) {
@@ -159,7 +161,7 @@ export async function verifyUpload(params: {
 		throw error;
 	}
 
-	const check = validateFile({ type: mimeType, size: sizeBytes }, allowed);
+	const check = validateFile({ type: mimeType, size: sizeBytes }, allowed, { allowWord });
 	if (!check.ok) {
 		await deleteFiles([{ storageKey, isPrivate }]);
 		return check;

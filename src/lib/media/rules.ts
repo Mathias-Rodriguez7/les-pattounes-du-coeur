@@ -27,6 +27,11 @@ export const MEDIA_RULES = {
 	}
 } as const satisfies Record<MediaType, MediaRule>;
 
+/** Word : accepté seulement là où on l'autorise explicitement (documents d'information) */
+export const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+type FileOptions = { allowWord?: boolean };
+
 /** "application/pdf" → "DOCUMENT". Renvoie null si le format n'est pas accepté. */
 export function getMediaTypeFromMime(mimeType: string | null | undefined): MediaType | null {
 	if (!mimeType) return null;
@@ -36,8 +41,9 @@ export function getMediaTypeFromMime(mimeType: string | null | undefined): Media
 }
 
 /** Valeur de l'attribut accept="" d'un <input type="file"> */
-export function getAcceptAttribute(types: MediaType[]): string {
-	return types.flatMap((type) => MEDIA_RULES[type].mimeTypes).join(',');
+export function getAcceptAttribute(types: MediaType[], options: FileOptions = {}): string {
+	const mimeTypes = types.flatMap((type) => MEDIA_RULES[type].mimeTypes);
+	return [...mimeTypes, ...(options.allowWord ? [DOCX_MIME] : [])].join(',');
 }
 
 export type FileCheck = { ok: true; type: MediaType } | { ok: false; error: string };
@@ -49,12 +55,19 @@ export type FileCheck = { ok: true; type: MediaType } | { ok: false; error: stri
  */
 export function validateFile(
 	file: { type: string; size: number },
-	allowed: MediaType[]
+	allowed: MediaType[],
+	options: FileOptions = {}
 ): FileCheck {
-	const type = getMediaTypeFromMime(file.type);
+	// Un fichier Word est un DOCUMENT, mais seulement si on l'a autorisé
+	const isAllowedWord =
+		options.allowWord && allowed.includes('DOCUMENT') && file.type === DOCX_MIME;
+	const type = isAllowedWord ? 'DOCUMENT' : getMediaTypeFromMime(file.type);
 
 	if (!type || !allowed.includes(type)) {
-		const formats = allowed.map((t) => MEDIA_RULES[t].label).join(', ');
+		const formats = [
+			...allowed.map((t) => MEDIA_RULES[t].label),
+			...(options.allowWord ? ['Word (DOCX)'] : [])
+		].join(', ');
 		return { ok: false, error: `Format non accepté. Formats possibles : ${formats}` };
 	}
 
@@ -93,5 +106,11 @@ export function guessMediaTypeFromUrl(url: string): MediaType | null {
 }
 
 /** Les raisons possibles d'un envoi. Le serveur en déduit le bucket, le dossier et les droits. */
-export const UPLOAD_PURPOSES = ['news', 'catDocument', 'careDocument', 'catGallery'] as const;
+export const UPLOAD_PURPOSES = [
+	'news',
+	'catDocument',
+	'careDocument',
+	'catGallery',
+	'infoDocument'
+] as const;
 export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];

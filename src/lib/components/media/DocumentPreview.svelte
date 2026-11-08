@@ -1,13 +1,15 @@
 <!-- src/lib/components/media/DocumentPreview.svelte -->
 <script lang="ts">
 	import { buttonVariants } from '$lib/components/ui/button';
-	import { FileText, ExternalLink } from '@lucide/svelte';
-	import { formatBytes } from '$lib/media/rules';
+	import { FileText, FileType, ExternalLink, Download } from '@lucide/svelte';
+	import { formatBytes, DOCX_MIME } from '$lib/media/rules';
 
 	interface Props {
 		src: string;
 		name?: string | null;
 		sizeBytes?: number | null;
+		/** Pour distinguer un PDF d'un Word (par défaut : PDF) */
+		mimeType?: string | null;
 		/**
 		 * card    : carte avec bouton « Ouvrir » (défaut)
 		 * embed   : lecteur intégré sur PC, carte sur mobile
@@ -17,37 +19,43 @@
 		class?: string;
 	}
 
-	let { src, name, sizeBytes, variant = 'card', class: classList = '' }: Props = $props();
+	let { src, name, sizeBytes, mimeType, variant = 'card', class: classList = '' }: Props = $props();
 
-	const displayName = $derived(name || 'Document PDF');
+	const isWord = $derived(mimeType === DOCX_MIME);
+	const formatLabel = $derived(isWord ? 'Word' : 'PDF');
+	const displayName = $derived(name || `Document ${formatLabel}`);
 </script>
 
 <!-- ===== CARTE ===== -->
 {#snippet card()}
 	<div class="border-border flex items-center gap-3 rounded-lg border p-3">
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-md bg-red-50 text-red-600"
+			class="flex size-10 shrink-0 items-center justify-center rounded-md
+		{isWord ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}"
 		>
-			<FileText class="size-5" />
+			{#if isWord}<FileType class="size-5 text-blue-600" />{:else}<FileText
+					class="size-5 text-red-600"
+				/>{/if}
 		</div>
 
 		<div class="min-w-0 flex-1">
 			<p class="truncate text-sm font-medium" title={displayName}>{displayName}</p>
 			<p class="text-muted-foreground text-xs">
-				PDF{sizeBytes ? ` · ${formatBytes(sizeBytes)}` : ''}
+				{formatLabel}{sizeBytes ? ` · ${formatBytes(sizeBytes)}` : ''}
 			</p>
 		</div>
 
 		<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 		<a
 			href={src}
-			target="_blank"
+			target={isWord ? undefined : '_blank'}
 			rel="noopener noreferrer"
+			download={isWord ? displayName : undefined}
 			class={buttonVariants({ variant: 'outline', size: 'sm' })}
-			aria-label="Ouvrir {displayName} dans un nouvel onglet"
+			aria-label="{isWord ? 'Télécharger' : 'Ouvrir'} {displayName}"
 		>
-			<ExternalLink class="size-4" />
-			<span class="hidden sm:inline">Ouvrir</span>
+			{#if isWord}<Download class="size-4" />{:else}<ExternalLink class="size-4" />{/if}
+			<span class="hidden sm:inline">{isWord ? 'Télécharger' : 'Ouvrir'}</span>
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	</div>
@@ -74,7 +82,7 @@
 {/snippet}
 
 <div class={classList}>
-	{#if variant === 'embed'}
+	{#if variant === 'embed' && !isWord}
 		<!-- PC : lecteur intégré. Si le navigateur ne sait pas l'afficher, il montre la carte -->
 		<object
 			data={src}

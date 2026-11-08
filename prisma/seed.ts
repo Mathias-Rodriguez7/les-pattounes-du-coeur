@@ -272,7 +272,7 @@ async function main() {
 	await prisma.mediaCat.deleteMany();
 
 	await prisma.news.deleteMany();
-	await prisma.media.deleteMany(); // après News, CatDocument et CareDocument
+	await prisma.media.deleteMany({ where: { infoDocument: null } });
 	await prisma.cat.deleteMany();
 	await prisma.volunteer.deleteMany();
 	await prisma.host.deleteMany();

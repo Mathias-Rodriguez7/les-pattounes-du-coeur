@@ -8,6 +8,7 @@ import { canManageCat } from '$lib/server/permissions/cat';
 type PurposeConfig = {
 	allowed: MediaType[];
 	isPrivate: boolean;
+	allowWord?: boolean;
 	/** true : il faut un targetId (l'id du chat) */
 	needsTarget: boolean;
 	folder: (targetId: string) => StorageFolder;
@@ -42,5 +43,13 @@ export const UPLOAD_PURPOSE_CONFIG: Record<UploadPurpose, PurposeConfig> = {
 		needsTarget: true,
 		folder: (catId) => `cats/${catId}/gallery`,
 		canUpload: (user, catId) => canManageCat(user, catId)
+	},
+	infoDocument: {
+		allowed: ['DOCUMENT'],
+		allowWord: true,
+		isPrivate: true,
+		needsTarget: false,
+		folder: () => 'info',
+		canUpload: (user) => user.role === 'ADMIN'
 	}
 };

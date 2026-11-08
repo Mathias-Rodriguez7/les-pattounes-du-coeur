@@ -32,7 +32,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	// 4. Le fichier annoncé respecte-t-il les règles ?
-	const check = validateFile({ type: mimeType, size: sizeBytes }, config.allowed);
+	const check = validateFile({ type: mimeType, size: sizeBytes }, config.allowed, {
+		allowWord: config.allowWord
+	});
 	if (!check.ok) error(400, check.error);
 
 	// 5. Le SERVEUR choisit le bucket et le dossier

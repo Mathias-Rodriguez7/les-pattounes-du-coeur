@@ -208,6 +208,7 @@ model Media {
   news         News?
   catDocument  CatDocument?
   careDocument CareDocument?
+  infoDocument InfoDocument?
 }
 
 // Galerie photo/vidéo du chat (migration vers Media : plus tard)
@@ -265,6 +266,22 @@ model CareDocument {
   createdAt DateTime @default(now()) @map("createdAt")
 
   @@index([careId])
+}
+
+// Documents d'information pour les bénévoles (guides, modèles…), toujours privés
+model InfoDocument {
+  id          String               @id @default(uuid()) @db.Uuid
+  title       String               @db.VarChar(255)
+  description String?              @db.Text
+  category    InfoDocumentCategory
+
+  fileId      String               @unique @db.Uuid @map("file_id")
+  file        Media                @relation(fields: [fileId], references: [id])
+
+  createdAt   DateTime             @default(now()) @map("createdAt")
+  updatedAt   DateTime             @updatedAt @map("updatedAt")
+
+  @@index([category])
 }
 
 //////////////////////////
@@ -533,5 +550,13 @@ enum CatDocumentKind {
   SURRENDER         // abandon / cession à l'association
   ADOPTION_CONTRACT // contrat d'adoption
   ADOPTION_RETURN   // retour / annulation d'adoption
+  OTHER
+}
+
+enum InfoDocumentCategory {
+  GUIDE
+  CONTRACT
+  HEALTH
+  ADOPTION
   OTHER
 }

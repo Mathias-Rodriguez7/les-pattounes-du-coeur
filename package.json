@@ -18,11 +18,13 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"prisma:generate": "prisma generate",
+		"db:generate": "docker compose exec app npx prisma generate && npx prisma generate && docker compose restart app",
 		"db:migrate": "docker compose exec app npx prisma migrate dev",
 		"db:reset": "docker compose exec app npx prisma migrate reset",
 		"db:seed": "docker compose exec app npx tsx prisma/seed.ts",
 		"storage:setup": "docker compose exec app npx tsx scripts/setup-storage.ts",
-		"db:full-reset": "docker compose down -v && docker compose up --build -d && docker compose exec app npx prisma migrate reset && npm run storage:setup && npm run db:seed"
+		"db:full-reset": "docker compose down -v && docker compose up --build -d && docker compose exec app npx prisma migrate reset && npm run storage:setup && npm run db:seed && npm run info:import",
+		"info:import": "docker compose exec app npx tsx scripts/import-info-documents.ts"
 	},
 	"prisma": {
 		"seed": "tsx prisma/seed.ts"

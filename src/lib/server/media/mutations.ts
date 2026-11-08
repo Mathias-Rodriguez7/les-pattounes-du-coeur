@@ -29,6 +29,7 @@ export async function prepareMedia(
 		storageKey: file.storageKey,
 		isPrivate: config.isPrivate,
 		expectedFolder: config.folder(targetId),
+		allowWord: config.allowWord,
 		allowed: config.allowed
 	});
 	if (!verified.ok) return verified;
