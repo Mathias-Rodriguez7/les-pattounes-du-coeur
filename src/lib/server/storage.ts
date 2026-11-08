@@ -186,15 +186,17 @@ const DOWNLOAD_URL_TTL = 5 * 60; // 5 minutes
 /** URL temporaire pour lire un fichier PRIVÉ. À n'appeler qu'après avoir vérifié les droits. */
 export async function createDownloadUrl(
 	storageKey: string,
-	options: { fileName?: string | null } = {}
+	options: { fileName?: string | null; download?: boolean } = {}
 ): Promise<string> {
+	// inline : le navigateur affiche le fichier ; attachment : il le télécharge
+	const disposition = options.download ? 'attachment' : 'inline';
+
 	const command = new GetObjectCommand({
 		Bucket: getStorage().buckets.private,
 		Key: storageKey,
-		// Nom proposé au téléchargement, et affichage dans le navigateur plutôt que téléchargement forcé
 		ResponseContentDisposition: options.fileName
-			? `inline; filename*=UTF-8''${encodeURIComponent(options.fileName)}`
-			: 'inline'
+			? `${disposition}; filename*=UTF-8''${encodeURIComponent(options.fileName)}`
+			: disposition
 	});
 
 	return getSignedUrl(getStorage().signer, command, { expiresIn: DOWNLOAD_URL_TTL });

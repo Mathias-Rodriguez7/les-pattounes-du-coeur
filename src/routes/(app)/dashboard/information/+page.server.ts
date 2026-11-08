@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/');
 
 	const documents = await prisma.infoDocument.findMany({
-		orderBy: [{ category: 'asc' }, { title: 'asc' }],
+		orderBy: { title: 'asc' },
 		include: {
 			// Jamais la storageKey : l'ouverture passe par /api/media/<id>
 			file: { select: { id: true, mimeType: true, sizeBytes: true, originalName: true } }
@@ -21,9 +21,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		documents: documents.map((doc) => ({
 			...doc,
-			// Champs attendus par la page actuelle (remplacés à l'étape 3)
-			file: doc.file.originalName ?? doc.title,
-			url: `/api/media/${doc.file.id}`
+			url: `/api/media/${doc.file.id}`,
+			downloadUrl: `/api/media/${doc.file.id}?download=1`
 		})),
 		isAdmin: locals.user.role === 'ADMIN'
 	};

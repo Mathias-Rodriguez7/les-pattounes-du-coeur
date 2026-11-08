@@ -23,6 +23,7 @@
 		label?: string;
 		id?: string;
 		disabled?: boolean;
+		/** Accepte aussi les .docx (page Information uniquement) */
 		allowWord?: boolean;
 		/** Erreur renvoyée par le serveur */
 		error?: string;

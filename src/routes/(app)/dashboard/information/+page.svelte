@@ -1,194 +1,331 @@
-<!-- src/routes/benevole/info/+page.svelte -->
+<!-- src/routes/(app)/dashboard/information/+page.svelte -->
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { FileText, FileType, Download, Eye, Info } from '@lucide/svelte';
+	import type { InfoDocumentCategory } from '@prisma/client';
 	import { fade, fly } from 'svelte/transition';
+	import { FileText, FileType, Download, Eye, Info, Search, SearchX } from '@lucide/svelte';
+	import { Input } from '$lib/components/ui/input';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { DOCX_MIME, formatBytes } from '$lib/media/rules';
+	import {
+		INFO_DOCUMENT_CATEGORY,
+		INFO_DOCUMENT_CATEGORY_ORDER
+	} from '$lib/constants/infoDocument';
+	import InfoDocumentCreateDialog from '$lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	type Doc = (typeof data.documents)[number];
+	type Doc = PageData['documents'][number];
 
-	let selected = $state<Doc | null>(null);
-	let loading = $state(true);
+	// ===== FORMAT =====
+	const isWord = (doc: Doc) => doc.file.mimeType === DOCX_MIME;
+	const formatLabel = (doc: Doc) => (isWord(doc) ? 'Word' : 'PDF');
 
-	$effect(() => {
-		if (!selected && data.documents.length > 0) {
-			selected = data.documents[0];
-		}
-	});
-
-	const isPdf = (file: string) => file.toLowerCase().endsWith('.pdf');
-	const extension = (file: string) => file.split('.').pop()?.toUpperCase() ?? '';
-
-	function select(doc: Doc) {
-		if (selected?.file === doc.file) return;
-		selected = doc;
-		loading = true;
+	function iconClass(doc: Doc, active: boolean) {
+		if (active) return 'bg-primary text-primary-foreground';
+		// -100 et non -50 : le panneau est rose, un fond trop pâle disparaîtrait
+		return isWord(doc) ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600';
 	}
 
-	function onKeydown(e: KeyboardEvent, index: number) {
-		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-			e.preventDefault();
-			const next =
-				e.key === 'ArrowDown'
-					? Math.min(index + 1, data.documents.length - 1)
-					: Math.max(index - 1, 0);
-			select(data.documents[next]);
-			document.getElementById(`doc-${next}`)?.focus();
-		}
+	// ===== FILTRES =====
+	let query = $state('');
+	let category = $state<InfoDocumentCategory | 'ALL'>('ALL');
+
+	/** « Santé » → « sante » : la recherche ignore les majuscules et les accents */
+	const normalize = (text: string) =>
+		text
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase();
+
+	const filtered = $derived.by(() => {
+		const q = normalize(query.trim());
+		return data.documents.filter(
+			(doc) =>
+				(category === 'ALL' || doc.category === category) &&
+				(!q || normalize(`${doc.title} ${doc.description ?? ''}`).includes(q))
+		);
+	});
+
+	// Les groupes non vides, dans l'ordre des constantes
+	const groups = $derived(
+		INFO_DOCUMENT_CATEGORY_ORDER.map((cat) => ({
+			category: cat,
+			docs: filtered.filter((doc) => doc.category === cat)
+		})).filter((group) => group.docs.length > 0)
+	);
+
+	// La liste « à plat », dans l'ordre affiché : pour les flèches du clavier
+	const ordered = $derived(groups.flatMap((group) => group.docs));
+
+	// Les puces : « Tous », puis les catégories qui ont au moins un document
+	const chips = $derived([
+		{ value: 'ALL' as const, label: 'Tous', count: data.documents.length },
+		...INFO_DOCUMENT_CATEGORY_ORDER.map((cat) => ({
+			value: cat,
+			label: INFO_DOCUMENT_CATEGORY[cat].plural,
+			count: data.documents.filter((doc) => doc.category === cat).length
+		})).filter((chip) => chip.count > 0)
+	]);
+
+	function resetFilters() {
+		query = '';
+		category = 'ALL';
+	}
+
+	// ===== SÉLECTION (PC) =====
+	let selectedId = $state<string | null>(null);
+
+	// Le document choisi s'il est encore visible, sinon le premier de la liste
+	const selected = $derived(ordered.find((doc) => doc.id === selectedId) ?? ordered[0] ?? null);
+
+	// Le chargement est fini quand l'iframe du document affiché a déclenché onload
+	let loadedId = $state<string | null>(null);
+	const loading = $derived(selected !== null && !isWord(selected) && loadedId !== selected.id);
+
+	function onKeydown(e: KeyboardEvent, doc: Doc) {
+		if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+		e.preventDefault();
+
+		const index = ordered.indexOf(doc);
+		const nextIndex =
+			e.key === 'ArrowDown' ? Math.min(index + 1, ordered.length - 1) : Math.max(index - 1, 0);
+		const next = ordered[nextIndex];
+
+		selectedId = next.id;
+		document.getElementById(`doc-${next.id}`)?.focus();
 	}
 </script>
 
 <svelte:head>
-	<title>Informations bénévoles</title>
+	<title>Documents d'information</title>
 </svelte:head>
 
+<!-- ===== UNE LIGNE DE LA LISTE (partagée entre PC et mobile) ===== -->
+<!-- Le parent porte la classe « group » : l'icône et le titre réagissent à son survol -->
+{#snippet docRow(doc: Doc, active: boolean)}
+	<span
+		class="flex size-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110 {iconClass(
+			doc,
+			active
+		)}"
+	>
+		{#if isWord(doc)}
+			<FileType class="size-5" />
+		{:else}
+			<FileText class="size-5" />
+		{/if}
+	</span>
+	<span class="min-w-0 flex-1">
+		<span
+			class="group-hover:text-accent-foreground block truncate text-sm font-medium transition-colors {active
+				? 'text-accent-foreground'
+				: ''}"
+		>
+			{doc.title}
+		</span>
+		<span class="text-muted-foreground block text-xs">
+			{formatLabel(doc)} · {formatBytes(doc.file.sizeBytes)}
+		</span>
+	</span>
+{/snippet}
+
 <main in:fade={{ duration: 200 }}>
-	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-10">
-		<header class="mb-8">
-			<h1 class="text-3xl font-bold tracking-tight text-gray-900">Documents d'information</h1>
-			<p class="mt-2 text-gray-600">
-				Retrouvez ici les guides, procédures et modèles utiles dans vos missions.
-			</p>
+	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
+		<!-- ===== EN-TÊTE ===== -->
+		<header class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+					Documents d'information
+					<span class="text-muted-foreground text-base font-normal">· {data.documents.length}</span>
+				</h1>
+				<p class="text-muted-foreground mt-1 text-sm sm:text-base">
+					Guides, procédures et modèles utiles dans vos missions.
+				</p>
+			</div>
+			<!-- Étape 3c : bouton « Ajouter » (admins) -->
+			{#if data.isAdmin}
+				<InfoDocumentCreateDialog />
+			{/if}
 		</header>
 
 		{#if data.documents.length === 0}
+			<!-- ===== AUCUN DOCUMENT ===== -->
 			<div
-				class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-20 text-center"
+				class="bg-muted/40 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-20 text-center"
 			>
-				<Info class="mb-4 h-10 w-10 text-gray-400" />
-				<h2 class="text-lg font-semibold text-gray-900">Aucun document pour le moment</h2>
-				<p class="mt-1 text-sm text-gray-500">
+				<Info class="text-muted-foreground mb-4 size-10" />
+				<h2 class="text-lg font-semibold">Aucun document pour le moment</h2>
+				<p class="text-muted-foreground mt-1 text-sm">
 					Revenez plus tard, de nouveaux documents seront ajoutés.
 				</p>
 			</div>
 		{:else}
-			<div class="grid gap-6 lg:grid-cols-[320px_1fr]">
-				<!-- Liste des documents -->
-				<aside>
-					<div class="mb-3 flex items-center justify-between px-1">
-						<h2 class="text-sm font-semibold tracking-wide text-gray-500 uppercase">Documents</h2>
-						<span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-							{data.documents.length}
-						</span>
+			<div class="grid gap-4 lg:grid-cols-[320px_1fr] lg:gap-6">
+				<!-- ===== LISTE : panneau translucide, comme la sidebar ===== -->
+				<aside
+					class="bg-accent/10 border-accent/40 flex min-w-0 flex-col gap-3 rounded-2xl border p-3 shadow-sm backdrop-blur-lg sm:p-4"
+				>
+					<div class="relative">
+						<Search
+							class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+						/>
+						<Input
+							type="search"
+							bind:value={query}
+							placeholder="Rechercher un document"
+							aria-label="Rechercher un document"
+							class="bg-background/80 pl-9"
+						/>
 					</div>
 
-					<ul role="listbox" aria-label="Liste des documents" class="flex flex-col gap-2">
-						{#each data.documents as doc, i (doc.file)}
-							{@const active = selected?.file === doc.file}
-							<li>
-								<button
-									id="doc-{i}"
-									type="button"
-									role="option"
-									aria-selected={active}
-									tabindex={active ? 0 : -1}
-									onclick={() => select(doc)}
-									onkeydown={(e) => onKeydown(e, i)}
-									class="group flex w-full items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
-                                    {active
-										? 'border-blue-200 bg-blue-50 shadow-sm'
-										: 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}"
-								>
-									<span
-										class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg
-                                        {active
-											? 'bg-blue-600 text-white'
-											: 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'}"
-									>
-										{#if isPdf(doc.file)}
-											<FileText class="h-5 w-5" />
-										{:else}
-											<FileType class="h-5 w-5" />
-										{/if}
-									</span>
-
-									<span class="min-w-0 flex-1">
-										<span class="flex items-center gap-2">
-											<span class="truncate font-medium text-gray-900">{doc.title}</span>
-											<span
-												class="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600"
-											>
-												{extension(doc.file)}
-											</span>
-										</span>
-										{#if doc.description}
-											<span class="mt-1 line-clamp-2 block text-sm text-gray-500"
-												>{doc.description}</span
-											>
-										{/if}
-									</span>
-								</button>
-							</li>
+					<!-- Mobile : les puces défilent jusqu'au bord du panneau ; PC : elles passent à la ligne -->
+					<div
+						role="group"
+						aria-label="Filtrer par catégorie"
+						class="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 lg:flex-wrap lg:overflow-visible"
+					>
+						{#each chips as chip (chip.value)}
+							{@const on = category === chip.value}
+							<button
+								type="button"
+								aria-pressed={on}
+								onclick={() => (category = chip.value)}
+								class="focus-visible:ring-ring shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none
+									{on
+									? 'border-primary bg-primary text-primary-foreground'
+									: 'text-muted-foreground hover:text-foreground border-black/10 bg-white/60 hover:bg-white'}"
+							>
+								{chip.label}
+								<span class="ml-0.5 tabular-nums">{chip.count}</span>
+							</button>
 						{/each}
-					</ul>
+					</div>
+
+					{#if groups.length === 0}
+						<!-- ===== AUCUN RÉSULTAT ===== -->
+						<div
+							class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-black/15 bg-white/40 px-4 py-10 text-center"
+						>
+							<SearchX class="text-muted-foreground size-8" />
+							<p class="text-sm font-medium">Aucun document ne correspond</p>
+							<Button variant="outline" size="sm" class="rounded-2xl" onclick={resetFilters}>
+								Réinitialiser
+							</Button>
+						</div>
+					{:else}
+						<nav aria-label="Documents" class="flex flex-col gap-4">
+							{#each groups as group (group.category)}
+								<section aria-labelledby="group-{group.category}">
+									<h2
+										id="group-{group.category}"
+										class="text-muted-foreground mb-1.5 px-1 text-xs font-semibold tracking-wide uppercase"
+									>
+										{INFO_DOCUMENT_CATEGORY[group.category].plural}
+									</h2>
+
+									<ul class="flex flex-col gap-1">
+										{#each group.docs as doc (doc.id)}
+											{@const active = selected?.id === doc.id}
+											<li>
+												<!-- PC : affiche le document dans l'aperçu -->
+												<button
+													id="doc-{doc.id}"
+													type="button"
+													aria-current={active ? 'true' : undefined}
+													onclick={() => (selectedId = doc.id)}
+													onkeydown={(e) => onKeydown(e, doc)}
+													class="group focus-visible:ring-ring hidden w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:outline-none lg:flex
+														{active
+														? 'bg-background ring-primary/30 shadow-sm ring-1'
+														: 'hover:bg-background/70 hover:ring-primary/20 hover:translate-x-0.5 hover:shadow-sm hover:ring-1'}"
+												>
+													{@render docRow(doc, active)}
+												</button>
+
+												<!-- Mobile : ouvre le PDF dans la visionneuse du téléphone, télécharge un Word -->
+												<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
+												<a
+													href={isWord(doc) ? doc.downloadUrl : doc.url}
+													target={isWord(doc) ? undefined : '_blank'}
+													rel="noopener noreferrer"
+													class="group active:bg-background/70 flex items-center gap-3 rounded-xl p-2.5 transition-colors lg:hidden"
+												>
+													{@render docRow(doc, false)}
+												</a>
+												<!-- eslint-enable svelte/no-navigation-without-resolve -->
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/each}
+						</nav>
+					{/if}
 				</aside>
 
-				<!-- Aperçu -->
+				<!-- ===== APERÇU (PC uniquement) ===== -->
 				<section
-					class="flex min-h-[60vh] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
 					aria-live="polite"
+					class="bg-card hidden min-h-[70vh] flex-col overflow-hidden rounded-2xl border shadow-sm lg:flex"
 				>
 					{#if selected}
-						<header
-							class="flex flex-col gap-3 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-						>
+						<header class="flex items-start justify-between gap-4 border-b px-5 py-4">
 							<div class="min-w-0">
-								<h2 class="truncate text-lg font-semibold text-gray-900">{selected.title}</h2>
+								<span
+									class="bg-accent text-accent-foreground rounded-full px-2 py-0.5 text-xs font-medium"
+								>
+									{INFO_DOCUMENT_CATEGORY[selected.category].label}
+								</span>
+								<h2 class="mt-1.5 truncate text-lg font-semibold">{selected.title}</h2>
 								{#if selected.description}
-									<p class="truncate text-sm text-gray-500">{selected.description}</p>
+									<p class="text-muted-foreground mt-0.5 text-sm">{selected.description}</p>
 								{/if}
 							</div>
-							<a
-								href={selected.url}
-								download
-								class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-							>
-								<Download class="h-4 w-4" />
-								Télécharger
-							</a>
+
+							<div class="flex shrink-0 items-center gap-2">
+								<!-- Étape 3c : Modifier / Supprimer (admins) -->
+								<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
+								<a href={selected.downloadUrl} class="{buttonVariants({ size: 'sm' })} rounded-2xl">
+									<Download class="size-4" />
+									Télécharger
+								</a>
+								<!-- eslint-enable svelte/no-navigation-without-resolve -->
+							</div>
 						</header>
 
-						{#if isPdf(selected.file)}
-							<div class="relative flex-1 bg-gray-100">
+						{#if isWord(selected)}
+							<!-- Un navigateur ne sait pas afficher un Word -->
+							<div class="flex flex-1 flex-col items-center justify-center gap-4 p-10 text-center">
+								<div class="bg-muted flex size-16 items-center justify-center rounded-2xl">
+									<Eye class="text-muted-foreground size-8" />
+								</div>
+								<div>
+									<p class="font-medium">Aperçu indisponible</p>
+									<p class="text-muted-foreground mt-1 text-sm">
+										Un document Word ne peut pas s'afficher dans le navigateur.
+									</p>
+								</div>
+							</div>
+						{:else}
+							<div class="bg-muted relative flex-1">
 								{#if loading}
 									<div class="absolute inset-0 flex items-center justify-center">
 										<div
-											class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"
+											class="border-muted-foreground/30 border-t-primary size-8 animate-spin rounded-full border-4"
 										></div>
 									</div>
 								{/if}
-								{#key selected.file}
+
+								<!-- {#key} : une nouvelle iframe pour chaque document -->
+								{#key selected.id}
 									<iframe
 										src={selected.url}
 										title={selected.title}
-										onload={() => (loading = false)}
-										class="h-full min-h-[60vh] w-full border-0 transition-opacity {loading
-											? 'opacity-0'
-											: 'opacity-100'}"
+										onload={() => (loadedId = selected?.id ?? null)}
+										class="absolute inset-0 h-full w-full border-0 transition-opacity
+											{loading ? 'opacity-0' : 'opacity-100'}"
 									></iframe>
 								{/key}
-							</div>
-						{:else}
-							<div class="flex flex-1 flex-col items-center justify-center gap-4 p-10 text-center">
-								<div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
-									<Eye class="h-8 w-8 text-gray-400" />
-								</div>
-								<div>
-									<p class="font-medium text-gray-900">Aperçu indisponible</p>
-									<p class="mt-1 text-sm text-gray-500">
-										Ce format ({extension(selected.file)}) ne peut pas être affiché dans le
-										navigateur.
-									</p>
-								</div>
-								<a
-									href={selected.url}
-									download
-									class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-								>
-									<Download class="h-4 w-4" />
-									Télécharger le fichier
-								</a>
 							</div>
 						{/if}
 					{/if}

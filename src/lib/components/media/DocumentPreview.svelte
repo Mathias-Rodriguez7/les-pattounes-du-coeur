@@ -66,17 +66,26 @@
 	<!-- eslint-disable svelte/no-navigation-without-resolve -- fichier média, pas une route -->
 	<a
 		href={src}
-		target="_blank"
+		target={isWord ? undefined : '_blank'}
 		rel="noopener noreferrer"
+		download={isWord ? displayName : undefined}
 		class="flex min-w-0 items-center gap-2 rounded-lg border border-black/10 bg-white/70 px-2 py-1.5 text-xs transition-colors hover:bg-white"
-		aria-label="Ouvrir {displayName} dans un nouvel onglet"
+		aria-label="{isWord ? 'Télécharger' : 'Ouvrir'} {displayName}"
 	>
-		<FileText class="size-4 shrink-0 text-red-600" />
+		{#if isWord}
+			<FileType class="size-4 shrink-0 text-blue-600" />
+		{:else}
+			<FileText class="size-4 shrink-0 text-red-600" />
+		{/if}
 		<span class="min-w-0 flex-1 truncate font-medium">{displayName}</span>
 		{#if sizeBytes}
 			<span class="text-muted-foreground shrink-0">{formatBytes(sizeBytes)}</span>
 		{/if}
-		<ExternalLink class="text-muted-foreground size-3.5 shrink-0" />
+		{#if isWord}
+			<Download class="text-muted-foreground size-3.5 shrink-0" />
+		{:else}
+			<ExternalLink class="text-muted-foreground size-3.5 shrink-0" />
+		{/if}
 	</a>
 	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {/snippet}

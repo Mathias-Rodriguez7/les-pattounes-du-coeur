@@ -6,8 +6,7 @@ import { createDownloadUrl, getPublicUrl } from '$lib/server/storage';
 
 const idSchema = z.string().uuid();
 
-export const GET: RequestHandler = async ({ params, locals }) => {
-	// 1. Connecté ?
+export const GET: RequestHandler = async ({ params, locals, url }) => {
 	if (!locals.user) error(401, 'Vous devez être connecté');
 
 	// 2. Un id mal formé ne doit pas aller jusqu'à la base
@@ -22,7 +21,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 	// 4. Fichier public : pas besoin de signature
 	const location = media.isPrivate
-		? await createDownloadUrl(media.storageKey, { fileName: media.originalName })
+		? await createDownloadUrl(media.storageKey, {
+				fileName: media.originalName,
+				download: url.searchParams.get('download') === '1'
+			})
 		: getPublicUrl(media.storageKey);
 
 	// 5. Redirection vers le fichier
