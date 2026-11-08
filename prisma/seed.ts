@@ -653,8 +653,6 @@ async function main() {
 				title: faker.lorem.sentence(),
 				type: faker.helpers.arrayElement(NEWS_TYPES),
 				content: faker.lorem.paragraph(),
-				// Ancien champ, encore lu par NewsPanel en attendant le module S3
-				mediaUrl: type === 'NEWSCATS' ? null : getLocalPdf(),
 				// Nouveau : un PDF public par news (sauf News chats, qui n'en ont pas)
 				...(type === 'NEWSCATS'
 					? {}

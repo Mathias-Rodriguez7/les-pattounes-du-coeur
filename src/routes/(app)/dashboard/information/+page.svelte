@@ -307,7 +307,6 @@
 									Télécharger
 								</a>
 								<!-- eslint-enable svelte/no-navigation-without-resolve -->
-								<!-- Étape 3c : Modifier / Supprimer (admins) -->
 								{#if data.isAdmin}
 									<InfoDocumentEditDialog doc={selected} />
 									<DeleteButton

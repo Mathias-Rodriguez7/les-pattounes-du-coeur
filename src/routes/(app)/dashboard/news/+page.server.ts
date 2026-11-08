@@ -1,11 +1,10 @@
 // app/dashboard/news/+page.server.ts
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { catListSelect } from '$lib/types/cat';
 import { createNews, updateNews, deleteNews, generateCatsNews } from '$lib/server/news/mutations';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
-import { getPublicUrl } from '$lib/server/storage';
 import { fail, redirect } from '@sveltejs/kit';
+import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Même règle que la barre latérale, mais appliquée par le serveur
@@ -19,22 +18,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const [news, cats] = await Promise.all([
 		prisma.news.findMany({
 			orderBy: { createdAt: 'desc' },
-			select: {
-				id: true,
-				title: true,
-				content: true,
-				type: true,
-				mediaUrl: true,
-				createdAt: true,
-				cats: {
-					select: {
-						cat: { select: catListSelect }
-					}
-				},
-				media: {
-					select: { storageKey: true, mimeType: true, sizeBytes: true, originalName: true }
-				}
-			}
+			select: newsListSelect
 		}),
 		// Liste des chats pour le formulaire d'édition : seulement pour ceux qui éditent,
 		// et seulement les champs utiles (tout ce que renvoie le load part au navigateur)
@@ -56,18 +40,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 
 	return {
-		news: news.map(({ media, ...n }) => ({
-			...n,
-			cats: n.cats.map((nc) => nc.cat),
-			mediaFile: media
-				? {
-						url: getPublicUrl(media.storageKey),
-						mimeType: media.mimeType,
-						sizeBytes: media.sizeBytes,
-						name: media.originalName
-					}
-				: null
-		})),
+		news: news.map(toNewsFull),
 		cats,
 		stats,
 		canManageNews: canManage,

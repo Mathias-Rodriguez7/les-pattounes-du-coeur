@@ -294,9 +294,6 @@ model News {
   type      NewsType
   content   String? @db.Text
 
-  // ⚠️ Ancien champ : à supprimer une fois les news existantes passées sur mediaId
-  mediaUrl  String? @map("media_url") @db.Text
-
   // 🆕 Un seul PDF par news
   mediaId   String? @unique @db.Uuid @map("media_id")
   media     Media?  @relation(fields: [mediaId], references: [id], onDelete: SetNull)
