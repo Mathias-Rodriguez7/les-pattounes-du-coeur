@@ -50,8 +50,9 @@
 					{compatibility.score}%
 				</Badge>
 			{:else if col.id === 'type'}
-				<Badge class={typesColors[host.type]?.color ?? 'bg-gray-100 text-gray-800'}>
-					{typesColors[host.type]?.label ?? host.type}
+				{@const typeInfo = host.type ? typesColors[host.type] : null}
+				<Badge class={typeInfo?.color ?? 'bg-gray-100 text-gray-800'}>
+					{typeInfo?.label ?? '—'}
 				</Badge>
 			{:else if col.id === 'heal'}
 				<Badge class={healColors[host.heal]?.color ?? 'bg-gray-100 text-gray-800'}>
@@ -62,8 +63,9 @@
 					{socializeColors[host.socialize]?.label ?? host.socialize}
 				</Badge>
 			{:else if col.id === 'actif'}
-				<Badge class={statusColors[host.actif]?.color ?? 'bg-gray-100 text-gray-800'}>
-					{statusColors[host.actif]?.label ?? host.actif}
+				{@const actifInfo = host.actif ? statusColors[host.actif] : null}
+				<Badge class={actifInfo?.color ?? 'bg-gray-100 text-gray-800'}>
+					{actifInfo?.label ?? '—'}
 				</Badge>
 			{:else if col.id === 'babyFeeding'}
 				<Badge class={babyFeedingColors[host.babyFeeding]?.color ?? 'bg-gray-100 text-gray-800'}>

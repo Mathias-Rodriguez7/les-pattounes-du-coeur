@@ -69,3 +69,10 @@ export const PLACEMENT_TYPE_GROUPS = {
 	LONG: ['LONG'] as PlacementType[],
 	SHORT: ['SHORT'] as PlacementType[]
 };
+
+/** Seuls les placements réels (classique, relais) ont des dates */
+export const PLACEMENT_TYPES_WITH_DATES: readonly PlacementType[] = ['LONG', 'SHORT'];
+
+export function placementHasDates(type: string | null | undefined): boolean {
+	return PLACEMENT_TYPES_WITH_DATES.includes(type as PlacementType);
+}

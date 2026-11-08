@@ -6,7 +6,7 @@
 	import { Pencil, Camera } from '@lucide/svelte';
 	import type { CatFull, CatEditData } from '$lib/types/cat';
 	import type { HostFull } from '$lib/types/host';
-	import type { VolunteerFull } from '$lib/types/volunteer';
+	import type { VolunteerBasic } from '$lib/types/volunteer';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import {
@@ -34,11 +34,12 @@
 	import SicknessEditForm from '../sickness/SicknessEditForm.svelte';
 	import { focalPointStyle } from '$lib/utils/catHelpers';
 	import CatDocuments from './CatDocuments.svelte';
+	import CatCares from './CatCares.svelte';
 
 	interface Props {
 		cat: CatFull | null;
 		hosts?: HostFull[] | null;
-		volunteers?: VolunteerFull[] | null;
+		volunteers?: VolunteerBasic[] | null;
 		isAdmin?: boolean;
 	}
 
@@ -82,12 +83,12 @@
 			birthDate: cat.birthDate ? new Date(cat.birthDate) : new Date(),
 			isVisible: cat.isVisible,
 			status: cat.status,
-			hairLength: cat.hairLength,
+			hairLength: cat.hairLength ?? '',
 			color: cat.color ?? '',
 			origin: cat.origin ?? '',
 			isSterilize: cat.isSterilize,
 			isAlreadySterilized: cat.isAlreadySterilized,
-			vaccinate: cat.vaccinate,
+			vaccinate: cat.vaccinate ?? '',
 			isFivTest: cat.isFivTest,
 			isDeworming: cat.isDeworming,
 			description: cat.description ?? '',
@@ -200,7 +201,7 @@
 						{PLACEMENT_LABEL[placement.type] ?? placement.type}
 					</Badge>
 					{#if isAdmin && !isHistory}
-						<PlacementEditForm catId={cat.id} {cat} {placement} hosts={hosts ?? []} />
+						<PlacementEditForm {cat} {placement} />
 					{/if}
 				</div>
 			</div>
@@ -695,7 +696,15 @@
 				<Separator />
 
 				<!-- ============================================================ -->
-				<!-- 6. HISTORIQUE                                                 -->
+				<!-- 6. SOINS VÉTÉRINAIRES                                         -->
+				<!-- ============================================================ -->
+				<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
+				<CatCares {cat} canManage={canManageSicknesses} />
+
+				<Separator />
+
+				<!-- ============================================================ -->
+				<!-- 7. HISTORIQUE                                                 -->
 				<!-- ============================================================ -->
 				<Accordion.Root type="single">
 					<Accordion.Item value="history" class="border-0">

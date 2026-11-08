@@ -26,6 +26,15 @@
 
 	let selectedCatId = $state<string | null>(null);
 	const selectedCat = $derived(cats.find((c) => c.id === selectedCatId) ?? null);
+
+	// Le chat sélectionné a disparu (supprimé) : on ferme le détail
+	$effect(() => {
+		if (selectedCatId && !selectedCat) {
+			selectedCatId = null;
+			mobilePanelOpen = false;
+		}
+	});
+
 	const selectedCatName = $derived(
 		selectedCat ? (selectedCat.name ?? selectedCat.catNumber) : 'Détail du chat'
 	);

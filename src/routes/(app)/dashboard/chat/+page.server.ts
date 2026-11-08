@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { createCat, updateCat } from '$lib/server/cats/mutations';
+import { createCat, updateCat, deleteCat } from '$lib/server/cats/mutations';
 import {
 	createPlacements,
 	updatePlacement,
@@ -12,6 +12,9 @@ import { createSickness, updateSickness, deleteSickness } from '$lib/server/sick
 import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
 import { createCatDocument, deleteCatDocument } from '$lib/server/catDocuments/mutations';
 import { canManageCat, canManagePlacement } from '$lib/server/permissions/cat';
+import { catFullArgs } from '$lib/types/cat';
+import { hostFullArgs } from '$lib/types/host';
+import { createCare, deleteCare } from '$lib/server/cares/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -41,39 +44,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			await Promise.all([
 				prisma.cat.findMany({
 					where: catsWhere,
-					include: {
-						media: true,
-						sicknesses: true,
-						placements: {
-							include: {
-								host: { include: { profil: true } }
-							}
-						},
-						volunteers: {
-							include: {
-								volunteer: { include: { profil: true } }
-							}
-						},
-						// Toutes les adoptions (en cours et annulées), la plus récente d'abord
-						adoptions: {
-							orderBy: { createdAt: 'desc' },
-							include: { profil: true }
-						},
-						documents: {
-							orderBy: { date: 'desc' },
-							include: {
-								// Jamais la storageKey : la page passe par /api/media/<id>
-								media: { select: { id: true, originalName: true, sizeBytes: true } },
-								adoption: {
-									select: {
-										id: true,
-										status: true,
-										profil: { select: { firstName: true, lastName: true } }
-									}
-								}
-							}
-						}
-					},
+					...catFullArgs,
 					orderBy: { createdAt: 'desc' }
 				}),
 
@@ -105,12 +76,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 				})
 			]);
 
-		const hosts = await prisma.host.findMany({
-			include: { profil: true }
-		});
+		// Avec leurs placements : nécessaires pour le score de compatibilité et « Chats actuels »
+		const hosts = await prisma.host.findMany(hostFullArgs);
 
+		// Juste ce qu'il faut pour la liste « Associer une bénévole »
 		const volunteers = await prisma.volunteer.findMany({
-			include: { profil: true }
+			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
 		const catsWithOwnership = cats.map((cat) => ({
@@ -163,6 +134,17 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur updateCat:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCat: async ({ request, locals }) => {
+		try {
+			const result = await deleteCat({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCat:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},
@@ -377,6 +359,31 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCatDocument:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: care du chat
+	// ==========================================
+	createCare: async ({ request, locals }) => {
+		try {
+			const result = await createCare({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur createCare:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCare: async ({ request, locals }) => {
+		try {
+			const result = await deleteCare({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCare:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}

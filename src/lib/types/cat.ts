@@ -16,55 +16,53 @@ import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
 
 // ✅ Types Prisma avec relations
-export type CatFull = Prisma.CatGetPayload<{
+// ✅ UNE seule définition de ce que charge la fiche d'un chat :
+// la requête (load) ET le type (CatFull) en découlent, ils ne peuvent plus diverger.
+export const catFullArgs = {
 	include: {
-		media: true;
-		sicknesses: true;
-		cares: true;
-		volunteers: {
-			include: {
-				volunteer: {
-					include: {
-						profil: true;
-					};
-				};
-			};
-		};
+		media: true,
+		sicknesses: true,
 		placements: {
-			include: {
-				host: {
-					include: {
-						profil: true;
-					};
-				};
-			};
-		};
+			include: { host: { include: { profil: true } } }
+		},
+		volunteers: {
+			include: { volunteer: { include: { profil: true } } }
+		},
+		// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 		adoptions: {
-			include: {
-				profil: true;
-			};
-		};
+			orderBy: { createdAt: 'desc' },
+			include: { profil: true }
+		},
 		documents: {
+			orderBy: { date: 'desc' },
 			include: {
-				media: { select: { id: true; originalName: true; sizeBytes: true } };
+				// Jamais la storageKey : la page passe par /api/media/<id>
+				media: { select: { id: true, originalName: true, sizeBytes: true } },
 				adoption: {
 					select: {
-						id: true;
-						status: true;
-						profil: { select: { firstName: true; lastName: true } };
-					};
-				};
-			};
-		};
+						id: true,
+						status: true,
+						profil: { select: { firstName: true, lastName: true } }
+					}
+				}
+			}
+		},
+		cares: {
+			orderBy: { date: 'desc' },
+			include: {
+				sickness: { select: { id: true, name: true } },
+				documents: {
+					orderBy: { createdAt: 'asc' },
+					include: { media: { select: { id: true, originalName: true, sizeBytes: true } } }
+				}
+			}
+		}
+	}
+} satisfies Prisma.CatDefaultArgs;
 
-		news: true;
-	};
-}> & {
-	// ✅ Force le typage des enums
-	sex: SexCat;
-	status: CatStatus;
-	hairLength: HairLength;
-	vaccinate: Vaccinate;
+export type CatFull = Prisma.CatGetPayload<typeof catFullArgs> & {
+	/** Calculé par le load de la page Chats : la bénévole connectée est-elle associée au chat ? */
+	isMine?: boolean;
 };
 
 // ✅ Select réutilisable pour la liste (source unique de vérité)
@@ -99,7 +97,7 @@ export type CatEditData = {
 	// Infos santé
 	isSterilize: boolean;
 	isAlreadySterilized: boolean;
-	vaccinate: Vaccinate;
+	vaccinate: Vaccinate | '';
 	isFivTest: boolean;
 	isDeworming: boolean;
 
@@ -114,7 +112,7 @@ export type CatEditData = {
 	isOutside: boolean;
 
 	// Apparence
-	hairLength: HairLength;
+	hairLength: HairLength | '';
 	color: string;
 	origin: string;
 

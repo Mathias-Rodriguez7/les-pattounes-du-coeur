@@ -81,10 +81,10 @@
 			city: host.profil.city,
 			postalCode: host.profil.postalCode,
 
-			actif: host.actif || '',
+			actif: host.actif ?? undefined,
 			breakStart: host.breakStart ? new Date(host.breakStart) : null,
 			breakEnd: host.breakEnd ? new Date(host.breakEnd) : null,
-			type: host.type || '',
+			type: host.type ?? undefined,
 			isAvailable: host.isAvailable,
 
 			space: host.space,
@@ -136,6 +136,9 @@
 	const currentStatus = $derived(
 		host?.actif && host.actif in STATUS_CONFIG ? STATUS_CONFIG[host.actif] : STATUS_CONFIG.ACTIVE
 	);
+
+	// Le type peut ne pas être renseigné en base
+	const typeInfo = $derived(host?.type ? TYPE_COLORS[host.type] : null);
 
 	const isOnBreak = $derived(host?.actif === 'BREAK' && !!(host.breakStart || host.breakEnd));
 
@@ -194,8 +197,8 @@
 									iconClass="h-6 w-6"
 								/>
 							{/key}
-							<Badge class={TYPE_COLORS[host.type]?.color || 'bg-gray-100 text-gray-800'}>
-								{TYPE_COLORS[host.type]?.label}
+							<Badge class={typeInfo?.color ?? 'bg-gray-100 text-gray-800'}>
+								{typeInfo?.label ?? 'Type non renseigné'}
 							</Badge>
 						</div>
 

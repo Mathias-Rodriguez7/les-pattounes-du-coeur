@@ -27,7 +27,7 @@ export const createPlacementSchema = z
 		},
 		{
 			message: 'La date de fin doit être postérieure à la date de début',
-			path: ['endedDate']
+			path: ['endDate']
 		}
 	);
 
@@ -48,7 +48,7 @@ export const updatePlacementSchema = z
 		},
 		{
 			message: 'La date de fin doit être postérieure à la date de début',
-			path: ['endedDate']
+			path: ['endDate']
 		}
 	);
 

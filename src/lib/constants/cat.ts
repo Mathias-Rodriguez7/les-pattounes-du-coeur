@@ -1,4 +1,4 @@
-import type { CatDocumentKind } from '@prisma/client';
+import type { CatDocumentKind, CareType } from '@prisma/client';
 
 export const CAT_SEX = [
 	{ value: 'MALE', label: 'Mâle' },
@@ -38,14 +38,15 @@ export const CAT_SECTION_CONFIG = {
 	volunteer: { icon: 'users', label: 'Bénévole', color: 'teal' },
 	host: { icon: 'house', label: 'FA', color: 'violet' },
 	health: { icon: 'cat', label: 'Santé', color: 'fuchsia' },
-	sicknesses: { icon: 'syringe', label: 'Maladies', color: 'lime' },
+	sicknesses: { icon: 'clipboardPlus', label: 'Maladies', color: 'lime' },
 	placements: { icon: 'house', label: 'Accueil', color: 'blue' },
 	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
 	compatibility: { icon: 'paw', label: 'Compatibilité', color: 'orange' },
 	description: { icon: 'plus', label: 'Description', color: 'gray' },
 	adoptions: { icon: 'heart', label: 'Adoptions', color: 'pink' },
 	history: { icon: 'history', label: 'Historique des placements', color: 'gray' },
-	documents: { icon: 'file', label: 'Documents', color: 'amber' }
+	documents: { icon: 'file', label: 'Documents', color: 'amber' },
+	cares: { icon: 'syringe', label: 'Soins', color: 'emerald' }
 } as const;
 
 /** Types de documents administratifs d'un chat */
@@ -60,3 +61,20 @@ export const CAT_DOCUMENT_KIND = {
 export const CAT_DOCUMENT_KIND_OPTIONS = Object.entries(CAT_DOCUMENT_KIND).map(
 	([value, { label }]) => ({ value, label })
 );
+
+export const CAT_CARE_TYPES = {
+	VACCINE: { label: 'Vaccination', color: 'bg-green-100 text-green-800' },
+	TREATMENT: { label: 'Traitement', color: 'bg-blue-100 text-blue-800' },
+	SURGERY: { label: 'Chirurgie', color: 'bg-red-100 text-red-800' },
+	CONTROL: { label: 'Contrôle', color: 'bg-yellow-100 text-yellow-800' },
+	STERILIZE: { label: 'Stérilisation', color: 'bg-purple-100 text-purple-800' },
+	DEWORMING: { label: 'Déparasitage', color: 'bg-yellow-100 text-yellow-800' },
+	FIV_TEST: { label: 'Test FIV', color: 'bg-pink-100 text-pink-800' },
+	IDENTIFICATION: { label: 'Identification', color: 'bg-indigo-100 text-indigo-800' },
+	OTHER: { label: 'Autre soin', color: 'bg-gray-100 text-gray-800' }
+} satisfies Record<CareType, { label: string; color: string }>;
+
+export const CAT_CARE_TYPE_OPTIONS = Object.entries(CAT_CARE_TYPES).map(([value, { label }]) => ({
+	value,
+	label
+}));

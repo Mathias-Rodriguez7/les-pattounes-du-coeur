@@ -5,6 +5,7 @@ import {
 	type CreatePlacementInput,
 	type UpdatePlacementInput
 } from '../../schemas/placement';
+import { placementHasDates } from '$lib/constants/placement';
 
 // ==========================================
 // CREATE - Créer un placement
@@ -31,8 +32,9 @@ export async function createPlacement(input: CreatePlacementInput) {
 				hostId,
 				type,
 				status,
-				startDate: startDate ?? new Date(),
-				endDate: endDate ?? null
+				// Dates uniquement pour un placement réel (classique ou relais)
+				startDate: placementHasDates(type) ? (startDate ?? new Date()) : null,
+				endDate: placementHasDates(type) ? (endDate ?? null) : null
 			},
 			include: {
 				cat: true,
@@ -145,10 +147,23 @@ export async function updatePlacement(placementId: string, input: UpdatePlacemen
 		};
 	}
 
+	const data = parsed.data;
+
+	// Le type FINAL décide : celui du formulaire, sinon celui déjà en base
+	const finalType =
+		data.type ??
+		(await prisma.placement.findUnique({ where: { id: placementId }, select: { type: true } }))
+			?.type;
+
+	if (!placementHasDates(finalType)) {
+		data.startDate = null;
+		data.endDate = null;
+	}
+
 	try {
 		const placement = await prisma.placement.update({
 			where: { id: placementId },
-			data: parsed.data,
+			data,
 			include: {
 				cat: true,
 				host: { include: { profil: true } }
