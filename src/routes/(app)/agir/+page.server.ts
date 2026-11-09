@@ -7,6 +7,10 @@ import { volunteerFormSchema } from '$lib/schemas/formShema/volunteerForm';
 import { colabForm } from '$lib/schemas/formShema/colabForm.js';
 import prisma from '$lib/server/prisma';
 import { FormStatus, FormType } from '@prisma/client';
+import { sendSosAlertEmail } from '$lib/server/mailer';
+
+/** Le message envoyé au visiteur quand l'enregistrement échoue (le détail reste dans les logs) */
+const SAVE_ERROR = "Votre demande n'a pas pu être envoyée. Réessayez dans quelques minutes.";
 
 //
 // 🧠 LOAD (initialisation des forms)
@@ -34,31 +38,32 @@ export const load = async () => {
 
 export const actions = {
 	//
-	// SOS
+	// 🚨 SOS : envoyé par e-mail à l'association (rien n'est enregistré en base)
 	//
 	sos: async ({ request }) => {
 		const form = await superValidate(request, zod4(sosFormSchema));
 
-		console.log('🚨 SOS DATA:', form.data);
-
 		if (!form.valid) {
-			console.log('❌ SOS INVALID', form.errors);
 			return fail(400, { sosForm: form });
 		}
 
-		try {
-			const created = await prisma.form.create({
-				data: {
-					type: FormType.ALERT,
-					status: FormStatus.PENDING,
-					email: form.data.email,
-					data: form.data
-				}
-			});
+		// Pot de miel rempli : c'est un robot. On fait comme si tout allait bien, sans rien envoyer
+		// (lui renvoyer une erreur lui apprendrait à contourner la protection)
+		if (form.data.website) {
+			return { sosForm: form };
+		}
 
-			console.log('✅ SOS CREATED:', created);
-		} catch (e) {
-			console.error('🔥 SOS PRISMA ERROR:', e);
+		try {
+			// 🆕 sendSosAlertEmail ne lit que les champs dont il a besoin : `website` est ignoré
+			await sendSosAlertEmail(form.data);
+		} catch (error) {
+			// Le détail reste dans les logs ; le visiteur sait que son signalement n'est PAS parti
+			console.error('Erreur envoi e-mail SOS :', error);
+			return fail(500, {
+				sosForm: form,
+				message:
+					"Votre signalement n'a pas pu être envoyé. Réessayez, ou contactez-nous par téléphone en cas d'urgence."
+			});
 		}
 
 		return { sosForm: form };
@@ -70,15 +75,13 @@ export const actions = {
 	host: async ({ request }) => {
 		const form = await superValidate(request, zod4(hostFormSchema));
 
-		console.log('🏠 HOST DATA:', form.data);
-
+		// 🆕 Plus de console.log : ils écrivaient les données personnelles dans les logs
 		if (!form.valid) {
-			console.log('❌ HOST INVALID', form.errors);
 			return fail(400, { hostForm: form });
 		}
 
 		try {
-			const created = await prisma.form.create({
+			await prisma.form.create({
 				data: {
 					type: FormType.HOST,
 					status: FormStatus.PENDING,
@@ -86,10 +89,10 @@ export const actions = {
 					data: form.data
 				}
 			});
-
-			console.log('✅ HOST CREATED:', created);
-		} catch (e) {
-			console.error('🔥 HOST PRISMA ERROR:', e);
+		} catch (error) {
+			console.error('Erreur enregistrement candidature FA :', error);
+			// 🆕 Avant : l'erreur était avalée, et le visiteur voyait « Candidature envoyée »
+			return fail(500, { hostForm: form, message: SAVE_ERROR });
 		}
 
 		return { hostForm: form };
@@ -106,7 +109,7 @@ export const actions = {
 		}
 
 		try {
-			const created = await prisma.form.create({
+			await prisma.form.create({
 				data: {
 					type: FormType.VOLUNTEER,
 					status: FormStatus.PENDING,
@@ -114,16 +117,17 @@ export const actions = {
 					data: form.data
 				}
 			});
-
-			console.log('✅ CREATED:', created);
-		} catch (e) {
-			console.error('🔥 PRISMA ERROR FULL:', e);
-			return fail(500, { volunteerForm: form });
+		} catch (error) {
+			console.error('Erreur enregistrement candidature bénévole :', error);
+			return fail(500, { volunteerForm: form, message: SAVE_ERROR });
 		}
 
 		return { volunteerForm: form };
 	},
 
+	//
+	// 🤝 COLAB
+	//
 	colab: async ({ request }) => {
 		const form = await superValidate(request, zod4(colabForm));
 
@@ -132,7 +136,7 @@ export const actions = {
 		}
 
 		try {
-			const created = await prisma.form.create({
+			await prisma.form.create({
 				data: {
 					type: FormType.COLAB,
 					status: FormStatus.PENDING,
@@ -140,12 +144,11 @@ export const actions = {
 					data: form.data
 				}
 			});
-
-			console.log('✅ CREATED:', created);
-		} catch (e) {
-			console.error('🔥 PRISMA ERROR FULL:', e);
-			return fail(500, { colabForm: form });
+		} catch (error) {
+			console.error('Erreur enregistrement demande de partenariat :', error);
+			return fail(500, { colabForm: form, message: SAVE_ERROR });
 		}
+
 		return { colabForm: form };
 	}
 };

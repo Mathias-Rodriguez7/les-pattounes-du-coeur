@@ -7,6 +7,7 @@ import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 import { createAdoptionSchema } from '$lib/schemas/adoption';
 import { createAdoption } from '$lib/server/adoptions/mutations';
+import { canManageCat } from '$lib/server/permissions/cat';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -226,21 +227,31 @@ export const actions: Actions = {
 		}
 	},
 
-	createAdoption: async ({ request }) => {
-		const formData = await request.formData();
-		const raw = Object.fromEntries(formData);
+	createAdoption: async ({ request, locals }) => {
+		// Le load protège l'affichage, pas les actions : on vérifie ici
+		if (!locals.user) {
+			return fail(401, { error: 'Vous devez être connecté' });
+		}
 
-		const parsed = createAdoptionSchema.safeParse(raw);
+		const formData = await request.formData();
+		const parsed = createAdoptionSchema.safeParse(Object.fromEntries(formData));
 		if (!parsed.success) {
 			return fail(400, {
+				error: 'Erreur de validation',
 				errors: parsed.error.flatten().fieldErrors
 			});
+		}
+
+		// Admin, ou bénévole associée au chat (la règle de la fiche du chat)
+		if (!(await canManageCat(locals.user, parsed.data.catId))) {
+			return fail(403, { error: "Vous n'êtes pas autorisée à faire adopter ce chat" });
 		}
 
 		try {
 			const adoption = await createAdoption(parsed.data);
 			return { success: true, adoptionId: adoption.id };
 		} catch (err) {
+			// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est plus disponible »)
 			const message = err instanceof Error ? err.message : 'Erreur inconnue';
 			return fail(400, { error: message });
 		}

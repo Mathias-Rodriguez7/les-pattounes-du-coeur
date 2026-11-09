@@ -34,6 +34,8 @@
 	const totalSteps = 3;
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
+	// superForm ne doit recevoir que les données de DÉPART : il gère ensuite son propre état
+	// svelte-ignore state_referenced_locally
 	const form = superForm(data.form, {
 		validators: zod4Client(adoptionFormSchema),
 		onResult({ result }) {
@@ -44,7 +46,12 @@
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				toast.error("Une erreur s'est produite ❌");
+				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
+				toast.error(
+					result.status === 400
+						? 'Veuillez corriger les erreurs du formulaire'
+						: ((result.data?.message as string) ?? "Une erreur s'est produite")
+				);
 			}
 		}
 	});
@@ -104,7 +111,7 @@
 					<div class="pt-2">
 						<a
 							href={resolve('/adoptions/chat')}
-							class="text-primary hover:text-primary/80 inline-flex items-center font-medium underline underline-offset-4 transition"
+							class="inline-flex items-center font-medium text-primary underline underline-offset-4 transition hover:text-primary/80"
 						>
 							<ChevronRight />
 							Je préfère voir les chats disponibles
@@ -228,14 +235,16 @@
 											placeholder="Quartier"
 											size="sm"
 											options={districtOptions}
-											bind:value={$formData.district}
+											bind:value={
+												() => $formData.district ?? '', (v) => ($formData.district = v || null)
+											}
 										/>
 									{/if}
 								</div>
 							</div>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -299,7 +308,7 @@
 							</div>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -410,7 +419,7 @@
 							/>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -439,13 +448,13 @@
 			</Card.Content>
 
 			<Card.Footer class="flex flex-col gap-2">
-				<div class="bg-muted h-2 w-full rounded-full">
+				<div class="h-2 w-full rounded-full bg-muted">
 					<div
-						class="bg-primary h-2 rounded-full transition-all duration-300"
+						class="h-2 rounded-full bg-primary transition-all duration-300"
 						style={`width: ${progress}%`}
 					></div>
 				</div>
-				<p class="text-muted-foreground text-center text-xs">
+				<p class="text-center text-xs text-muted-foreground">
 					Étape {step} / {totalSteps}
 				</p>
 			</Card.Footer>

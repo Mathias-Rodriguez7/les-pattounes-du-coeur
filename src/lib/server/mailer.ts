@@ -1,6 +1,7 @@
 // src/lib/server/mailer.ts
 import nodemailer from 'nodemailer';
 import { env } from '$env/dynamic/private';
+import { SOS_ALERT_TYPES, type SosAlertType } from '$lib/constants/sos';
 
 const transporter = nodemailer.createTransport({
 	host: env.SMTP_HOST,
@@ -50,5 +51,62 @@ Nous vous conseillons de le modifier dès votre première connexion.`,
             </ul>
             <p>Nous vous conseillons de le modifier dès votre première connexion.</p>
         `
+	});
+}
+
+/** Neutralise le HTML : le texte d'un visiteur ne doit JAMAIS être interprété comme du code */
+function escapeHtml(text: string) {
+	return text
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll("'", '&#39;');
+}
+
+type SosAlert = {
+	alertType: SosAlertType;
+	firstName: string;
+	lastName: string;
+	phone: string;
+	email: string;
+	address: string;
+	description: string;
+};
+
+/** Envoie un signalement SOS à l'association. « Répondre » écrit directement au visiteur. */
+export async function sendSosAlertEmail(alert: SosAlert) {
+	const to = env.ASSOCIATION_EMAIL;
+	if (!to) throw new Error('ASSOCIATION_EMAIL manquant dans la configuration');
+
+	const type = SOS_ALERT_TYPES[alert.alertType];
+	const name = `${alert.firstName} ${alert.lastName}`;
+
+	await transporter.sendMail({
+		from: env.SMTP_FROM,
+		to,
+		replyTo: alert.email,
+		subject: `🚨 SOS : ${type} (${alert.address})`,
+		text: `Nouveau signalement SOS
+
+Type : ${type}
+Lieu : ${alert.address}
+
+De : ${name}
+Téléphone : ${alert.phone}
+E-mail : ${alert.email}
+
+Description :
+${alert.description}`,
+		html: `
+			<h2>🚨 Nouveau signalement SOS</h2>
+			<p><strong>Type :</strong> ${escapeHtml(type)}<br>
+			<strong>Lieu :</strong> ${escapeHtml(alert.address)}</p>
+			<p><strong>De :</strong> ${escapeHtml(name)}<br>
+			<strong>Téléphone :</strong> ${escapeHtml(alert.phone)}<br>
+			<strong>E-mail :</strong> ${escapeHtml(alert.email)}</p>
+			<p><strong>Description :</strong></p>
+			<p style="white-space: pre-line">${escapeHtml(alert.description)}</p>
+		`
 	});
 }

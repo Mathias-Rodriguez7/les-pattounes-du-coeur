@@ -18,14 +18,14 @@
 	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
 	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 
-	let { data } = $props<{
-		data: SuperValidated<Infer<typeof volunteerFormSchema>>;
-	}>();
+	let { data }: { data: SuperValidated<Infer<typeof volunteerFormSchema>> } = $props();
 
 	let step = $state(1);
 	const totalSteps = 4;
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
+	// superForm ne doit recevoir que les données de DÉPART : il gère ensuite son propre état
+	// svelte-ignore state_referenced_locally
 	const form = superForm(data, {
 		validators: zod4Client(volunteerFormSchema),
 		onResult({ result }) {
@@ -36,7 +36,12 @@
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				toast.error("Une erreur s'est produite ❌");
+				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
+				toast.error(
+					result.status === 400
+						? 'Veuillez corriger les erreurs du formulaire'
+						: ((result.data?.message as string) ?? "Une erreur s'est produite")
+				);
 			}
 		}
 	});
@@ -111,7 +116,7 @@
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Informations personnelles</h2>
-			<p class="text-muted-foreground text-sm">Parlez-nous un peu de vous.</p>
+			<p class="text-sm text-muted-foreground">Parlez-nous un peu de vous.</p>
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
@@ -208,7 +213,7 @@
 						placeholder="Quartier"
 						size="sm"
 						options={districtOptions}
-						bind:value={$formData.district}
+						bind:value={() => $formData.district ?? '', (v) => ($formData.district = v || null)}
 					/>
 				{/if}
 			</div>
@@ -218,7 +223,7 @@
 	<div class:hidden={step !== 2} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Expérience</h2>
-			<p class="text-muted-foreground text-sm">
+			<p class="text-sm text-muted-foreground">
 				Parlez-nous de votre expérience avec les chats et le bénévolat.
 			</p>
 		</div>
@@ -296,7 +301,7 @@
 	<div class:hidden={step !== 3} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Disponibilité</h2>
-			<p class="text-muted-foreground text-sm">
+			<p class="text-sm text-muted-foreground">
 				Dites-nous quand vous êtes disponible pour aider l'association.
 			</p>
 		</div>
@@ -368,7 +373,7 @@
 	<div class:hidden={step !== 4} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Motivation</h2>
-			<p class="text-muted-foreground text-sm">
+			<p class="text-sm text-muted-foreground">
 				Dites-nous pourquoi vous souhaitez rejoindre l'association.
 			</p>
 		</div>
@@ -422,7 +427,7 @@
 			<button
 				type="submit"
 				disabled={$delayed}
-				class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+				class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
 			>
 				{$delayed ? 'Envoi...' : 'Envoyer la candidature'}
 			</button>
@@ -431,13 +436,13 @@
 
 	<!-- PROGRESS -->
 	<div class="space-y-2 pt-4">
-		<div class="bg-muted h-2 w-full rounded-full">
+		<div class="h-2 w-full rounded-full bg-muted">
 			<div
-				class="bg-primary h-2 rounded-full transition-all duration-300"
+				class="h-2 rounded-full bg-primary transition-all duration-300"
 				style={`width: ${progress}%`}
 			></div>
 		</div>
-		<p class="text-muted-foreground text-center text-xs">
+		<p class="text-center text-xs text-muted-foreground">
 			Étape {step} / {totalSteps}
 		</p>
 	</div>

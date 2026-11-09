@@ -59,6 +59,16 @@ services:
     volumes:
       - s3_data:/data
 
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: les_pattounes_mailpit
+    ports:
+      - '8025:8025' # l'interface web pour lire les e-mails
+    environment:
+      # En dev : accepter n'importe quel identifiant, sans chiffrement
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
   db_data:
   s3_data:
