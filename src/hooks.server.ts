@@ -2,8 +2,8 @@ import type { Handle } from '@sveltejs/kit';
 import { building } from '$app/environment';
 import prisma from '$lib/server/prisma';
 import type { AppUser } from '$lib/types/user';
-import { startCrons } from '$lib/server/cron/updateHostVolunteerStatus';
 import { activeBlacklists, isAccountDisabled } from '$lib/server/accountStatus';
+import { startCrons } from '$lib/server/cron';
 
 // Lance les crons une seule fois au démarrage du serveur (pas pendant le build)
 if (!building) startCrons();

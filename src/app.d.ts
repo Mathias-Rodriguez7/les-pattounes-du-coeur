@@ -2,6 +2,9 @@ import type { VolunteerRole } from '@prisma/client';
 import type { AppUser } from '$lib/types/user';
 
 declare global {
+	// Verrou des crons (voir src/lib/server/cron/index.ts)
+	var __cronsStarted: boolean | undefined;
+
 	namespace App {
 		interface Locals {
 			user: AppUser | null;

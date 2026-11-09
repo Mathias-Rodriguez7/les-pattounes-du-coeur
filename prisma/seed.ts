@@ -481,7 +481,13 @@ async function main() {
 				isVisible,
 				// Publiés dans les 6 dernières semaines : environ 1 sur 6 tombe dans les 7 derniers jours
 				publishedAt: isVisible ? faker.date.recent({ days: 42 }) : null,
-				status: faker.helpers.arrayElement(STATUS),
+								// Réaliste : la moitié des chats sont à l'adoption
+				status: faker.helpers.weightedArrayElement([
+					{ weight: 5, value: 'AVAILABLE' },
+					{ weight: 2, value: 'SOCIALIZE' },
+					{ weight: 2, value: 'ADOPTED' },
+					{ weight: 1, value: 'FREE' }
+				] as const),
 				hairLength: faker.helpers.arrayElement(HAIR),
 				color: faker.color.human(),
 				origin: faker.location.country(),
@@ -677,23 +683,38 @@ async function main() {
 	// ---------------------
 	// 📰 NEWS
 	// ---------------------
-	console.log('📰 Création des news...');
+		console.log('📰 Création des news...');
+	// Les chats qu'une News chats peut annoncer (comme dans generateCatsNews)
+	const announceable = cats.filter((c) => c.isVisible && c.status === 'AVAILABLE');
+
 	for (let i = 0; i < 30; i++) {
-		const relatedCats = faker.helpers.arrayElements(cats, faker.number.int({ min: 2, max: 5 }));
 		const type = faker.helpers.arrayElement(NEWS_TYPES);
+		const isCatsNews = type === 'NEWSCATS';
+
+		// Entre 8 jours et 6 mois : jamais dans la fenêtre des 7 jours du cron
+		const createdAt = faker.date.between({
+			from: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+			to: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
+		});
 
 		// Un PDF public par news, sauf pour les News chats
-		const media = type === 'NEWSCATS' ? null : await pdfMedia('news', 'newsletter.pdf', false);
+		const media = isCatsNews ? null : await pdfMedia('news', 'newsletter.pdf', false);
+
+		// Des chats seulement pour les News chats
+		const newsCats = isCatsNews
+			? faker.helpers.arrayElements(announceable, faker.number.int({ min: 2, max: 6 }))
+			: [];
 
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
 				type, // ✅ le MÊME tirage que celui qui décide du PDF
-				content: faker.lorem.paragraph(),
+				content: isCatsNews ? null : faker.lorem.paragraph(),
+				createdAt,
 				...(media && { media: { create: media } }),
-				cats: {
-					create: relatedCats.map((c) => ({ catId: c.id }))
-				}
+				...(newsCats.length > 0 && {
+					cats: { create: newsCats.map((c) => ({ catId: c.id })) }
+				})
 			}
 		});
 	}
