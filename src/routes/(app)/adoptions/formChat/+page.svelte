@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
+	import { ChevronRight, ChevronLeft, LoaderCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { resolve } from '$app/paths';
 	import { fade, fly } from 'svelte/transition';
@@ -20,7 +20,7 @@
 	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
 	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		ADOPTION_AGE_OPTIONS,
 		ADOPTION_FUR_OPTIONS,
@@ -46,11 +46,13 @@
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
+				// Un message du serveur passe en premier ; sinon, un texte selon le code
+				const message = result.data?.message as string | undefined;
 				toast.error(
-					result.status === 400
-						? 'Veuillez corriger les erreurs du formulaire'
-						: ((result.data?.message as string) ?? "Une erreur s'est produite")
+					message ??
+						(result.status === 400
+							? 'Veuillez corriger les erreurs du formulaire'
+							: "Une erreur s'est produite")
 				);
 			}
 		}
@@ -441,7 +443,14 @@
 								<ChevronRight class="h-4 w-4" />
 							</button>
 						{:else}
-							<SaveCancelButtons isSaving={$delayed} />
+							<Button type="submit" class="rounded-2xl" disabled={$delayed}>
+								{#if $delayed}
+									<LoaderCircle class="size-4 animate-spin" />
+									Envoi…
+								{:else}
+									Envoyer ma demande
+								{/if}
+							</Button>
 						{/if}
 					</div>
 				</form>

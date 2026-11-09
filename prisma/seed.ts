@@ -481,7 +481,7 @@ async function main() {
 				isVisible,
 				// Publiés dans les 6 dernières semaines : environ 1 sur 6 tombe dans les 7 derniers jours
 				publishedAt: isVisible ? faker.date.recent({ days: 42 }) : null,
-								// Réaliste : la moitié des chats sont à l'adoption
+				// Réaliste : la moitié des chats sont à l'adoption
 				status: faker.helpers.weightedArrayElement([
 					{ weight: 5, value: 'AVAILABLE' },
 					{ weight: 2, value: 'SOCIALIZE' },
@@ -683,7 +683,7 @@ async function main() {
 	// ---------------------
 	// 📰 NEWS
 	// ---------------------
-		console.log('📰 Création des news...');
+	console.log('📰 Création des news...');
 	// Les chats qu'une News chats peut annoncer (comme dans generateCatsNews)
 	const announceable = cats.filter((c) => c.isVisible && c.status === 'AVAILABLE');
 
@@ -818,11 +818,20 @@ async function main() {
 		const randomAdoptant = faker.helpers.arrayElement(adoptants);
 		const randomCat = faker.helpers.arrayElement(cats);
 
+		// Comme dans l'app : la première bénévole associée au chat (le seed ne peut pas importer $lib)
+		const referent = await prisma.catVolunteer.findFirst({
+			where: { catId: randomCat.id },
+			orderBy: { createdAt: 'asc' },
+			select: { volunteerId: true }
+		});
+
 		await prisma.form.create({
 			data: {
 				type: 'ADOPTION_SPECIFIC',
 				status: faker.helpers.arrayElement(FORM_STATUS),
 				email: randomAdoptant.email,
+				catId: randomCat.id,
+				assignedToId: referent?.volunteerId ?? null,
 				data: {
 					firstName: randomAdoptant.firstName,
 					lastName: randomAdoptant.lastName,
@@ -840,11 +849,9 @@ async function main() {
 					numberOfCats: faker.number.int({ min: 0, max: 5 }),
 					numberOfDogs: faker.number.int({ min: 0, max: 3 }),
 					otherPets: randomBool(0.3) ? faker.word.noun() : undefined,
-					numberOfChildren: faker.number.int({ min: 0, max: 4 }),
-					catId: randomCat.id
+					numberOfChildren: faker.number.int({ min: 0, max: 4 })
 				},
-				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
-				assignedToId: randomBool(0.7) ? faker.helpers.arrayElement(volunteers).id : undefined
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined
 			}
 		});
 	}
@@ -868,7 +875,7 @@ async function main() {
 					city: randomAdoptant.city,
 					postalCode: randomAdoptant.postalCode,
 					district: randomAdoptant.district ?? 'CENTRE_VILLE',
-					catAge: faker.helpers.arrayElement(['kitten', 'adult', 'senior', 'free']),
+					catAge: faker.helpers.arrayElement(['kitten', 'junior', 'adult', 'senior', 'free']),
 					catSex: faker.helpers.arrayElement(['male', 'female', 'free']),
 					color: faker.color.human(),
 					furLength: faker.helpers.arrayElement(['short', 'medium', 'long', 'free']),

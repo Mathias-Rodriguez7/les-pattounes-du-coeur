@@ -14,6 +14,7 @@ import type {
 } from '@prisma/client';
 import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
+import { volunteerSecretFields } from '$lib/types/volunteer';
 
 // ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
 // Jamais d'URL stockée : elle est calculée à partir de la storageKey.
@@ -35,7 +36,7 @@ export const catFullArgs = {
 			include: { host: { include: { profil: true } } }
 		},
 		volunteers: {
-			include: { volunteer: { include: { profil: true } } }
+			include: { volunteer: { omit: volunteerSecretFields, include: { profil: true } } }
 		},
 		// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 		adoptions: {

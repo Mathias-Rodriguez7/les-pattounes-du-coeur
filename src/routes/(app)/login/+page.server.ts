@@ -20,6 +20,8 @@ export const actions = {
 					email
 				}
 			},
+			// Seul endroit où le mot de passe chiffré est lu : pour le comparer
+			omit: { password: false },
 			include: {
 				profil: {
 					include: { blacklists: activeBlacklists }

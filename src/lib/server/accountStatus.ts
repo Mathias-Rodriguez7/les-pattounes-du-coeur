@@ -1,6 +1,5 @@
 import type { ColabActivity } from '@prisma/client';
 import prisma from '$lib/server/prisma';
-import type { Prisma } from '@prisma/client';
 
 // À utiliser dans un `include` Prisma : récupère au plus 1 blacklist active
 export const activeBlacklists = {
@@ -25,7 +24,8 @@ export function isAccountDisabled(volunteer: VolunteerStatus): boolean {
  */
 export async function isEmailBlacklisted(
 	email: string,
-	db: Prisma.TransactionClient = prisma
+	// Le client, ou une transaction (tx) : on n'utilise que blacklistHistoric
+	db: Pick<typeof prisma, 'blacklistHistoric'> = prisma
 ): Promise<boolean> {
 	const entry = await db.blacklistHistoric.findFirst({
 		where: {

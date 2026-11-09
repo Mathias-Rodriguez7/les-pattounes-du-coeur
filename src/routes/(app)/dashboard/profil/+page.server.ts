@@ -91,9 +91,10 @@ export const actions: Actions = {
 				});
 			}
 
-			// 🔍 Vérifier que le volunteer existe
+			// 🔍 Vérifier que le volunteer existe (avec son mot de passe chiffré, pour le comparer)
 			const volunteer = await prisma.volunteer.findUnique({
 				where: { id: locals.user.id },
+				omit: { password: false },
 				include: { profil: true }
 			});
 
@@ -177,7 +178,8 @@ export const actions: Actions = {
 			}
 
 			const volunteer = await prisma.volunteer.findUnique({
-				where: { id: locals.user.id }
+				where: { id: locals.user.id },
+				omit: { password: false }
 			});
 
 			if (!volunteer) {

@@ -59,45 +59,42 @@ export const typesLabels: Record<string, { label: string; color: string }> = {
 	OTHER: { label: 'Aut', color: 'bg-gray-100 text-gray-800' }
 };
 
-export const ADOPTION_FUR_OPTIONS = [
-	{ value: 'short', label: 'Court' },
-	{ value: 'medium', label: 'Moyen' },
-	{ value: 'long', label: 'Long' },
-	{ value: 'free', label: 'Sans préférence' }
-];
-
-export const ADOPTION_AGE_OPTIONS = [
-	{ value: 'kitten', label: 'Chaton' },
-	{ value: 'Junior', label: 'Junior' },
-	{ value: 'adult', label: 'Adulte' },
-	{ value: 'senior', label: 'Senior' },
-	{ value: 'free', label: 'Sans préférence' }
-];
-
-export const ADOPTION_SEX_OPTIONS = [
-	{ value: 'male', label: 'Mâle' },
-	{ value: 'female', label: 'Femelle' },
-	{ value: 'free', label: 'Sans préférence' }
-];
-
-// 🐱 Adoption Form Labels
-export const ageLabels: Record<string, string> = {
+// 🐱 Préférences de l'adoptant (formulaire libre) : UNE source par liste.
+// Le formulaire, le dashboard et le schéma Zod en dérivent : ils ne peuvent plus diverger.
+export const CAT_AGE_PREFERENCES = {
 	kitten: 'Chaton',
-	Junior: 'Junior',
+	junior: 'Junior',
 	adult: 'Adulte',
 	senior: 'Senior',
 	free: 'Sans préférence'
-};
+} as const;
 
-export const sexLabels: Record<string, string> = {
+export const CAT_SEX_PREFERENCES = {
 	male: 'Mâle',
 	female: 'Femelle',
 	free: 'Sans préférence'
-};
+} as const;
 
-export const furLabels: Record<string, string> = {
+export const CAT_FUR_PREFERENCES = {
 	short: 'Court',
 	medium: 'Moyen',
 	long: 'Long',
 	free: 'Sans préférence'
-};
+} as const;
+
+/** { clé: libellé } → [{ value, label }] pour SelectField */
+const toOptions = (labels: Record<string, string>) =>
+	Object.entries(labels).map(([value, label]) => ({ value, label }));
+
+/** Les clés d'une liste, au format attendu par z.enum (au moins une valeur) */
+export const enumKeys = <T extends Record<string, string>>(labels: T) =>
+	Object.keys(labels) as [keyof T & string, ...(keyof T & string)[]];
+
+// Les noms d'avant sont gardés : les composants qui les utilisent n'ont pas à changer
+export const ADOPTION_AGE_OPTIONS = toOptions(CAT_AGE_PREFERENCES);
+export const ADOPTION_SEX_OPTIONS = toOptions(CAT_SEX_PREFERENCES);
+export const ADOPTION_FUR_OPTIONS = toOptions(CAT_FUR_PREFERENCES);
+
+export const ageLabels: Record<string, string> = CAT_AGE_PREFERENCES;
+export const sexLabels: Record<string, string> = CAT_SEX_PREFERENCES;
+export const furLabels: Record<string, string> = CAT_FUR_PREFERENCES;

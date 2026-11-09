@@ -141,8 +141,9 @@ model Cat {
   cares               Care[]
   news                NewsCat[]
   adoptions           Adoption[]
+  forms               Form[]
 
-    @@index([isVisible, status, publishedAt])
+  @@index([isVisible, status, publishedAt])
 }
 
 // État de santé : ce que le chat A (rempli à la main par la bénévole)
@@ -392,6 +393,9 @@ model Form {
   status       FormStatus @default(PENDING)
   email        String @db.VarChar(255)
   data         Json @default("{}")
+    // Le chat concerné : demande précise, ou chat choisi pour une demande libre
+  catId        String? @db.Uuid @map("cat_id")
+  cat          Cat?    @relation(fields: [catId], references: [id], onDelete: SetNull)
 
   assignedToId String? @db.Uuid @map("assigned_to_id")
   assignedTo   Volunteer? @relation("assignedForms", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -403,6 +407,7 @@ model Form {
   @@index([type])
   @@index([status])
   @@index([assignedToId])
+  @@index([catId])
 }
 
 //////////////////////////
