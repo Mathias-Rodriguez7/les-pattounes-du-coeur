@@ -43,24 +43,31 @@ export const babyFeedingLabel: Record<BabyFeeding, string> = {
 };
 
 export const FORM_TYPE_CONFIG: Record<FormType, { icon: string; theme: string }> = {
-	ADOPTION: { icon: 'heart', theme: 'adoptions' },
+	ADOPTION_FLEXIBLE: { icon: 'heart', theme: 'adoptions' },
+	ADOPTION_SPECIFIC: { icon: 'heart', theme: 'adoptions' },
 	VOLUNTEER: { icon: 'users', theme: 'volunteers' },
 	HOST: { icon: 'house', theme: 'fa' },
 	COLAB: { icon: 'Handshake', theme: 'colab' },
-	ALERT: { icon: 'alert', theme: 'stop' },
 	OTHER: { icon: 'other', theme: 'other' }
 };
 
 export const FORM_TYPE_LABELS: Record<FormType, string> = {
-	ADOPTION: 'Adoptions',
+	ADOPTION_FLEXIBLE: 'Adoptions flexibles',
+	ADOPTION_SPECIFIC: 'Adoptions spécifiques',
 	VOLUNTEER: 'Bénévoles',
 	HOST: "Familles d'accueil",
 	COLAB: 'Collaborations',
-	ALERT: 'Alertes',
 	OTHER: 'Autres'
 };
 
-export const FORM_TYPES: FormType[] = ['ADOPTION', 'VOLUNTEER', 'HOST', 'COLAB', 'ALERT', 'OTHER'];
+export const FORM_TYPES: FormType[] = [
+	'ADOPTION_FLEXIBLE',
+	'ADOPTION_SPECIFIC',
+	'VOLUNTEER',
+	'HOST',
+	'COLAB',
+	'OTHER'
+];
 
 export const STATUS_CONFIG: Record<ColabActivity, { icon: string; label: string; theme: string }> =
 	{

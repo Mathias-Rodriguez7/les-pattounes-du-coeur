@@ -26,39 +26,7 @@ export const actions: Actions = {
 					type: 'ADOPTION_FLEXIBLE',
 					status: 'PENDING',
 					email: form.data.email,
-					data: {
-						firstName: form.data.firstName,
-						lastName: form.data.lastName,
-						phone: form.data.phone,
-						birthDate: form.data.birthDate,
-						address: form.data.address,
-						city: form.data.city,
-						postalCode: form.data.postalCode,
-						district: form.data.district,
-
-						catPreferences: {
-							age: form.data.catAge,
-							sex: form.data.catSex,
-							furLength: form.data.furLength,
-							color: form.data.color,
-							temperament: form.data.temperament
-						},
-
-						housing: {
-							size: form.data.housingSize,
-							hasGarden: form.data.hasGarden,
-							gardenSize: form.data.gardenSize
-						},
-
-						pets: {
-							hasPets: form.data.hasPets,
-							cats: form.data.numberOfCats,
-							dogs: form.data.numberOfDogs,
-							other: form.data.otherPets
-						},
-
-						children: form.data.numberOfChildren
-					}
+					data: form.data
 				}
 			});
 

@@ -7,8 +7,8 @@ const districtEnum = z
 	.transform((val) => val as District);
 
 // ✅ Convertir les strings en dates
-const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
-
+// Chaîne 'AAAA-MM-JJ' (navigateur) OU Date (superforms la convertit côté serveur)
+const stringToDate = z.union([z.string(), z.date()]).pipe(z.coerce.date()).nullable().optional();
 const optionalText = z
 	.string()
 	.nullish()

@@ -1,13 +1,39 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { FormType, FormStatus } from '@prisma/client';
+import { FormType, FormStatus, type Prisma } from '@prisma/client';
 import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 import { createAdoptionSchema } from '$lib/schemas/adoption';
 import { createAdoption } from '$lib/server/adoptions/mutations';
-import { canManageCat } from '$lib/server/permissions/cat';
+import { canManageForm, managedFormsWhere } from '$lib/server/permissions/form';
+
+/** 🆕 Une demande, avec juste ce que les panneaux affichent */
+const formInclude = {
+	assignedTo: {
+		select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+	},
+	cat: {
+		select: {
+			id: true,
+			name: true,
+			catNumber: true,
+			sex: true,
+			birthDate: true,
+			status: true,
+			// La référente en premier (la plus ancienne bénévole associée)
+			volunteers: {
+				orderBy: { createdAt: 'asc' },
+				select: {
+					volunteer: {
+						select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+					}
+				}
+			}
+		}
+	}
+} satisfies Prisma.FormInclude;
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -47,30 +73,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const requestedScope = scopeParam === 'flexible' ? 'flexible' : 'mine';
 	const scope = requestedScope === 'flexible' && canSeeAllFlexible ? 'flexible' : 'mine';
 
-	const baseFilters = {
+	const baseFilters: Prisma.FormWhereInput = {
 		...(typeFilter && { type: typeFilter }),
 		...(statusFilter && { status: statusFilter })
 	};
 
 	// 🏗️ Condition WHERE selon le mode
-	let whereCondition: Record<string, unknown>;
-
-	if (scope === 'flexible') {
-		// Tous les ADOPTION_FLEXIBLE, sans restriction d'assignation
-		whereCondition = {
-			...baseFilters,
-			type: FormType.ADOPTION_FLEXIBLE
-		};
-	} else {
-		// Uniquement les forms assignés à ce volunteer
-		// Admin : pas de restriction, comme avant
-		whereCondition = isAdmin
-			? baseFilters
-			: {
-					...baseFilters,
-					assignedToId: volunteerId
-				};
-	}
+	// 🆕 Typée : TypeScript vérifie les noms de champs (avant : Record<string, unknown>)
+	const whereCondition: Prisma.FormWhereInput =
+		scope === 'flexible'
+			? // Tous les ADOPTION_FLEXIBLE, sans restriction d'assignation
+				{ ...baseFilters, type: FormType.ADOPTION_FLEXIBLE }
+			: // 🆕 Les demandes assignées OU celles de mes chats (admin : toutes)
+				{ AND: [baseFilters, managedFormsWhere(locals.user)] };
 
 	// 📊 Stats
 	const [totalForms, pendingForms, approvedForms, rejectedForms] = await Promise.all([
@@ -81,37 +96,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	]);
 
 	// 📋 Forms
+	// 🆕 Le chat et la bénévole assignée arrivent avec la demande, en une seule requête
+	// (avant : une requête de plus par demande pour retrouver son chat)
 	const forms = await prisma.form.findMany({
 		where: whereCondition,
-		include: {
-			assignedTo: {
-				include: {
-					profil: { select: { firstName: true, lastName: true } }
-				}
-			}
-		},
+		include: formInclude,
 		orderBy: { createdAt: 'desc' }
 	});
-
-	// ✅ Enrichissement ADOPTION_SPECIFIC (inchangé)
-	const enrichedForms = await Promise.all(
-		forms.map(async (form) => {
-			if (form.type === 'ADOPTION_SPECIFIC' && (form.data as any).catId) {
-				const catData = await prisma.cat.findUnique({
-					where: { id: (form.data as any).catId },
-					include: {
-						volunteers: {
-							include: {
-								volunteer: { include: { profil: true } }
-							}
-						}
-					}
-				});
-				return { ...form, catData };
-			}
-			return { ...form, catData: null };
-		})
-	);
 
 	// 📋 Volunteers pour l'assignation (admin uniquement)
 	const volunteers = isAdmin
@@ -133,7 +124,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	});
 
 	return {
-		forms: enrichedForms,
+		forms,
 		volunteers,
 		cats,
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
@@ -242,9 +233,24 @@ export const actions: Actions = {
 			});
 		}
 
-		// Admin, ou bénévole associée au chat (la règle de la fiche du chat)
-		if (!(await canManageCat(locals.user, parsed.data.catId))) {
-			return fail(403, { error: "Vous n'êtes pas autorisée à faire adopter ce chat" });
+		// 🆕 La demande existe, c'est une demande d'adoption, et la bénévole peut la traiter
+		const adoptionRequest = await prisma.form.findUnique({
+			where: { id: parsed.data.formId },
+			select: { type: true, catId: true, assignedToId: true }
+		});
+		if (!adoptionRequest || !adoptionRequest.type.startsWith('ADOPTION')) {
+			return fail(404, { error: 'Demande introuvable' });
+		}
+		if (!(await canManageForm(locals.user, adoptionRequest))) {
+			return fail(403, { error: "Vous n'êtes pas autorisée à traiter cette demande" });
+		}
+
+		// 🆕 Une demande précise ne peut aboutir qu'à l'adoption de SON chat
+		if (
+			adoptionRequest.type === 'ADOPTION_SPECIFIC' &&
+			adoptionRequest.catId !== parsed.data.catId
+		) {
+			return fail(400, { error: 'Cette demande concerne un autre chat' });
 		}
 
 		try {

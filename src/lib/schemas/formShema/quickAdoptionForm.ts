@@ -15,11 +15,6 @@ const optionalNumber = (min: number, max: number) =>
 		z.coerce.number().min(min).max(max).optional()
 	);
 
-// 🧠 BASE
-const baseSchema = z.object({
-	catId: z.uuid().optional()
-});
-
 const adultBirthDate = z
 	.union([z.string().min(1, 'La date de naissance est obligatoire'), z.date()], {
 		message: 'La date de naissance est obligatoire'
@@ -72,7 +67,6 @@ export const step2Schema = z.object({
 // 🔗 FINAL (comme ton ancien form → clean extend)
 export const QuickAdoptionFormSchema = z
 	.object({
-		...baseSchema.shape,
 		...step1Schema.shape,
 		...step2Schema.shape
 	})

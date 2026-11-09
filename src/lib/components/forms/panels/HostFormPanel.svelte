@@ -81,7 +81,7 @@
 							</Badge>
 						</Card.Description>
 					</div>
-					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
+					<div class="flex flex-col justify-center gap-2 text-right text-sm text-muted-foreground">
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
@@ -149,12 +149,12 @@
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Tel</p>
+								<p class="font-medium text-muted-foreground">Tel</p>
 								<div class="flex items-center gap-2">
 									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`tel:${hostData.phone}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{hostData.phone}
 									</a>
@@ -162,12 +162,12 @@
 							</div>
 
 							<div>
-								<p class="text-muted-foreground font-medium">Mail</p>
+								<p class="font-medium text-muted-foreground">Mail</p>
 								<div class="flex items-center gap-2">
 									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`mailto:${form.email}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{form.email}
 									</a>
@@ -185,21 +185,21 @@
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Rue</p>
+								<p class="font-medium text-muted-foreground">Rue</p>
 								<p class="font-medium text-gray-900">{hostData.address || '—'}</p>
 							</div>
 
 							<div class="flex gap-4">
 								<div>
-									<p class="text-muted-foreground font-medium">Ville</p>
+									<p class="font-medium text-muted-foreground">Ville</p>
 									<p class="font-medium text-gray-900">{hostData.city || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-muted-foreground">CP</p>
 									<p class="font-medium text-gray-900">{hostData.postalCode || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">Quartier</p>
+									<p class="font-medium text-muted-foreground">Quartier</p>
 									<p class="font-medium">{hostData.district}</p>
 								</div>
 							</div>
@@ -241,7 +241,7 @@
 					>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-								<span class="text-muted-foreground font-medium">Animeaux dans le foyer</span>
+								<span class="font-medium text-muted-foreground">Animeaux dans le foyer</span>
 								<BooleanIcon value={hostData.hasAnimalsAtHome} />
 							</div>
 
@@ -279,19 +279,19 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Soins</p>
+								<p class="font-medium text-muted-foreground">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{healLabel[hostData.heal as Heal]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Socialisation</p>
+								<p class="font-medium text-muted-foreground">Socialisation</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{socializeLabel[hostData.socialize as Socialize]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Biberonnage</p>
+								<p class="font-medium text-muted-foreground">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{babyFeedingLabel[hostData.babyFeeding as BabyFeeding]}
 								</Badge>
@@ -307,18 +307,18 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chat adulte</span>
+								<span class="font-medium text-muted-foreground">Chat adulte</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
 									{hostData.catAdult || '—'}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chatte avec portée</span>
+								<span class="font-medium text-muted-foreground">Chatte avec portée</span>
 								<BooleanIcon value={hostData.kittyAndKitten} />
 							</div>
 
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chaton</span>
+								<span class="font-medium text-muted-foreground">Chaton</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">
 									{hostData.kitten || '—'}
 								</Badge>
@@ -335,9 +335,15 @@
 					title={HOST_SECTION_CONFIG.homeDescription.label}
 					color={HOST_SECTION_CONFIG.homeDescription.color}
 				>
-					<div>
-						<p class="text-muted-foreground mb-2">Description du logement</p>
-						<p class="text-muted-foreground text-xs italic">{hostData.homeDescription}</p>
+					<div class="grid gap-2">
+						<div>
+							<p class="mb-2 text-muted-foreground">Description du logement</p>
+							<p class="text-xs text-muted-foreground italic">{hostData.homeDescription}</p>
+						</div>
+						<div>
+							<p class="mb-2 text-muted-foreground">Presence</p>
+							<p class="text-xs text-muted-foreground italic">{hostData.presence}</p>
+						</div>
 					</div>
 				</SectionCard>
 
@@ -351,7 +357,7 @@
 					<div>
 						{#if hostData.outside && hostData.outsideDescription}
 							<div>
-								<p class="text-muted-foreground text-xs">Exterieur</p>
+								<p class="text-xs text-muted-foreground">Exterieur</p>
 								<p class="text-xs">{hostData.outsideDescription}</p>
 							</div>
 						{/if}
@@ -367,13 +373,13 @@
 					color={HOST_SECTION_CONFIG.motivation.color}
 				>
 					<div class="ml-6 space-y-3">
-						<p class="text-muted-foreground text-xs whitespace-pre-wrap italic">
+						<p class="text-xs whitespace-pre-wrap text-muted-foreground italic">
 							{hostData.motivation}
 						</p>
 						{#if hostData.additionalMessage}
-							<div class="border-muted-foreground border-l-2 pl-3">
-								<p class="text-muted-foreground mb-1 text-xs">Message supplémentaire</p>
-								<p class="text-muted-foreground text-xs italic">{hostData.additionalMessage}</p>
+							<div class="border-l-2 border-muted-foreground pl-3">
+								<p class="mb-1 text-xs text-muted-foreground">Message supplémentaire</p>
+								<p class="text-xs text-muted-foreground italic">{hostData.additionalMessage}</p>
 							</div>
 						{/if}
 					</div>
@@ -410,10 +416,9 @@
 		initialData={{ ...hostData, email: form.email }}
 		formId={form.id}
 	/>
-	<AssignVolunteerDialog formId={form.id} currentVolunteerId={form.assignedToId} {volunteers} />
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="fileText" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un formulaire pour voir les détails</p>
 		</Card.Content>

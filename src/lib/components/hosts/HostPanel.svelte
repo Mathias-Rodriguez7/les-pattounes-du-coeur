@@ -302,20 +302,20 @@
 						>
 							<div class="ml-6 space-y-2 text-sm">
 								<div>
-									<p class="text-muted-foreground font-medium">Rue</p>
+									<p class="font-medium text-muted-foreground">Rue</p>
 									<p class="font-medium text-gray-900">{host.profil.address || '—'}</p>
 								</div>
 								<div class="flex flex-wrap gap-x-4 gap-y-2">
 									<div>
-										<p class="text-muted-foreground font-medium">Ville</p>
+										<p class="font-medium text-muted-foreground">Ville</p>
 										<p class="font-medium text-gray-900">{host.profil.city || '—'}</p>
 									</div>
 									<div>
-										<p class="text-muted-foreground font-medium">CP</p>
+										<p class="font-medium text-muted-foreground">CP</p>
 										<p class="font-medium text-gray-900">{host.profil.postalCode || '—'}</p>
 									</div>
 									<div>
-										<p class="text-muted-foreground font-medium">Quartier</p>
+										<p class="font-medium text-muted-foreground">Quartier</p>
 										<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
 									</div>
 								</div>
@@ -330,7 +330,7 @@
 						>
 							<div class="ml-6 grid min-w-0 gap-4">
 								<div>
-									<p class="text-muted-foreground font-medium">Tel</p>
+									<p class="font-medium text-muted-foreground">Tel</p>
 									<div class="flex items-center gap-2">
 										<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
 										<a href="tel:{host.profil.phone}" class="text-sm text-blue-600 hover:underline">
@@ -340,7 +340,7 @@
 								</div>
 
 								<div class="min-w-0">
-									<p class="text-muted-foreground font-medium">Mail</p>
+									<p class="font-medium text-muted-foreground">Mail</p>
 									<div class="flex min-w-0 items-center gap-2">
 										<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 										<a
@@ -394,8 +394,8 @@
 							<div
 								class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12"
 							>
-								<Icon name="FileText" class="text-muted-foreground mb-2 h-8 w-8 opacity-50" />
-								<p class="text-muted-foreground text-sm">Aucun placement pour cet accueillant</p>
+								<Icon name="FileText" class="mb-2 h-8 w-8 text-muted-foreground opacity-50" />
+								<p class="text-sm text-muted-foreground">Aucun placement pour cet accueillant</p>
 							</div>
 						{/if}
 					</SectionCard>
@@ -441,7 +441,7 @@
 					>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between pb-2">
-								<span class="text-muted-foreground font-medium">Animaux dans le foyer</span>
+								<span class="font-medium text-muted-foreground">Animaux dans le foyer</span>
 								<BooleanIcon value={host.hasAnimalsAtHome} />
 							</div>
 							<Separator />
@@ -482,19 +482,19 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Soins</p>
+								<p class="font-medium text-muted-foreground">Soins</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{healLabel[host.heal as Heal]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Socialisation</p>
+								<p class="font-medium text-muted-foreground">Socialisation</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{socializeLabel[host.socialize as Socialize]}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<p class="text-muted-foreground font-medium">Biberonnage</p>
+								<p class="font-medium text-muted-foreground">Biberonnage</p>
 								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
 									{babyFeedingLabel[host.babyFeeding as BabyFeeding]}
 								</Badge>
@@ -510,15 +510,15 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chat adulte</span>
+								<span class="font-medium text-muted-foreground">Chat adulte</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">{host.catAdult || '—'}</Badge>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chatte avec portée</span>
+								<span class="font-medium text-muted-foreground">Chatte avec portée</span>
 								<BooleanIcon value={host.kittyAndKitten} />
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Chaton</span>
+								<span class="font-medium text-muted-foreground">Chaton</span>
 								<Badge class="bg-blue-100 text-xs text-blue-800">{host.kitten || '—'}</Badge>
 							</div>
 						</div>
@@ -622,7 +622,7 @@
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full min-h-60 items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="house" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez une famille d'accueil</p>
 		</Card.Content>
