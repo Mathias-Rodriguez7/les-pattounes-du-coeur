@@ -4,14 +4,14 @@
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import SexIcon from '$lib/components/cats/SexIcon.svelte';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import type { CatFull } from '$lib/types/cat';
+	import type { CatPublic } from '$lib/types/cat';
 	import { focalPointStyle, hairLabel, getLabel } from '$lib/utils/catHelpers';
 	import { getAgeBadge, formatAge } from '$lib/utils/age';
 	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
 	import { Play } from '@lucide/svelte';
 	import { publicMediaUrl } from '$lib/media/urls';
 
-	let { selectedCat }: { selectedCat: CatFull | null } = $props();
+	let { selectedCat }: { selectedCat: CatPublic | null } = $props();
 
 	// ----- Médias -----
 

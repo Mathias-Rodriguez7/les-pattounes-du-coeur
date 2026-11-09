@@ -166,5 +166,26 @@ export type CatCreateInput = Omit<CatEditData, 'id'> & {
 	}>;
 };
 
+// Chat sur le site public (page Adoptions et sa fiche) : rien d'interne (puce, notes, statut médical détaillé…)
+export const catPublicSelect = {
+	...catListSelect,
+	color: true,
+	hairLength: true,
+	origin: true,
+	isOkCat: true,
+	isOkDog: true,
+	isOkChild: true,
+	isOutside: true,
+	isSterilize: true,
+	isAlreadySterilized: true,
+	isDeworming: true,
+	isFivTest: true,
+	isIdentify: true,
+	// Toute la galerie (photos et vidéos), la principale d'abord : remplace la photo seule de catListSelect
+	media: catGalleryArgs
+} satisfies Prisma.CatSelect;
+
+export type CatPublic = Prisma.CatGetPayload<{ select: typeof catPublicSelect }>;
+
 // ✅ Type pour mettre à jour un chat
 export type CatUpdateInput = Partial<CatEditData>;

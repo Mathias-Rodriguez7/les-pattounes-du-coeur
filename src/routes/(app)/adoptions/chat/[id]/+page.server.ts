@@ -3,15 +3,23 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { QuickAdoptionFormSchema } from '$lib/schemas/formShema/quickAdoptionForm';
 import prisma from '$lib/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
+import { z } from 'zod';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const cat = await prisma.cat.findUnique({
-		where: { id: params.id }
+	// Un id mal formé ferait planter PostgreSQL (colonne uuid) : on répond 404 avant
+	if (!z.string().uuid().safeParse(params.id).success) error(404, 'Chat introuvable');
+
+	// Seulement un chat visible ET encore à l'adoption, et seulement son nom
+	const cat = await prisma.cat.findFirst({
+		where: { id: params.id, isVisible: true, status: 'AVAILABLE' },
+		select: { name: true }
 	});
+	if (!cat) error(404, "Ce chat n'est plus à l'adoption");
+
 	return {
 		cat,
-		catId: params.id, // 👈 ou depuis ton load cat
+		catId: params.id,
 		form: await superValidate(zod4(QuickAdoptionFormSchema))
 	};
 };
@@ -26,8 +34,6 @@ export const actions: Actions = {
 		if (!form.valid) {
 			return fail(400, { form });
 		}
-
-		console.log('📝 Form Data:', form.data);
 
 		try {
 			await prisma.form.create({
@@ -60,15 +66,20 @@ export const actions: Actions = {
 							other: form.data.otherPets
 						},
 
-						children: form.data.numberOfChildren
+						children: form.data.numberOfChildren,
+						catId: form.data.catId
 					}
 				}
 			});
 
 			return { form, success: true };
 		} catch (e) {
-			console.error('❌ ERREUR PRISMA:', e);
-			return fail(500, { form, message: e.message });
+			// Le détail reste dans le terminal du serveur, le visiteur reçoit un message simple
+			console.error("Erreur enregistrement demande d'adoption :", e);
+			return fail(500, {
+				form,
+				message: "Votre demande n'a pas pu être envoyée. Réessayez dans quelques minutes."
+			});
 		}
 	}
 };

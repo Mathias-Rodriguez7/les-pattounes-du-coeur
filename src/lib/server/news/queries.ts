@@ -18,6 +18,15 @@ export const newsListSelect = {
 
 type NewsRow = Prisma.NewsGetPayload<{ select: typeof newsListSelect }>;
 
+/** Une carte de news (accueil) : pas de chats, pas de document */
+export const newsCardSelect = {
+	id: true,
+	title: true,
+	type: true,
+	content: true,
+	createdAt: true
+} satisfies Prisma.NewsSelect;
+
 /** Ligne de la base → objet prêt pour la page (la storageKey ne part pas au navigateur) */
 export function toNewsFull({ media, cats, ...news }: NewsRow): NewsFull {
 	return {
