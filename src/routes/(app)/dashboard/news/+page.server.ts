@@ -1,10 +1,12 @@
 // app/dashboard/news/+page.server.ts
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { createNews, updateNews, deleteNews, generateCatsNews } from '$lib/server/news/mutations';
+import { createNews, updateNews, deleteNews } from '$lib/server/news/mutations';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
 import { fail, redirect } from '@sveltejs/kit';
 import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
+import { generateCatsNews } from '$lib/server/news/catsNews';
+import { generateCatsSchema } from '$lib/schemas/news';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Même règle que la barre latérale, mais appliquée par le serveur
@@ -73,26 +75,37 @@ export const actions: Actions = {
 		return { ...result, action: 'delete' };
 	},
 
-	generateCats: async ({ request, locals }) => {
+		generateCats: async ({ request, locals }) => {
 		if (!locals.user || !canManageNews(locals.user.role)) {
-			return fail(403, {
+			return fail(403, { success: false, error: 'Non autorisé', action: 'generateCats' });
+		}
+
+		const formData = await request.formData();
+		const parsed = generateCatsSchema.safeParse({
+			title: formData.get('title') ?? undefined,
+			// getAll : une case cochée = une valeur « catIds »
+			catIds: formData.getAll('catIds')
+		});
+		if (!parsed.success) {
+			return fail(400, {
 				success: false,
-				error: 'Non autorisé',
-				errors: {},
+				error: parsed.error.issues[0]?.message ?? 'Sélection invalide',
 				action: 'generateCats'
 			});
 		}
 
-		const formData = await request.formData();
-		const title = formData.get('title')?.toString();
-
 		try {
-			const news = await generateCatsNews({ title });
+			const news = await generateCatsNews(parsed.data);
+			if (!news) {
+				return fail(400, {
+					success: false,
+					error: "Aucun des chats choisis n'est encore à l'adoption",
+					action: 'generateCats'
+				});
+			}
 			return {
 				success: true,
-				message: 'News chats générée avec succès',
-				data: news,
-				errors: {},
+				message: `News chats créée (${news._count.cats} chat${news._count.cats > 1 ? 's' : ''})`,
 				action: 'generateCats'
 			};
 		} catch (error) {
@@ -100,7 +113,6 @@ export const actions: Actions = {
 			return fail(500, {
 				success: false,
 				error: 'Erreur lors de la génération',
-				errors: {},
 				action: 'generateCats'
 			});
 		}

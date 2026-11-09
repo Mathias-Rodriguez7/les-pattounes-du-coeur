@@ -28,6 +28,15 @@ export const deleteNewsSchema = z.object({
 	newsId: z.uuid('ID invalide')
 });
 
+// Bouton « Générer » : la sélection de la bénévole (au moins un chat)
+export const generateCatsSchema = z.object({
+	title: z.string().trim().max(255, 'Max 255 caractères').optional(),
+	catIds: z
+		.array(z.string().uuid('Chat invalide'))
+		.min(1, 'Choisissez au moins un chat')
+		.max(200, 'Trop de chats')
+});
+
 // ✅ Types TypeScript générés
 export type CreateNewsInput = z.infer<typeof createNewsSchema>;
 export type UpdateNewsInput = z.infer<typeof updateNewsSchema>;

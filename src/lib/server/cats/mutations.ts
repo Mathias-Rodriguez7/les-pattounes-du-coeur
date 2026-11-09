@@ -126,6 +126,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 				isIdentify: validatedData.isIdentify,
 				chipId: validatedData.chipId,
 				isVisible: validatedData.isVisible,
+				publishedAt: validatedData.isVisible ? new Date() : null,
 				description: validatedData.description
 			}
 		});
@@ -206,6 +207,13 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 		const catData = buildCatData(validatedData);
 		// catNumber toujours inclus (obligatoire en update)
 		catData.catNumber = validatedData.catNumber;
+
+		// 🆕 Passage de « masqué » à « visible » : le chat est (re)publié maintenant.
+		// Dans tous les autres cas, on garde la date existante.
+		const becomesVisible = !existingCat.isVisible && validatedData.isVisible === true;
+		if (becomesVisible) {
+			catData.publishedAt = new Date();
+		}
 
 		const updatedCat = await prisma.cat.update({
 			where: { id: catId },

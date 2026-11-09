@@ -111,6 +111,8 @@ model Cat {
   sex                 SexCat
   birthDate           DateTime? @map("birth_date") @db.Date
   isVisible           Boolean @default(false) @map("is_visible")
+  // Date du dernier passage de « masqué » à « visible » : sert aux News chats
+  publishedAt         DateTime? @map("published_at")
   status              CatStatus
   hairLength          HairLength? @map("hair_length")
   color               String? @db.VarChar(255)
@@ -139,6 +141,8 @@ model Cat {
   cares               Care[]
   news                NewsCat[]
   adoptions           Adoption[]
+
+    @@index([isVisible, status, publishedAt])
 }
 
 // État de santé : ce que le chat A (rempli à la main par la bénévole)

@@ -40,19 +40,6 @@ function buildNewsData(data: CreateNewsInput | UpdateNewsInput) {
 	);
 }
 
-// ✅ Chats éligibles pour une news NEWSCATS
-async function getEligibleCatIds(): Promise<string[]> {
-	const cats = await prisma.cat.findMany({
-		where: {
-			isVisible: true,
-			status: 'AVAILABLE'
-		},
-		select: { id: true }
-	});
-
-	return cats.map((c) => c.id);
-}
-
 export async function createNews({ request, locals }: { request: Request; locals: App.Locals }) {
 	if (!locals.user || !canManageNews(locals.user.role)) {
 		return {
@@ -68,15 +55,8 @@ export async function createNews({ request, locals }: { request: Request; locals
 		const formData = await request.formData();
 		const data = convertFormData(formData);
 
-		// Parser catIds
-		const catIds = (data.catIds as string[]) || [];
-		const parsedData = {
-			...data,
-			catIds
-		};
-
 		// Valider les données
-		const result = createNewsSchema.safeParse(parsedData);
+		const result = createNewsSchema.safeParse(data);
 
 		if (!result.success) {
 			return {
@@ -88,12 +68,18 @@ export async function createNews({ request, locals }: { request: Request; locals
 
 		const validatedData: CreateNewsInput = result.data;
 
-		// Pour NEWSCATS : pas de PDF, et les chats viennent de la BDD
-		const isCatsNews = validatedData.type === 'NEWSCATS';
-		const finalCatIds = isCatsNews ? await getEligibleCatIds() : validatedData.catIds;
-		// Document (pas pour une News chats)
+		// 🆕 Une News chats a son propre chemin (generateCatsNews) : ici, jamais
+		if (validatedData.type === 'NEWSCATS') {
+			return {
+				success: false,
+				error: 'Utilisez le bouton « Générer » pour créer une News chats',
+				errors: { type: ['Type non autorisé ici'] }
+			};
+		}
+
+		// Document facultatif
 		let media: MediaData | null = null;
-		if (!isCatsNews && validatedData.mediaStorageKey) {
+		if (validatedData.mediaStorageKey) {
 			const prepared = await prepareMedia('news', {
 				storageKey: validatedData.mediaStorageKey,
 				originalName: validatedData.mediaOriginalName
@@ -105,22 +91,14 @@ export async function createNews({ request, locals }: { request: Request; locals
 			uploadedKey = media.storageKey;
 		}
 
+		// 🆕 Plus de chats ici : seules les News chats en ont
 		const newNews = await prisma.news.create({
 			data: {
 				title: validatedData.title,
 				type: validatedData.type,
 				content: validatedData.content ?? null,
 				// La news et sa ligne Media sont créées ensemble
-				...(media && { media: { create: media } }),
-
-				...(finalCatIds.length > 0 && {
-					cats: {
-						create: finalCatIds.map((catId) => ({ catId }))
-					}
-				})
-			},
-			include: {
-				cats: { include: { cat: true } }
+				...(media && { media: { create: media } })
 			}
 		});
 
@@ -151,7 +129,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		};
 	}
 
-	// Clé du fichier vérifié : à supprimer de S3 si la création échoue ensuite
+	// Clé du fichier vérifié : à supprimer de S3 si la mise à jour échoue ensuite
 	let uploadedKey: string | null = null;
 
 	try {
@@ -168,15 +146,11 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			};
 		}
 
-		// Parser catIds
+		// Parser catIds (une case cochée = une valeur)
 		const catIds = (data.catIds as string[]) || [];
-		const parsedData = {
-			...data,
-			catIds
-		};
 
 		// Valider les données
-		const result = updateNewsSchema.safeParse(parsedData);
+		const result = updateNewsSchema.safeParse({ ...data, catIds });
 
 		if (!result.success) {
 			return {
@@ -190,7 +164,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 
 		const existingNews = await prisma.news.findUnique({
 			where: { id: newsId },
-			include: { cats: true, media: true }
+			include: { media: true }
 		});
 
 		if (!existingNews) {
@@ -201,23 +175,33 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			};
 		}
 
-		// Le type FINAL compte (il peut avoir changé dans le formulaire)
-		const finalType = validatedData.type ?? existingNews.type;
-		const isCatsNews = finalType === 'NEWSCATS';
+		// 🆕 Une News chats reste une News chats, et une news « classique » ne peut pas en devenir une
+		const wasCatsNews = existingNews.type === 'NEWSCATS';
+		if (validatedData.type && (validatedData.type === 'NEWSCATS') !== wasCatsNews) {
+			return {
+				success: false,
+				error: "Le type d'une News chats ne peut pas être changé",
+				errors: { type: ['Changement de type impossible'] }
+			};
+		}
+
+		// 🆕 Une News chats doit garder au moins un chat
+		if (wasCatsNews && catIds.length === 0) {
+			return {
+				success: false,
+				error: 'Une News chats doit contenir au moins un chat',
+				errors: { catIds: ['Choisissez au moins un chat'] }
+			};
+		}
+
 		const newsData = buildNewsData(validatedData);
 
-		// Une News chats n'a jamais de document
-		// ===== Document =====
+		// ===== Document (jamais pour une News chats) =====
 		const oldMedia = existingNews.media;
 		let mediaChange: { create: MediaData } | { disconnect: true } | undefined;
 		let deleteOldMedia = false;
 
-		if (isCatsNews) {
-			if (oldMedia) {
-				mediaChange = { disconnect: true };
-				deleteOldMedia = true;
-			}
-		} else if (validatedData.mediaStorageKey) {
+		if (!wasCatsNews && validatedData.mediaStorageKey) {
 			// Nouveau document : il remplace l'ancien (même si « Retirer » a été cliqué avant)
 			const prepared = await prepareMedia('news', {
 				storageKey: validatedData.mediaStorageKey,
@@ -229,11 +213,10 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			uploadedKey = prepared.data.storageKey;
 			mediaChange = { create: prepared.data };
 			deleteOldMedia = oldMedia !== null;
-		} else if (validatedData.removeMedia) {
-			if (oldMedia) {
-				mediaChange = { disconnect: true };
-				deleteOldMedia = true;
-			}
+		} else if (!wasCatsNews && validatedData.removeMedia && oldMedia) {
+			// « Retirer ce document », sans nouveau fichier
+			mediaChange = { disconnect: true };
+			deleteOldMedia = true;
 		}
 
 		const updatedNews = await prisma.news.update({
@@ -241,16 +224,13 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			data: {
 				...newsData,
 				...(mediaChange && { media: mediaChange }),
-				// Les chats ne concernent que les News chats : pour les autres types, on n'y touche pas
-				...(isCatsNews && {
+				// Les chats ne concernent que les News chats : pour les autres, on n'y touche pas
+				...(wasCatsNews && {
 					cats: {
 						deleteMany: {},
-						create: (validatedData.catIds ?? []).map((catId) => ({ catId }))
+						create: catIds.map((catId) => ({ catId }))
 					}
 				})
-			},
-			include: {
-				cats: { include: { cat: true } }
 			}
 		});
 
@@ -336,26 +316,4 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 	}
 }
 
-// ✅ Génération automatique (cron du dimanche) ou manuelle depuis l'admin
-export async function generateCatsNews({ title }: { title?: string } = {}) {
-	const catIds = await getEligibleCatIds();
 
-	const now = new Date();
-	const defaultTitle = `Les chats à l'adoption – semaine du ${now.toLocaleDateString('fr-FR', {
-		timeZone: 'Europe/Paris'
-	})}`;
-
-	return prisma.news.create({
-		data: {
-			title: title?.trim() || defaultTitle,
-			type: 'NEWSCATS',
-			content: null,
-			cats: {
-				create: catIds.map((catId) => ({ catId }))
-			}
-		},
-		include: {
-			cats: { include: { cat: true } }
-		}
-	});
-}

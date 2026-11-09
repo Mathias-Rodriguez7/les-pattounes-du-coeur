@@ -471,13 +471,16 @@ async function main() {
 	const cats = [];
 
 	for (let i = 0; i < 150; i++) {
+		const isVisible = randomBool(0.8);
 		const cat = await prisma.cat.create({
 			data: {
 				name: faker.person.firstName(),
 				catNumber: generateCatNumber(i + 1),
 				sex: faker.helpers.arrayElement(SEX),
 				birthDate: faker.date.birthdate({ min: 1, max: 30, mode: 'age' }),
-				isVisible: randomBool(0.8),
+				isVisible,
+				// Publiés dans les 6 dernières semaines : environ 1 sur 6 tombe dans les 7 derniers jours
+				publishedAt: isVisible ? faker.date.recent({ days: 42 }) : null,
 				status: faker.helpers.arrayElement(STATUS),
 				hairLength: faker.helpers.arrayElement(HAIR),
 				color: faker.color.human(),
