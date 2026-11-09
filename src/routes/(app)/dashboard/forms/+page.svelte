@@ -2,8 +2,6 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
@@ -15,6 +13,7 @@
 	import CardAction from '$lib/components/ui/card/card-action.svelte';
 	import AssignDispatcherDialog from '$lib/components/forms/AssignDispatcherDialog.svelte';
 	import { fade, fly } from 'svelte/transition';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 
@@ -169,8 +168,13 @@
 
 				<Card.Content>
 					<!-- Barre de filtres -->
-					<div class="grid items-center gap-2">
-						<div class="flex flex-wrap gap-2">
+					<TableToolbar
+						bind:search={searchQuery}
+						searchPlaceholder="Chercher un formulaire…"
+						searchLabel="Chercher un formulaire par e-mail"
+						onReset={clearFilters}
+					>
+						{#snippet filters()}
 							<!-- Type -->
 							<SelectField
 								id="form-type-filter"
@@ -191,30 +195,13 @@
 								placeholder="Status"
 								class="w-30"
 							/>
-						</div>
-
-						<div class="flex items-center gap-2">
-							<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
-
-							<div class="relative flex-1">
-								<Icon
-									name="search"
-									class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-								/>
-								<Input
-									type="text"
-									placeholder="Chercher un formulaire..."
-									bind:value={searchQuery}
-									class="pl-9"
-								/>
-							</div>
-						</div>
-					</div>
+						{/snippet}
+					</TableToolbar>
 
 					<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
 						<Table.Root containerClass="overflow-visible">
 							<Table.Header
-								class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+								class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
 							>
 								<Table.Row>
 									<Table.Head>Type</Table.Head>

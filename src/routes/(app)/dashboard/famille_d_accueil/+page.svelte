@@ -20,6 +20,7 @@
 	import { X, SlidersHorizontal } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 
@@ -121,7 +122,7 @@
 			{#each statCards as card, i (card.label)}
 				<Card.Root class="gap-2 py-4 {i === 0 ? 'col-span-2 sm:col-span-1' : ''}">
 					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-muted-foreground text-xs font-medium sm:text-sm">
+						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
 							{card.label}
 						</Card.Title>
 						<Icon
@@ -147,7 +148,7 @@
 					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
 						<Card.Title class="text-xl font-bold sm:text-2xl">
 							Familles d'accueil
-							<span class="text-muted-foreground text-base font-normal">
+							<span class="text-base font-normal text-muted-foreground">
 								({filteredHosts.length})
 							</span>
 						</Card.Title>
@@ -159,98 +160,61 @@
 					</Card.Header>
 
 					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
-						<!-- Recherche + bouton Filtres (mobile) -->
-						<div class="flex gap-2">
-							<div class="relative flex-1">
-								<Icon
-									name="search"
-									class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-								/>
-								<Input
-									type="search"
-									bind:value={searchQuery}
-									placeholder="Rechercher une FA…"
-									aria-label="Rechercher une famille d'accueil"
-									class="pl-9"
-								/>
-							</div>
-							<Button
-								variant="outline"
-								size="sm"
-								class="h-9 shrink-0 sm:hidden"
-								onclick={() => (showFilters = !showFilters)}
-								aria-expanded={showFilters}
-								aria-controls="host-filters"
-							>
-								<SlidersHorizontal class="size-4" />
-								Filtres
-								{#if activeFiltersCount > 0}
-									<span
-										class="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full text-xs"
-									>
-										{activeFiltersCount}
-									</span>
-								{/if}
-							</Button>
-						</div>
-
-						<!-- Filtres : repliables sur mobile, toujours visibles à partir de 640 px -->
-						<div
-							id="host-filters"
-							class="{showFilters
-								? 'grid'
-								: 'hidden'} grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center"
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Rechercher une FA…"
+							searchLabel="Chercher une famille d'accueil"
+							onReset={clearFilters}
 						>
-							<SelectField
-								id="host-filter-type"
-								label=""
-								options={HOST_TYPE_OPTIONS}
-								bind:value={typeFilter}
-								placeholder="Type"
-								class="w-full sm:w-36"
-							/>
-							<SelectField
-								id="host-filter-status"
-								label=""
-								options={HOST_ACTIF_OPTIONS}
-								bind:value={actifFilter}
-								placeholder="Statut"
-								class="w-full sm:w-36"
-							/>
-							<SelectField
-								id="host-filter-heal"
-								label=""
-								options={HOST_HEAL_OPTIONS}
-								bind:value={healFilter}
-								placeholder="Soins"
-								class="w-full sm:w-36"
-							/>
-							<SelectField
-								id="host-filter-socialize"
-								label=""
-								options={HOST_SOCIALIZE_OPTIONS}
-								bind:value={socializeFilter}
-								placeholder="Sociabilisation"
-								class="w-full sm:w-36"
-							/>
-							<SelectField
-								id="host-filter-baby"
-								label=""
-								options={HOST_BABY_FEEDING_OPTIONS}
-								bind:value={babyFilter}
-								placeholder="Biberonnage"
-								class="w-full sm:w-36"
-							/>
-							<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
-								Réinitialiser
-							</Button>
-						</div>
+							{#snippet filters()}
+								<SelectField
+									id="host-filter-type"
+									label=""
+									options={HOST_TYPE_OPTIONS}
+									bind:value={typeFilter}
+									placeholder="Type"
+									class="w-full sm:w-36"
+								/>
+								<SelectField
+									id="host-filter-status"
+									label=""
+									options={HOST_ACTIF_OPTIONS}
+									bind:value={actifFilter}
+									placeholder="Statut"
+									class="w-full sm:w-36"
+								/>
+								<SelectField
+									id="host-filter-heal"
+									label=""
+									options={HOST_HEAL_OPTIONS}
+									bind:value={healFilter}
+									placeholder="Soins"
+									class="w-full sm:w-36"
+								/>
+								<SelectField
+									id="host-filter-socialize"
+									label=""
+									options={HOST_SOCIALIZE_OPTIONS}
+									bind:value={socializeFilter}
+									placeholder="Sociabilisation"
+									class="w-full sm:w-36"
+								/>
+								<SelectField
+									id="host-filter-baby"
+									label=""
+									options={HOST_BABY_FEEDING_OPTIONS}
+									bind:value={babyFilter}
+									placeholder="Biberonnage"
+									class="w-full sm:w-36"
+								/>
+							{/snippet}
+						</TableToolbar>
 
 						<!-- Tableau -->
 						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
 							<Table.Root containerClass="overflow-visible">
 								<Table.Header
-									class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
 								>
 									<Table.Row>
 										<Table.Head>Nom</Table.Head>
@@ -315,7 +279,7 @@
 			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
 		>
 			<header
-				class="bg-card/95 sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2 backdrop-blur"
+				class="sticky top-0 z-10 flex items-center gap-2 border-b bg-card/95 px-4 py-2 backdrop-blur"
 			>
 				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
 					{selectedHostName}

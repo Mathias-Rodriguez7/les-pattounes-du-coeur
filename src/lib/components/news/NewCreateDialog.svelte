@@ -7,7 +7,7 @@
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { NEWS_TYPE_OPTIONS } from '$lib/constants/news.js';
+	import { NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news.js';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import type { SubmitFunction } from '@sveltejs/kit';
@@ -27,9 +27,6 @@
 	let submitting = $state(false);
 	let progress = $state<Record<string, number>>({});
 
-	// Une News chats n'a pas de document : ses chats sont générés automatiquement
-	const needsMedia = $derived(type !== 'NEWSCATS');
-
 	function resetForm() {
 		title = '';
 		type = 'NEWS';
@@ -46,7 +43,7 @@
 		submitting = true;
 
 		// 1. Le PDF part d'abord à S3, puis seule sa clé rejoint le formulaire
-		const file = needsMedia ? files[0] : undefined;
+		const file = files[0];
 		if (file) {
 			try {
 				const uploaded = await uploadFile(file, {
@@ -106,7 +103,7 @@
 					label="Type"
 					name="type"
 					required
-					options={NEWS_TYPE_OPTIONS}
+					options={NEWS_TYPE_OPTIONS_CLASSIC}
 					bind:value={type}
 				/>
 			</div>
@@ -119,7 +116,6 @@
 				placeholder="Description..."
 			/>
 
-			{#if needsMedia}
 				<MediaUpload
 					id="new-news-media"
 					accept={['DOCUMENT']}
@@ -128,11 +124,6 @@
 					label="Document (PDF)"
 					disabled={submitting}
 				/>
-			{:else}
-				<p class="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
-					Les chats à l'adoption seront ajoutés automatiquement à cette news.
-				</p>
-			{/if}
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={onCancel} disabled={submitting}>

@@ -6,6 +6,9 @@ export const NEWS_TYPE_OPTIONS = [
 	{ value: 'EVENT', label: 'Évènement' }
 ];
 
+/** Les types qu'on crée avec le dialogue « Nouvelle news » : une News chats passe par « Générer » */
+export const NEWS_TYPE_OPTIONS_CLASSIC = NEWS_TYPE_OPTIONS.filter((o) => o.value !== 'NEWSCATS');
+
 export const NEWS_TYPE_CONFIG: Record<
 	string,
 	{ label: string; icon: string; theme: string; color: string }

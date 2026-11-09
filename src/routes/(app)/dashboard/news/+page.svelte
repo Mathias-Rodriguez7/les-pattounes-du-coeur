@@ -4,7 +4,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
@@ -12,9 +12,10 @@
 	import NewsPanel from '$lib/components/news/NewsPanel.svelte';
 	import NewCreateDialog from '$lib/components/news/NewCreateDialog.svelte';
 	import { NEWS_TYPE_OPTIONS } from '$lib/constants/news.js';
-	import { X } from '@lucide/svelte';
+	import { X, Sparkles } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
+	import NewsCatGenerateDialog from '$lib/components/news/NewsCatGenerateDialog.svelte';
 
 	const { data } = $props();
 
@@ -29,6 +30,7 @@
 
 	let mobilePanelOpen = $state(false);
 	let newsCreateOpen = $state(false);
+	let newsCatsOpen = $state(false);
 
 	// ===== FILTRES =====
 	let typeFilter = $state('');
@@ -96,7 +98,7 @@
 			{#each statCards as card (card.label)}
 				<Card.Root class="gap-2 py-4">
 					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-muted-foreground text-xs font-medium sm:text-sm">
+						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
 							{card.label}
 						</Card.Title>
 						<Icon
@@ -122,55 +124,58 @@
 					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
 						<Card.Title class="text-xl font-bold sm:text-2xl">
 							News
-							<span class="text-muted-foreground text-base font-normal">
+							<span class="text-base font-normal text-muted-foreground">
 								({filteredNews.length})
 							</span>
 						</Card.Title>
 
 						{#if data.canManageNews}
-							<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
-								<Icon name="plus" class="h-4 w-4" />
-								<span class="hidden sm:inline">Nouvelle news</span>
-								<span class="sm:hidden">Ajouter</span>
-							</Button>
+							<div class="flex items-center gap-2">
+								<!-- Action secondaire : tonale (rose pâle), avant l'action principale -->
+								<Button
+									size="sm"
+									class="rounded-2xl bg-accent text-accent-foreground shadow-none hover:bg-accent/80"
+									onclick={() => (newsCatsOpen = true)}
+								>
+									<Sparkles class="size-4" />
+									News chats
+								</Button>
+
+								<!-- Action principale : pleine, à droite -->
+								<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
+									<Icon name="plus" class="h-4 w-4" />
+									<span class="hidden sm:inline">News</span>
+									<span class="sm:hidden">Ajouter</span>
+								</Button>
+							</div>
 						{/if}
 					</Card.Header>
 
 					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
 						<!-- Un seul filtre : pas besoin de le replier sur mobile -->
-						<div class="flex flex-wrap items-center gap-2">
-							<SelectField
-								id="news-type-filter"
-								label=""
-								options={NEWS_TYPE_OPTIONS}
-								bind:value={typeFilter}
-								placeholder="Type"
-								class="w-36 sm:w-40"
-							/>
-							<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
-								Réinitialiser
-							</Button>
-						</div>
-
-						<div class="relative">
-							<Icon
-								name="search"
-								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-							/>
-							<Input
-								type="search"
-								placeholder="Chercher un titre ou un chat…"
-								aria-label="Chercher une news par titre ou par chat"
-								bind:value={searchQuery}
-								class="pl-9"
-							/>
-						</div>
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Chercher un titre ou un chat…"
+							searchLabel="Chercher une news par titre ou par chat"
+							onReset={clearFilters}
+						>
+							{#snippet filters()}
+								<SelectField
+									id="news-type-filter"
+									label=""
+									options={NEWS_TYPE_OPTIONS}
+									bind:value={typeFilter}
+									placeholder="Type"
+									class="w-36 sm:w-40"
+								/>
+							{/snippet}
+						</TableToolbar>
 
 						<!-- Tableau -->
 						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
 							<Table.Root containerClass="overflow-visible">
 								<Table.Header
-									class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
 								>
 									<Table.Row>
 										<Table.Head>Titre</Table.Head>
@@ -223,7 +228,7 @@
 			showCloseButton={false}
 			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
 		>
-			<header class="bg-card/95 sticky top-0 z-10 flex items-center gap-2 px-4 py-2 backdrop-blur">
+			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
 				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
 					{selectedNews?.title ?? 'Détail de la news'}
 				</Sheet.Title>
@@ -244,4 +249,9 @@
 
 {#if data.canManageNews}
 	<NewCreateDialog bind:open={newsCreateOpen} onCancel={() => (newsCreateOpen = false)} />
+	<NewsCatGenerateDialog
+		bind:open={newsCatsOpen}
+		cats={data.adoptableCats}
+		candidateIds={data.candidateIds}
+	/>
 {/if}

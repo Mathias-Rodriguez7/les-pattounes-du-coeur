@@ -28,7 +28,7 @@ export function startCrons() {
 
 	// Le dimanche à 8 h : News chats de la semaine (aucune si aucun candidat)
 	cron.schedule(
-		'*/2 * * * *',
+		'0 8 * * 0',
 		() =>
 			run('News chats', async () => {
 				const news = await generateCatsNews();

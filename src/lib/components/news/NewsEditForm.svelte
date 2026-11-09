@@ -13,7 +13,7 @@
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import MediaPreview from '../media/MediaPreview.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS } from '$lib/constants/news';
+	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news';
 	import type { NewsEditData } from '$lib/types/news';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
@@ -143,14 +143,17 @@
 					required
 				/>
 			</div>
-			<SelectField
-				id="edit-news-type"
-				name="type"
-				label="Type"
-				options={NEWS_TYPE_OPTIONS}
-				bind:value={editData.type}
-				required
-			/>
+			{#if !isCatsNews}
+				<SelectField
+					id="edit-news-type"
+					name="type"
+					label="Type"
+					options={NEWS_TYPE_OPTIONS_CLASSIC}
+					bind:value={editData.type}
+					required
+				/>
+			{/if}
+			
 		</div>
 	</SectionCard>
 

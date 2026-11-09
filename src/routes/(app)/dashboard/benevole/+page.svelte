@@ -4,7 +4,6 @@
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { X } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import VolunteerRow from '$lib/components/volunteers/VolunteerRow.svelte';
@@ -14,6 +13,7 @@
 	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '$lib/constants/volunteer.js';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 
@@ -104,7 +104,7 @@
 				<!-- La 1ʳᵉ carte (le total) prend toute la largeur sur téléphone : 1 + 2 + 2 -->
 				<Card.Root class="gap-2 py-4 {i === 0 ? 'col-span-2 sm:col-span-1' : ''}">
 					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-muted-foreground text-xs font-medium sm:text-sm">
+						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
 							{card.label}
 						</Card.Title>
 						<Icon
@@ -130,7 +130,7 @@
 					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
 						<Card.Title class="text-xl font-bold sm:text-2xl">
 							Bénévoles
-							<span class="text-muted-foreground text-base font-normal">
+							<span class="text-base font-normal text-muted-foreground">
 								({filteredVolunteers.length})
 							</span>
 						</Card.Title>
@@ -143,48 +143,37 @@
 
 					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
 						<!-- Filtres -->
-						<div class="flex flex-wrap items-center gap-2">
-							<SelectField
-								id="volunteer-status-filter"
-								label=""
-								options={VOLUNTEER_STATUS_OPTIONS}
-								bind:value={actifFilter}
-								placeholder="Statut"
-								class="w-32"
-							/>
-							<SelectField
-								id="volunteer-role-filter"
-								label=""
-								options={VOLUNTEER_ROLE_OPTIONS}
-								bind:value={roleFilter}
-								placeholder="Rôle"
-								class="w-32"
-							/>
-							<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
-								Réinitialiser
-							</Button>
-						</div>
-
-						<!-- Recherche -->
-						<div class="relative">
-							<Icon
-								name="search"
-								class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-							/>
-							<Input
-								type="search"
-								placeholder="Chercher un bénévole…"
-								aria-label="Chercher un bénévole"
-								bind:value={searchQuery}
-								class="pl-9"
-							/>
-						</div>
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Chercher un bénévole…"
+							searchLabel="Chercher un bénévole par nom"
+							onReset={clearFilters}
+						>
+							{#snippet filters()}
+								<SelectField
+									id="volunteer-status-filter"
+									label=""
+									options={VOLUNTEER_STATUS_OPTIONS}
+									bind:value={actifFilter}
+									placeholder="Statut"
+									class="w-32"
+								/>
+								<SelectField
+									id="volunteer-role-filter"
+									label=""
+									options={VOLUNTEER_ROLE_OPTIONS}
+									bind:value={roleFilter}
+									placeholder="Rôle"
+									class="w-32"
+								/>
+							{/snippet}
+						</TableToolbar>
 
 						<!-- Tableau : prend l'espace restant et défile dans la carte sur PC -->
 						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
 							<Table.Root containerClass="overflow-visible">
 								<Table.Header
-									class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
 								>
 									<Table.Row>
 										<Table.Head>Nom</Table.Head>
@@ -249,7 +238,7 @@
 			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
 		>
 			<!-- Barre du haut : reste visible pendant le défilement -->
-			<header class="bg-card/95 sticky top-0 z-10 flex items-center gap-2 px-4 py-2 backdrop-blur">
+			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
 				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
 					{selectedVolunteerName}
 				</Sheet.Title>

@@ -5,7 +5,7 @@ import { createNews, updateNews, deleteNews } from '$lib/server/news/mutations';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
 import { fail, redirect } from '@sveltejs/kit';
 import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
-import { generateCatsNews } from '$lib/server/news/catsNews';
+import { generateCatsNews, getNewsCatsCandidateIds } from '$lib/server/news/catsNews';
 import { generateCatsSchema } from '$lib/schemas/news';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -16,8 +16,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const role = locals.user.role;
 	const canManage = canManageNews(role);
 
-	// Requêtes indépendantes → lancées en parallèle
-	const [news, cats] = await Promise.all([
+		// Requêtes indépendantes → lancées en parallèle
+	const [news, cats, adoptableCats, candidateIds] = await Promise.all([
 		prisma.news.findMany({
 			orderBy: { createdAt: 'desc' },
 			select: newsListSelect
@@ -29,7 +29,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 					select: { id: true, name: true, catNumber: true },
 					orderBy: { catNumber: 'asc' }
 				})
-			: Promise.resolve([])
+			: Promise.resolve([]),
+		// « Générer une News chats » : les chats qu'on peut ajouter…
+		canManage
+			? prisma.cat.findMany({
+					where: { isVisible: true, status: 'AVAILABLE' },
+					select: { id: true, name: true, catNumber: true },
+					orderBy: { catNumber: 'asc' }
+				})
+			: Promise.resolve([]),
+		// … et ceux que la règle propose (pré-cochés)
+		canManage ? getNewsCatsCandidateIds() : Promise.resolve([])
 	]);
 
 	const stats = {
@@ -44,6 +54,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		news: news.map(toNewsFull),
 		cats,
+		adoptableCats,
+		candidateIds,
 		stats,
 		canManageNews: canManage,
 		canDeleteNews: canDeleteNews(role)

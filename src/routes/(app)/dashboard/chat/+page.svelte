@@ -4,7 +4,6 @@
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
@@ -13,9 +12,10 @@
 	import CatPanel from '$lib/components/cats/CatPanel.svelte';
 	import CatRow from '$lib/components/cats/CatRow.svelte';
 	import { CAT_AGE, CAT_SEX, CAT_STATUS } from '$lib/constants/cat.js';
-	import { X, SlidersHorizontal } from '@lucide/svelte';
+	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 
@@ -50,7 +50,6 @@
 	let searchQuery = $state('');
 
 	// Mobile : filtres repliés par défaut
-	let showFilters = $state(false);
 	const activeFiltersCount = $derived([statusFilter, sexFilter, ageFilter].filter(Boolean).length);
 
 	// ===== PORTÉE : admin = interrupteur, autres = toujours « mes chats » =====
@@ -151,7 +150,7 @@
 			{#each statCards as card, i (card.label)}
 				<Card.Root class="gap-2 py-4 {i === 0 ? 'col-span-2 sm:col-span-1' : ''}">
 					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-muted-foreground text-xs font-medium sm:text-sm">
+						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
 							{card.label}
 						</Card.Title>
 						<Icon
@@ -178,7 +177,7 @@
 						<div class="flex items-center gap-3">
 							<Card.Title class="text-xl font-bold sm:text-2xl">
 								{effectiveShowAll ? 'Tous les chats' : 'Mes chats'}
-								<span class="text-muted-foreground text-base font-normal">
+								<span class="text-base font-normal text-muted-foreground">
 									({filteredCats.length})
 								</span>
 							</Card.Title>
@@ -201,81 +200,45 @@
 
 					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
 						<!-- Recherche + bouton Filtres (mobile) -->
-						<div class="flex gap-2">
-							<div class="relative flex-1">
-								<Icon
-									name="search"
-									class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-								/>
-								<Input
-									type="search"
-									placeholder="Nom ou numéro…"
-									aria-label="Chercher un chat par nom ou numéro"
-									bind:value={searchQuery}
-									class="pl-9"
-								/>
-							</div>
-							<Button
-								variant="outline"
-								size="sm"
-								class="h-9 shrink-0 sm:hidden"
-								onclick={() => (showFilters = !showFilters)}
-								aria-expanded={showFilters}
-								aria-controls="cat-filters"
-							>
-								<SlidersHorizontal class="size-4" />
-								Filtres
-								{#if activeFiltersCount > 0}
-									<span
-										class="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full text-xs"
-									>
-										{activeFiltersCount}
-									</span>
-								{/if}
-							</Button>
-						</div>
-
-						<!-- Filtres : repliables sur mobile, toujours visibles à partir de 640 px -->
-						<div
-							id="cat-filters"
-							class="{showFilters
-								? 'grid'
-								: 'hidden'} grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center"
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Nom ou numéro…"
+							searchLabel="Chercher un chat par nom ou numéro"
+							onReset={clearFilters}
 						>
-							<SelectField
-								id="cat-filter-status"
-								label=""
-								options={CAT_STATUS}
-								bind:value={statusFilter}
-								placeholder="Statut"
-								class="w-full sm:w-32"
-							/>
-							<SelectField
-								id="cat-filter-sex"
-								label=""
-								options={CAT_SEX}
-								bind:value={sexFilter}
-								placeholder="Sexe"
-								class="w-full sm:w-32"
-							/>
-							<SelectField
-								id="cat-filter-age"
-								label=""
-								options={CAT_AGE}
-								bind:value={ageFilter}
-								placeholder="Âge"
-								class="w-full sm:w-32"
-							/>
-							<Button class="rounded-2xl" size="sm" variant="outline" onclick={clearFilters}>
-								Réinitialiser
-							</Button>
-						</div>
+							{#snippet filters()}
+								<SelectField
+									id="cat-filter-status"
+									label=""
+									options={CAT_STATUS}
+									bind:value={statusFilter}
+									placeholder="Statut"
+									class="w-full sm:w-32"
+								/>
+								<SelectField
+									id="cat-filter-sex"
+									label=""
+									options={CAT_SEX}
+									bind:value={sexFilter}
+									placeholder="Sexe"
+									class="w-full sm:w-32"
+								/>
+								<SelectField
+									id="cat-filter-age"
+									label=""
+									options={CAT_AGE}
+									bind:value={ageFilter}
+									placeholder="Âge"
+									class="w-full sm:w-32"
+								/>
+							{/snippet}
+						</TableToolbar>
 
 						<!-- Tableau -->
 						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
 							<Table.Root containerClass="overflow-visible">
 								<Table.Header
-									class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
 								>
 									<Table.Row>
 										<Table.Head class="w-12 sm:w-16">Photo</Table.Head>
@@ -342,7 +305,7 @@
 			showCloseButton={false}
 			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
 		>
-			<header class="bg-card/95 sticky top-0 z-10 flex items-center gap-2 px-4 py-2 backdrop-blur">
+			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
 				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
 					{selectedCatName}
 				</Sheet.Title>
