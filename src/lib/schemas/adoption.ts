@@ -30,6 +30,12 @@ export const createAdoptionSchema = z.object({
 	formId: z.uuid('ID de formulaire invalide')
 });
 
+// Côté serveur : la même chose, PLUS le contrat (déjà envoyé sur S3 par le navigateur)
+export const createAdoptionWithContractSchema = createAdoptionSchema.extend({
+	mediaStorageKey: z.string().min(1, 'Le contrat est obligatoire').max(500),
+	mediaOriginalName: z.string().max(255).nullish()
+});
+
 export const updateAdoptionSchema = createAdoptionSchema.partial().extend({
 	adoptionId: z.uuid('ID invalide')
 });

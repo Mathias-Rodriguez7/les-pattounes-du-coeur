@@ -4,8 +4,12 @@ import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
 import { addMonths } from '$lib/utils/date';
 import { ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
+import type { MediaData } from '$lib/server/media/mutations';
 
-export async function createAdoption(input: CreateAdoptionInput) {
+/** La note ajoutée aux autres demandes du chat, quand il est adopté par une autre famille */
+const REJECTED_NOTE = 'Chat adopté par une autre famille.';
+
+export async function createAdoption(input: CreateAdoptionInput, contract: MediaData) {
 	return prisma.$transaction(async (tx) => {
 		// 0. Vérifier que l'adoptant n'est pas blacklisté
 		if (await isEmailBlacklisted(input.email, tx)) {
@@ -70,12 +74,48 @@ export async function createAdoption(input: CreateAdoptionInput) {
 			data: { status: CatStatus.ADOPTED }
 		});
 
-		// 6. Clôturer le formulaire
-		await tx.form.update({
-			where: { id: input.formId },
-			data: { status: FormStatus.APPROVED } // adapte à ton enum
+		const today = new Date();
+
+		// 6. Le contrat, lié au chat ET à l'adoption, créé dans la MÊME transaction :
+		//    jamais d'adoption sans contrat, ni de contrat sans adoption
+		await tx.catDocument.create({
+			data: {
+				cat: { connect: { id: input.catId } },
+				adoption: { connect: { id: adoption.id } },
+				kind: 'ADOPTION_CONTRACT',
+				date: today,
+				media: { create: contract }
+			}
 		});
 
-		return adoption;
+		// 7. Le chat quitte sa famille d'accueil
+		await tx.placement.updateMany({
+			where: { catId: input.catId, status: { in: ['ACTIVE', 'BREAK'] } },
+			data: { status: 'STOP', endDate: today }
+		});
+
+		// 8. La demande est acceptée, et garde le chat adopté (utile pour une demande libre)
+		await tx.form.update({
+			where: { id: input.formId },
+			data: { status: FormStatus.APPROVED, catId: input.catId }
+		});
+
+		// 9. Les autres demandes en attente pour ce chat sont refusées, avec la raison
+		const otherRequests = await tx.form.findMany({
+			where: { catId: input.catId, status: 'PENDING', id: { not: input.formId } },
+			select: { id: true, notes: true }
+		});
+		for (const other of otherRequests) {
+			await tx.form.update({
+				where: { id: other.id },
+				data: {
+					status: FormStatus.REJECTED,
+					// On AJOUTE la raison aux notes existantes, sans les effacer
+					notes: [other.notes, REJECTED_NOTE].filter(Boolean).join('\n')
+				}
+			});
+		}
+
+		return { adoption, rejectedCount: otherRequests.length };
 	});
 }

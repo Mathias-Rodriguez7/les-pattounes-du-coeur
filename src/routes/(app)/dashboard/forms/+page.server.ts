@@ -5,10 +5,13 @@ import { FormType, FormStatus, type Prisma } from '@prisma/client';
 import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
-import { createAdoptionSchema } from '$lib/schemas/adoption';
+import { createAdoptionWithContractSchema } from '$lib/schemas/adoption';
 import { createAdoption } from '$lib/server/adoptions/mutations';
 import { canManageForm, managedFormsWhere } from '$lib/server/permissions/form';
 import { catPickerSelect } from '$lib/types/cat';
+import { canManageCat } from '$lib/server/permissions/cat';
+import { prepareMedia } from '$lib/server/media/mutations';
+import { deleteFiles } from '$lib/server/storage';
 
 /** 🆕 Une demande, avec juste ce que les panneaux affichent */
 const formInclude = {
@@ -233,17 +236,18 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const parsed = createAdoptionSchema.safeParse(Object.fromEntries(formData));
+		const parsed = createAdoptionWithContractSchema.safeParse(Object.fromEntries(formData));
 		if (!parsed.success) {
 			return fail(400, {
 				error: 'Erreur de validation',
 				errors: parsed.error.flatten().fieldErrors
 			});
 		}
+		const { formId, catId, mediaStorageKey, mediaOriginalName } = parsed.data;
 
-		// 🆕 La demande existe, c'est une demande d'adoption, et la bénévole peut la traiter
+		// 1. La demande existe, c'est une demande d'adoption, et la bénévole peut la traiter
 		const adoptionRequest = await prisma.form.findUnique({
-			where: { id: parsed.data.formId },
+			where: { id: formId },
 			select: { type: true, catId: true, assignedToId: true }
 		});
 		if (!adoptionRequest || !adoptionRequest.type.startsWith('ADOPTION')) {
@@ -253,18 +257,46 @@ export const actions: Actions = {
 			return fail(403, { error: "Vous n'êtes pas autorisée à traiter cette demande" });
 		}
 
-		// 🆕 Une demande précise ne peut aboutir qu'à l'adoption de SON chat
-		if (
-			adoptionRequest.type === 'ADOPTION_SPECIFIC' &&
-			adoptionRequest.catId !== parsed.data.catId
-		) {
+		// 2. Le chat proposé est bien sous sa responsabilité
+		if (!(await canManageCat(locals.user, catId))) {
+			return fail(403, { error: "Ce chat n'est pas sous votre responsabilité" });
+		}
+
+		// 3. Une demande précise ne peut aboutir qu'à l'adoption de SON chat
+		if (adoptionRequest.type === 'ADOPTION_SPECIFIC' && adoptionRequest.catId !== catId) {
 			return fail(400, { error: 'Cette demande concerne un autre chat' });
 		}
 
+		// 4. Le contrat : vérifié sur S3, dans le dossier de CE chat, bucket privé
+		const prepared = await prepareMedia(
+			'catDocument',
+			{ storageKey: mediaStorageKey, originalName: mediaOriginalName },
+			catId
+		);
+		if (!prepared.ok) {
+			return fail(400, { error: prepared.error, errors: { media: [prepared.error] } });
+		}
+
+		// 5. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
 		try {
-			const adoption = await createAdoption(parsed.data);
-			return { success: true, adoptionId: adoption.id };
+			const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data);
+
+			const rejectedMessage =
+				rejectedCount === 0
+					? ''
+					: rejectedCount === 1
+						? ' 1 autre demande a été refusée.'
+						: ` ${rejectedCount} autres demandes ont été refusées.`;
+
+			return {
+				success: true,
+				adoptionId: adoption.id,
+				message: `Adoption créée (période d'essai de 6 mois).${rejectedMessage}`
+			};
 		} catch (err) {
+			// L'adoption n'existe pas : le contrat envoyé sur S3 ne sert plus à rien
+			await deleteFiles([{ storageKey: mediaStorageKey, isPrivate: true }]);
+
 			// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est plus disponible »)
 			const message = err instanceof Error ? err.message : 'Erreur inconnue';
 			return fail(400, { error: message });
