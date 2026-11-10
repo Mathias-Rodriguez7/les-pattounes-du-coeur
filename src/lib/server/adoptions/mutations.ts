@@ -2,6 +2,8 @@ import prisma from '$lib/server/prisma';
 import type { CreateAdoptionInput } from '$lib/schemas/adoption';
 import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
+import { addMonths } from '$lib/utils/date';
+import { ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
 
 export async function createAdoption(input: CreateAdoptionInput) {
 	return prisma.$transaction(async (tx) => {
@@ -20,9 +22,9 @@ export async function createAdoption(input: CreateAdoptionInput) {
 			throw new Error(`Le chat ${cat.name} n'est plus disponible`);
 		}
 
-		// 2. Vérifier qu'il n'a pas déjà une adoption
+		// 2. Vérifier qu'il n'a pas déjà une adoption en cours (essai ou définitive)
 		const existingAdoption = await tx.adoption.findFirst({
-			where: { catId: input.catId, status: 'ACTIVE' }
+			where: { catId: input.catId, status: { in: ['TRIAL', 'FINAL'] } }
 		});
 
 		if (existingAdoption) throw new Error('Ce chat a déjà une adoption');
@@ -53,11 +55,12 @@ export async function createAdoption(input: CreateAdoptionInput) {
 			}
 		});
 
-		// 4. Créer l'adoption
+		// 4. Créer l'adoption : elle commence TOUJOURS par une période d'essai
 		const adoption = await tx.adoption.create({
 			data: {
 				catId: input.catId,
-				profilId: profil.id
+				profilId: profil.id,
+				trialEndsAt: addMonths(new Date(), ADOPTION_TRIAL_MONTHS)
 			}
 		});
 

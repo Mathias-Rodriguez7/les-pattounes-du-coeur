@@ -30,3 +30,10 @@ export function formatDateNum(date: Date | null): string {
 		year: 'numeric'
 	}).format(date);
 }
+
+/** Ajoute des mois à une date (sans modifier l'originale) */
+export function addMonths(date: Date, months: number): Date {
+	const result = new Date(date);
+	result.setMonth(result.getMonth() + months);
+	return result;
+}
