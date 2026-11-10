@@ -1,8 +1,12 @@
 import { z } from 'zod';
 import prisma from '$lib/server/prisma';
 import { createInfoDocumentSchema, updateInfoDocumentSchema } from '$lib/schemas/infoDocument';
-import { prepareMedia, deleteMedia, type MediaData } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
+import {
+	prepareMedia,
+	deleteMedia,
+	discardUploads,
+	type MediaData
+} from '$lib/server/media/mutations';
 
 type Result = {
 	success: boolean;
@@ -50,7 +54,7 @@ export async function createInfoDocument({ request, locals }: Args): Promise<Res
 		});
 	} catch (error) {
 		console.error('Erreur création document info:', error);
-		await deleteFiles([{ storageKey: mediaStorageKey, isPrivate: true }]);
+		await discardUploads('infoDocument', [mediaStorageKey]);
 		return { success: false, error: "Erreur lors de l'enregistrement du document" };
 	}
 
@@ -102,7 +106,7 @@ export async function updateInfoDocument({ request, locals }: Args): Promise<Res
 		});
 	} catch (error) {
 		console.error('Erreur modification document info:', error);
-		if (newFile) await deleteFiles([{ storageKey: newFile.storageKey, isPrivate: true }]);
+		if (newFile) await discardUploads('infoDocument', [newFile.storageKey]);
 		return { success: false, error: 'Erreur lors de la modification du document' };
 	}
 

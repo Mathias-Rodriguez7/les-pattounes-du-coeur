@@ -27,7 +27,11 @@ export const createAdoptionSchema = z.object({
 
 	// Adoption
 	catId: z.uuid('ID de chat invalide'), // obligatoire pour créer une adoption
-	formId: z.uuid('ID de formulaire invalide')
+	// Facultatif : une adoption peut se faire sans demande (adoptant rencontré hors du site).
+	// Un champ caché vide arrive comme '' : on le traite comme « pas de demande »
+	formId: z
+		.union([z.uuid('ID de formulaire invalide'), z.literal('').transform(() => undefined)])
+		.optional()
 });
 
 // Côté serveur : la même chose, PLUS le contrat (déjà envoyé sur S3 par le navigateur)
@@ -38,6 +42,12 @@ export const createAdoptionWithContractSchema = createAdoptionSchema.extend({
 
 export const updateAdoptionSchema = createAdoptionSchema.partial().extend({
 	adoptionId: z.uuid('ID invalide')
+});
+
+// Finaliser : la case « Stérilisation vérifiée » est obligatoire
+export const finalizeAdoptionSchema = z.object({
+	adoptionId: z.uuid('ID invalide'),
+	sterilizationChecked: z.literal('true', 'Confirmez que la stérilisation a été vérifiée')
 });
 
 // ✅ Types TypeScript corrects

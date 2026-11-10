@@ -12,6 +12,9 @@
 	const { data, children } = $props();
 
 	let mobileMenuOpen = $state(false);
+	// Les pastilles « à faire » de la sidebar (calculées par le layout serveur)
+	const badges = $derived({ '/dashboard/chat': data.dueAdoptionsCount } as const);
+	const hasBadges = $derived(Object.values(badges).some((count) => count > 0));
 
 	// Sécurité : ferme le tiroir après chaque navigation (bouton retour, redirection…)
 	afterNavigate(() => {
@@ -28,26 +31,30 @@
 	<div class="flex h-dvh overflow-hidden">
 		<!-- Sidebar fixe : ordinateur uniquement -->
 		<div class="hidden shrink-0 lg:block">
-			<Sidebar user={data.user} />
+			<Sidebar user={data.user} {badges} />
 		</div>
 
 		<div class="flex min-w-0 flex-1 flex-col">
 			<!-- Barre du haut : téléphone et tablette uniquement -->
 			<header
-				class="bg-accent/70 border-accent/40 flex shrink-0 items-center gap-3 border-b px-3 py-2 backdrop-blur-lg lg:hidden"
+				class="flex shrink-0 items-center gap-3 border-b border-accent/40 bg-accent/70 px-3 py-2 backdrop-blur-lg lg:hidden"
 			>
 				<Sheet.Root bind:open={mobileMenuOpen}>
 					<Sheet.Trigger
-						class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-						aria-label="Ouvrir le menu"
+						class="{buttonVariants({ variant: 'ghost', size: 'icon' })} relative"
+						aria-label={hasBadges ? 'Ouvrir le menu (éléments à traiter)' : 'Ouvrir le menu'}
 					>
 						<Menu class="size-6" />
+						<!-- Mobile : la sidebar est cachée, un point rouge signale qu'il y a quelque chose à traiter -->
+						{#if hasBadges}
+							<span class="absolute top-1 right-1 size-2.5 rounded-full bg-destructive"></span>
+						{/if}
 					</Sheet.Trigger>
 
 					<Sheet.Content side="left" class="w-72 p-0">
 						<!-- Titre invisible, obligatoire pour l'accessibilité des fenêtres -->
 						<Sheet.Title class="sr-only">Menu de navigation</Sheet.Title>
-						<Sidebar user={data.user} mobile onClose={() => (mobileMenuOpen = false)} />
+						<Sidebar user={data.user} {badges} mobile onClose={() => (mobileMenuOpen = false)} />
 					</Sheet.Content>
 				</Sheet.Root>
 

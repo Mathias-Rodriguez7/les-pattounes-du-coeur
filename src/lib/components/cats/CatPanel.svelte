@@ -3,7 +3,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Pencil, Camera } from '@lucide/svelte';
+	import { Pencil, Camera, HeartHandshake } from '@lucide/svelte';
 	import type { CatFull, CatEditData } from '$lib/types/cat';
 	import type { HostFull } from '$lib/types/host';
 	import type { VolunteerBasic } from '$lib/types/volunteer';
@@ -36,6 +36,10 @@
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
 	import { publicMediaUrl } from '$lib/media/urls';
+	import { getTrialInfo } from '$lib/utils/adoption';
+	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
+	import { ADOPTABLE_STATUSES, ADOPTION_STATUS } from '$lib/constants/adoption';
+	import AdoptionCreateDialog from '../forms/panels/AdoptionCreateDialog.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -123,13 +127,32 @@
 
 	// ===== DROITS =====
 	// Même règle que le serveur : admin, ou bénévole assigné à ce chat
-	const canManageSicknesses = $derived(isAdmin || !!cat?.isMine);
+	// (maladies, documents, soins, adoption : tout ce qui concerne le chat)
+	const canManageCat = $derived(isAdmin || !!cat?.isMine);
 
 	// ===== ADOPTION =====
 	// La section 2 affiche l'adoption à la place des placements si le chat est adopté.
 	// Si l'adoption est annulée (statut changé), les placements reviennent automatiquement.
 	const adoption = $derived(cat?.adoptions?.[0] ?? null);
 	const isAdopted = $derived(cat?.status === 'ADOPTED' && adoption !== null);
+	const trial = $derived(adoption ? getTrialInfo(adoption) : null);
+	const isSterilized = $derived(!!cat && (cat.isSterilize || cat.isAlreadySterilized));
+	// Adopter depuis la fiche : chat adoptable (disponible OU en socialisation), et droits sur le chat
+	let showAdoptDialog = $state(false);
+	const canAdopt = $derived(
+		canManageCat && !!cat && ADOPTABLE_STATUSES.includes(cat.status) && !isAdopted
+	);
+	// L'adresse de l'adoptant sur une seule ligne : « 12 rue X, 34000 Montpellier »
+	const adopterAddress = $derived.by(() => {
+		const profil = adoption?.profil;
+		if (!profil) return '';
+		const town = [profil.postalCode, profil.city].filter(Boolean).join(' ');
+		return [profil.address, town].filter(Boolean).join(', ');
+	});
+
+	// Ce que le ménage de la finalisation supprimera : tout sauf UNE photo (les PDF ne bougent pas)
+	const galleryPhotos = $derived(cat?.media?.filter((m) => m.file.type === 'IMAGE').length ?? 0);
+	const galleryVideos = $derived(cat?.media?.filter((m) => m.file.type === 'VIDEO').length ?? 0);
 
 	// ===== DÉRIVÉS =====
 	const activeSicknesses = $derived(cat?.sicknesses?.filter((s) => s.status !== 'RESOLVED') ?? []);
@@ -205,7 +228,7 @@
 					<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
 					<a
 						href={`tel:${placement.host.profil.phone}`}
-						class="hover:text-primary text-xs text-blue-500 underline"
+						class="text-xs text-blue-500 underline hover:text-primary"
 					>
 						{placement.host.profil.phone}
 					</a>
@@ -214,7 +237,7 @@
 					<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
 					<a
 						href={`mailto:${placement.host.profil.email}`}
-						class="hover:text-primary block text-xs break-all text-blue-500 underline"
+						class="block text-xs break-all text-blue-500 underline hover:text-primary"
 					>
 						{placement.host.profil.email}
 					</a>
@@ -238,7 +261,7 @@
 	{#snippet placementGroup(label: string, list: Placement[])}
 		{#if list.length > 0}
 			<div class="grid gap-2">
-				<span class="text-muted-foreground block text-xs">{label}</span>
+				<span class="block text-xs text-muted-foreground">{label}</span>
 				{#each list as placement (placement.id)}
 					{@render placementCard(placement)}
 				{/each}
@@ -251,13 +274,13 @@
 			<!-- ============================================================ -->
 			<!-- 1. EN-TÊTE : qui est ce chat ?                                 -->
 			<!-- ============================================================ -->
-			<Card.Header class="flex items-stretch gap-4 pl-0 sm:gap-6">
+			<Card.Header class="flex flex-wrap items-stretch gap-4 pl-0 sm:gap-6">
 				<!-- Photo : collée au bord gauche, bord droit en arc de cercle -->
-				<!-- Photo : clic = galerie. Souris : icône au survol | Tactile : pastille toujours visible -->
+				<!-- Clic = galerie. Souris : icône au survol | Tactile : pastille toujours visible -->
 				<button
 					type="button"
 					onclick={() => (editingImage = true)}
-					class="group bg-muted relative min-h-32 w-32 shrink-0 overflow-hidden rounded-r-full sm:w-40"
+					class="group relative min-h-38 w-32 shrink-0 overflow-hidden rounded-r-[5rem] bg-muted sm:w-50"
 					aria-label="Gérer les photos de {cat.name ?? 'ce chat'}"
 				>
 					{#if primaryMedia}
@@ -268,7 +291,7 @@
 							style={primaryStyle}
 						/>
 					{:else}
-						<span class="text-muted-foreground flex h-full items-center justify-center">
+						<span class="flex h-full items-center justify-center text-muted-foreground">
 							<Icon name="cat" class="size-10 opacity-40" />
 						</span>
 					{/if}
@@ -288,12 +311,11 @@
 					</span>
 				</button>
 
-				<!-- Infos + boutons -->
-				<!-- Infos -->
-				<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 pr-6">
+				<!-- Infos : qui est ce chat, et où en est-il ? -->
+				<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 pr-6 lg:flex-initial">
 					<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 						<Card.Title class="text-xl sm:text-2xl">{cat.name ?? 'Sans nom'}</Card.Title>
-						<span class="text-muted-foreground text-sm">{getAgeBadge(cat.birthDate)}</span>
+						<span class="text-sm text-muted-foreground">{getAgeBadge(cat.birthDate)}</span>
 						{#if sexIcon}
 							<p class="flex items-center gap-1.5 font-medium">
 								<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
@@ -302,8 +324,8 @@
 						{/if}
 					</div>
 
-					<p class="text-muted-foreground text-sm">
-						N° de suivi : <span class="text-foreground font-medium">{cat.catNumber}</span>
+					<p class="text-sm text-muted-foreground">
+						N° de suivi : <span class="font-medium text-foreground">{cat.catNumber}</span>
 					</p>
 
 					<div class="flex flex-wrap gap-2">
@@ -316,7 +338,101 @@
 							<Badge class="bg-red-100 text-sm text-red-700">Masqué</Badge>
 						{/if}
 					</div>
+
+					<!-- L'état de l'adoption : sur sa propre ligne, c'est l'information du moment -->
+					{#if isAdopted && adoption}
+						{#if adoption.status === 'TRIAL' && trial}
+							<Badge
+								class="w-fit text-sm {trial.isDue
+									? 'bg-red-100 text-red-700'
+									: ADOPTION_STATUS.TRIAL.color}"
+							>
+								{trial.isDue ? 'À finaliser' : ADOPTION_STATUS.TRIAL.label}
+								· fin {formatDateNum(adoption.trialEndsAt)}
+								{#if !trial.isDue}
+									· dans {trial.daysLeft} j
+								{/if}
+							</Badge>
+						{:else if adoption.status === 'FINAL'}
+							<Badge class="w-fit text-sm {ADOPTION_STATUS.FINAL.color}">
+								{ADOPTION_STATUS.FINAL.label} · depuis le {formatDateNum(adoption.finalizedAt)}
+							</Badge>
+						{/if}
+					{/if}
 				</div>
+
+				<!-- Adoptant + action : à droite sur PC, en dessous sur tablette et mobile.
+				     Le {#if} englobe le conteneur : sans adoption, aucun bloc vide ne prend de place -->
+				{#if isAdopted && adoption}
+					<div class="w-full min-w-0 lg:w-auto lg:flex-1 lg:pt-6">
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.adoptions.icon}
+							title={adoption.profil
+								? `Adoptant · ${adoption.profil.firstName} ${adoption.profil.lastName}`
+								: 'Adoptant'}
+							color={CAT_SECTION_CONFIG.adoptions.color}
+						>
+							{#snippet action()}
+								{#if canManageCat && adoption.status === 'TRIAL'}
+									<AdoptionFinalizeDialog
+										adoptionId={adoption.id}
+										catName={cat.name ?? 'ce chat'}
+										{isSterilized}
+										removedPhotos={Math.max(galleryPhotos - 1, 0)}
+										removedVideos={galleryVideos}
+										disabled={!trial?.isDue}
+									/>
+								{/if}
+							{/snippet}
+
+							{#if adoption.profil}
+								{@const adopter = adoption.profil}
+								<!-- flex-wrap : les infos se rangent selon la place disponible,
+								     sur une ligne si la carte est large, sur plusieurs sinon -->
+								<div class="flex min-w-0 flex-wrap gap-x-6 gap-y-3 text-xs">
+									{#if adopter.phone}
+										<div class="flex min-w-0 items-center gap-2">
+											<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
+											<a
+												href={`tel:${adopter.phone}`}
+												class="truncate text-blue-500 underline hover:text-primary"
+											>
+												{adopter.phone}
+											</a>
+										</div>
+									{/if}
+									<div class="flex max-w-full min-w-0 items-center gap-2">
+										<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
+										<a
+											href={`mailto:${adopter.email}`}
+											title={adopter.email}
+											class="truncate text-blue-500 underline hover:text-primary"
+										>
+											{adopter.email}
+										</a>
+									</div>
+									{#if adopterAddress}
+										<div class="flex min-w-0 items-center gap-2">
+											<Icon name="map" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
+											<span>{adopterAddress}</span>
+										</div>
+									{/if}
+								</div>
+							{:else}
+								<p class="text-muted-foreground">Profil non disponible</p>
+							{/if}
+						</SectionCard>
+					</div>
+				{:else if canAdopt}
+					<!-- Pas encore adopté : l'action à la place de la carte Adoptant.
+					     Une fois l'adoption créée, la carte la remplace (le load est relancé) -->
+					<div class="ml-auto self-start pt-6 pr-6">
+						<Button size="sm" onclick={() => (showAdoptDialog = true)}>
+							<HeartHandshake class="size-4" />
+							Adopter
+						</Button>
+					</div>
+				{/if}
 			</Card.Header>
 
 			<Card.Content class="flex flex-col gap-4 text-sm">
@@ -364,7 +480,7 @@
 											<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
 											<a
 												href={`tel:${profil.phone}`}
-												class="hover:text-primary text-xs text-blue-500 underline"
+												class="text-xs text-blue-500 underline hover:text-primary"
 											>
 												{profil.phone}
 											</a>
@@ -373,7 +489,7 @@
 											<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
 											<a
 												href={`mailto:${profil.email}`}
-												class="hover:text-primary block text-xs break-all text-blue-500 underline"
+												class="block text-xs break-all text-blue-500 underline hover:text-primary"
 											>
 												{profil.email}
 											</a>
@@ -389,71 +505,7 @@
 					</SectionCard>
 
 					{#if isAdopted && adoption}
-						<!-- Adoption : remplace les placements -->
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.adoptions.icon}
-							title={CAT_SECTION_CONFIG.adoptions.label}
-							color={CAT_SECTION_CONFIG.adoptions.color}
-						>
-							<div class="ml-0 grid grid-cols-1 gap-6 text-sm sm:ml-6 sm:grid-cols-2">
-								<div class="min-w-0 space-y-2">
-									<h4 class="font-semibold">Adoptant</h4>
-									{#if adoption.profil}
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Nom</span>
-											<span>{adoption.profil.firstName} {adoption.profil.lastName}</span>
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Téléphone</span>
-											{#if adoption.profil.phone}
-												<a
-													href={`tel:${adoption.profil.phone}`}
-													class="hover:text-primary text-blue-500 underline"
-												>
-													{adoption.profil.phone}
-												</a>
-											{:else}
-												<span>—</span>
-											{/if}
-										</div>
-										<div class="flex min-w-0 items-center justify-between gap-2">
-											<span class="text-muted-foreground">Email</span>
-											{#if adoption.profil.email}
-												<a
-													href={`mailto:${adoption.profil.email}`}
-													class="hover:text-primary truncate text-blue-500 underline"
-												>
-													{adoption.profil.email}
-												</a>
-											{:else}
-												<span>—</span>
-											{/if}
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Adresse</span>
-											<span class="text-right">{adoption.profil.address ?? '—'}</span>
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Ville</span>
-											<span>
-												{adoption.profil.postalCode ?? ''}
-												{adoption.profil.city ?? '—'}
-											</span>
-										</div>
-									{:else}
-										<p class="text-muted-foreground">Profil non disponible</p>
-									{/if}
-								</div>
-
-								<div class="space-y-2">
-									<h4 class="font-semibold">Adoption</h4>
-									<div class="flex items-center justify-between gap-2">
-										<span class="text-muted-foreground">Date d'adoption</span>
-										<span>{formatDateNum(adoption.createdAt)}</span>
-									</div>
-								</div>
-							</div>
-						</SectionCard>
+						<!-- Adoptant : remplace les placements. Même présentation que les bénévoles -->
 					{:else}
 						<!-- Familles d'accueil -->
 						<SectionCard
@@ -603,7 +655,7 @@
 								title={CAT_SECTION_CONFIG.description.label}
 								color={CAT_SECTION_CONFIG.description.color}
 							>
-								<p class="text-muted-foreground ml-6 text-xs whitespace-pre-line">
+								<p class="ml-6 text-xs whitespace-pre-line text-muted-foreground">
 									{cat.description}
 								</p>
 							</SectionCard>
@@ -622,7 +674,7 @@
 					color={CAT_SECTION_CONFIG.sicknesses.color}
 				>
 					{#snippet action()}
-						{#if canManageSicknesses}
+						{#if canManageCat}
 							<SicknessEditForm catId={cat.id} />
 						{/if}
 					{/snippet}
@@ -635,19 +687,19 @@
 									class="relative grid grid-cols-1 gap-3 rounded-xl border border-lime-500 bg-lime-100 px-4 py-2 pr-12 text-sm sm:grid-cols-5 sm:gap-4"
 								>
 									<div class="sm:col-span-1">
-										<span class="text-muted-foreground block text-xs">
+										<span class="block text-xs text-muted-foreground">
 											Maladie {sicknessStatus[sickness.status as SicknessStatus]}
 										</span>
 										<span class="font-medium">{sickness.name}</span>
 
 										<div class="flex gap-2 pt-2">
 											<div>
-												<span class="text-muted-foreground block text-xs">Début</span>
+												<span class="block text-xs text-muted-foreground">Début</span>
 												<span class="text-xs">{formatDateNum(sickness.startDate)}</span>
 											</div>
 											{#if sickness.endDate}
 												<div>
-													<span class="text-muted-foreground block text-xs">Fin</span>
+													<span class="block text-xs text-muted-foreground">Fin</span>
 													<span class="text-xs">{formatDateNum(sickness.endDate)}</span>
 												</div>
 											{/if}
@@ -655,16 +707,16 @@
 									</div>
 									{#if sickness.description}
 										<div class="sm:col-span-2">
-											<span class="text-muted-foreground block text-xs">Description</span>
+											<span class="block text-xs text-muted-foreground">Description</span>
 											<p class="text-xs whitespace-pre-line">{sickness.description}</p>
 										</div>
 									{/if}
 									<div class="sm:col-span-2">
-										<span class="text-muted-foreground block text-xs">Traitement</span>
+										<span class="block text-xs text-muted-foreground">Traitement</span>
 										<span class="text-xs">{sickness.treatment ?? '—'}</span>
 									</div>
 
-									{#if canManageSicknesses}
+									{#if canManageCat}
 										<div class="absolute top-1 right-1">
 											<SicknessEditForm catId={cat.id} {sickness} />
 										</div>
@@ -685,7 +737,7 @@
 				<!-- 5. DOCUMENTS                                                  -->
 				<!-- ============================================================ -->
 				<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-				<CatDocuments {cat} canManage={canManageSicknesses} />
+				<CatDocuments {cat} canManage={canManageCat} />
 
 				<Separator />
 
@@ -693,7 +745,7 @@
 				<!-- 6. SOINS VÉTÉRINAIRES                                         -->
 				<!-- ============================================================ -->
 				<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-				<CatCares {cat} canManage={canManageSicknesses} />
+				<CatCares {cat} canManage={canManageCat} />
 
 				<Separator />
 
@@ -717,7 +769,7 @@
 									{/each}
 								</div>
 							{:else}
-								<p class="text-muted-foreground py-2 text-sm">Aucun placement terminé.</p>
+								<p class="py-2 text-sm text-muted-foreground">Aucun placement terminé.</p>
 							{/if}
 						</Accordion.Content>
 					</Accordion.Item>
@@ -739,9 +791,19 @@
 			</Card.Content>
 		{/if}
 	</Card.Root>
+	<!-- Le même dialogue que la page Formulaires, sans demande imposée :
+	     la bénévole peut en lier une (pré-remplissage) ou adopter « hors formulaire » -->
+	{#if canAdopt}
+		<AdoptionCreateDialog
+			bind:open={showAdoptDialog}
+			onCancel={() => (showAdoptDialog = false)}
+			catId={cat.id}
+			requests={cat.forms ?? []}
+		/>
+	{/if}
 {:else}
 	<Card.Root class="flex h-full min-h-60 items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="cat" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un chat pour voir ses détails</p>
 		</Card.Content>

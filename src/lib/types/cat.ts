@@ -38,6 +38,13 @@ export const catFullArgs = {
 		volunteers: {
 			include: { volunteer: { omit: volunteerSecretFields, include: { profil: true } } }
 		},
+		// Les demandes d'adoption en attente pour CE chat : pour les lier à une adoption
+		// créée depuis la fiche (le dialogue pré-remplit l'adoptant avec leurs données)
+		forms: {
+			where: { status: 'PENDING', type: { in: ['ADOPTION_SPECIFIC', 'ADOPTION_FLEXIBLE'] } },
+			orderBy: { createdAt: 'desc' },
+			select: { id: true, email: true, data: true, createdAt: true }
+		},
 		// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 		adoptions: {
 			orderBy: { createdAt: 'desc' },

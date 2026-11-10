@@ -37,3 +37,13 @@ export function addMonths(date: Date, months: number): Date {
 	result.setMonth(result.getMonth() + months);
 	return result;
 }
+
+/**
+ * La date du jour À PARIS, à minuit UTC : le même format qu'une colonne @db.Date.
+ * Sert à comparer avec trialEndsAt sans décalage de fuseau
+ * (entre minuit et 1 h à Paris, new Date() est encore la veille en UTC).
+ */
+export function todayDateOnly(): Date {
+	const parisDay = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' }); // "2026-11-10"
+	return new Date(parisDay);
+}

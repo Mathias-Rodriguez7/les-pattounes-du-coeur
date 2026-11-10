@@ -2,9 +2,10 @@ import prisma from '$lib/server/prisma';
 import type { CreateAdoptionInput } from '$lib/schemas/adoption';
 import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
-import { addMonths } from '$lib/utils/date';
-import { ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
+import { addMonths, formatDateNum, todayDateOnly } from '$lib/utils/date';
 import type { MediaData } from '$lib/server/media/mutations';
+import { deleteFiles } from '$lib/server/storage';
+import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
 
 /** La note ajoutée aux autres demandes du chat, quand il est adopté par une autre famille */
 const REJECTED_NOTE = 'Chat adopté par une autre famille.';
@@ -22,7 +23,7 @@ export async function createAdoption(input: CreateAdoptionInput, contract: Media
 		});
 
 		if (!cat) throw new Error('Chat introuvable');
-		if (cat.status !== CatStatus.AVAILABLE) {
+		if (!ADOPTABLE_STATUSES.includes(cat.status)) {
 			throw new Error(`Le chat ${cat.name} n'est plus disponible`);
 		}
 
@@ -94,15 +95,21 @@ export async function createAdoption(input: CreateAdoptionInput, contract: Media
 			data: { status: 'STOP', endDate: today }
 		});
 
-		// 8. La demande est acceptée, et garde le chat adopté (utile pour une demande libre)
-		await tx.form.update({
-			where: { id: input.formId },
-			data: { status: FormStatus.APPROVED, catId: input.catId }
-		});
+		// 8. La demande liée (s'il y en a une) est acceptée, et garde le chat adopté
+		if (input.formId) {
+			await tx.form.update({
+				where: { id: input.formId },
+				data: { status: FormStatus.APPROVED, catId: input.catId }
+			});
+		}
 
 		// 9. Les autres demandes en attente pour ce chat sont refusées, avec la raison
 		const otherRequests = await tx.form.findMany({
-			where: { catId: input.catId, status: 'PENDING', id: { not: input.formId } },
+			where: {
+				catId: input.catId,
+				status: 'PENDING',
+				...(input.formId && { id: { not: input.formId } })
+			},
 			select: { id: true, notes: true }
 		});
 		for (const other of otherRequests) {
@@ -118,4 +125,87 @@ export async function createAdoption(input: CreateAdoptionInput, contract: Media
 
 		return { adoption, rejectedCount: otherRequests.length };
 	});
+}
+
+/**
+ * Fin de la période d'essai : l'adoption devient définitive.
+ * - uniquement depuis TRIAL, et pas avant trialEndsAt ;
+ * - la bénévole a vérifié la stérilisation : la fiche du chat est mise à jour si besoin ;
+ * - ménage de la galerie : on garde UNE photo (la principale, sinon la plus ancienne),
+ *   on supprime les autres photos et les vidéos. Les PDF (contrat, documents, soins) restent.
+ */
+export async function finalizeAdoption(adoptionId: string) {
+	const today = todayDateOnly();
+
+	const removedFiles = await prisma.$transaction(async (tx) => {
+		const adoption = await tx.adoption.findUnique({
+			where: { id: adoptionId },
+			select: {
+				status: true,
+				trialEndsAt: true,
+				catId: true,
+				cat: { select: { isSterilize: true, isAlreadySterilized: true } }
+			}
+		});
+
+		if (!adoption) throw new Error('Adoption introuvable');
+		if (adoption.status !== 'TRIAL') {
+			throw new Error("Cette adoption n'est pas en période d'essai");
+		}
+		if (adoption.trialEndsAt > today) {
+			throw new Error(
+				`La période d'essai se termine le ${formatDateNum(adoption.trialEndsAt)} : finalisation impossible avant`
+			);
+		}
+
+		// 1. L'adoption devient définitive
+		await tx.adoption.update({
+			where: { id: adoptionId },
+			data: { status: 'FINAL', finalizedAt: today }
+		});
+
+		// 2. Stérilisation vérifiée : la fiche du chat le reflète
+		if (!adoption.cat.isSterilize && !adoption.cat.isAlreadySterilized) {
+			await tx.cat.update({ where: { id: adoption.catId }, data: { isSterilize: true } });
+		}
+
+		// 3. Ménage de la galerie
+		const gallery = await tx.mediaCat.findMany({
+			where: { catId: adoption.catId },
+			orderBy: { createdAt: 'asc' },
+			select: {
+				id: true,
+				isPrimary: true,
+				file: { select: { id: true, type: true, storageKey: true, isPrivate: true } }
+			}
+		});
+
+		const keep =
+			gallery.find((m) => m.isPrimary && m.file.type === 'IMAGE') ??
+			gallery.find((m) => m.file.type === 'IMAGE');
+		const toRemove = gallery.filter((m) => m.id !== keep?.id);
+
+		// La photo gardée devient la principale (si elle ne l'était pas)
+		if (keep && !keep.isPrimary) {
+			await tx.mediaCat.update({ where: { id: keep.id }, data: { isPrimary: true } });
+		}
+
+		if (toRemove.length > 0) {
+			// MediaCat d'abord (elle pointe vers Media), puis les lignes Media
+			await tx.mediaCat.deleteMany({ where: { id: { in: toRemove.map((m) => m.id) } } });
+			await tx.media.deleteMany({ where: { id: { in: toRemove.map((m) => m.file.id) } } });
+		}
+
+		return toRemove.map((m) => m.file);
+	});
+
+	// 4. Les fichiers sur S3, APRÈS la transaction : si elle échoue, rien n'est perdu.
+	// Un échec ici ne doit pas annuler la finalisation (déjà enregistrée) : on le note.
+	try {
+		await deleteFiles(removedFiles.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate })));
+	} catch (error) {
+		console.error('finalizeAdoption : fichiers non supprimés sur S3', error);
+	}
+
+	return { removedCount: removedFiles.length };
 }

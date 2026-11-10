@@ -6,6 +6,7 @@
 	import { CAT_SECTION_CONFIG, CAT_DOCUMENT_KIND } from '$lib/constants/cat';
 	import { formatDateNum } from '$lib/utils/date';
 	import type { CatFull } from '$lib/types/cat';
+	import { ADOPTION_STATUS } from '$lib/constants/adoption';
 
 	interface Props {
 		cat: CatFull;
@@ -38,11 +39,11 @@
 				>
 					<!-- Type + date -->
 					<div class="sm:col-span-1">
-						<span class="text-muted-foreground block text-xs">Document</span>
+						<span class="block text-xs text-muted-foreground">Document</span>
 						<span class="font-medium">{CAT_DOCUMENT_KIND[doc.kind].label}</span>
 
 						<div class="pt-2">
-							<span class="text-muted-foreground block text-xs">Date</span>
+							<span class="block text-xs text-muted-foreground">Date</span>
 							<span class="text-xs">{formatDateNum(doc.date)}</span>
 						</div>
 					</div>
@@ -51,23 +52,25 @@
 					<div class="space-y-2 sm:col-span-2">
 						{#if doc.adoption}
 							<div>
-								<span class="text-muted-foreground block text-xs">Adoptant</span>
+								<span class="block text-xs text-muted-foreground">Adoptant</span>
 								<span class="text-xs">
 									{doc.adoption.profil.firstName}
 									{doc.adoption.profil.lastName}
-									{#if doc.adoption.status === 'CANCELLED'}(annulée){/if}
+									<span class="text-muted-foreground"
+										>· {ADOPTION_STATUS[doc.adoption.status].label}</span
+									>
 								</span>
 							</div>
 						{/if}
 						<div>
-							<span class="text-muted-foreground block text-xs">Note</span>
+							<span class="block text-xs text-muted-foreground">Note</span>
 							<p class="text-xs wrap-break-word whitespace-pre-line">{doc.note ?? '—'}</p>
 						</div>
 					</div>
 
 					<!-- Fichier -->
 					<div class="min-w-0 sm:col-span-2">
-						<span class="text-muted-foreground mb-1 block text-xs">Fichier</span>
+						<span class="mb-1 block text-xs text-muted-foreground">Fichier</span>
 						<!-- Lien vers NOTRE route : la connexion est vérifiée à chaque ouverture -->
 						<DocumentPreview
 							variant="compact"

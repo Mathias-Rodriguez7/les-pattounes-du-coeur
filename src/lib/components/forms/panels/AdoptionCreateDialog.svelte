@@ -17,19 +17,54 @@
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
 	import type { AdoptionFormJson } from '$lib/types/form';
 	import { untrack } from 'svelte';
+	import { formatDateNum } from '$lib/utils/date';
+
+	/** Une demande en attente qu'on peut lier à l'adoption (depuis la fiche du chat) */
+	type LinkableRequest = { id: string; email: string; data: unknown; createdAt: Date };
 
 	interface Props {
 		open?: boolean;
 		onCancel?: () => void;
 		/** Les coordonnées de la demande, pour pré-remplir le profil de l'adoptant */
 		initialData?: (AdoptionFormJson & { email?: string }) | null;
-		formId: string;
+		/** Page Formulaires : la demande traitée (fixe). Absent depuis la fiche du chat */
+		formId?: string;
+		/** Fiche du chat : les demandes en attente pour ce chat, au choix (ou aucune) */
+		requests?: LinkableRequest[];
 		/** Le chat adopté : celui de la demande précise, ou celui choisi pour une demande libre */
 		catId: string;
 	}
 
-	let { open = $bindable(false), onCancel, initialData = null, formId, catId }: Props = $props();
+	let {
+		open = $bindable(false),
+		onCancel,
+		initialData = null,
+		formId,
+		requests = [],
+		catId
+	}: Props = $props();
 
+	// La demande liée : fixe (page Formulaires) ou choisie dans la liste (fiche du chat)
+	let linkedFormId = $state('');
+	const canPickRequest = $derived(!formId && requests.length > 0);
+
+	const requestOptions = $derived([
+		{ value: '', label: 'Aucune (adoptant hors formulaire)' },
+		...requests.map((r) => {
+			const data = r.data as AdoptionFormJson;
+			return {
+				value: r.id,
+				label: `${data.firstName ?? ''} ${data.lastName ?? ''} · ${formatDateNum(r.createdAt)}`
+			};
+		})
+	]);
+
+	// Choisir une demande pré-remplit l'adoptant avec ses coordonnées ; « Aucune » vide le formulaire
+	function selectRequest(id: string) {
+		linkedFormId = id;
+		const request = requests.find((r) => r.id === id);
+		fill(request ? { ...(request.data as AdoptionFormJson), email: request.email } : null);
+	}
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
@@ -63,7 +98,8 @@
 		return flat;
 	}
 
-	function resetForm() {
+	// Les coordonnées seulement : changer de demande liée ne doit pas retirer le contrat déjà ajouté
+	function resetAdopter() {
 		firstName = '';
 		lastName = '';
 		birthDate = undefined;
@@ -73,8 +109,6 @@
 		city = 'Montpellier';
 		postalCode = '34000';
 		selectedDistrict = '';
-		files = [];
-		progress = {};
 		fieldErrors = {};
 	}
 
@@ -83,11 +117,16 @@
 	// rendu ({ ...adoptionData, email }) : sans untrack, la saisie serait effacée en cours de route
 	$effect(() => {
 		if (!open) return;
-		untrack(() => fill(initialData));
+		untrack(() => {
+			linkedFormId = formId ?? '';
+			files = [];
+			progress = {};
+			fill(initialData);
+		});
 	});
 
 	function fill(initialData: Props['initialData']) {
-		resetForm();
+		resetAdopter();
 		if (initialData) {
 			firstName = initialData.firstName ?? '';
 			lastName = initialData.lastName ?? '';
@@ -114,7 +153,7 @@
 			postalCode: postalCode.trim(),
 			district: selectedDistrict || undefined,
 			// Avant, ces deux-là manquaient : la validation échouait toujours
-			formId,
+			formId: linkedFormId || undefined,
 			catId
 		});
 
@@ -199,7 +238,18 @@
 
 		<form method="POST" action="?/createAdoption" use:enhance={handleEnhance} class="space-y-6">
 			<input type="hidden" name="catId" value={catId} />
-			<input type="hidden" name="formId" value={formId} />
+			<input type="hidden" name="formId" value={linkedFormId} />
+
+			<!-- Depuis la fiche du chat : lier une demande en attente (facultatif) -->
+			{#if canPickRequest}
+				<SelectField
+					id="adoption-linked-request"
+					label="Demande liée"
+					options={requestOptions}
+					bind:value={() => linkedFormId, selectRequest}
+					disabled={isSubmitting}
+				/>
+			{/if}
 
 			<!-- 📋 Identité & contact -->
 			<section class="grid grid-cols-1 gap-4 sm:grid-cols-2">

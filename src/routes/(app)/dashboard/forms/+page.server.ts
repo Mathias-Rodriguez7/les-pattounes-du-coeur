@@ -5,12 +5,9 @@ import { FormType, FormStatus, type Prisma } from '@prisma/client';
 import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
-import { createAdoptionWithContractSchema } from '$lib/schemas/adoption';
-import { createAdoption } from '$lib/server/adoptions/mutations';
-import { canManageForm, myFormsWhere } from '$lib/server/permissions/form';
 import { catPickerSelect } from '$lib/types/cat';
-import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, discardUpload } from '$lib/server/media/mutations';
+import { myFormsWhere } from '$lib/server/permissions/form';
+import { createAdoptionAction } from '$lib/server/adoptions/actions';
 
 /** 🆕 Une demande, avec juste ce que les panneaux affichent */
 const formInclude = {
@@ -232,99 +229,6 @@ export const actions: Actions = {
 		}
 	},
 
-	createAdoption: async ({ request, locals }) => {
-		// Le load protège l'affichage, pas les actions : on vérifie ici
-		if (!locals.user) {
-			return fail(401, { error: 'Vous devez être connecté' });
-		}
-		const user = locals.user;
-
-		const formData = await request.formData();
-		const parsed = createAdoptionWithContractSchema.safeParse(Object.fromEntries(formData));
-		if (!parsed.success) {
-			return fail(400, {
-				error: 'Erreur de validation',
-				errors: parsed.error.flatten().fieldErrors
-			});
-		}
-		const { formId, catId, mediaStorageKey, mediaOriginalName } = parsed.data;
-
-		// À partir d'ici, le contrat est déjà sur S3. Quelle que soit la sortie
-		// (refus, erreur, exception), le `finally` le supprime s'il n'a pas été rattaché.
-		let contractAttached = false;
-
-		try {
-			// 1. La demande existe, c'est une demande d'adoption, et la bénévole peut la traiter
-			const adoptionRequest = await prisma.form.findUnique({
-				where: { id: formId },
-				select: { type: true, catId: true, assignedToId: true }
-			});
-			if (!adoptionRequest || !adoptionRequest.type.startsWith('ADOPTION')) {
-				return fail(404, { error: 'Demande introuvable' });
-			}
-			if (!(await canManageForm(user, adoptionRequest))) {
-				return fail(403, { error: "Vous n'êtes pas autorisée à traiter cette demande" });
-			}
-
-			// 2. Le chat proposé est bien sous sa responsabilité
-			if (!(await canManageCat(user, catId))) {
-				return fail(403, { error: "Ce chat n'est pas sous votre responsabilité" });
-			}
-
-			// 3. Une demande précise ne peut aboutir qu'à l'adoption de SON chat
-			if (adoptionRequest.type === 'ADOPTION_SPECIFIC' && adoptionRequest.catId !== catId) {
-				return fail(400, { error: 'Cette demande concerne un autre chat' });
-			}
-
-			// 4. Une demande libre : on ne propose QUE ses propres chats, même en admin
-			// (canManageCat laisse l'admin passer sur tous les chats, d'où ce contrôle en plus)
-			if (adoptionRequest.type === 'ADOPTION_FLEXIBLE') {
-				const isOwnCat = await prisma.catVolunteer.count({
-					where: { catId, volunteerId: user.id }
-				});
-				if (isOwnCat === 0) {
-					return fail(403, {
-						error: 'Vous ne pouvez proposer que les chats dont vous avez la charge'
-					});
-				}
-			}
-
-			// 5. Le contrat : vérifié sur S3, dans le dossier de CE chat, bucket privé
-			const prepared = await prepareMedia(
-				'catDocument',
-				{ storageKey: mediaStorageKey, originalName: mediaOriginalName },
-				catId
-			);
-			if (!prepared.ok) {
-				return fail(400, { error: prepared.error, errors: { media: [prepared.error] } });
-			}
-
-			// 6. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
-			try {
-				const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data);
-				contractAttached = true;
-
-				const rejectedMessage =
-					rejectedCount === 0
-						? ''
-						: rejectedCount === 1
-							? ' 1 autre demande a été refusée.'
-							: ` ${rejectedCount} autres demandes ont été refusées.`;
-
-				return {
-					success: true,
-					adoptionId: adoption.id,
-					message: `Adoption créée (période d'essai de 6 mois).${rejectedMessage}`
-				};
-			} catch (err) {
-				// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est plus disponible »)
-				const message = err instanceof Error ? err.message : 'Erreur inconnue';
-				return fail(400, { error: message });
-			}
-		} finally {
-			if (!contractAttached) {
-				await discardUpload(user, 'catDocument', mediaStorageKey, catId);
-			}
-		}
-	}
+	// Le code est partagé avec la page Chats (adopter depuis la fiche du chat)
+	createAdoption: createAdoptionAction
 };

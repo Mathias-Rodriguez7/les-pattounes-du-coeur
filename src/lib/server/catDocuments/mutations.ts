@@ -2,8 +2,7 @@ import { z } from 'zod';
 import prisma from '$lib/server/prisma';
 import { createCatDocumentSchema } from '$lib/schemas/catDocument';
 import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
+import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
 
 type Result = {
 	success: boolean;
@@ -75,7 +74,7 @@ export async function createCatDocument({
 		});
 	} catch (error) {
 		console.error('Erreur création document:', error);
-		await deleteFiles([{ storageKey: mediaStorageKey, isPrivate: true }]);
+		await discardUploads('catDocument', [mediaStorageKey], catId);
 		return { success: false, error: "Erreur lors de l'enregistrement du document" };
 	}
 
