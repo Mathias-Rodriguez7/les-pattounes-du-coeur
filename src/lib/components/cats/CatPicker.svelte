@@ -6,7 +6,8 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { getAgeBadge } from '$lib/utils/age';
 	import { getLabel, getSexIcon, hairLabel } from '$lib/utils/catHelpers';
-	import type { CatFull } from '$lib/types/cat';
+	import type { CatPickerItem } from '$lib/types/cat';
+	import type { AdoptionFormJson } from '$lib/types/form';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { ADOPTION_SECTION_CONFIG, ageLabels, furLabels } from '$lib/constants/forms';
 	import { X } from '@lucide/svelte';
@@ -14,19 +15,19 @@
 	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 
-	let {
-		cats = [] as CatFull[],
-		form,
-		onSelect,
-		onCancel
-	} = $props<{
-		cats?: CatFull[];
-		form: { type: string; data: Record<string, any> };
+	interface Props {
+		/** Les chats qu'on peut proposer (déjà filtrés par le serveur) */
+		cats?: CatPickerItem[];
+		/** La demande d'adoption libre : ses préférences sont affichées en rappel */
+		form: { data: unknown };
 		onSelect: (catId: string) => void;
 		onCancel?: () => void;
-	}>();
+	}
 
-	const adoptionData = $derived(form.data);
+	let { cats = [], form, onSelect, onCancel }: Props = $props();
+
+	// Form.data est du JSON : on dit à TypeScript ce qu'il contient vraiment
+	const adoptionData = $derived(form.data as AdoptionFormJson);
 
 	let selectedId = $state<string | null>(null);
 	let search = $state('');
@@ -81,7 +82,7 @@
 			<div class="flex items-center justify-between">
 				<p class="text-muted-foreground">Âge</p>
 				<Badge variant="outline" class="text-xs">
-					{ageLabels[adoptionData.catAge] || adoptionData.catAge}
+					{adoptionData.catAge ? ageLabels[adoptionData.catAge] : '—'}
 				</Badge>
 			</div>
 			<div class="flex items-center justify-between">
@@ -89,7 +90,7 @@
 				<p>
 					{adoptionData.color} /
 					<Badge variant="outline" class="text-xs">
-						{furLabels[adoptionData.furLength] || adoptionData.furLength}
+						{adoptionData.furLength ? furLabels[adoptionData.furLength] : '—'}
 					</Badge>
 				</p>
 			</div>
@@ -144,7 +145,7 @@
 	>
 		<div class="ml-6 space-y-3">
 			<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-				<span class="text-muted-foreground font-medium">Animaux dans le foyer</span>
+				<span class="font-medium text-muted-foreground">Animaux dans le foyer</span>
 				<BooleanIcon value={adoptionData.hasPets} />
 			</div>
 
@@ -163,7 +164,7 @@
 				</div>
 				<div class="flex items-center justify-between">
 					<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
-					<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
+					<p class="rounded-md bg-muted p-2 text-xs">{adoptionData.otherPets || '—'}</p>
 				</div>
 			</div>
 		</div>
@@ -174,33 +175,38 @@
 	title={ADOPTION_SECTION_CONFIG.temperament.label}
 	color={ADOPTION_SECTION_CONFIG.temperament.color}
 >
-	<p class="text-muted-foreground text-xs">Caractère recherché</p>
+	<p class="text-xs text-muted-foreground">Caractère recherché</p>
 	<p class="font-medium">{adoptionData.temperament || '—'}</p>
 </SectionCard>
 <Separator />
 <div class="space-y-4">
 	{#if cats.length === 0}
-		<p class="text-muted-foreground py-6 text-center">Aucun chat disponible.</p>
+		<div class="py-6 text-center">
+			<p class="font-medium">Vous n'avez aucun chat à l'adoption en ce moment.</p>
+			<p class="mt-1 text-sm text-muted-foreground">
+				Contactez la répartitrice pour qu'elle confie cette demande à une autre bénévole.
+			</p>
+		</div>
 	{:else}
 		<div class="flex items-center justify-between gap-2">
 			<div class="relative">
 				<Icon
 					name="search"
-					class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+					class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
 				/>
 				<Input type="text" placeholder="Chercher un chat..." bind:value={search} class="pl-9" />
 			</div>
-			<p class="text-muted-foreground text-xs">{filteredCats.length} chat(s)</p>
+			<p class="text-xs text-muted-foreground">{filteredCats.length} chat(s)</p>
 		</div>
 
 		{#if filteredCats.length === 0}
-			<p class="text-muted-foreground py-6 text-center">
+			<p class="py-6 text-center text-sm text-muted-foreground">
 				Aucun chat ne correspond à « {search} ».
 			</p>
 		{:else}
 			<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
 				<Table.Root containerClass="overflow-visible">
-					<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
+					<Table.Header class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]">
 						<Table.Row>
 							<Table.Head class="w-10"></Table.Head>
 							<Table.Head>Nom</Table.Head>
@@ -218,7 +224,7 @@
 								role="option"
 								aria-selected={isSelected}
 								tabindex={0}
-								class="hover:bg-muted/50 cursor-pointer transition-colors {isSelected
+								class="cursor-pointer transition-colors hover:bg-muted/50 {isSelected
 									? 'bg-primary/10 hover:bg-primary/15'
 									: ''}"
 								onclick={() => select(cat.id)}
@@ -263,7 +269,7 @@
 								</Table.Cell>
 
 								<Table.Cell
-									class="text-muted-foreground max-w-md min-w-64 align-top wrap-break-word whitespace-normal"
+									class="max-w-md min-w-64 align-top wrap-break-word whitespace-normal text-muted-foreground"
 								>
 									<p class="whitespace-pre-line">{cat.description ?? '—'}</p>
 								</Table.Cell>

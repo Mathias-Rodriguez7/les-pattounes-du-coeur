@@ -8,6 +8,7 @@ import { createHost } from '$lib/server/hosts/mutations';
 import { createAdoptionSchema } from '$lib/schemas/adoption';
 import { createAdoption } from '$lib/server/adoptions/mutations';
 import { canManageForm, managedFormsWhere } from '$lib/server/permissions/form';
+import { catPickerSelect } from '$lib/types/cat';
 
 /** 🆕 Une demande, avec juste ce que les panneaux affichent */
 const formInclude = {
@@ -117,12 +118,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			})
 		: [];
 
-	// 🐱 Chats disponibles pour l'adoption flexible
+	// 🐱 Les chats qu'on peut proposer pour une demande libre :
+	// adoptables, et (sauf pour l'admin) seulement ceux dont la bénévole est en charge
 	const cats = await prisma.cat.findMany({
 		where: {
 			status: 'AVAILABLE',
-			isVisible: true
+			isVisible: true,
+			...(!isAdmin && { volunteers: { some: { volunteerId } } })
 		},
+		select: catPickerSelect,
 		orderBy: { name: 'asc' }
 	});
 

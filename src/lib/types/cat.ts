@@ -188,5 +188,19 @@ export const catPublicSelect = {
 
 export type CatPublic = Prisma.CatGetPayload<{ select: typeof catPublicSelect }>;
 
+// Un chat dans CatPicker (choix d'un chat pour une demande d'adoption libre)
+export const catPickerSelect = {
+	id: true,
+	name: true,
+	catNumber: true,
+	sex: true,
+	birthDate: true,
+	color: true,
+	hairLength: true,
+	description: true
+} satisfies Prisma.CatSelect;
+
+export type CatPickerItem = Prisma.CatGetPayload<{ select: typeof catPickerSelect }>;
+
 // ✅ Type pour mettre à jour un chat
 export type CatUpdateInput = Partial<CatEditData>;
