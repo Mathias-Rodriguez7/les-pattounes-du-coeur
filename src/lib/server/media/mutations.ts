@@ -3,6 +3,7 @@ import prisma from '$lib/server/prisma';
 import type { UploadPurpose } from '$lib/media/rules';
 import { UPLOAD_PURPOSE_CONFIG } from './purposes';
 import { verifyUpload, deleteFiles } from '$lib/server/storage';
+import type { AppUser } from '$lib/types/user';
 
 /** Les champs d'une ligne Media, prêts pour un `create` imbriqué */
 export type MediaData = {
@@ -55,4 +56,34 @@ export async function deleteMedia(
 
 	await prisma.media.deleteMany({ where: { id: { in: medias.map((m) => m.id) } } });
 	await deleteFiles(medias.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate })));
+}
+
+/**
+ * Supprime un fichier envoyé sur S3 mais jamais rattaché à une entité
+ * (ex. : l'action a refusé la demande après l'envoi du fichier).
+ *
+ * La clé vient du navigateur : on ne la croit pas sur parole. Trois garde-fous :
+ * 1. la personne a le droit d'envoyer dans ce dossier ;
+ * 2. la clé est bien dans le dossier attendu (pas le fichier d'un autre chat) ;
+ * 3. AUCUNE ligne Media ne l'utilise (sinon c'est un vrai document : on n'y touche pas).
+ *
+ * Ne lève jamais d'erreur : un nettoyage raté ne doit pas cacher l'erreur d'origine.
+ */
+export async function discardUpload(
+	user: AppUser,
+	purpose: UploadPurpose,
+	storageKey: string,
+	targetId = ''
+): Promise<void> {
+	const config = UPLOAD_PURPOSE_CONFIG[purpose];
+
+	try {
+		if (!(await config.canUpload(user, targetId))) return;
+		if (!storageKey.startsWith(`${config.folder(targetId)}/`) || storageKey.includes('..')) return;
+		if ((await prisma.media.count({ where: { storageKey } })) > 0) return;
+
+		await deleteFiles([{ storageKey, isPrivate: config.isPrivate }]);
+	} catch (error) {
+		console.error('discardUpload : nettoyage impossible', error);
+	}
 }
