@@ -11,6 +11,7 @@ import {
 import { updateHostSchema, type UpdateHostInput } from '$lib/schemas/formShema/hostForm';
 import { updateColabSchema, type UpdateColabInput } from '$lib/schemas/formShema/colabForm';
 import { canManageForm } from '$lib/server/permissions/form';
+import { z } from 'zod';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -215,23 +216,38 @@ export async function assignVolunteer({
 		return { success: false, error: 'Non autorisé' };
 	}
 
-	// Seuls les ADMIN peuvent assigner
-	const currentVolunteer = await prisma.volunteer.findUnique({
-		where: { id: locals.user.id },
-		select: { role: true }
-	});
-
-	if (currentVolunteer?.role !== 'ADMIN') {
-		return { success: false, error: 'Action réservée aux administrateurs' };
-	}
-
 	const formData = await request.formData();
 	const formId = formData.get('formId')?.toString();
 	const volunteerIdRaw = formData.get('volunteerId')?.toString();
 	const volunteerId = volunteerIdRaw ? volunteerIdRaw : null;
 
-	if (!formId) {
+	// Un id mal formé ferait planter PostgreSQL (colonne uuid)
+	if (!formId || !z.string().uuid().safeParse(formId).success) {
 		return { success: false, error: 'Formulaire manquant' };
+	}
+	if (volunteerId && !z.string().uuid().safeParse(volunteerId).success) {
+		return { success: false, error: 'Bénévole invalide' };
+	}
+
+	// Admin : toutes les demandes. Répartitrice : seulement les demandes LIBRES
+	const [currentVolunteer, form] = await Promise.all([
+		prisma.volunteer.findUnique({
+			where: { id: locals.user.id },
+			select: { role: true, isFlexibleDispatcher: true }
+		}),
+		prisma.form.findUnique({ where: { id: formId }, select: { type: true } })
+	]);
+
+	if (!form) {
+		return { success: false, error: 'Formulaire introuvable' };
+	}
+
+	const isAdmin = currentVolunteer?.role === 'ADMIN';
+	const isDispatcherOfThisForm =
+		currentVolunteer?.isFlexibleDispatcher === true && form.type === 'ADOPTION_FLEXIBLE';
+
+	if (!isAdmin && !isDispatcherOfThisForm) {
+		return { success: false, error: "Vous n'êtes pas autorisée à assigner cette demande" };
 	}
 
 	// Vérifier que le bénévole cible existe si on en assigne un
@@ -245,7 +261,7 @@ export async function assignVolunteer({
 		}
 	}
 
-	const form = await prisma.form.update({
+	const updatedForm = await prisma.form.update({
 		where: { id: formId },
 		data: { assignedToId: volunteerId },
 		include: {
@@ -257,7 +273,7 @@ export async function assignVolunteer({
 		}
 	});
 
-	return { success: true, form };
+	return { success: true, form: updatedForm, message: 'Bénévole assigné avec succès' };
 }
 
 export async function setFlexibleDispatcher({

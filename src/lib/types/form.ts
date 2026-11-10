@@ -28,6 +28,10 @@ export type AdoptionFormData = {
 	numberOfChildren: number;
 };
 
+export type AdoptionFormJson = Partial<Omit<AdoptionFormData, 'birthDate'>> & {
+	birthDate?: string | null;
+};
+
 export type VolunteerFormData = {
 	firstName: string;
 	lastName: string;

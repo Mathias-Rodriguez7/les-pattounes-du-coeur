@@ -104,10 +104,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		orderBy: { createdAt: 'desc' }
 	});
 
-	// 📋 Volunteers pour l'assignation (admin uniquement)
-	const volunteers = isAdmin
+	// 📋 Volunteers pour l'assignation : admin, et répartitrice des demandes libres
+	const canAssign = isAdmin || isFlexibleDispatcher;
+	const volunteers = canAssign
 		? await prisma.volunteer.findMany({
-				include: {
+				select: {
+					id: true,
+					isFlexibleDispatcher: true,
 					profil: { select: { firstName: true, lastName: true } }
 				},
 				orderBy: { profil: { firstName: 'asc' } }
@@ -129,6 +132,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		cats,
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
+		canAssign,
 		canSeeAllFlexible,
 		scope,
 		filters: {

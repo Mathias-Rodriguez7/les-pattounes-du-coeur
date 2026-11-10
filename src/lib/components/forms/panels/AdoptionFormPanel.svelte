@@ -4,7 +4,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import type { FormEditData, AdoptionFormData } from '$lib/types/form';
+	import type { FormEditData, AdoptionFormData, AdoptionFormJson } from '$lib/types/form';
 	import {
 		FORM_SECTION_CONFIG,
 		statusColors,
@@ -23,15 +23,18 @@
 	import AdoptionCreateDialog from './AdoptionCreateDialog.svelte';
 	import CatPicker from '$lib/components/cats/CatPicker.svelte';
 
-	const { form, catData, volunteers = [], isAdmin = false, cats = [] } = $props();
+	const { form, catData, volunteers = [], cats = [], canAssign = false } = $props();
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
 	let showCatPicker = $state(false);
 	let selectedCatId = $state<string>('');
 
-	// Type guard pour les données d'adoption
-	const adoptionData = $derived(form.data as Record<string, any>);
+	// Form.data est du JSON : on dit à TypeScript ce qu'il contient vraiment
+	const adoptionData = $derived(form.data as AdoptionFormJson);
+
+	// La date est une chaîne dans le JSON : on la convertit une fois, ici
+	const birthDate = $derived(adoptionData.birthDate ? new Date(adoptionData.birthDate) : null);
 
 	// catId résolu selon le type de formulaire
 	const adoptionCatId = $derived(
@@ -60,12 +63,12 @@
 	const startEditing = () => {
 		if (!form) return;
 
-		const adoptionDataCopy = structuredClone(adoptionData as AdoptionFormData);
-
-		// Convertir la date de string à Date
-		if (typeof adoptionDataCopy.birthDate === 'string') {
-			adoptionDataCopy.birthDate = new Date(adoptionDataCopy.birthDate);
-		}
+		// Une copie (pour ne pas modifier la demande affichée), avec la date déjà convertie.
+		// `as` : certains champs peuvent manquer (demande précise) ; le formulaire d'édition les gère
+		const adoptionDataCopy = {
+			...structuredClone(adoptionData),
+			birthDate: birthDate ?? undefined
+		} as AdoptionFormData;
 
 		editData = {
 			status: form.status,
@@ -120,7 +123,7 @@
 							{adoptionData.firstName}
 							{adoptionData.lastName}
 							<Badge class="bg-blue-100 text-sm text-blue-700">
-								{formatAge(adoptionData.birthDate)}
+								{formatAge(birthDate)}
 							</Badge>
 						</Card.Title>
 						<Card.Description class="flex gap-2">
@@ -133,14 +136,14 @@
 						</Card.Description>
 					</div>
 
-					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
+					<div class="flex flex-col justify-center gap-2 text-right text-sm text-muted-foreground">
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
 								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
 							</p>
 						{/if}
-						{#if form.type === 'ADOPTION_FLEXIBLE' && isAdmin}
+						{#if form.type === 'ADOPTION_FLEXIBLE' && canAssign}
 							<AssignVolunteerDialog
 								formId={form.id}
 								currentVolunteerId={form.assignedToId}
@@ -195,9 +198,9 @@
 							<div>
 								<p class="text-muted-foreground">Date de naissance</p>
 								<div class="flex items-center gap-2">
-									<p>{formatDate(adoptionData.birthDate)}</p>
+									<p>{formatDate(birthDate)}</p>
 									<Badge class="bg-blue-100 text-sm text-blue-700">
-										{formatAge(adoptionData.birthDate)}
+										{formatAge(birthDate)}
 									</Badge>
 								</div>
 							</div>
@@ -213,12 +216,12 @@
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Tel</p>
+								<p class="font-medium text-muted-foreground">Tel</p>
 								<div class="flex items-center gap-2">
 									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`tel:${adoptionData.phone}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{adoptionData.phone}
 									</a>
@@ -226,12 +229,12 @@
 							</div>
 
 							<div>
-								<p class="text-muted-foreground font-medium">Mail</p>
+								<p class="font-medium text-muted-foreground">Mail</p>
 								<div class="flex items-center gap-2">
 									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`mailto:${form.email}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{form.email}
 									</a>
@@ -249,21 +252,21 @@
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Rue</p>
+								<p class="font-medium text-muted-foreground">Rue</p>
 								<p class="font-medium text-gray-900">{adoptionData.address || '—'}</p>
 							</div>
 
 							<div class="flex gap-4">
 								<div>
-									<p class="text-muted-foreground font-medium">Ville</p>
+									<p class="font-medium text-muted-foreground">Ville</p>
 									<p class="font-medium text-gray-900">{adoptionData.city || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-muted-foreground">CP</p>
 									<p class="font-medium text-gray-900">{adoptionData.postalCode || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">Quartier</p>
+									<p class="font-medium text-muted-foreground">Quartier</p>
 									<p class="font-medium">{adoptionData.district}</p>
 								</div>
 							</div>
@@ -303,7 +306,7 @@
 
 								{#if catData.volunteers && catData.volunteers.length > 0}
 									<div class="flex items-center justify-between">
-										<p class="text-muted-foreground text-xs">Responsable du chat</p>
+										<p class="text-xs text-muted-foreground">Responsable du chat</p>
 										<p class="font-medium">{catVolunteerName}</p>
 									</div>
 								{/if}
@@ -320,7 +323,7 @@
 								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Âge</p>
 									<Badge variant="outline" class="text-xs">
-										{ageLabels[adoptionData.catAge] || adoptionData.catAge}
+										{adoptionData.catAge ? ageLabels[adoptionData.catAge] : '—'}
 									</Badge>
 								</div>
 								{#if sexIcon}
@@ -336,7 +339,7 @@
 								<div class="flex items-center justify-between">
 									<p class="text-muted-foreground">Longueur poil</p>
 									<Badge variant="outline" class="text-xs">
-										{furLabels[adoptionData.furLength] || adoptionData.furLength}
+										{adoptionData.furLength ? furLabels[adoptionData.furLength] : '—'}
 									</Badge>
 								</div>
 							</div>
@@ -386,7 +389,7 @@
 					>
 						<div class="ml-6 space-y-3">
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-								<span class="text-muted-foreground font-medium">Animaux dans le foyer</span>
+								<span class="font-medium text-muted-foreground">Animaux dans le foyer</span>
 								<BooleanIcon value={adoptionData.hasPets} />
 							</div>
 
@@ -405,7 +408,7 @@
 								</div>
 								<div class="flex items-center justify-between">
 									<span class="items-centern flex gap-1 text-sm">🐾 Autres</span>
-									<p class="bg-muted rounded-md p-2 text-xs">{adoptionData.otherPets || '—'}</p>
+									<p class="rounded-md bg-muted p-2 text-xs">{adoptionData.otherPets || '—'}</p>
 								</div>
 							</div>
 						</div>
@@ -419,7 +422,7 @@
 						color={ADOPTION_SECTION_CONFIG.temperament.color}
 					>
 						<div class="space-y-1">
-							<p class="text-muted-foreground font-medium">Caractère recherché</p>
+							<p class="font-medium text-muted-foreground">Caractère recherché</p>
 							<p class="font-medium">{adoptionData.temperament}</p>
 						</div>
 					</SectionCard>
@@ -449,7 +452,7 @@
 	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="fileText" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un formulaire pour voir les détails</p>
 		</Card.Content>

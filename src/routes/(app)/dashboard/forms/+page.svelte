@@ -243,6 +243,7 @@
 					form={selectedForm}
 					volunteers={data.volunteers}
 					isAdmin={data.isAdmin}
+					canAssign={data.canAssign}
 				/>
 			</div>
 		</section>
