@@ -51,13 +51,12 @@
 	}
 
 	const handleCancelClick = () => {
-		console.log('❌ Édition annulée');
 		if (onCancel) {
 			onCancel();
 		}
 	};
 
-	const catSex = $derived(adoptionData.catSex ?? adoptionData.catSex);
+	const catSex = $derived(adoptionData.catSex);
 	const preferredSexIcon = $derived(catSex ? getSexIcon(catSex) : null);
 </script>
 
@@ -179,7 +178,7 @@
 	<p class="font-medium">{adoptionData.temperament || '—'}</p>
 </SectionCard>
 <Separator />
-<div class="space-y-4">
+<div class="flex flex-1 flex-col space-y-4">
 	{#if cats.length === 0}
 		<div class="py-6 text-center">
 			<p class="font-medium">Vous n'avez aucun chat à l'adoption en ce moment.</p>
@@ -204,7 +203,7 @@
 				Aucun chat ne correspond à « {search} ».
 			</p>
 		{:else}
-			<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
+			<div class="mt-2 max-h-[calc(120vh-24rem)] overflow-auto rounded-md">
 				<Table.Root containerClass="overflow-visible">
 					<Table.Header class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]">
 						<Table.Row>
@@ -281,7 +280,7 @@
 		{/if}
 	{/if}
 
-	<div class="flex justify-end gap-2">
+	<div class="mt-auto flex justify-end gap-2">
 		{#if onCancel}
 			<Button type="button" variant="outline" onclick={onCancel}>Annuler</Button>
 		{/if}

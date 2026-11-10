@@ -94,6 +94,12 @@
 		showCreateDialog = true;
 	}
 
+	// Fermer le CatPicker (croix ou « Annuler ») : on revient à la fiche de la demande
+	function handleCancelPicker() {
+		showCatPicker = false;
+		selectedCatId = '';
+	}
+
 	function handleCancelCreate() {
 		showCreateDialog = false;
 		selectedCatId = '';
@@ -101,7 +107,7 @@
 </script>
 
 {#if form}
-	<Card.Root>
+	<Card.Root class="h-full">
 		{#if isEditing}
 			<Card.Content class="space-y-6 overflow-y-auto">
 				<AdoptionEditFormPanel
@@ -112,8 +118,8 @@
 				/>
 			</Card.Content>
 		{:else if showCatPicker}
-			<Card.Content class="space-y-6">
-				<CatPicker {cats} {form} onSelect={handleCatSelected} onCancel={handleCancelCreate} />
+			<Card.Content class="flex flex-1 flex-col gap-6">
+				<CatPicker {cats} {form} onSelect={handleCatSelected} onCancel={handleCancelPicker} />
 			</Card.Content>
 		{:else}
 			<Card.Header>
@@ -445,7 +451,7 @@
 
 	<AdoptionCreateDialog
 		bind:open={showCreateDialog}
-		onCancel={() => (showCreateDialog = false)}
+		onCancel={handleCancelCreate}
 		initialData={{ ...adoptionData, email: form.email }}
 		formId={form.id}
 		catId={adoptionCatId}

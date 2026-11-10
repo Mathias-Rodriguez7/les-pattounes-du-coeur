@@ -14,6 +14,7 @@
 	import AssignDispatcherDialog from '$lib/components/forms/AssignDispatcherDialog.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
+	import { resolve } from '$app/paths';
 
 	const { data } = $props();
 
@@ -27,29 +28,36 @@
 	// ==========================================
 	// Filtres Select (valeur '' = pas de filtre)
 	// ==========================================
+	// Valeurs de DÉPART lues dans l'URL, puis l'utilisatrice les change librement :
+	// on veut volontairement une copie, pas un lien qui suivrait `data`
+	// svelte-ignore state_referenced_locally
 	let typeFilter = $state(data.filters.type ?? '');
+	// svelte-ignore state_referenced_locally
 	let statusFilter = $state(data.filters.status ?? 'PENDING');
 
 	// ==========================================
-	// Portée : admin ou dispatcher flexible = switch, sinon "mes forms"
-	// Le changement passe par l'URL, le serveur recalcule la liste
+	// Portée : « Mes formulaires » ou « Tous » (admin : tout, répartitrice : les libres)
+	// Le changement passe par l'URL, le serveur recalcule la liste.
+	// Aucun filtre n'est imposé : chacune utilise les filtres pour affiner.
 	// ==========================================
-	const canSwitchScope = $derived(data.canSeeAllFlexible);
-	const showAllFlexible = $derived(data.scope === 'flexible');
+	const canSwitchScope = $derived(data.canSeeAll);
+	const showAll = $derived(data.scope === 'all');
+	const scopeTitle = $derived(
+		!showAll ? 'Mes formulaires' : data.isAdmin ? 'Tous les formulaires' : 'Tous les flexibles'
+	);
 
 	function setScope(checked: boolean) {
 		selectedFormId = null;
 		const url = new URL(page.url);
 		if (checked) {
-			url.searchParams.set('scope', 'flexible');
-			url.searchParams.set('type', 'ADOPTION_FLEXIBLE');
-			typeFilter = 'ADOPTION_FLEXIBLE';
+			url.searchParams.set('scope', 'all');
 		} else {
 			url.searchParams.delete('scope');
-			url.searchParams.delete('type');
-			typeFilter = '';
 		}
-		goto(url, { keepFocus: true, noScroll: true });
+		// resolve() vérifie le chemin de la route, mais n'accepte pas de « ?query » :
+		// la règle ESLint ne reconnaît donc pas ce goto. On la désactive pour CETTE ligne.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(`${resolve('/dashboard/forms')}${url.search}`, { keepFocus: true, noScroll: true });
 	}
 
 	// ==========================================
@@ -57,7 +65,7 @@
 	// ==========================================
 	const statCards = $derived([
 		{
-			label: showAllFlexible ? 'Flexibles (tous)' : 'Mes formulaires',
+			label: scopeTitle,
 			value: data.stats.totalForms,
 			icon: 'file',
 			theme: 'cats'
@@ -150,10 +158,9 @@
 			<Card.Root class="flex flex-col lg:col-span-2">
 				<Card.Header class="flex shrink-0 flex-row items-center justify-between">
 					<Card.Title class="flex gap-4 text-2xl font-bold">
-						{showAllFlexible ? 'Tous les flexibles' : 'Mes formulaires'}
 						{#if canSwitchScope}
-							<Switch id="scope-toggle" checked={showAllFlexible} onCheckedChange={setScope} />
-						{/if}
+							<Switch id="scope-toggle" checked={showAll} onCheckedChange={setScope} />
+						{/if}{scopeTitle}
 					</Card.Title>
 					<CardAction>
 						{#if data.isAdmin}
@@ -183,7 +190,6 @@
 								bind:value={typeFilter}
 								placeholder="Type"
 								class="w-40"
-								disabled={showAllFlexible}
 							/>
 
 							<!-- Status -->

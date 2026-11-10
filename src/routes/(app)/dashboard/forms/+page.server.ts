@@ -7,7 +7,7 @@ import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 import { createAdoptionWithContractSchema } from '$lib/schemas/adoption';
 import { createAdoption } from '$lib/server/adoptions/mutations';
-import { canManageForm, managedFormsWhere } from '$lib/server/permissions/form';
+import { canManageForm, myFormsWhere } from '$lib/server/permissions/form';
 import { catPickerSelect } from '$lib/types/cat';
 import { canManageCat } from '$lib/server/permissions/cat';
 import { prepareMedia } from '$lib/server/media/mutations';
@@ -56,7 +56,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	const isAdmin = volunteer.role === 'ADMIN';
 	const isFlexibleDispatcher = volunteer.isFlexibleDispatcher;
-	const canSeeAllFlexible = isAdmin || isFlexibleDispatcher;
+	// Vue « Tous » : l'admin voit toutes les demandes, la répartitrice toutes les demandes libres
+	const canSeeAll = isAdmin || isFlexibleDispatcher;
 
 	// 🔍 Filtres
 	const typeParam = url.searchParams.get('type');
@@ -73,9 +74,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			? (statusParam as FormStatus)
 			: undefined;
 
-	// 🔀 Mode d'affichage : 'mine' par défaut, 'flexible' seulement si autorisé
-	const requestedScope = scopeParam === 'flexible' ? 'flexible' : 'mine';
-	const scope = requestedScope === 'flexible' && canSeeAllFlexible ? 'flexible' : 'mine';
+	// 🔀 Mode d'affichage : 'mine' par défaut, 'all' seulement si autorisé
+	const scope: 'mine' | 'all' = scopeParam === 'all' && canSeeAll ? 'all' : 'mine';
 
 	const baseFilters: Prisma.FormWhereInput = {
 		...(typeFilter && { type: typeFilter }),
@@ -83,13 +83,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	};
 
 	// 🏗️ Condition WHERE selon le mode
-	// 🆕 Typée : TypeScript vérifie les noms de champs (avant : Record<string, unknown>)
-	const whereCondition: Prisma.FormWhereInput =
-		scope === 'flexible'
-			? // Tous les ADOPTION_FLEXIBLE, sans restriction d'assignation
-				{ ...baseFilters, type: FormType.ADOPTION_FLEXIBLE }
-			: // 🆕 Les demandes assignées OU celles de mes chats (admin : toutes)
-				{ AND: [baseFilters, managedFormsWhere(locals.user)] };
+	// - mine : mes demandes (assignées OU de mes chats), pour tout le monde, admin compris
+	// - all + admin : toutes les demandes
+	// - all + répartitrice : toutes les demandes libres
+	let whereCondition: Prisma.FormWhereInput;
+	if (scope === 'mine') {
+		whereCondition = { AND: [baseFilters, myFormsWhere(volunteerId)] };
+	} else if (isAdmin) {
+		whereCondition = baseFilters;
+	} else {
+		whereCondition = { ...baseFilters, type: FormType.ADOPTION_FLEXIBLE };
+	}
 
 	// 📊 Stats
 	const [totalForms, pendingForms, approvedForms, rejectedForms] = await Promise.all([
@@ -122,12 +126,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		: [];
 
 	// 🐱 Les chats qu'on peut proposer pour une demande libre :
-	// adoptables, et (sauf pour l'admin) seulement ceux dont la bénévole est en charge
+	// adoptables, et seulement ceux dont la personne connectée est en charge (admin compris)
 	const cats = await prisma.cat.findMany({
 		where: {
 			status: 'AVAILABLE',
 			isVisible: true,
-			...(!isAdmin && { volunteers: { some: { volunteerId } } })
+			volunteers: { some: { volunteerId } }
 		},
 		select: catPickerSelect,
 		orderBy: { name: 'asc' }
@@ -140,7 +144,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
 		canAssign,
-		canSeeAllFlexible,
+		canSeeAll,
 		scope,
 		filters: {
 			type: typeFilter || null,
@@ -267,7 +271,20 @@ export const actions: Actions = {
 			return fail(400, { error: 'Cette demande concerne un autre chat' });
 		}
 
-		// 4. Le contrat : vérifié sur S3, dans le dossier de CE chat, bucket privé
+		// 4. Une demande libre : on ne propose QUE ses propres chats, même en admin
+		// (canManageCat laisse l'admin passer sur tous les chats, d'où ce contrôle en plus)
+		if (adoptionRequest.type === 'ADOPTION_FLEXIBLE') {
+			const isOwnCat = await prisma.catVolunteer.count({
+				where: { catId, volunteerId: locals.user.id }
+			});
+			if (isOwnCat === 0) {
+				return fail(403, {
+					error: 'Vous ne pouvez proposer que les chats dont vous avez la charge'
+				});
+			}
+		}
+
+		// 5. Le contrat : vérifié sur S3, dans le dossier de CE chat, bucket privé
 		const prepared = await prepareMedia(
 			'catDocument',
 			{ storageKey: mediaStorageKey, originalName: mediaOriginalName },
@@ -277,7 +294,7 @@ export const actions: Actions = {
 			return fail(400, { error: prepared.error, errors: { media: [prepared.error] } });
 		}
 
-		// 5. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
+		// 6. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
 		try {
 			const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data);
 

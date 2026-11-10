@@ -16,10 +16,12 @@ export async function canManageForm(
 	return form.catId !== null && (await canManageCat(user, form.catId));
 }
 
-/** La même règle, sous forme de filtre Prisma : pour lister les demandes d'une bénévole */
-export function managedFormsWhere(user: AppUser): Prisma.FormWhereInput {
-	if (user.role === 'ADMIN') return {};
+/**
+ * « Mes demandes » : assignées à cette personne, ou concernant un de ses chats.
+ * Sans exception pour l'admin : c'est sa vue personnelle.
+ */
+export function myFormsWhere(userId: string): Prisma.FormWhereInput {
 	return {
-		OR: [{ assignedToId: user.id }, { cat: { volunteers: { some: { volunteerId: user.id } } } }]
+		OR: [{ assignedToId: userId }, { cat: { volunteers: { some: { volunteerId: userId } } } }]
 	};
 }
