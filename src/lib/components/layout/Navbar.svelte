@@ -23,7 +23,9 @@
 	let loginOpenDesktop = $state(false);
 
 	// Ferme tous les menus à chaque changement de page
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		mobileMenuOpen = false;
 		loginOpenMobile = false;
 		loginOpenDesktop = false;
