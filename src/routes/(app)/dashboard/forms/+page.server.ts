@@ -14,6 +14,7 @@ import { catPickerSelect } from '$lib/types/cat';
 import { myFormsWhere } from '$lib/server/permissions/form';
 import { createAdoptionAction } from '$lib/server/adoptions/actions';
 import { formInclude } from '$lib/types/form';
+import { withBlacklist } from '$lib/server/accountStatus';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -82,11 +83,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 📋 Forms
 	// 🆕 Le chat et la bénévole assignée arrivent avec la demande, en une seule requête
 	// (avant : une requête de plus par demande pour retrouver son chat)
-	const forms = await prisma.form.findMany({
-		where: whereCondition,
-		include: formInclude,
-		orderBy: { createdAt: 'desc' }
-	});
+	// Chaque demande arrive avec `blacklist` : la raison, si son email est sur liste noire
+	const forms = await withBlacklist(
+		await prisma.form.findMany({
+			where: whereCondition,
+			include: formInclude,
+			orderBy: { createdAt: 'desc' }
+		})
+	);
 
 	// 📋 Volunteers pour l'assignation : admin, et répartitrice des demandes libres
 	const canAssign = isAdmin || isFlexibleDispatcher;

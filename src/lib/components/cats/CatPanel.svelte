@@ -277,6 +277,7 @@
 		<AdoptionFormPanel
 			form={openRequest}
 			catData={openRequest.cat}
+			{isAdmin}
 			onClose={() => (openRequestId = null)}
 		/>
 	{:else}
@@ -525,16 +526,26 @@
 								<!-- Une ligne par demande : juste de quoi appeler l'adoptant (détail dans « Traiter ») -->
 								<!-- @container : sur une fiche étroite, le contact passe sous le nom -->
 								<ul
-									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-50"
+									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-50 bg-amber-100"
 								>
 									{#each pendingRequests as request (request.id)}
 										{@const answers = request.data as AdoptionFormJson}
 										<li
 											class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-3 py-2 @lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.5fr)_auto]"
 										>
-											<p class="truncate font-semibold">
-												{answers.firstName ?? ''}
-												{answers.lastName ?? ''}
+											<p class="flex min-w-0 items-center gap-2 font-semibold">
+												<span class="truncate">
+													{answers.firstName ?? ''}
+													{answers.lastName ?? ''}
+												</span>
+												{#if request.blacklist}
+													<Badge
+														class="shrink-0 bg-red-100 text-xs text-red-700"
+														title={request.blacklist.reason}
+													>
+														Liste noire
+													</Badge>
+												{/if}
 											</p>
 
 											{#if answers.phone}
@@ -812,6 +823,7 @@
 			onCancel={() => (showAdoptDialog = false)}
 			catId={cat.id}
 			requests={cat.forms ?? []}
+			canOverrideBlacklist={isAdmin}
 		/>
 	{/if}
 {:else}

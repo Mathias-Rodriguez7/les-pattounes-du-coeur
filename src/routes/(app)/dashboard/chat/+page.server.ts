@@ -24,6 +24,7 @@ import {
 import { finalizeAdoption } from '$lib/server/adoptions/mutations';
 import { finalizeAdoptionSchema } from '$lib/schemas/adoption';
 import { createAdoptionAction } from '$lib/server/adoptions/actions';
+import { attachBlacklist, findActiveBlacklists } from '$lib/server/accountStatus';
 import { updateForm, rejectForm } from '$lib/server/forms/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -94,8 +95,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
+		// Les demandes en attente de chaque chat, avec leur éventuelle liste noire :
+		// UNE requête pour tous les emails (pas une par chat)
+		const blacklists = await findActiveBlacklists(
+			cats.flatMap((cat) => cat.forms.map((form) => form.email))
+		);
 		const catsWithOwnership = cats.map((cat) => ({
 			...cat,
+			forms: cat.forms.map((form) => attachBlacklist(form, blacklists)),
 			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
 		}));
 

@@ -150,3 +150,9 @@ export const formInclude = {
 
 /** Une demande telle que les panneaux la reçoivent (avec la bénévole assignée et le chat) */
 export type FormWithRelations = Prisma.FormGetPayload<{ include: typeof formInclude }>;
+
+/** Une entrée active de la liste noire, telle qu'on l'affiche aux bénévoles */
+export type BlacklistInfo = { reason: string; since: Date };
+
+/** Une demande avec, si son email est sur liste noire, la raison (calculée par le load) */
+export type FormWithBlacklist = FormWithRelations & { blacklist: BlacklistInfo | null };

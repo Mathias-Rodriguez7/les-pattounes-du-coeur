@@ -37,7 +37,10 @@ export const createAdoptionSchema = z.object({
 // Côté serveur : la même chose, PLUS le contrat (déjà envoyé sur S3 par le navigateur)
 export const createAdoptionWithContractSchema = createAdoptionSchema.extend({
 	mediaStorageKey: z.string().min(1, 'Le contrat est obligatoire').max(500),
-	mediaOriginalName: z.string().max(255).nullish()
+	mediaOriginalName: z.string().max(255).nullish(),
+	// Adoptant sur liste noire : l'admin coche « J'ai pris connaissance… » pour passer outre
+	// (la case envoie 'true' ou 'false' ; absente quand l'adoptant n'est pas sur liste noire)
+	blacklistOverride: z.enum(['true', 'false']).optional()
 });
 
 export const updateAdoptionSchema = createAdoptionSchema.partial().extend({

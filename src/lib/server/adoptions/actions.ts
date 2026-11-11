@@ -2,7 +2,8 @@
 import { fail } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 import { createAdoptionWithContractSchema } from '$lib/schemas/adoption';
-import { createAdoption } from './mutations';
+import { createAdoption, BlacklistedAdopterError } from './mutations';
+import { findActiveBlacklists } from '$lib/server/accountStatus';
 import { canManageForm } from '$lib/server/permissions/form';
 import { canManageCat } from '$lib/server/permissions/cat';
 import { prepareMedia, discardUpload } from '$lib/server/media/mutations';
@@ -31,7 +32,9 @@ export async function createAdoptionAction({ request, locals }: Args) {
 			errors: parsed.error.flatten().fieldErrors
 		});
 	}
-	const { formId, catId, mediaStorageKey, mediaOriginalName } = parsed.data;
+	const { formId, catId, mediaStorageKey, mediaOriginalName, blacklistOverride } = parsed.data;
+	// Passer outre la liste noire : réservé à l'admin. Pour une bénévole, la case est ignorée
+	const allowBlacklisted = blacklistOverride === 'true' && user.role === 'ADMIN';
 
 	// À partir d'ici, le contrat est déjà sur S3. Quelle que soit la sortie
 	// (refus, erreur, exception), le `finally` le supprime s'il n'a pas été rattaché.
@@ -90,7 +93,9 @@ export async function createAdoptionAction({ request, locals }: Args) {
 
 		// 4. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
 		try {
-			const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data);
+			const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data, {
+				allowBlacklisted
+			});
 			contractAttached = true;
 
 			const rejectedMessage =
@@ -106,6 +111,19 @@ export async function createAdoptionAction({ request, locals }: Args) {
 				message: `Adoption créée (période d'essai de 6 mois).${rejectedMessage}`
 			};
 		} catch (err) {
+			// Liste noire : on renvoie la raison, pour que le dialogue l'affiche
+			// (et propose la case d'autorisation… à l'admin seulement)
+			if (err instanceof BlacklistedAdopterError) {
+				const entry = (await findActiveBlacklists([parsed.data.email])).values().next().value;
+				return fail(409, {
+					error:
+						user.role === 'ADMIN'
+							? "Adoptant sur liste noire : cochez la case pour autoriser l'adoption"
+							: 'Adoptant sur liste noire : seule une administratrice peut autoriser cette adoption',
+					blacklist: entry ?? null,
+					canOverride: user.role === 'ADMIN'
+				});
+			}
 			// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est pas adoptable »)
 			const message = err instanceof Error ? err.message : 'Erreur inconnue';
 			return fail(400, { error: message });

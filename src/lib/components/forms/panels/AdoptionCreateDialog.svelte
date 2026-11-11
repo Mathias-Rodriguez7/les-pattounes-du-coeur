@@ -15,12 +15,20 @@
 	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
 	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import type { AdoptionFormJson } from '$lib/types/form';
+	import type { AdoptionFormJson, BlacklistInfo } from '$lib/types/form';
+	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
+	import { Ban } from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import { formatDateNum } from '$lib/utils/date';
 
 	/** Une demande en attente qu'on peut lier à l'adoption (depuis la fiche du chat) */
-	type LinkableRequest = { id: string; email: string; data: unknown; createdAt: Date };
+	type LinkableRequest = {
+		id: string;
+		email: string;
+		data: unknown;
+		createdAt: Date;
+		blacklist?: BlacklistInfo | null;
+	};
 
 	interface Props {
 		open?: boolean;
@@ -33,6 +41,10 @@
 		requests?: LinkableRequest[];
 		/** Le chat adopté : celui de la demande précise, ou celui choisi pour une demande libre */
 		catId: string;
+		/** Page Formulaires : la liste noire de la demande traitée (si son email y figure) */
+		blacklist?: BlacklistInfo | null;
+		/** Admin : peut autoriser l'adoption malgré la liste noire */
+		canOverrideBlacklist?: boolean;
 	}
 
 	let {
@@ -41,8 +53,19 @@
 		initialData = null,
 		formId,
 		requests = [],
-		catId
+		catId,
+		blacklist = null,
+		canOverrideBlacklist = false
 	}: Props = $props();
+
+	// ===== LISTE NOIRE =====
+	// Connue d'avance (demande traitée ou demande liée), ou renvoyée par le serveur
+	// quand l'email tapé à la main est sur liste noire (adoption « hors formulaire »)
+	let serverBlacklist = $state<BlacklistInfo | null>(null);
+	let blacklistOverride = $state(false);
+	const activeBlacklist = $derived(
+		requests.find((r) => r.id === linkedFormId)?.blacklist ?? blacklist ?? serverBlacklist
+	);
 
 	// La demande liée : fixe (page Formulaires) ou choisie dans la liste (fiche du chat)
 	let linkedFormId = $state('');
@@ -62,6 +85,7 @@
 	// Choisir une demande pré-remplit l'adoptant avec ses coordonnées ; « Aucune » vide le formulaire
 	function selectRequest(id: string) {
 		linkedFormId = id;
+		blacklistOverride = false;
 		const request = requests.find((r) => r.id === id);
 		fill(request ? { ...(request.data as AdoptionFormJson), email: request.email } : null);
 	}
@@ -121,6 +145,8 @@
 			linkedFormId = formId ?? '';
 			files = [];
 			progress = {};
+			serverBlacklist = null;
+			blacklistOverride = false;
 			fill(initialData);
 		});
 	});
@@ -173,6 +199,21 @@
 			return;
 		}
 
+		// Liste noire : bloquée pour une bénévole, case obligatoire pour l'admin
+		// (le serveur vérifie les deux : ici, c'est pour un message immédiat)
+		if (activeBlacklist && !canOverrideBlacklist) {
+			toast.error(
+				'Adoptant sur liste noire : seule une administratrice peut autoriser cette adoption'
+			);
+			cancel();
+			return;
+		}
+		if (activeBlacklist && !blacklistOverride) {
+			toast.error("Cochez la case pour autoriser l'adoption malgré la liste noire");
+			cancel();
+			return;
+		}
+
 		const file = files[0];
 		if (!file) {
 			fieldErrors = { media: 'Le contrat signé est obligatoire' };
@@ -210,6 +251,10 @@
 				await update();
 			} else if (result.type === 'failure') {
 				fieldErrors = firstMessages(result.data?.errors);
+				// Email tapé à la main et sur liste noire : le serveur renvoie la raison
+				if (result.data?.blacklist) {
+					serverBlacklist = result.data.blacklist as BlacklistInfo;
+				}
 				toast.error((result.data?.error as string) ?? "Erreur lors de la création de l'adoption");
 				progress = {};
 				await update({ reset: false });
@@ -385,6 +430,32 @@
 					</div>
 				</SectionCard>
 			</section>
+
+			<!-- ⛔ Liste noire : la raison, et la décision (admin seulement) -->
+			{#if activeBlacklist}
+				<div
+					role="alert"
+					class="grid gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+				>
+					<p class="flex items-center gap-2 font-semibold">
+						<Ban class="size-5 shrink-0" />
+						Adoptant sur liste noire depuis le {formatDateNum(activeBlacklist.since)}
+					</p>
+					<p class="whitespace-pre-line">{activeBlacklist.reason}</p>
+					{#if canOverrideBlacklist}
+						<CheckboxField
+							id="adoption-blacklist-override"
+							name="blacklistOverride"
+							label="J'ai pris connaissance de la liste noire et j'autorise cette adoption"
+							checked={blacklistOverride}
+							onChange={(value) => (blacklistOverride = value)}
+							disabled={isSubmitting}
+						/>
+					{:else}
+						<p class="text-xs">Seule une administratrice peut autoriser cette adoption.</p>
+					{/if}
+				</div>
+			{/if}
 
 			<!-- 📄 Le contrat signé (obligatoire) -->
 			<MediaUpload

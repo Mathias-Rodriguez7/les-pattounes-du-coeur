@@ -12,7 +12,7 @@
 		ADOPTION_SECTION_CONFIG
 	} from '$lib/constants/forms';
 	import { formatAge } from '$lib/utils/age';
-	import { formatDate } from '$lib/utils/date';
+	import { formatDate, formatDateNum } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { getSexIcon } from '$lib/utils/catHelpers';
@@ -24,16 +24,18 @@
 		FormEditData,
 		AdoptionFormData,
 		AdoptionFormJson,
-		FormWithRelations
+		FormWithRelations,
+		BlacklistInfo
 	} from '$lib/types/form';
 	import type { VolunteerBasic } from '$lib/types/volunteer';
 	import type { CatPickerItem } from '$lib/types/cat';
-	import { ArrowLeft, Pencil } from '@lucide/svelte';
+	import { ArrowLeft, Ban, Pencil } from '@lucide/svelte';
 	import RejectFormDialog from '../RejectFormDialog.svelte';
 	import CatProfileSummary from '$lib/components/cats/profile/CatProfileSummary.svelte';
 
 	interface Props {
-		form: FormWithRelations;
+		/** blacklist : la raison si l'email est sur liste noire (ajoutée par le load) */
+		form: FormWithRelations & { blacklist?: BlacklistInfo | null };
 		/** Le chat de la demande (demande précise) : form.cat */
 		catData?: FormWithRelations['cat'];
 		/** Pour assigner une demande libre (admin, répartitrice) */
@@ -41,11 +43,25 @@
 		/** Les chats proposables pour une demande libre (CatPicker) */
 		cats?: CatPickerItem[];
 		canAssign?: boolean;
+		/** Seule l'admin peut autoriser une adoption malgré la liste noire */
+		isAdmin?: boolean;
 		/** Présent quand le panneau est ouvert depuis la fiche du chat (bouton « Retour ») */
 		onClose?: () => void;
 	}
 
-	const { form, catData, volunteers = [], cats = [], canAssign = false, onClose }: Props = $props();
+	const {
+		form,
+		catData,
+		volunteers = [],
+		cats = [],
+		canAssign = false,
+		isAdmin = false,
+		onClose
+	}: Props = $props();
+
+	// Liste noire : la bénévole voit la raison ; seule l'admin peut quand même créer l'adoption
+	const blacklist = $derived(form.blacklist ?? null);
+	const isBlockedByBlacklist = $derived(!!blacklist && !isAdmin);
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
@@ -189,6 +205,27 @@
 
 			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
+
+				<!-- Liste noire : tout en haut, impossible à manquer -->
+				{#if blacklist}
+					<div
+						role="alert"
+						class="flex gap-3 rounded-xl border border-red-300 bg-red-50 p-3 text-red-800"
+					>
+						<Ban class="mt-0.5 size-5 shrink-0" />
+						<div class="grid gap-1">
+							<p class="font-semibold">
+								Adoptant sur liste noire depuis le {formatDateNum(blacklist.since)}
+							</p>
+							<p class="whitespace-pre-line">{blacklist.reason}</p>
+							<p class="text-xs text-red-700">
+								{isAdmin
+									? "Vous pouvez autoriser l'adoption malgré tout, à la création."
+									: 'Seule une administratrice peut autoriser cette adoption.'}
+							</p>
+						</div>
+					</div>
+				{/if}
 
 				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
 					<!-- SECTION CANDIDAT -->
@@ -447,7 +484,10 @@
 						{#if form.type === 'ADOPTION_SPECIFIC'}
 							<Button
 								type="button"
-								disabled={!adoptionCatId}
+								disabled={!adoptionCatId || isBlockedByBlacklist}
+								title={isBlockedByBlacklist
+									? 'Liste noire : décision réservée à l’admin'
+									: undefined}
 								onclick={() => (showCreateDialog = true)}
 							>
 								Créer l'adoption
@@ -467,6 +507,8 @@
 		initialData={{ ...adoptionData, email: form.email }}
 		formId={form.id}
 		catId={adoptionCatId}
+		{blacklist}
+		canOverrideBlacklist={isAdmin}
 	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">

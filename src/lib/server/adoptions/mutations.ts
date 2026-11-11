@@ -7,14 +7,30 @@ import type { MediaData } from '$lib/server/media/mutations';
 import { deleteFiles } from '$lib/server/storage';
 import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
 
+/** L'adoptant est sur liste noire et personne n'a autorisé l'adoption : l'action affiche la raison */
+export class BlacklistedAdopterError extends Error {
+	constructor() {
+		super('Cet adoptant est sur la liste noire');
+	}
+}
+
 /** La note ajoutée aux autres demandes du chat, quand il est adopté par une autre famille */
 const REJECTED_NOTE = 'Chat adopté par une autre famille.';
 
-export async function createAdoption(input: CreateAdoptionInput, contract: MediaData) {
+/**
+ * @param allowBlacklisted true seulement si une ADMIN a coché « J'ai pris connaissance de la liste
+ *        noire » (vérifié par l'action) : l'adoption est alors permise, et tracée dans la demande.
+ */
+export async function createAdoption(
+	input: CreateAdoptionInput,
+	contract: MediaData,
+	{ allowBlacklisted = false }: { allowBlacklisted?: boolean } = {}
+) {
 	return prisma.$transaction(async (tx) => {
-		// 0. Vérifier que l'adoptant n'est pas blacklisté
-		if (await isEmailBlacklisted(input.email, tx)) {
-			throw new Error('Cet adoptant est sur la liste noire');
+		// 0. Adoptant sur liste noire : bloqué, sauf autorisation explicite d'une admin
+		const isBlacklisted = await isEmailBlacklisted(input.email, tx);
+		if (isBlacklisted && !allowBlacklisted) {
+			throw new BlacklistedAdopterError();
 		}
 		// 1. Vérifier que le chat est disponible
 		const cat = await tx.cat.findUnique({
@@ -95,11 +111,26 @@ export async function createAdoption(input: CreateAdoptionInput, contract: Media
 			data: { status: 'STOP', endDate: today }
 		});
 
-		// 8. La demande liée (s'il y en a une) est acceptée, et garde le chat adopté
+		// 8. La demande liée (s'il y en a une) est acceptée, et garde le chat adopté.
+		//    Liste noire passée outre : on le note dans la demande (trace de la décision)
 		if (input.formId) {
+			const request = await tx.form.findUnique({
+				where: { id: input.formId },
+				select: { notes: true }
+			});
+			const today = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+			const overrideNote = isBlacklisted
+				? `Adoption autorisée le ${today} malgré la liste noire (décision admin).`
+				: null;
 			await tx.form.update({
 				where: { id: input.formId },
-				data: { status: FormStatus.APPROVED, catId: input.catId }
+				data: {
+					status: FormStatus.APPROVED,
+					catId: input.catId,
+					...(overrideNote && {
+						notes: [request?.notes, overrideNote].filter(Boolean).join('\n')
+					})
+				}
 			});
 		}
 

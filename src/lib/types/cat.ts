@@ -15,7 +15,7 @@ import type {
 import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
 import { volunteerSecretFields } from '$lib/types/volunteer';
-import { formInclude } from '$lib/types/form';
+import { formInclude, type FormWithBlacklist } from '$lib/types/form';
 
 // ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
 // Jamais d'URL stockée : elle est calculée à partir de la storageKey.
@@ -78,9 +78,11 @@ export const catFullArgs = {
 	}
 } satisfies Prisma.CatDefaultArgs;
 
-export type CatFull = Prisma.CatGetPayload<typeof catFullArgs> & {
+export type CatFull = Omit<Prisma.CatGetPayload<typeof catFullArgs>, 'forms'> & {
 	/** Calculé par le load de la page Chats : la bénévole connectée est-elle associée au chat ? */
 	isMine?: boolean;
+	/** Les demandes en attente, avec leur éventuelle liste noire (ajoutée par le load) */
+	forms?: FormWithBlacklist[];
 };
 
 // ✅ Select réutilisable pour la liste (source unique de vérité)
