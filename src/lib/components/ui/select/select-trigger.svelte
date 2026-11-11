@@ -21,11 +21,11 @@
 	class={cn(
 		[
 			'border-input focus-visible:border-primary focus-visible:ring-primary/20',
-			'aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
-			'dark:aria-invalid:ring-destructive/40 dark:aria-invalid:border-destructive/50',
+			'aria-invalid:border-destructive aria-invalid:ring-destructive/20',
+			'dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
 			'data-placeholder:text-muted-foreground',
 			'flex w-full items-center justify-between gap-1.5',
-			'dark:bg-input/30 rounded-4xl border bg-white',
+			'rounded-4xl border bg-white dark:bg-input/30',
 			'py-2 pr-2 pl-3 text-sm whitespace-nowrap shadow-xs',
 			'transition-[color,box-shadow] outline-none focus-visible:ring-3',
 			'disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-3',
@@ -39,5 +39,5 @@
 	{...restProps}
 >
 	{@render children?.()}
-	<ChevronDownIcon class="text-muted-foreground pointer-events-none size-4 shrink-0" />
+	<ChevronDownIcon class="pointer-events-none size-4 shrink-0 text-muted-foreground" />
 </SelectPrimitive.Trigger>

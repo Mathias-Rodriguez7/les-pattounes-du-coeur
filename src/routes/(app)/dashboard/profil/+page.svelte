@@ -162,11 +162,11 @@
 			<!-- CARTE D'IDENTITÉ -->
 			<Card.Root class="gap-0 overflow-hidden py-0">
 				<!-- Seul dégradé de la page : c'est le point fort visuel -->
-				<div class="from-primary/80 to-accent h-20 bg-linear-to-r"></div>
+				<div class="h-20 bg-linear-to-r from-primary/80 to-accent"></div>
 
 				<Card.Content class="-mt-10 flex flex-col items-center px-6 pb-6 text-center">
 					<div
-						class="bg-primary text-primary-foreground ring-card flex size-20 items-center justify-center rounded-full text-2xl font-bold ring-4"
+						class="flex size-20 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground ring-4 ring-card"
 					>
 						{initials}
 					</div>
@@ -177,11 +177,11 @@
 					</h1>
 
 					<div class="mt-2 flex flex-wrap items-center justify-center gap-2">
-						<span class="bg-primary/10 text-primary rounded-full px-3 py-0.5 text-xs font-medium">
+						<span class="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">
 							{roleLabel}
 						</span>
 						<span
-							class="bg-muted inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium"
+							class="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-0.5 text-xs font-medium"
 						>
 							<span
 								class="size-2 rounded-full {STATUS_DOT[data.volunteer.actif ?? ''] ??
@@ -192,10 +192,10 @@
 					</div>
 
 					{#if breakEndLabel}
-						<p class="text-muted-foreground mt-2 text-xs">En pause jusqu'au {breakEndLabel}</p>
+						<p class="mt-2 text-xs text-muted-foreground">En pause jusqu'au {breakEndLabel}</p>
 					{/if}
 
-					<ul class="text-muted-foreground mt-5 w-full space-y-2.5 text-left text-sm">
+					<ul class="mt-5 w-full space-y-2.5 text-left text-sm text-muted-foreground">
 						<li class="flex items-center gap-3">
 							<Mail class="size-4 shrink-0" />
 							<span class="truncate">{data.volunteer.email}</span>
@@ -223,7 +223,7 @@
 			<Card.Root class="gap-0 self-start py-0">
 				<Card.Header class="px-6 py-4">
 					<Card.Title class="flex items-center gap-2 text-base">
-						<ShieldCheck class="text-primary size-4" />
+						<ShieldCheck class="size-4 text-primary" />
 						Sécurité
 					</Card.Title>
 				</Card.Header>
@@ -234,27 +234,27 @@
 					<button
 						type="button"
 						onclick={() => (emailDialogOpen = true)}
-						class="hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors"
+						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
 					>
-						<Mail class="text-muted-foreground size-4 shrink-0" />
+						<Mail class="size-4 shrink-0 text-muted-foreground" />
 						<div class="min-w-0 flex-1">
 							<p class="text-sm font-medium">Adresse email</p>
-							<p class="text-muted-foreground truncate text-xs">{data.volunteer.email}</p>
+							<p class="truncate text-xs text-muted-foreground">{data.volunteer.email}</p>
 						</div>
-						<ChevronRight class="text-muted-foreground size-4 shrink-0" />
+						<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
 					</button>
 
 					<button
 						type="button"
 						onclick={() => (passwordDialogOpen = true)}
-						class="hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors"
+						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
 					>
-						<Lock class="text-muted-foreground size-4 shrink-0" />
+						<Lock class="size-4 shrink-0 text-muted-foreground" />
 						<div class="min-w-0 flex-1">
 							<p class="text-sm font-medium">Mot de passe</p>
-							<p class="text-muted-foreground text-xs tracking-widest">••••••••</p>
+							<p class="text-xs tracking-widest text-muted-foreground">••••••••</p>
 						</div>
-						<ChevronRight class="text-muted-foreground size-4 shrink-0" />
+						<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
 					</button>
 				</Card.Content>
 			</Card.Root>

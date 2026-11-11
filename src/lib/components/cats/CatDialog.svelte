@@ -47,7 +47,7 @@
 		<Dialog.Header class="px-6 pt-6">
 			<Dialog.Title class="text-2xl">
 				{selectedCat.name}
-				<div class="text-muted-foreground flex items-center gap-2 text-sm">
+				<div class="flex items-center gap-2 text-sm text-muted-foreground">
 					<SexIcon sex={selectedCat.sex} class="size-6" />
 					<span>{getAgeBadge(selectedCat.birthDate)}</span>
 				</div>
@@ -197,7 +197,7 @@
 					title={CAT_SECTION_CONFIG.description.label}
 					color={CAT_SECTION_CONFIG.description.color}
 				>
-					<p class="text-muted-foreground ml-6 text-sm leading-relaxed">
+					<p class="ml-6 text-sm leading-relaxed text-muted-foreground">
 						{selectedCat.description}
 					</p>
 				</SectionCard>

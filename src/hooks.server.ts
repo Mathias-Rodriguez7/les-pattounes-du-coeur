@@ -1,5 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
-import { building } from '$app/environment';
+import { building } from '$app/env';
 import prisma from '$lib/server/prisma';
 import type { AppUser } from '$lib/types/user';
 import { activeBlacklists, isAccountDisabled } from '$lib/server/accountStatus';

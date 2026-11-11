@@ -116,14 +116,14 @@
 				placeholder="Description..."
 			/>
 
-				<MediaUpload
-					id="new-news-media"
-					accept={['DOCUMENT']}
-					bind:files
-					{progress}
-					label="Document (PDF)"
-					disabled={submitting}
-				/>
+			<MediaUpload
+				id="new-news-media"
+				accept={['DOCUMENT']}
+				bind:files
+				{progress}
+				label="Document (PDF)"
+				disabled={submitting}
+			/>
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={onCancel} disabled={submitting}>

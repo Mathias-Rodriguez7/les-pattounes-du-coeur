@@ -124,7 +124,7 @@
 								{news.content}
 							</p>
 						{:else}
-							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun contenu</p>
+							<p class="text-sm text-muted-foreground italic sm:ml-6">Aucun contenu</p>
 						{/if}
 					</SectionCard>
 				</section>
@@ -149,7 +149,7 @@
 								variant="embed"
 							/>
 						{:else}
-							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun média</p>
+							<p class="text-sm text-muted-foreground italic sm:ml-6">Aucun média</p>
 						{/if}
 					</SectionCard>
 				{/if}
@@ -170,7 +170,7 @@
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full min-h-60 items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="news" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez une news</p>
 		</Card.Content>

@@ -199,7 +199,7 @@
 			{@render filtersButton('hidden lg:inline-flex')}
 
 			<!-- Message de tri -->
-			<div class="text-muted-foreground flex min-h-8 items-center gap-2 text-sm">
+			<div class="flex min-h-8 items-center gap-2 text-sm text-muted-foreground">
 				{#if isSortedByCompatibility}
 					<Sparkles class="h-4 w-4 shrink-0 text-amber-500" />
 					<span>
@@ -289,7 +289,7 @@
 	<!-- Table avec scroll -->
 	<div class="mt-2 h-[60dvh] min-h-80 overflow-auto rounded-md lg:h-[calc(100vh-24rem)]">
 		<Table.Root containerClass="overflow-visible">
-			<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
+			<Table.Header class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]">
 				<Table.Row>
 					<Table.Head class="w-10"></Table.Head>
 					{#each allColumns as col (col.id)}
@@ -322,7 +322,7 @@
 					<Table.Row>
 						<Table.Cell
 							colspan={allColumns.length + 1}
-							class="text-muted-foreground py-8 text-center"
+							class="py-8 text-center text-muted-foreground"
 						>
 							Aucun hôte ne correspond à ces critères.
 						</Table.Cell>

@@ -32,7 +32,9 @@ export function startCrons() {
 		() =>
 			run('News chats', async () => {
 				const news = await generateCatsNews();
-				console.log(news ? `📰 ${news.title} (${news._count.cats} chats)` : '📰 Aucun chat à annoncer');
+				console.log(
+					news ? `📰 ${news.title} (${news._count.cats} chats)` : '📰 Aucun chat à annoncer'
+				);
 			}),
 		{ timezone: TIMEZONE }
 	);

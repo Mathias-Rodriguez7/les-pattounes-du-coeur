@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const role = locals.user.role;
 	const canManage = canManageNews(role);
 
-		// Requêtes indépendantes → lancées en parallèle
+	// Requêtes indépendantes → lancées en parallèle
 	const [news, cats, adoptableCats, candidateIds] = await Promise.all([
 		prisma.news.findMany({
 			orderBy: { createdAt: 'desc' },
@@ -87,7 +87,7 @@ export const actions: Actions = {
 		return { ...result, action: 'delete' };
 	},
 
-		generateCats: async ({ request, locals }) => {
+	generateCats: async ({ request, locals }) => {
 		if (!locals.user || !canManageNews(locals.user.role)) {
 			return fail(403, { success: false, error: 'Non autorisé', action: 'generateCats' });
 		}

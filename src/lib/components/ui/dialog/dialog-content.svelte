@@ -40,7 +40,7 @@
 		data-slot="dialog-content"
 		class={cn(
 			// Base layout (shadcn + UX safe)
-			'bg-popover text-popover-foreground ring-foreground/10 fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-6 rounded-2xl p-6 text-sm ring-1 duration-100 outline-none',
+			'fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-6 rounded-2xl bg-popover p-6 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none',
 
 			// Animation states (bits-ui)
 			'data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95',

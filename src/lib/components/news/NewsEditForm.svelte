@@ -153,7 +153,6 @@
 					required
 				/>
 			{/if}
-			
 		</div>
 	</SectionCard>
 
@@ -188,7 +187,7 @@
 								{catLabel(cat)}
 								<button
 									type="button"
-									class="hover:bg-muted-foreground/20 rounded-full p-0.5"
+									class="rounded-full p-0.5 hover:bg-muted-foreground/20"
 									onclick={() => toggleCat(cat.id, false)}
 									aria-label="Retirer {catLabel(cat)}"
 								>
@@ -198,11 +197,11 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="text-muted-foreground text-sm italic">Aucun chat sélectionné</p>
+					<p class="text-sm text-muted-foreground italic">Aucun chat sélectionné</p>
 				{/if}
 
 				<div class="relative">
-					<Search class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+					<Search class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						type="search"
 						placeholder="Chercher un chat (nom ou numéro)…"
@@ -214,7 +213,7 @@
 
 				<div class="max-h-60 overflow-y-auto rounded-md border p-2">
 					{#each filteredCats as cat (cat.id)}
-						<div class="hover:bg-muted/50 rounded-md px-2 py-1.5">
+						<div class="rounded-md px-2 py-1.5 hover:bg-muted/50">
 							<CheckboxField
 								id="edit-news-cat-{cat.id}"
 								label={catLabel(cat)}
@@ -230,7 +229,7 @@
 				</div>
 
 				{#if fieldError('catIds')}
-					<p class="text-destructive text-sm">{fieldError('catIds')}</p>
+					<p class="text-sm text-destructive">{fieldError('catIds')}</p>
 				{/if}
 			</div>
 
@@ -259,7 +258,7 @@
 						type="button"
 						variant="ghost"
 						size="sm"
-						class="text-destructive hover:text-destructive self-start"
+						class="self-start text-destructive hover:text-destructive"
 						onclick={() => (removeCurrent = true)}
 						disabled={isSaving}
 					>

@@ -209,7 +209,7 @@
 						<button
 							type="button"
 							data-frame
-							class="focus-visible:ring-primary absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgb(0_0_0/0.55)] focus-visible:ring-2 focus-visible:outline-none"
+							class="absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgb(0_0_0/0.55)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
 							style:left="{frame.left}%"
 							style:top="{frame.top}%"
 							style:width="{frame.width}%"
@@ -228,7 +228,7 @@
 			</div>
 
 			{#if frame && frame.width >= 100 && frame.height >= 100}
-				<p class="text-muted-foreground text-center text-sm">
+				<p class="text-center text-sm text-muted-foreground">
 					Cette photo a déjà ce format : elle sera affichée en entier.
 				</p>
 			{/if}

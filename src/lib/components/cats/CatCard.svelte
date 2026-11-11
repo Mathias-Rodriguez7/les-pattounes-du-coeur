@@ -36,7 +36,7 @@
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-4">
-		<p class="text-muted-foreground text-sm leading-relaxed">
+		<p class="text-sm leading-relaxed text-muted-foreground">
 			{truncate(cat.description, 60)}...
 		</p>
 	</Card.Content>

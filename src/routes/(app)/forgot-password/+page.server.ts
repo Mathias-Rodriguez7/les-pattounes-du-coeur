@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 import prisma from '$lib/server/prisma';
 import { sendResetPasswordEmail } from '$lib/server/mail';
 import { randomBytes } from 'node:crypto';
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { hashToken } from '$lib/server/hashing';
 
 export const actions: Actions = {

@@ -18,17 +18,17 @@
 		'[&[data-today]:not([data-range-middle]):not([data-range-start]):not([data-range-end])]:bg-accent [&[data-today]:not([data-range-middle]):not([data-range-start]):not([data-range-end])]:text-accent-foreground',
 		'[&[data-today][data-disabled]]:text-muted-foreground',
 		// Range middle
-		'[&[data-range-middle]]:bg-accent/30 [&[data-range-middle]]:text-foreground [&[data-range-middle]]:rounded-none',
+		'[&[data-range-middle]]:rounded-none [&[data-range-middle]]:bg-accent/30 [&[data-range-middle]]:text-foreground',
 		// Range start/end
 		'data-[range-start]:bg-primary data-[range-start]:text-primary-foreground data-[range-start]:hover:text-foreground',
 		'data-[range-end]:bg-primary data-[range-end]:text-primary-foreground data-[range-end]:hover:text-foreground',
 		// Outside months
 		'[&[data-outside-month]:not([data-selected])]:text-muted-foreground [&[data-outside-month]:not([data-selected])]:hover:text-accent-foreground',
 		// Disabled
-		'data-[disabled]:text-muted-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+		'data-[disabled]:pointer-events-none data-[disabled]:text-muted-foreground data-[disabled]:opacity-50',
 		'data-[unavailable]:line-through',
 		'dark:data-[range-middle]:hover:bg-accent/0',
-		'focus:border-ring focus:ring-ring/50 focus:relative',
+		'focus:relative focus:border-ring focus:ring-ring/50',
 		'[&>span]:text-xs [&>span]:opacity-70',
 		className
 	)}

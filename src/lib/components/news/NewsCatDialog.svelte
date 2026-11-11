@@ -23,7 +23,7 @@
 
 			<div>
 				<p class="text-lg font-semibold">Nouveaux chats</p>
-				<p class="text-muted-foreground text-sm">{content}</p>
+				<p class="text-sm text-muted-foreground">{content}</p>
 			</div>
 		</div>
 		<div class="self-center">
@@ -51,6 +51,6 @@
 			</div>
 		</Carousel.Root>
 	{:else}
-		<p class="text-muted-foreground text-center text-sm">Aucun chat disponible</p>
+		<p class="text-center text-sm text-muted-foreground">Aucun chat disponible</p>
 	{/if}
 </div>

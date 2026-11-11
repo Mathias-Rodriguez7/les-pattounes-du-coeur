@@ -51,7 +51,7 @@
 		<BooleanIcon value={host.outside} />
 	</Table.Cell>
 
-	<Table.Cell class="text-muted-foreground w-8 sm:hidden">
+	<Table.Cell class="w-8 text-muted-foreground sm:hidden">
 		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

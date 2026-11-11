@@ -151,7 +151,7 @@
 			<!-- Le fichier actuel, tant qu'on n'en a pas choisi un autre -->
 			{#if files.length === 0}
 				<div>
-					<span class="text-muted-foreground mb-1 block text-xs">Fichier actuel</span>
+					<span class="mb-1 block text-xs text-muted-foreground">Fichier actuel</span>
 					<DocumentPreview
 						variant="compact"
 						src={doc.url}

@@ -188,8 +188,8 @@
 			ondragover={onDragOver}
 			ondrop={onDrop}
 			aria-describedby={hintId}
-			class="focus-visible:ring-ring flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center
-				transition-colors focus-visible:ring-2 focus-visible:outline-none
+			class="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors
+				focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none
 				disabled:cursor-not-allowed disabled:opacity-50
 				{isDragging
 				? 'border-primary bg-primary/5'
@@ -209,7 +209,7 @@
 				</span>
 			</span>
 
-			<span id={hintId} class="text-muted-foreground text-xs">
+			<span id={hintId} class="text-xs text-muted-foreground">
 				{hint}{multiple ? ` — ${maxFiles} fichiers max` : ''}
 			</span>
 		</button>
@@ -217,7 +217,7 @@
 
 	<!-- ===== ERREURS ===== -->
 	{#if rejected.length > 0}
-		<ul class="text-destructive space-y-1 text-sm" role="alert">
+		<ul class="space-y-1 text-sm text-destructive" role="alert">
 			{#each rejected as item, i (i)}
 				<li><span class="font-medium">{item.name}</span> : {item.error}</li>
 			{/each}
@@ -225,7 +225,7 @@
 	{/if}
 
 	{#if error}
-		<p class="text-destructive text-sm" role="alert">{error}</p>
+		<p class="text-sm text-destructive" role="alert">{error}</p>
 	{/if}
 
 	<!-- ===== FICHIERS CHOISIS ===== -->
@@ -234,13 +234,13 @@
 			{#each items as item (item.key)}
 				<li class="flex items-center gap-3 rounded-lg border p-2">
 					<div
-						class="bg-muted flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md"
+						class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted"
 					>
 						{#if item.type === 'IMAGE' && item.url}
 							<!-- alt vide : le nom du fichier est juste à côté -->
 							<ImagePreview src={item.url} alt="" />
 						{:else if item.type === 'VIDEO'}
-							<Film class="text-muted-foreground size-5" />
+							<Film class="size-5 text-muted-foreground" />
 						{:else if item.file.type === DOCX_MIME}
 							<FileType class="size-5 text-blue-600" />
 						{:else}
@@ -253,7 +253,7 @@
 						{#if progress[item.key] !== undefined}
 							<div class="mt-1 flex items-center gap-2">
 								<div
-									class="bg-muted h-1.5 flex-1 overflow-hidden rounded-full"
+									class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
 									role="progressbar"
 									aria-valuenow={progress[item.key]}
 									aria-valuemin={0}
@@ -261,16 +261,16 @@
 									aria-label="Envoi de {item.file.name}"
 								>
 									<div
-										class="bg-primary h-full transition-[width] duration-200"
+										class="h-full bg-primary transition-[width] duration-200"
 										style:width="{progress[item.key]}%"
 									></div>
 								</div>
-								<span class="text-muted-foreground w-9 text-right text-xs tabular-nums">
+								<span class="w-9 text-right text-xs text-muted-foreground tabular-nums">
 									{progress[item.key]} %
 								</span>
 							</div>
 						{:else}
-							<p class="text-muted-foreground text-xs">{formatBytes(item.file.size)}</p>
+							<p class="text-xs text-muted-foreground">{formatBytes(item.file.size)}</p>
 						{/if}
 					</div>
 
@@ -313,7 +313,7 @@
 			class="hidden h-96 w-full rounded-lg border lg:block"
 			aria-label="Aperçu de {embeddedPdf.file.name}"
 		>
-			<p class="text-muted-foreground p-4 text-sm">
+			<p class="p-4 text-sm text-muted-foreground">
 				Votre navigateur ne peut pas afficher l'aperçu. Utilisez le bouton « Aperçu ».
 			</p>
 		</object>

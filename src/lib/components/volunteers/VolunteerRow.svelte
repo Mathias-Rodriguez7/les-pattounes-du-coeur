@@ -53,7 +53,7 @@
 	<Table.Cell class="hidden text-center sm:table-cell">{formsCount}</Table.Cell>
 
 	<!-- Flèche : indique sur mobile qu'on peut toucher la ligne -->
-	<Table.Cell class="text-muted-foreground w-8 sm:hidden">
+	<Table.Cell class="w-8 text-muted-foreground sm:hidden">
 		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

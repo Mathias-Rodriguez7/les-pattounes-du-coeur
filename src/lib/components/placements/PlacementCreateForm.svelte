@@ -106,15 +106,15 @@
 					class="md:col-span-1"
 				>
 					<div class="ml-6 grid grid-cols-2 gap-2 text-sm">
-						<p class="text-muted-foreground mb-1">Nom</p>
+						<p class="mb-1 text-muted-foreground">Nom</p>
 						<p class="font-medium">{cat.name ?? '—'}</p>
-						<p class="text-muted-foreground mb-1">Sexe</p>
+						<p class="mb-1 text-muted-foreground">Sexe</p>
 						<p class="flex items-center gap-1.5 font-medium">
 							<Icon name={sexIcon.icon} class="h-4 w-4 {sexIcon.color}" />
 							{sexIcon.label}
 						</p>
 
-						<p class="text-muted-foreground mb-1">Âge</p>
+						<p class="mb-1 text-muted-foreground">Âge</p>
 						<p class="font-medium">{getAgeBadge(cat.birthDate)}</p>
 					</div>
 				</SectionCard>
@@ -178,7 +178,7 @@
 					<div class="ml-6 space-y-3 text-sm">
 						{#if activeSicknesses.length > 0}
 							<div>
-								<p class="text-muted-foreground mb-1">Maladies actives</p>
+								<p class="mb-1 text-muted-foreground">Maladies actives</p>
 								<div class="flex flex-wrap gap-x-3 gap-y-1">
 									{#each activeSicknesses as sickness (sickness.id)}
 										<span class="font-medium">{sickness.name}</span>
@@ -186,14 +186,14 @@
 								</div>
 							</div>
 						{:else}
-							<p class="text-muted-foreground rounded border border-dashed p-3">
+							<p class="rounded border border-dashed p-3 text-muted-foreground">
 								Aucune maladie active.
 							</p>
 						{/if}
 
 						{#if treatedSicknesses.length > 0}
 							<div>
-								<p class="text-muted-foreground mb-1">Maladies en traitement</p>
+								<p class="mb-1 text-muted-foreground">Maladies en traitement</p>
 								<div class="flex flex-wrap gap-x-3 gap-y-1">
 									{#each treatedSicknesses as sickness (sickness.id)}
 										<span class="font-medium">{sickness.name}</span>
@@ -201,7 +201,7 @@
 								</div>
 							</div>
 						{:else}
-							<p class="text-muted-foreground rounded border border-dashed p-3">
+							<p class="rounded border border-dashed p-3 text-muted-foreground">
 								Aucune maladie en traitement.
 							</p>
 						{/if}

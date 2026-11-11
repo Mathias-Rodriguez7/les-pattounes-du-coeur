@@ -21,7 +21,7 @@
 		<Card.Root>
 			<Card.Header class="items-center space-y-3 text-center">
 				<div
-					class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
+					class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary"
 				>
 					<LogIn class="size-7" />
 				</div>

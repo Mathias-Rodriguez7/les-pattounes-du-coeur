@@ -82,7 +82,7 @@
 			<a
 				href={resolve('/forgot-password')}
 				onclick={onForgotPassword}
-				class="text-muted-foreground hover:text-primary text-sm transition-colors"
+				class="text-sm text-muted-foreground transition-colors hover:text-primary"
 			>
 				Mot de passe oublié ?
 			</a>

@@ -26,7 +26,7 @@
 	</Card.Header>
 
 	<Card.Content class="flex-1">
-		<p class="text-muted-foreground line-clamp-3 text-sm">
+		<p class="line-clamp-3 text-sm text-muted-foreground">
 			{news.content}
 		</p>
 	</Card.Content>

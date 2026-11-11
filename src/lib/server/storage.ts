@@ -1,6 +1,6 @@
 // Seul point de contact avec le stockage S3 (RustFS en local, R2/Scaleway/AWS en prod).
 import { env } from '$env/dynamic/private';
-import { env as publicEnv } from '$env/dynamic/public';
+import { PUBLIC_MEDIA_BASE_URL } from '$app/env/public';
 import {
 	S3Client,
 	PutObjectCommand,
@@ -19,6 +19,7 @@ import { validateFile } from '$lib/media/rules';
 // =====================================================================
 
 function required(name: string): string {
+	// @migration-task Rewrite dynamic env lookup manually.
 	const value = env[name];
 	if (!value) throw new Error(`[storage] Variable d'environnement manquante : ${name}`);
 	return value;
@@ -176,7 +177,7 @@ export async function verifyUpload(params: {
 
 /** Adresse directe d'un fichier PUBLIC (pas de signature, ne périme pas) */
 export function getPublicUrl(storageKey: string): string {
-	const base = publicEnv.PUBLIC_MEDIA_BASE_URL;
+	const base = PUBLIC_MEDIA_BASE_URL;
 	if (!base) throw new Error('[storage] Variable manquante : PUBLIC_MEDIA_BASE_URL');
 	return `${base.replace(/\/$/, '')}/${storageKey}`;
 }

@@ -24,15 +24,15 @@
 			<Card.Root class="text-center">
 				<Card.Content class="flex flex-col items-center gap-4 pt-8 pb-6">
 					<div
-						class="bg-primary/10 text-primary flex size-16 items-center justify-center rounded-full"
+						class="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary"
 					>
 						<MailCheck class="size-8" />
 					</div>
 					<div class="space-y-2">
 						<h2 class="text-xl font-semibold">Vérifiez votre boîte mail</h2>
-						<p class="text-muted-foreground text-sm">{form.message}</p>
+						<p class="text-sm text-muted-foreground">{form.message}</p>
 					</div>
-					<p class="bg-muted text-muted-foreground rounded-md px-3 py-2 text-xs">
+					<p class="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
 						Le lien est valable <strong>1 heure</strong>. Pensez à vérifier vos courriers
 						indésirables.
 					</p>
@@ -40,7 +40,7 @@
 				<Card.Footer class="justify-center">
 					<a
 						href={resolve('/login')}
-						class="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
+						class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
 					>
 						<ArrowLeft class="size-4" />
 						Retour à la connexion
@@ -52,7 +52,7 @@
 			<Card.Root>
 				<Card.Header class="items-center space-y-3 text-center">
 					<div
-						class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
+						class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary"
 					>
 						<KeyRound class="size-7" />
 					</div>
@@ -110,7 +110,7 @@
 						</Button>
 						<a
 							href={resolve('/login')}
-							class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
+							class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 						>
 							<ArrowLeft class="size-4" />
 							Retour à la connexion

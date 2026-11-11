@@ -237,7 +237,7 @@
 
 		{#if images.length === 0}
 			<div
-				class="text-muted-foreground flex h-32 items-center justify-center rounded-xl border-2 border-dashed"
+				class="flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground"
 			>
 				Aucune photo
 			</div>
@@ -262,7 +262,7 @@
 
 		{#if videos.length === 0}
 			<div
-				class="text-muted-foreground flex h-32 items-center justify-center rounded-xl border-2 border-dashed"
+				class="flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground"
 			>
 				Aucune vidéo
 			</div>
