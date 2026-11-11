@@ -1,5 +1,5 @@
 import prisma from '$lib/server/prisma';
-import type { CreateAdoptionInput } from '$lib/schemas/adoption';
+import type { CancelAdoptionInput, CreateAdoptionInput } from '$lib/schemas/adoption';
 import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
 import { addMonths, formatDateNum, todayDateOnly } from '$lib/utils/date';
@@ -239,4 +239,53 @@ export async function finalizeAdoption(adoptionId: string) {
 	}
 
 	return { removedCount: removedFiles.length };
+}
+
+/**
+ * Annuler une adoption : le chat revient à l'association (pendant l'essai OU après, même définitive).
+ * - l'adoption passe en CANCELLED, avec la date de retour et la raison (facultative) ;
+ * - le chat repasse disponible ou en socialisation, au choix de la bénévole ;
+ *   disponible ET visible : il est « republié » (publishedAt), pour revenir dans les News chats ;
+ * - le document de retour (facultatif) est rangé avec le chat ET l'adoption.
+ * Le chat n'a plus de famille d'accueil : la bénévole doit lui en trouver une (placement).
+ */
+export async function cancelAdoption(input: CancelAdoptionInput, returnDocument: MediaData | null) {
+	const today = todayDateOnly();
+
+	return prisma.$transaction(async (tx) => {
+		const adoption = await tx.adoption.findUnique({
+			where: { id: input.adoptionId },
+			select: { status: true, catId: true, cat: { select: { isVisible: true } } }
+		});
+
+		if (!adoption) throw new Error('Adoption introuvable');
+		if (adoption.status === 'CANCELLED') throw new Error('Cette adoption est déjà annulée');
+
+		// 1. L'adoption est annulée, avec la date et la raison
+		await tx.adoption.update({
+			where: { id: input.adoptionId },
+			data: { status: 'CANCELLED', endDate: today, cancelReason: input.reason ?? null }
+		});
+
+		// 2. Le chat revient : nouveau statut, et republication s'il est de nouveau adoptable
+		const republish = input.catStatus === 'AVAILABLE' && adoption.cat.isVisible;
+		await tx.cat.update({
+			where: { id: adoption.catId },
+			data: { status: input.catStatus, ...(republish && { publishedAt: new Date() }) }
+		});
+
+		// 3. Le document de retour, s'il y en a un
+		if (returnDocument) {
+			await tx.catDocument.create({
+				data: {
+					cat: { connect: { id: adoption.catId } },
+					adoption: { connect: { id: input.adoptionId } },
+					kind: 'ADOPTION_RETURN',
+					date: today,
+					note: input.reason ?? null,
+					media: { create: returnDocument }
+				}
+			});
+		}
+	});
 }

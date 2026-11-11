@@ -361,6 +361,7 @@ model Adoption {
   trialEndsAt DateTime       @map("trial_ends_at") @db.Date
   finalizedAt DateTime?      @map("finalized_at") @db.Date
   endDate     DateTime?      @map("end_date") @db.Date // date d'annulation / de retour
+  cancelReason String?     @map("cancel_reason") @db.Text // pourquoi l'adoption a été annulée (facultatif)
 
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")

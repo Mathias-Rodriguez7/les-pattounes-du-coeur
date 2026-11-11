@@ -31,6 +31,7 @@
 	import { publicMediaUrl } from '$lib/media/urls';
 	import { getTrialInfo } from '$lib/utils/adoption';
 	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
+	import AdoptionCancelDialog from '../adoptions/AdoptionCancelDialog.svelte';
 	import { ADOPTABLE_STATUSES, ADOPTION_STATUS } from '$lib/constants/adoption';
 	import AdoptionCreateDialog from '../forms/panels/AdoptionCreateDialog.svelte';
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
@@ -292,7 +293,7 @@
 					<button
 						type="button"
 						onclick={() => (editingImage = true)}
-						class="group relative min-h-38 w-32 shrink-0 overflow-hidden rounded-r-[5rem] bg-muted sm:w-50"
+						class="group relative h-38 w-32 shrink-0 self-start overflow-hidden rounded-r-[5rem] bg-muted sm:w-50"
 						aria-label="Gérer les photos de {cat.name ?? 'ce chat'}"
 					>
 						{#if primaryMedia}
@@ -353,21 +354,33 @@
 
 						<!-- L'état de l'adoption : sur sa propre ligne, c'est l'information du moment -->
 						{#if isAdopted && adoption}
+							<!-- Badge sur 2 lignes (flex-col, coins arrondis au lieu de pilule) : la colonne des
+							     infos reste étroite, et la carte Adoptant gagne de la place -->
 							{#if adoption.status === 'TRIAL' && trial}
 								<Badge
-									class="w-fit text-sm {trial.isDue
+									class="w-fit flex-col items-start gap-0 rounded-lg text-sm {trial.isDue
 										? 'bg-red-100 text-red-700'
 										: ADOPTION_STATUS.TRIAL.color}"
 								>
-									{trial.isDue ? 'À finaliser' : ADOPTION_STATUS.TRIAL.label}
-									· fin {formatDateNum(adoption.trialEndsAt)}
+									<span>
+										{trial.isDue ? 'À finaliser' : ADOPTION_STATUS.TRIAL.label}
+										· fin {formatDateNum(adoption.trialEndsAt)}
+									</span>
 									{#if !trial.isDue}
-										· dans {trial.daysLeft} j
+										<span class="text-xs font-normal">
+											dans {trial.daysLeft} jour{trial.daysLeft > 1 ? 's' : ''}
+										</span>
 									{/if}
 								</Badge>
 							{:else if adoption.status === 'FINAL'}
-								<Badge class="w-fit text-sm {ADOPTION_STATUS.FINAL.color}">
-									{ADOPTION_STATUS.FINAL.label} · depuis le {formatDateNum(adoption.finalizedAt)}
+								<Badge
+									class="w-fit flex-col items-start gap-0 rounded-lg text-sm {ADOPTION_STATUS.FINAL
+										.color}"
+								>
+									<span>{ADOPTION_STATUS.FINAL.label}</span>
+									<span class="text-xs font-normal">
+										depuis le {formatDateNum(adoption.finalizedAt)}
+									</span>
 								</Badge>
 							{/if}
 						{/if}
@@ -379,21 +392,30 @@
 						<div class="w-full min-w-0 lg:w-auto lg:flex-1 lg:pt-6">
 							<SectionCard
 								icon={CAT_SECTION_CONFIG.adoptions.icon}
-								title={adoption.profil
-									? `Adoptant · ${adoption.profil.firstName} ${adoption.profil.lastName}`
-									: 'Adoptant'}
+								title={CAT_SECTION_CONFIG.adoptions.label}
 								color={CAT_SECTION_CONFIG.adoptions.color}
 							>
+								<!-- Les actions sur la ligne du titre : la carte reste aussi haute que la photo.
+								     Annuler (discret) puis Finaliser (principale) -->
 								{#snippet action()}
-									{#if canManageCat && adoption.status === 'TRIAL'}
-										<AdoptionFinalizeDialog
+									{#if canManageCat && adoption.status !== 'CANCELLED'}
+										<!-- Retour du chat : possible pendant l'essai ET après une adoption définitive -->
+										<AdoptionCancelDialog
 											adoptionId={adoption.id}
-											catName={cat.name ?? 'ce chat'}
-											{isSterilized}
-											removedPhotos={Math.max(galleryPhotos - 1, 0)}
-											removedVideos={galleryVideos}
-											disabled={!trial?.isDue}
+											catId={cat.id}
+											catName={cat.name ?? 'Ce chat'}
+											isFinal={adoption.status === 'FINAL'}
 										/>
+										{#if adoption.status === 'TRIAL'}
+											<AdoptionFinalizeDialog
+												adoptionId={adoption.id}
+												catName={cat.name ?? 'ce chat'}
+												{isSterilized}
+												removedPhotos={Math.max(galleryPhotos - 1, 0)}
+												removedVideos={galleryVideos}
+												disabled={!trial?.isDue}
+											/>
+										{/if}
 									{/if}
 								{/snippet}
 
@@ -401,28 +423,38 @@
 									{@const adopter = adoption.profil}
 									<!-- flex-wrap : les infos se rangent selon la place disponible,
 								     sur une ligne si la carte est large, sur plusieurs sinon -->
-									<div class="flex min-w-0 flex-wrap gap-x-6 gap-y-3 text-xs">
-										{#if adopter.phone}
-											<div class="flex min-w-0 items-center gap-2">
-												<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
+									<!-- 3 lignes : le nom, puis le contact (tél + mail côte à côte), puis l'adresse -->
+									<div class="grid min-w-0 gap-2 text-xs">
+										<p class="truncate text-base font-semibold">
+											{adopter.firstName}
+											{adopter.lastName}
+										</p>
+
+										<!-- flex-wrap : tél et mail sur la même ligne, le mail passe dessous si la carte est étroite -->
+										<div class="flex min-w-0 flex-wrap gap-x-6 gap-y-2">
+											{#if adopter.phone}
+												<div class="flex min-w-0 items-center gap-2">
+													<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
+													<a
+														href={`tel:${adopter.phone}`}
+														class="truncate text-blue-500 underline hover:text-primary"
+													>
+														{adopter.phone}
+													</a>
+												</div>
+											{/if}
+											<div class="flex max-w-full min-w-0 items-center gap-2">
+												<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 												<a
-													href={`tel:${adopter.phone}`}
+													href={`mailto:${adopter.email}`}
+													title={adopter.email}
 													class="truncate text-blue-500 underline hover:text-primary"
 												>
-													{adopter.phone}
+													{adopter.email}
 												</a>
 											</div>
-										{/if}
-										<div class="flex max-w-full min-w-0 items-center gap-2">
-											<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-											<a
-												href={`mailto:${adopter.email}`}
-												title={adopter.email}
-												class="truncate text-blue-500 underline hover:text-primary"
-											>
-												{adopter.email}
-											</a>
 										</div>
+
 										{#if adopterAddress}
 											<div class="flex min-w-0 items-center gap-2">
 												<Icon name="map" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />

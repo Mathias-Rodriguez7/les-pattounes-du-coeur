@@ -218,7 +218,8 @@
 		? `rounded-lg border p-4 ${current.border} ${current.bg}`
 		: ''} {classList}"
 >
-	<div class="flex items-center gap-2 {variant === 'card' ? 'mb-4' : 'mb-3'}">
+	<!-- flex-wrap : si l'action ne tient pas à côté du titre, elle passe dessous (au lieu d'écraser le titre) -->
+	<div class="flex flex-wrap items-center gap-2 {variant === 'card' ? 'mb-4' : 'mb-3'}">
 		{#if icon}
 			<Icon
 				name={icon}

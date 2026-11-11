@@ -44,8 +44,7 @@
 	let newCatOpen = $state(false);
 
 	// ===== FILTRES (valeur '' = pas de filtre) =====
-	const DEFAULT_STATUS = 'SOCIALIZE';
-	let statusFilter = $state(DEFAULT_STATUS);
+	let statusFilter = $state('');
 	let sexFilter = $state('');
 	let ageFilter = $state('');
 	let searchQuery = $state('');
@@ -67,7 +66,7 @@
 	}
 
 	function clearFilters() {
-		statusFilter = DEFAULT_STATUS;
+		statusFilter = '';
 		sexFilter = '';
 		ageFilter = '';
 		searchQuery = '';
@@ -141,7 +140,7 @@
 
 	// Inclut le statut : sinon « Aucun chat » s'affichait alors qu'un filtre était actif
 	const hasActiveFilters = $derived(
-		statusFilter !== DEFAULT_STATUS || !!sexFilter || !!ageFilter || !!searchQuery.trim()
+		statusFilter !== '' || !!sexFilter || !!ageFilter || !!searchQuery.trim()
 	);
 </script>
 

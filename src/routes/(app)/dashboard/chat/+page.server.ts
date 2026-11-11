@@ -21,8 +21,9 @@ import {
 	deleteCatMedia,
 	updateCatMediaFocalPoint
 } from '$lib/server/catMedia/mutations';
-import { finalizeAdoption } from '$lib/server/adoptions/mutations';
-import { finalizeAdoptionSchema } from '$lib/schemas/adoption';
+import { finalizeAdoption, cancelAdoption } from '$lib/server/adoptions/mutations';
+import { finalizeAdoptionSchema, cancelAdoptionSchema } from '$lib/schemas/adoption';
+import { prepareMedia, discardUpload, type MediaData } from '$lib/server/media/mutations';
 import { createAdoptionAction } from '$lib/server/adoptions/actions';
 import { attachBlacklist, findActiveBlacklists } from '$lib/server/accountStatus';
 import { updateForm, rejectForm } from '$lib/server/forms/mutations';
@@ -377,6 +378,78 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Erreur deleteCatDocument:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Adoption — annulation (retour du chat), même après une adoption définitive
+	// ==========================================
+	cancelAdoption: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non autorisé' });
+		}
+		const user = locals.user;
+
+		const parsed = cancelAdoptionSchema.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success) {
+			return fail(400, {
+				success: false,
+				error: 'Erreur de validation',
+				errors: parsed.error.flatten().fieldErrors
+			});
+		}
+		const { adoptionId, mediaStorageKey, mediaOriginalName } = parsed.data;
+
+		// Le droit se vérifie sur le chat de l'adoption, lu en base (pas envoyé par le navigateur).
+		// (Sans ce droit, l'envoi du document sur S3 a déjà été refusé : rien à nettoyer.)
+		const adoption = await prisma.adoption.findUnique({
+			where: { id: adoptionId },
+			select: { catId: true }
+		});
+		if (!adoption || !(await canManageCat(user, adoption.catId))) {
+			return fail(403, {
+				success: false,
+				error: "Vous n'avez pas le droit d'annuler cette adoption"
+			});
+		}
+
+		// Document de retour facultatif : supprimé de S3 s'il n'a pas été rattaché (même logique
+		// que la création d'adoption)
+		let documentAttached = false;
+		try {
+			let returnDocument: MediaData | null = null;
+			if (mediaStorageKey) {
+				const prepared = await prepareMedia(
+					'catDocument',
+					{ storageKey: mediaStorageKey, originalName: mediaOriginalName },
+					adoption.catId
+				);
+				if (!prepared.ok) {
+					return fail(400, {
+						success: false,
+						error: prepared.error,
+						errors: { media: [prepared.error] }
+					});
+				}
+				returnDocument = prepared.data;
+			}
+
+			try {
+				await cancelAdoption(parsed.data, returnDocument);
+				documentAttached = true;
+				return {
+					success: true,
+					message: "Adoption annulée. Pensez à trouver une famille d'accueil au chat."
+				};
+			} catch (error) {
+				// Les messages de cancelAdoption sont écrits pour l'utilisatrice
+				const message = error instanceof Error ? error.message : 'Erreur inconnue';
+				return fail(400, { success: false, error: message });
+			}
+		} finally {
+			if (mediaStorageKey && !documentAttached) {
+				await discardUpload(user, 'catDocument', mediaStorageKey, adoption.catId);
+			}
 		}
 	},
 

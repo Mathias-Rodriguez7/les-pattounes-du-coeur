@@ -53,6 +53,27 @@ export const finalizeAdoptionSchema = z.object({
 	sterilizationChecked: z.literal('true', 'Confirmez que la stérilisation a été vérifiée')
 });
 
+// Annuler une adoption (retour du chat) : le chat repasse disponible OU en socialisation.
+// La raison et le document de retour sont facultatifs.
+export const cancelAdoptionSchema = z.object({
+	adoptionId: z.uuid('ID invalide'),
+	catStatus: z.enum(['AVAILABLE', 'SOCIALIZE'], 'Choisissez le nouveau statut du chat'),
+	reason: z
+		.string()
+		.trim()
+		.max(1000, '1000 caractères maximum')
+		.optional()
+		.transform((value) => value || undefined),
+	mediaStorageKey: z
+		.string()
+		.max(500)
+		.optional()
+		.transform((value) => value || undefined),
+	mediaOriginalName: z.string().max(255).nullish()
+});
+
+export type CancelAdoptionInput = z.infer<typeof cancelAdoptionSchema>;
+
 // ✅ Types TypeScript corrects
 export type CreateAdoptionInput = z.infer<typeof createAdoptionSchema>;
 export type UpdateAdoptionInput = z.infer<typeof updateAdoptionSchema>;
