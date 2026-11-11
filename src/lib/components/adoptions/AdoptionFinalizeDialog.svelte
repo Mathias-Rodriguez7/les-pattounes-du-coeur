@@ -3,9 +3,8 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { BadgeCheck, LoaderCircle, TriangleAlert } from '@lucide/svelte';
 	import CheckboxField from '../fields/CheckboxField.svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	interface Props {
 		adoptionId: string;
@@ -77,10 +76,9 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Trigger class={buttonVariants({ size: 'sm' })} {disabled}>
-		<BadgeCheck class="size-4" />
-		Finaliser
-	</Dialog.Trigger>
+	<Dialog.Trigger class={buttonVariants({ size: 'sm' })} {disabled}
+		><BadgeCheck class="size-4" /> Finaliser</Dialog.Trigger
+	>
 
 	<Dialog.Content class="sm:max-w-lg">
 		<Dialog.Header>
@@ -124,14 +122,10 @@
 			{/if}
 
 			<div class="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" disabled={!sterilizationChecked || submitting}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -83,6 +82,7 @@
 			if (result.type === 'success') toast.success(successMessage);
 			else if (result.type === 'failure')
 				toast.error((result.data?.error as string) ?? 'Action impossible');
+
 			await update();
 		};
 

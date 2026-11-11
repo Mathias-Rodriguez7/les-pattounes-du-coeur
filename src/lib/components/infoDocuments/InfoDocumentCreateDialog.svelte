@@ -1,4 +1,3 @@
-<!-- src/lib/components/infoDocuments/InfoDocumentCreateDialog.svelte -->
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
@@ -9,9 +8,8 @@
 	import MediaUpload from '$lib/components/media/MediaUpload.svelte';
 	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '$lib/constants/infoDocument';
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let open = $state(false);
 	let title = $state('');
@@ -82,6 +80,8 @@
 	};
 </script>
 
+<!-- src/lib/components/infoDocuments/InfoDocumentCreateDialog.svelte -->
+
 <Dialog.Root bind:open>
 	<Dialog.Trigger class="{buttonVariants({ size: 'sm' })} rounded-2xl">
 		<Plus class="size-4" />
@@ -143,14 +143,10 @@
 			/>
 
 			<Dialog.Footer>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" disabled={submitting || files.length === 0}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

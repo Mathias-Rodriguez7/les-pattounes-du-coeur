@@ -15,9 +15,8 @@
 	import MediaUpload from '../media/MediaUpload.svelte';
 	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news';
 	import type { NewsEditData } from '$lib/types/news';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
@@ -270,10 +269,10 @@
 						class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed p-3 text-sm"
 					>
 						<span class="text-muted-foreground">Le document sera retiré à l'enregistrement.</span>
-						<Button type="button" variant="ghost" size="sm" onclick={() => (removeCurrent = false)}>
-							<Undo2 class="size-4" />
-							Annuler
-						</Button>
+
+						<Button type="button" variant="ghost" size="sm" onclick={() => (removeCurrent = false)}
+							><Undo2 class="size-4" /> Annuler</Button
+						>
 					</div>
 					<!-- Envoyé SEULEMENT quand on a cliqué « Retirer » -->
 					<input type="hidden" name="removeMedia" value="true" />

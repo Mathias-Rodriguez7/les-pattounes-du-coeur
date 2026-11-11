@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import type { PlacementFull } from '$lib/types/placement';
 	import type { CatFull } from '$lib/types/cat';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';

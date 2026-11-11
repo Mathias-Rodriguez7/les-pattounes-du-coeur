@@ -6,8 +6,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';

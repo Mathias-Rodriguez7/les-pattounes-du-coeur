@@ -1,4 +1,3 @@
-<!-- src/lib/components/infoDocuments/InfoDocumentEditDialog.svelte -->
 <script lang="ts">
 	import type { InfoDocumentCategory } from '@prisma/client';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -11,9 +10,8 @@
 	import DocumentPreview from '$lib/components/media/DocumentPreview.svelte';
 	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '$lib/constants/infoDocument';
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	interface Props {
 		/** Seulement les champs utiles : n'importe quel objet qui les a convient */
@@ -91,6 +89,8 @@
 		};
 	};
 </script>
+
+<!-- src/lib/components/infoDocuments/InfoDocumentEditDialog.svelte -->
 
 <Dialog.Root bind:open>
 	{#if iconOnly}

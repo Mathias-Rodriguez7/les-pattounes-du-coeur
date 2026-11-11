@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
+
 	import {
 		Dialog,
 		DialogContent,
@@ -98,6 +98,7 @@
 </div>
 
 <!-- ✅ DIALOG BLACKLIST -->
+
 <Dialog open={showBlacklistDialog} onOpenChange={(open) => (showBlacklistDialog = open)}>
 	<DialogContent class="max-w-sm">
 		<DialogHeader>

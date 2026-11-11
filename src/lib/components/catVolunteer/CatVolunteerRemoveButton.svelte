@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
+
 	import {
 		Dialog,
 		DialogContent,
@@ -82,10 +82,9 @@
 					variant="outline"
 					class="flex-1"
 					onclick={() => (showDialog = false)}
-					disabled={isRemoving}
+					disabled={isRemoving}>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" variant="destructive" class="flex-1" disabled={isRemoving}>
 					{#if isRemoving}
 						Retrait...

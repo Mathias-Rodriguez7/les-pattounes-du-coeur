@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import prisma from '$lib/server/prisma';
 import type { AppUser } from '$lib/types/user';

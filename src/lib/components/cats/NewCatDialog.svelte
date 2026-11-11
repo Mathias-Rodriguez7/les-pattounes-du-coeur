@@ -5,8 +5,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { format } from 'date-fns';
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';

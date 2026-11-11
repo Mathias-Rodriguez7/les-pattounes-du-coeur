@@ -3,9 +3,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import { LoaderCircle } from '@lucide/svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type FocalMedia = {
 		id: string;
@@ -178,10 +177,8 @@
 						class="rounded-2xl"
 						variant={ratio === format.ratio ? 'default' : 'outline'}
 						aria-pressed={ratio === format.ratio}
-						onclick={() => (ratio = format.ratio)}
+						onclick={() => (ratio = format.ratio)}>{format.label}</Button
 					>
-						{format.label}
-					</Button>
 				{/each}
 			</div>
 
@@ -244,9 +241,10 @@
 				<input type="hidden" name="focalPointY" value={y.toFixed(1)} />
 
 				<Dialog.Footer>
-					<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-						Annuler
-					</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}
+						>Annuler</Button
+					>
+
 					<Button type="submit" disabled={saving}>
 						{#if saving}
 							<LoaderCircle class="size-4 animate-spin" />

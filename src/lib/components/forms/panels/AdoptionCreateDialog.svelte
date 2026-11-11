@@ -5,8 +5,7 @@
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import DatePicker from '$lib/components/fields/DatePicker.svelte';
 	import InputField from '$lib/components/fields/InputField.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
@@ -87,6 +86,7 @@
 		linkedFormId = id;
 		blacklistOverride = false;
 		const request = requests.find((r) => r.id === id);
+
 		fill(request ? { ...(request.data as AdoptionFormJson), email: request.email } : null);
 	}
 	let isSubmitting = $state(false);

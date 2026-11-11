@@ -9,9 +9,8 @@
 	import { CAT_DOCUMENT_KIND_OPTIONS } from '$lib/constants/cat';
 	import { formatDateNum } from '$lib/utils/date';
 	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import type { AdoptionStatus } from '@prisma/client';
 	import { ADOPTION_STATUS } from '$lib/constants/adoption';
 
@@ -144,6 +143,7 @@
 					bind:value={kind}
 					required
 				/>
+
 				<DatePicker name="date" label="Date de l'acte" value={date} onSelect={(d) => (date = d)} />
 			</div>
 
@@ -176,14 +176,10 @@
 			/>
 
 			<Dialog.Footer>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" disabled={submitting || files.length === 0}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

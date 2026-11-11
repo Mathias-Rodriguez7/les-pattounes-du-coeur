@@ -13,8 +13,7 @@
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import HostDataTable from '../hosts/HostDataTable.svelte';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 
 	interface Props {
 		catId: string;
@@ -224,9 +223,9 @@
 			</section>
 
 			<Dialog.Footer>
-				<Button class="w-full sm:w-auto" disabled={count === 0} onclick={() => (step = 'confirm')}>
-					Proposer à {count} FA
-				</Button>
+				<Button class="w-full sm:w-auto" disabled={count === 0} onclick={() => (step = 'confirm')}
+					>Proposer à {count} FA</Button
+				>
 			</Dialog.Footer>
 		</Dialog.Content>
 	{:else}

@@ -1,4 +1,3 @@
-<!-- src/lib/components/news/NewsCatsGenerateDialog.svelte -->
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -7,9 +6,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import InputField from '$lib/components/fields/InputField.svelte';
 	import { LoaderCircle, Plus, Search } from '@lucide/svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 
@@ -95,6 +93,8 @@
 		};
 	};
 </script>
+
+<!-- src/lib/components/news/NewsCatsGenerateDialog.svelte -->
 
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
@@ -198,14 +198,10 @@
 			{/each}
 
 			<Dialog.Footer>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" disabled={submitting || selectedIds.length === 0}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />
