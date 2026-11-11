@@ -75,7 +75,7 @@ export const createHostSchema = z.object({
 
 	// Cat
 	catAdult: z.coerce.number().int().min(0).default(0),
-	kittyAndKitten: z.coerce.boolean().default(false),
+	kittyAndKitten: stringToBoolean.default(false),
 	kitten: z.coerce.number().int().min(0).default(0),
 
 	// Descriptions

@@ -10,6 +10,8 @@
 	} from '$lib/schemas/formShema/quickAdoptionForm';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
@@ -34,8 +36,8 @@
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Demande envoyée avec succès 🎉');
-				form.reset();
-				step = 1;
+				// 🆕 Retour à la liste des chats : le toast reste affiché pendant la navigation
+				goto(resolve('/adoptions/chat'));
 			}
 
 			// 🆕 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
@@ -74,16 +76,29 @@
 	const catName = $derived(data.cat.name ?? 'ce chat');
 
 	// ✅ VALIDATION STEP
+	// 🆕 On valide seulement les champs de l'étape, ET on affiche leurs erreurs.
+	// Avant : on bloquait le bouton « Suivant » sans rien dire à la personne.
 	function validateCurrentStep() {
-		if (step === 1) {
-			return step1Schema.safeParse(get(formData)).success;
+		const schema = step === 1 ? step1Schema : step2Schema;
+		const result = schema.safeParse(get(formData));
+		// Les erreurs zod sont une liste d'« issues » : on les regroupe par nom de champ
+		const fieldErrors: Record<string, string[]> = {};
+		if (!result.success) {
+			for (const issue of result.error.issues) {
+				const key = String(issue.path[0]);
+				(fieldErrors[key] ??= []).push(issue.message);
+			}
 		}
 
-		if (step === 2) {
-			return step2Schema.safeParse(get(formData)).success;
-		}
+		errors.update(($errors) => {
+			const next = $errors as Record<string, string[] | undefined>;
+			// Chaque champ de l'étape reçoit son erreur, ou undefined s'il est devenu valide
+			for (const key of Object.keys(schema.shape)) next[key] = fieldErrors[key];
+			return $errors;
+		});
 
-		return true;
+		if (!result.success) toast.error('Veuillez compléter les champs obligatoires');
+		return result.success;
 	}
 
 	function nextStep() {

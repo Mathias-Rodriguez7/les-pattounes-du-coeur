@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SexCat, CatStatus, HairLength, Vaccinate } from '@prisma/client';
+import { booleanField } from '$lib/schemas/fields';
 
 const sexEnum = z
 	.enum(Object.values(SexCat) as [string, ...string[]])
@@ -23,8 +24,8 @@ const catNumberRegex = /^C([0-9][1-9]|[1-9]0)(0[1-9]|1[0-2])(00[1-9]|0[1-9][0-9]
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
 
-// ✅ Convertir les strings en booleans
-const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
+// ✅ Booléens de formulaire : voir booleanField (z.coerce.boolean transformait 'false' en true)
+const stringToBoolean = booleanField();
 
 export const createCatSchema = z.object({
 	catNumber: z
