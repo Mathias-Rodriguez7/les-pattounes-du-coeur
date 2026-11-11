@@ -526,7 +526,7 @@
 								<!-- Une ligne par demande : juste de quoi appeler l'adoptant (détail dans « Traiter ») -->
 								<!-- @container : sur une fiche étroite, le contact passe sous le nom -->
 								<ul
-									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-50 bg-amber-100"
+									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-100"
 								>
 									{#each pendingRequests as request (request.id)}
 										{@const answers = request.data as AdoptionFormJson}
