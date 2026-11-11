@@ -2,38 +2,18 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
 import { FormType, FormStatus, type Prisma } from '@prisma/client';
-import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
+import {
+	updateForm,
+	rejectForm,
+	assignVolunteer,
+	setFlexibleDispatcher
+} from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
 import { catPickerSelect } from '$lib/types/cat';
 import { myFormsWhere } from '$lib/server/permissions/form';
 import { createAdoptionAction } from '$lib/server/adoptions/actions';
-
-/** 🆕 Une demande, avec juste ce que les panneaux affichent */
-const formInclude = {
-	assignedTo: {
-		select: { id: true, profil: { select: { firstName: true, lastName: true } } }
-	},
-	cat: {
-		select: {
-			id: true,
-			name: true,
-			catNumber: true,
-			sex: true,
-			birthDate: true,
-			status: true,
-			// La référente en premier (la plus ancienne bénévole associée)
-			volunteers: {
-				orderBy: { createdAt: 'asc' },
-				select: {
-					volunteer: {
-						select: { id: true, profil: { select: { firstName: true, lastName: true } } }
-					}
-				}
-			}
-		}
-	}
-} satisfies Prisma.FormInclude;
+import { formInclude } from '$lib/types/form';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -203,6 +183,17 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur mise à jour form:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	rejectForm: async ({ request, locals }) => {
+		try {
+			const result = await rejectForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur refus demande:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},

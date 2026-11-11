@@ -1,4 +1,4 @@
-import type { FormStatus } from '@prisma/client';
+import type { FormStatus, Prisma } from '@prisma/client';
 
 export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'OTHER';
 
@@ -115,3 +115,35 @@ export type FormEditData<T extends AnyFormData = AnyFormData> = {
 	data: T;
 	notes?: string | null;
 };
+
+/**
+ * Une demande, avec juste ce que les panneaux affichent.
+ * Partagé : page Formulaires ET fiche du chat (les demandes en attente du chat)
+ */
+export const formInclude = {
+	assignedTo: {
+		select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+	},
+	cat: {
+		select: {
+			id: true,
+			name: true,
+			catNumber: true,
+			sex: true,
+			birthDate: true,
+			status: true,
+			// La référente en premier (la plus ancienne bénévole associée)
+			volunteers: {
+				orderBy: { createdAt: 'asc' },
+				select: {
+					volunteer: {
+						select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+					}
+				}
+			}
+		}
+	}
+} satisfies Prisma.FormInclude;
+
+/** Une demande telle que les panneaux la reçoivent (avec la bénévole assignée et le chat) */
+export type FormWithRelations = Prisma.FormGetPayload<{ include: typeof formInclude }>;

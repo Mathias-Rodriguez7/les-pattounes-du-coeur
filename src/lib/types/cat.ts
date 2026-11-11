@@ -15,6 +15,7 @@ import type {
 import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
 import { volunteerSecretFields } from '$lib/types/volunteer';
+import { formInclude } from '$lib/types/form';
 
 // ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
 // Jamais d'URL stockée : elle est calculée à partir de la storageKey.
@@ -38,12 +39,12 @@ export const catFullArgs = {
 		volunteers: {
 			include: { volunteer: { omit: volunteerSecretFields, include: { profil: true } } }
 		},
-		// Les demandes d'adoption en attente pour CE chat : pour les lier à une adoption
-		// créée depuis la fiche (le dialogue pré-remplit l'adoptant avec leurs données)
+		// Les demandes d'adoption en attente pour CE chat (demandes précises) :
+		// la fiche les affiche et permet de les traiter, comme la page Formulaires
 		forms: {
-			where: { status: 'PENDING', type: { in: ['ADOPTION_SPECIFIC', 'ADOPTION_FLEXIBLE'] } },
+			where: { status: 'PENDING', type: 'ADOPTION_SPECIFIC' },
 			orderBy: { createdAt: 'desc' },
-			select: { id: true, email: true, data: true, createdAt: true }
+			include: formInclude
 		},
 		// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 		adoptions: {

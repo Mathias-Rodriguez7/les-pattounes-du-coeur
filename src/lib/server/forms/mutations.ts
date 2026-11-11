@@ -327,3 +327,54 @@ export async function setFlexibleDispatcher({
 
 	return { success: true, message: 'Dispatcher flexible mis à jour' };
 }
+
+// ==========================================
+// REFUSER une demande d'adoption (avec la raison)
+// Ouvert à toute personne qui peut traiter la demande (pas seulement l'admin) :
+// la bénévole du chat doit pouvoir dire non, en expliquant pourquoi.
+// ==========================================
+const rejectFormSchema = z.object({
+	formId: z.uuid('Demande invalide'),
+	reason: z.string().trim().min(1, 'Indiquez la raison du refus').max(500, '500 caractères maximum')
+});
+
+export async function rejectForm({ request, locals }: { request: Request; locals: App.Locals }) {
+	if (!locals.user) return { success: false, error: 'Non authentifié' };
+
+	const parsed = rejectFormSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) {
+		return {
+			success: false,
+			error: 'Erreur de validation',
+			errors: parsed.error.flatten().fieldErrors
+		};
+	}
+	const { formId, reason } = parsed.data;
+
+	const form = await prisma.form.findUnique({
+		where: { id: formId },
+		select: { type: true, status: true, notes: true, assignedToId: true, catId: true }
+	});
+	if (!form || !form.type.startsWith('ADOPTION')) {
+		return { success: false, error: 'Demande introuvable' };
+	}
+	if (!(await canManageForm(locals.user, form))) {
+		return { success: false, error: "Vous n'êtes pas autorisée à traiter cette demande" };
+	}
+	// Une demande acceptée l'a été par une adoption : on ne la refuse pas après coup
+	if (form.status !== 'PENDING') {
+		return { success: false, error: 'Cette demande a déjà été traitée' };
+	}
+
+	// La raison s'AJOUTE aux notes existantes, datée
+	const today = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+	await prisma.form.update({
+		where: { id: formId },
+		data: {
+			status: 'REJECTED',
+			notes: [form.notes, `Refusée le ${today} : ${reason}`].filter(Boolean).join('\n')
+		}
+	});
+
+	return { success: true, message: 'Demande refusée' };
+}

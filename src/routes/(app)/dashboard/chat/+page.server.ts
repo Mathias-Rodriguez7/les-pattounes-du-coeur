@@ -24,6 +24,7 @@ import {
 import { finalizeAdoption } from '$lib/server/adoptions/mutations';
 import { finalizeAdoptionSchema } from '$lib/schemas/adoption';
 import { createAdoptionAction } from '$lib/server/adoptions/actions';
+import { updateForm, rejectForm } from '$lib/server/forms/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -440,6 +441,32 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCatMedia:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Demandes d'adoption du chat — mêmes fonctions que la page Formulaires
+	// (les panneaux envoient à ?/updateForm et ?/rejectForm : la page doit les avoir)
+	// ==========================================
+	updateForm: async ({ request, locals }) => {
+		try {
+			const result = await updateForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur mise à jour demande:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	rejectForm: async ({ request, locals }) => {
+		try {
+			const result = await rejectForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur refus demande:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},

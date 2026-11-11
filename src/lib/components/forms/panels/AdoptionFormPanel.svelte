@@ -4,7 +4,6 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import type { FormEditData, AdoptionFormData, AdoptionFormJson } from '$lib/types/form';
 	import {
 		FORM_SECTION_CONFIG,
 		statusColors,
@@ -16,14 +15,36 @@
 	import { formatDate } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Pencil } from '@lucide/svelte';
 	import { getSexIcon } from '$lib/utils/catHelpers';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 	import AdoptionCreateDialog from './AdoptionCreateDialog.svelte';
 	import CatPicker from '$lib/components/cats/CatPicker.svelte';
+	import type {
+		FormEditData,
+		AdoptionFormData,
+		AdoptionFormJson,
+		FormWithRelations
+	} from '$lib/types/form';
+	import type { VolunteerBasic } from '$lib/types/volunteer';
+	import type { CatPickerItem } from '$lib/types/cat';
+	import { ArrowLeft, Pencil } from '@lucide/svelte';
+	import RejectFormDialog from '../RejectFormDialog.svelte';
 
-	const { form, catData, volunteers = [], cats = [], canAssign = false } = $props();
+	interface Props {
+		form: FormWithRelations;
+		/** Le chat de la demande (demande précise) : form.cat */
+		catData?: FormWithRelations['cat'];
+		/** Pour assigner une demande libre (admin, répartitrice) */
+		volunteers?: VolunteerBasic[];
+		/** Les chats proposables pour une demande libre (CatPicker) */
+		cats?: CatPickerItem[];
+		canAssign?: boolean;
+		/** Présent quand le panneau est ouvert depuis la fiche du chat (bouton « Retour ») */
+		onClose?: () => void;
+	}
+
+	const { form, catData, volunteers = [], cats = [], canAssign = false, onClose }: Props = $props();
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
@@ -44,13 +65,6 @@
 	const assignedName = $derived(
 		form.assignedTo
 			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
-			: 'Non assigné'
-	);
-
-	// Infos du volunteer responsable du chat (depuis CatVolunteer)
-	const catVolunteerName = $derived(
-		catData?.volunteers?.[0]?.volunteer
-			? `${catData.volunteers[0].volunteer.profil.firstName} ${catData.volunteers[0].volunteer.profil.lastName}`
 			: 'Non assigné'
 	);
 
@@ -123,6 +137,12 @@
 			</Card.Content>
 		{:else}
 			<Card.Header>
+				{#if onClose}
+					<Button variant="ghost" size="sm" class="w-fit" onclick={onClose}>
+						<ArrowLeft class="size-4" />
+						Retour à la fiche du chat
+					</Button>
+				{/if}
 				<section class="flex justify-between gap-6">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">
@@ -163,16 +183,25 @@
 							<Pencil class="h-5 w-5" />
 						</Button>
 
-						{#if form.type === 'ADOPTION_SPECIFIC'}
-							<Button
-								type="button"
-								disabled={!adoptionCatId}
-								onclick={() => (showCreateDialog = true)}
-							>
-								Créer l'adoption
-							</Button>
-						{:else if form.type === 'ADOPTION_FLEXIBLE'}
-							<Button type="button" onclick={() => (showCatPicker = true)}>Choisir un chat</Button>
+						<!-- Une demande déjà acceptée ou refusée ne se traite plus -->
+						{#if form.status === 'PENDING'}
+							{#if form.type === 'ADOPTION_SPECIFIC'}
+								<Button
+									type="button"
+									disabled={!adoptionCatId}
+									onclick={() => (showCreateDialog = true)}
+								>
+									Créer l'adoption
+								</Button>
+							{:else if form.type === 'ADOPTION_FLEXIBLE'}
+								<Button type="button" onclick={() => (showCatPicker = true)}>
+									Choisir un chat
+								</Button>
+							{/if}
+							<RejectFormDialog
+								formId={form.id}
+								requesterName={`${adoptionData.firstName ?? ''} ${adoptionData.lastName ?? ''}`.trim()}
+							/>
 						{/if}
 					</div>
 				</section>
@@ -309,13 +338,6 @@
 									<p class="text-muted-foreground">Âge</p>
 									{getAgeBadge(catData.birthDate) || catData.birthDate}
 								</div>
-
-								{#if catData.volunteers && catData.volunteers.length > 0}
-									<div class="flex items-center justify-between">
-										<p class="text-xs text-muted-foreground">Responsable du chat</p>
-										<p class="font-medium">{catVolunteerName}</p>
-									</div>
-								{/if}
 							</div>
 						</SectionCard>
 					{:else if form.type === 'ADOPTION_FLEXIBLE'}
