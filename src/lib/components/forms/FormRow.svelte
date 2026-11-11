@@ -28,11 +28,15 @@
 		<Badge class={statusColors[form.status]?.color || 'bg-gray-100 text-gray-800'}>
 			{statusColors[form.status]?.label || form.status}
 		</Badge>
+		{#if form.blacklist}
+			<Badge class="mt-1 bg-red-100 text-red-700" title={form.blacklist.reason}>Liste noire</Badge>
+		{/if}
+	</Table.Cell>
+	<!-- Téléphone : colonne masquée, pour garder Type, Statut et Date lisibles -->
+	<Table.Cell class="hidden sm:table-cell">
+		<span class="text-sm text-muted-foreground">{assignedName}</span>
 	</Table.Cell>
 	<Table.Cell>
-		<span class="text-muted-foreground text-sm">{assignedName}</span>
-	</Table.Cell>
-	<Table.Cell>
-		<span class="text-muted-foreground text-sm">{formatDateNum(form.createdAt)}</span>
+		<span class="text-sm text-muted-foreground">{formatDateNum(form.createdAt)}</span>
 	</Table.Cell>
 </Table.Row>

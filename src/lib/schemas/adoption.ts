@@ -27,12 +27,52 @@ export const createAdoptionSchema = z.object({
 
 	// Adoption
 	catId: z.uuid('ID de chat invalide'), // obligatoire pour créer une adoption
-	formId: z.uuid('ID de formulaire invalide')
+	// Facultatif : une adoption peut se faire sans demande (adoptant rencontré hors du site).
+	// Un champ caché vide arrive comme '' : on le traite comme « pas de demande »
+	formId: z
+		.union([z.uuid('ID de formulaire invalide'), z.literal('').transform(() => undefined)])
+		.optional()
+});
+
+// Côté serveur : la même chose, PLUS le contrat (déjà envoyé sur S3 par le navigateur)
+export const createAdoptionWithContractSchema = createAdoptionSchema.extend({
+	mediaStorageKey: z.string().min(1, 'Le contrat est obligatoire').max(500),
+	mediaOriginalName: z.string().max(255).nullish(),
+	// Adoptant sur liste noire : l'admin coche « J'ai pris connaissance… » pour passer outre
+	// (la case envoie 'true' ou 'false' ; absente quand l'adoptant n'est pas sur liste noire)
+	blacklistOverride: z.enum(['true', 'false']).optional()
 });
 
 export const updateAdoptionSchema = createAdoptionSchema.partial().extend({
 	adoptionId: z.uuid('ID invalide')
 });
+
+// Finaliser : la case « Stérilisation vérifiée » est obligatoire
+export const finalizeAdoptionSchema = z.object({
+	adoptionId: z.uuid('ID invalide'),
+	sterilizationChecked: z.literal('true', 'Confirmez que la stérilisation a été vérifiée')
+});
+
+// Annuler une adoption (retour du chat) : le chat repasse disponible OU en socialisation.
+// La raison et le document de retour sont facultatifs.
+export const cancelAdoptionSchema = z.object({
+	adoptionId: z.uuid('ID invalide'),
+	catStatus: z.enum(['AVAILABLE', 'SOCIALIZE'], 'Choisissez le nouveau statut du chat'),
+	reason: z
+		.string()
+		.trim()
+		.max(1000, '1000 caractères maximum')
+		.optional()
+		.transform((value) => value || undefined),
+	mediaStorageKey: z
+		.string()
+		.max(500)
+		.optional()
+		.transform((value) => value || undefined),
+	mediaOriginalName: z.string().max(255).nullish()
+});
+
+export type CancelAdoptionInput = z.infer<typeof cancelAdoptionSchema>;
 
 // ✅ Types TypeScript corrects
 export type CreateAdoptionInput = z.infer<typeof createAdoptionSchema>;

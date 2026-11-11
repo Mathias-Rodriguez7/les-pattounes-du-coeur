@@ -22,7 +22,7 @@
 		catId: string;
 		volunteers: VolunteerBasic[];
 		assignedVolunteerIds: string[];
-		onSuccess?: (catVolunteer: any) => void;
+		onSuccess?: (catVolunteer: unknown) => void;
 	}
 
 	let { catId, volunteers, assignedVolunteerIds, onSuccess }: Props = $props();

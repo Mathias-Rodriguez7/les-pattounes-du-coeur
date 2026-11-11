@@ -1,6 +1,13 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
+import type { Pathname } from '$app/types';
+
+/**
+ * Un lien du dashboard : uniquement une route qui EXISTE (TypeScript le vérifie).
+ * Avant, beaucoup de liens menaient à des pages inexistantes (/dashboard/fa, /dashboard/formulaire…).
+ */
+const link = (path: Pathname): Pathname => path;
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -24,28 +31,28 @@ export const load: PageServerLoad = async ({ locals }) => {
 				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
-				href: '/dashboard/chat'
+				href: link('/dashboard/chat')
 			},
 			{
 				label: 'Famille d’accueil',
 				description: 'Ajouter une FA',
 				icon: 'house',
 				iconTheme: 'fa',
-				href: '/dashboard/fa'
+				href: link('/dashboard/famille_d_accueil')
 			},
 			{
 				label: 'Bénévole',
 				description: 'Ajouter un bénévole',
 				icon: 'users',
 				iconTheme: 'volunteers',
-				href: '/dashboard/benevole'
+				href: link('/dashboard/benevole')
 			},
 			{
 				label: 'Formulaires',
 				description: 'Traiter les formulaires',
 				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/dashboard/formulaire'
+				href: link('/dashboard/forms')
 			}
 		];
 
@@ -55,14 +62,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
-				href: '/cats/new'
+				href: link('/dashboard/chat')
 			},
 			{
 				label: 'Formulaires',
 				description: 'Traiter mes formulaires',
 				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/dashboard/formulaire'
+				href: link('/dashboard/forms')
 			}
 		];
 
@@ -72,21 +79,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 				description: 'Ajouter un chat',
 				icon: 'cat',
 				iconTheme: 'cats',
-				href: '/cats/new'
+				href: link('/dashboard/chat')
 			},
 			{
 				label: 'News',
 				description: 'Ajouter une News',
 				icon: 'pen',
 				iconTheme: 'news',
-				href: '/dashboard/news/new'
+				href: link('/dashboard/news')
 			},
 			{
 				label: 'Formulaires',
 				description: 'Traiter mes formulaires',
 				icon: 'clipboard',
 				iconTheme: 'pending',
-				href: '/dashboard/formulaire'
+				href: link('/dashboard/forms')
 			}
 		];
 
@@ -239,7 +246,7 @@ async function getAdminTasks() {
 					label: 'Chat sans FA',
 					description: 'À placer',
 					value: catsWithoutFA,
-					href: '/dashboard/chats'
+					href: link('/dashboard/chat')
 				}
 			]
 		},
@@ -252,13 +259,13 @@ async function getAdminTasks() {
 					label: 'Actives sans chat',
 					description: 'À assigner',
 					value: activeHostsWithoutCat,
-					href: '/dashboard/fa'
+					href: link('/dashboard/famille_d_accueil')
 				},
 				{
 					label: 'En pause',
 					description: 'À réactiver',
 					value: inactiveHosts,
-					href: '/dashboard/fa?filter=inactive'
+					href: link('/dashboard/famille_d_accueil')
 				}
 			]
 		},
@@ -271,13 +278,13 @@ async function getAdminTasks() {
 					label: 'Actifs sans chat',
 					description: 'À assigner',
 					value: activeVolunteersWithoutCat,
-					href: '/dashboard/benevoles'
+					href: link('/dashboard/benevole')
 				},
 				{
 					label: 'En pause',
 					description: 'À réactiver',
 					value: pausedVolunteers,
-					href: '/dashboard/benevoles?filter=inactive'
+					href: link('/dashboard/benevole')
 				}
 			]
 		},
@@ -290,13 +297,13 @@ async function getAdminTasks() {
 					label: 'FA',
 					description: 'À traiter',
 					value: pendingHostForms,
-					href: '/dashboard/formulaire?type=HOST'
+					href: link('/dashboard/forms')
 				},
 				{
 					label: 'Bénévoles',
 					description: 'À traiter',
 					value: pendingVolunteerForms,
-					href: '/dashboard/formulaire?type=VOLUNTEER'
+					href: link('/dashboard/forms')
 				}
 			]
 		}
@@ -374,13 +381,13 @@ async function getManagerTasks(volunteerId: string) {
 					label: 'Chats en gestion',
 					description: 'Total suivi',
 					value: totalCats,
-					href: '/dashboard/mes-chats'
+					href: link('/dashboard/chat')
 				},
 				{
 					label: 'Fiches incomplètes',
 					description: 'À compléter',
 					value: incompleteCats,
-					href: '/dashboard/mes-chats?filter=incomplete'
+					href: link('/dashboard/chat')
 				}
 			]
 		},
@@ -393,13 +400,13 @@ async function getManagerTasks(volunteerId: string) {
 					label: 'Formulaires bénévoles',
 					description: 'En attente de traitement',
 					value: assignedPendingVolunteerForms,
-					href: '/dashboard/formulaire?assigned=true'
+					href: link('/dashboard/forms')
 				},
 				{
 					label: 'Formulaires FA',
 					description: 'En attente de traitement',
 					value: assignedPendingHostForms,
-					href: '/dashboard/formulaire?assigned=true&type=HOST'
+					href: link('/dashboard/forms')
 				}
 			]
 		}
@@ -505,13 +512,13 @@ async function getCommunicationTasks(volunteerId: string) {
 					label: 'Chats en gestion',
 					description: 'Total suivi',
 					value: totalCats,
-					href: '/dashboard/mes-chats'
+					href: link('/dashboard/chat')
 				},
 				{
 					label: 'Fiches incomplètes',
 					description: 'À compléter',
 					value: incompleteCats,
-					href: '/dashboard/mes-chats?filter=incomplete'
+					href: link('/dashboard/chat')
 				}
 			]
 		},
@@ -524,13 +531,13 @@ async function getCommunicationTasks(volunteerId: string) {
 					label: 'News ce mois',
 					description: 'Créées ce mois-ci',
 					value: newsThisMonth,
-					href: '/dashboard/news?type=NEWS'
+					href: link('/dashboard/news')
 				},
 				{
 					label: 'Newsletters',
 					description: 'Créées ce mois-ci',
 					value: newslettersThisMonth,
-					href: '/dashboard/news?type=NEWSLETTER'
+					href: link('/dashboard/news')
 				}
 			]
 		},
@@ -543,13 +550,13 @@ async function getCommunicationTasks(volunteerId: string) {
 					label: 'Formulaires bénévoles',
 					description: 'En attente de traitement',
 					value: assignedPendingVolunteerForms,
-					href: '/dashboard/formulaire?assigned=true'
+					href: link('/dashboard/forms')
 				},
 				{
 					label: 'Formulaires FA',
 					description: 'En attente de traitement',
 					value: assignedPendingHostForms,
-					href: '/dashboard/formulaire?assigned=true&type=HOST'
+					href: link('/dashboard/forms')
 				}
 			]
 		}
@@ -563,7 +570,8 @@ async function getCommunicationTasks(volunteerId: string) {
 async function getTasksByRole(role: string, volunteerId: string) {
 	if (role === 'ADMIN') {
 		return {
-			adminTasks: await getAdminTasks(volunteerId),
+			// Les tâches admin concernent toute l'association : pas de volunteerId
+			adminTasks: await getAdminTasks(),
 			managerTasks: await getManagerTasks(volunteerId)
 		};
 	} else if (role === 'MANAGER') {

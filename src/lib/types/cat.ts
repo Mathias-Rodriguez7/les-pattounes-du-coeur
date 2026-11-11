@@ -15,6 +15,7 @@ import type {
 import type { PlacementFull } from './placement';
 import type { HostBasic } from '$lib/types/host';
 import { volunteerSecretFields } from '$lib/types/volunteer';
+import { formInclude, type FormWithBlacklist } from '$lib/types/form';
 
 // ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
 // Jamais d'URL stockée : elle est calculée à partir de la storageKey.
@@ -37,6 +38,13 @@ export const catFullArgs = {
 		},
 		volunteers: {
 			include: { volunteer: { omit: volunteerSecretFields, include: { profil: true } } }
+		},
+		// Les demandes d'adoption en attente pour CE chat (demandes précises) :
+		// la fiche les affiche et permet de les traiter, comme la page Formulaires
+		forms: {
+			where: { status: 'PENDING', type: 'ADOPTION_SPECIFIC' },
+			orderBy: { createdAt: 'desc' },
+			include: formInclude
 		},
 		// Toutes les adoptions (en cours et annulées), la plus récente d'abord
 		adoptions: {
@@ -70,9 +78,11 @@ export const catFullArgs = {
 	}
 } satisfies Prisma.CatDefaultArgs;
 
-export type CatFull = Prisma.CatGetPayload<typeof catFullArgs> & {
+export type CatFull = Omit<Prisma.CatGetPayload<typeof catFullArgs>, 'forms'> & {
 	/** Calculé par le load de la page Chats : la bénévole connectée est-elle associée au chat ? */
 	isMine?: boolean;
+	/** Les demandes en attente, avec leur éventuelle liste noire (ajoutée par le load) */
+	forms?: FormWithBlacklist[];
 };
 
 // ✅ Select réutilisable pour la liste (source unique de vérité)
@@ -187,6 +197,20 @@ export const catPublicSelect = {
 } satisfies Prisma.CatSelect;
 
 export type CatPublic = Prisma.CatGetPayload<{ select: typeof catPublicSelect }>;
+
+// Un chat dans CatPicker (choix d'un chat pour une demande d'adoption libre)
+export const catPickerSelect = {
+	id: true,
+	name: true,
+	catNumber: true,
+	sex: true,
+	birthDate: true,
+	color: true,
+	hairLength: true,
+	description: true
+} satisfies Prisma.CatSelect;
+
+export type CatPickerItem = Prisma.CatGetPayload<{ select: typeof catPickerSelect }>;
 
 // ✅ Type pour mettre à jour un chat
 export type CatUpdateInput = Partial<CatEditData>;

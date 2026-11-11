@@ -3,6 +3,7 @@ import prisma from '$lib/server/prisma';
 import type { UploadPurpose } from '$lib/media/rules';
 import { UPLOAD_PURPOSE_CONFIG } from './purposes';
 import { verifyUpload, deleteFiles } from '$lib/server/storage';
+import type { AppUser } from '$lib/types/user';
 
 /** Les champs d'une ligne Media, prêts pour un `create` imbriqué */
 export type MediaData = {
@@ -55,4 +56,61 @@ export async function deleteMedia(
 
 	await prisma.media.deleteMany({ where: { id: { in: medias.map((m) => m.id) } } });
 	await deleteFiles(medias.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate })));
+}
+
+/**
+ * Supprime des fichiers envoyés sur S3 mais jamais rattachés à une entité
+ * (la création a échoué, ou la demande a été refusée après l'envoi).
+ *
+ * À appeler APRÈS avoir vérifié le droit sur la cible (chat, news…).
+ * Les clés viennent du navigateur : on ne les croit pas sur parole.
+ * - on ne garde que les clés du dossier attendu (pas le fichier d'un autre chat) ;
+ * - on écarte celles qu'une ligne Media utilise (de vrais documents : on n'y touche pas).
+ *
+ * Ne lève jamais d'erreur : un nettoyage raté ne doit pas cacher l'erreur d'origine.
+ */
+export async function discardUploads(
+	purpose: UploadPurpose,
+	storageKeys: string[],
+	targetId = ''
+): Promise<void> {
+	if (storageKeys.length === 0) return;
+	const config = UPLOAD_PURPOSE_CONFIG[purpose];
+	const folder = `${config.folder(targetId)}/`;
+
+	try {
+		const inFolder = storageKeys.filter((key) => key.startsWith(folder) && !key.includes('..'));
+		if (inFolder.length === 0) return;
+
+		// Une seule requête pour toutes les clés
+		const used = await prisma.media.findMany({
+			where: { storageKey: { in: inFolder } },
+			select: { storageKey: true }
+		});
+		const usedKeys = new Set(used.map((m) => m.storageKey));
+		const orphans = inFolder.filter((key) => !usedKeys.has(key));
+
+		await deleteFiles(orphans.map((storageKey) => ({ storageKey, isPrivate: config.isPrivate })));
+	} catch (error) {
+		console.error('discardUploads : nettoyage impossible', error);
+	}
+}
+
+/**
+ * La même chose pour UN fichier, quand le droit n'a pas encore été vérifié
+ * (ex. : l'action d'adoption refuse la demande avant de contrôler le chat).
+ */
+export async function discardUpload(
+	user: AppUser,
+	purpose: UploadPurpose,
+	storageKey: string,
+	targetId = ''
+): Promise<void> {
+	try {
+		if (!(await UPLOAD_PURPOSE_CONFIG[purpose].canUpload(user, targetId))) return;
+	} catch (error) {
+		console.error('discardUpload : vérification du droit impossible', error);
+		return;
+	}
+	await discardUploads(purpose, [storageKey], targetId);
 }

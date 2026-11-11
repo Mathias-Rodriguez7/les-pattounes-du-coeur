@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import type { PageData } from '../../routes/dashboard/$types';
+	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 
@@ -51,7 +51,7 @@
 	]);
 </script>
 
-<section class="border-border bg-card flex flex-col gap-0 overflow-hidden rounded-2xl border">
+<section class="flex flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card">
 	{#each overviewItems as item, index (item.id)}
 		<div class="flex flex-1 flex-col px-6 py-4">
 			<div class="flex items-center justify-between">

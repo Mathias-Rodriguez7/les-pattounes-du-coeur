@@ -21,6 +21,12 @@ import {
 	deleteCatMedia,
 	updateCatMediaFocalPoint
 } from '$lib/server/catMedia/mutations';
+import { finalizeAdoption, cancelAdoption } from '$lib/server/adoptions/mutations';
+import { finalizeAdoptionSchema, cancelAdoptionSchema } from '$lib/schemas/adoption';
+import { prepareMedia, discardUpload, type MediaData } from '$lib/server/media/mutations';
+import { createAdoptionAction } from '$lib/server/adoptions/actions';
+import { attachBlacklist, findActiveBlacklists } from '$lib/server/accountStatus';
+import { updateForm, rejectForm } from '$lib/server/forms/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -90,8 +96,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
+		// Les demandes en attente de chaque chat, avec leur éventuelle liste noire :
+		// UNE requête pour tous les emails (pas une par chat)
+		const blacklists = await findActiveBlacklists(
+			cats.flatMap((cat) => cat.forms.map((form) => form.email))
+		);
 		const catsWithOwnership = cats.map((cat) => ({
 			...cat,
+			forms: cat.forms.map((form) => attachBlacklist(form, blacklists)),
 			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
 		}));
 
@@ -370,6 +382,78 @@ export const actions: Actions = {
 	},
 
 	// ==========================================
+	// ACTION: Adoption — annulation (retour du chat), même après une adoption définitive
+	// ==========================================
+	cancelAdoption: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non autorisé' });
+		}
+		const user = locals.user;
+
+		const parsed = cancelAdoptionSchema.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success) {
+			return fail(400, {
+				success: false,
+				error: 'Erreur de validation',
+				errors: parsed.error.flatten().fieldErrors
+			});
+		}
+		const { adoptionId, mediaStorageKey, mediaOriginalName } = parsed.data;
+
+		// Le droit se vérifie sur le chat de l'adoption, lu en base (pas envoyé par le navigateur).
+		// (Sans ce droit, l'envoi du document sur S3 a déjà été refusé : rien à nettoyer.)
+		const adoption = await prisma.adoption.findUnique({
+			where: { id: adoptionId },
+			select: { catId: true }
+		});
+		if (!adoption || !(await canManageCat(user, adoption.catId))) {
+			return fail(403, {
+				success: false,
+				error: "Vous n'avez pas le droit d'annuler cette adoption"
+			});
+		}
+
+		// Document de retour facultatif : supprimé de S3 s'il n'a pas été rattaché (même logique
+		// que la création d'adoption)
+		let documentAttached = false;
+		try {
+			let returnDocument: MediaData | null = null;
+			if (mediaStorageKey) {
+				const prepared = await prepareMedia(
+					'catDocument',
+					{ storageKey: mediaStorageKey, originalName: mediaOriginalName },
+					adoption.catId
+				);
+				if (!prepared.ok) {
+					return fail(400, {
+						success: false,
+						error: prepared.error,
+						errors: { media: [prepared.error] }
+					});
+				}
+				returnDocument = prepared.data;
+			}
+
+			try {
+				await cancelAdoption(parsed.data, returnDocument);
+				documentAttached = true;
+				return {
+					success: true,
+					message: "Adoption annulée. Pensez à trouver une famille d'accueil au chat."
+				};
+			} catch (error) {
+				// Les messages de cancelAdoption sont écrits pour l'utilisatrice
+				const message = error instanceof Error ? error.message : 'Erreur inconnue';
+				return fail(400, { success: false, error: message });
+			}
+		} finally {
+			if (mediaStorageKey && !documentAttached) {
+				await discardUpload(user, 'catDocument', mediaStorageKey, adoption.catId);
+			}
+		}
+	},
+
+	// ==========================================
 	// ACTION: care du chat
 	// ==========================================
 	createCare: async ({ request, locals }) => {
@@ -438,6 +522,80 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Erreur deleteCatMedia:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Demandes d'adoption du chat — mêmes fonctions que la page Formulaires
+	// (les panneaux envoient à ?/updateForm et ?/rejectForm : la page doit les avoir)
+	// ==========================================
+	updateForm: async ({ request, locals }) => {
+		try {
+			const result = await updateForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur mise à jour demande:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	rejectForm: async ({ request, locals }) => {
+		try {
+			const result = await rejectForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur refus demande:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Adoption — depuis la fiche du chat
+	// ==========================================
+	createAdoption: createAdoptionAction,
+
+	finalizeAdoption: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non autorisé' });
+		}
+
+		const parsed = finalizeAdoptionSchema.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success) {
+			return fail(400, {
+				success: false,
+				error: 'Erreur de validation',
+				errors: parsed.error.flatten().fieldErrors
+			});
+		}
+		const { adoptionId } = parsed.data;
+
+		// Le droit se vérifie sur le chat de l'adoption, lu en base (pas envoyé par le navigateur)
+		const adoption = await prisma.adoption.findUnique({
+			where: { id: adoptionId },
+			select: { catId: true }
+		});
+		if (!adoption || !(await canManageCat(locals.user, adoption.catId))) {
+			return fail(403, {
+				success: false,
+				error: "Vous n'avez pas le droit de finaliser cette adoption"
+			});
+		}
+
+		try {
+			const { removedCount } = await finalizeAdoption(adoptionId);
+			const removedMessage =
+				removedCount === 0
+					? ''
+					: removedCount === 1
+						? ' 1 média de la galerie a été supprimé.'
+						: ` ${removedCount} médias de la galerie ont été supprimés.`;
+			return { success: true, message: `Adoption définitive 🎉${removedMessage}` };
+		} catch (error) {
+			// Les messages de finalizeAdoption sont écrits pour l'utilisatrice
+			const message = error instanceof Error ? error.message : 'Erreur inconnue';
+			return fail(400, { success: false, error: message });
 		}
 	}
 };

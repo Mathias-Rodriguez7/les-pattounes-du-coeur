@@ -357,8 +357,11 @@ model Adoption {
   profilId  String @db.Uuid @map("profil_id")
   profil    Profil @relation(fields: [profilId], references: [id])
 
-  status    AdoptionStatus @default(ACTIVE) // 🆕
-  endDate   DateTime? @map("end_date") @db.Date // 🆕 date d'annulation / de retour
+  status      AdoptionStatus @default(TRIAL)
+  trialEndsAt DateTime       @map("trial_ends_at") @db.Date
+  finalizedAt DateTime?      @map("finalized_at") @db.Date
+  endDate     DateTime?      @map("end_date") @db.Date // date d'annulation / de retour
+  cancelReason String?     @map("cancel_reason") @db.Text // pourquoi l'adoption a été annulée (facultatif)
 
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
@@ -368,6 +371,7 @@ model Adoption {
   // 🔁 Plus de @@unique([catId]) : un chat peut être adopté à nouveau après un retour.
   // "Une seule adoption ACTIVE par chat" est vérifié dans la mutation (transaction).
   @@index([catId])
+  @@index([status, trialEndsAt])
 }
 
 //////////////////////////
@@ -547,8 +551,9 @@ enum MediaType {
 
 // 🆕
 enum AdoptionStatus {
-  ACTIVE
-  CANCELLED
+  TRIAL      // période d'essai (6 mois) : l'association reste propriétaire
+  FINAL      // stérilisation vérifiée, propriétaire changé
+  CANCELLED  // le chat est revenu
 }
 
 // 🆕

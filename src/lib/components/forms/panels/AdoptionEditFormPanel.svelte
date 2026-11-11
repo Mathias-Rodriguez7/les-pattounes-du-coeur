@@ -93,7 +93,12 @@
 </script>
 
 {#if editData && editData.data}
-	<form method="POST" action="?/updateForm" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<form
+		method="POST"
+		action="?/updateForm"
+		use:enhance={handleUpdateEnhance}
+		class="@container space-y-6"
+	>
 		<!-- 🔑 HIDDEN INPUTS -->
 		<input type="hidden" name="formId" value={formId} />
 		<input type="hidden" name="status" value={editData.status} />
@@ -110,13 +115,13 @@
 		</div>
 
 		<!-- 📋 SECTION 1: Infos Personnelles -->
-		<section class="grid grid-cols-7 gap-4">
+		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-7">
 			<!-- Profil Candidat -->
 			<SectionCard
 				icon={ADOPTION_SECTION_CONFIG.profile.icon}
 				title={ADOPTION_SECTION_CONFIG.profile.label}
 				color={ADOPTION_SECTION_CONFIG.profile.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="space-y-4">
 					<div class="grid grid-cols-2 gap-4">
@@ -159,7 +164,7 @@
 				icon={ADOPTION_SECTION_CONFIG.contact.icon}
 				title={ADOPTION_SECTION_CONFIG.contact.label}
 				color={ADOPTION_SECTION_CONFIG.contact.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="grid gap-2">
 					<InputField
@@ -191,7 +196,7 @@
 				icon={ADOPTION_SECTION_CONFIG.address.icon}
 				title={ADOPTION_SECTION_CONFIG.address.label}
 				color={ADOPTION_SECTION_CONFIG.address.color}
-				class="col-span-3"
+				class="@2xl:col-span-3"
 			>
 				<div class="space-y-4">
 					<InputField
@@ -251,7 +256,7 @@
 				color={ADOPTION_SECTION_CONFIG.cat.color}
 			>
 				<div class="grid gap-4">
-					<div class="grid grid-cols-4 gap-2">
+					<div class="grid grid-cols-2 gap-2 @2xl:grid-cols-4">
 						<SelectField
 							id="catAge"
 							name="catAge"
@@ -305,12 +310,12 @@
 		<Separator />
 
 		<!-- 🏠 SECTION 4: Logement -->
-		<section class="grid grid-cols-3 gap-4">
+		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-3">
 			<SectionCard
 				icon={ADOPTION_SECTION_CONFIG.home.icon}
 				title={ADOPTION_SECTION_CONFIG.home.label}
 				color={ADOPTION_SECTION_CONFIG.home.color}
-				class="col-span-1"
+				class="@2xl:col-span-1"
 			>
 				<div class="space-y-4">
 					<InputField
@@ -356,7 +361,7 @@
 				icon={ADOPTION_SECTION_CONFIG.foyer.icon}
 				title={ADOPTION_SECTION_CONFIG.foyer.label}
 				color={ADOPTION_SECTION_CONFIG.foyer.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="space-y-4">
 					<div class="grid grid-cols-2 gap-2">

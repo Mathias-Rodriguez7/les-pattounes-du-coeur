@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Placement } from '$lib/types/';
+	import type { Cat, Placement } from '@prisma/client';
 	import { formatDateNum } from '$lib/utils/date';
 	import {
 		PLACEMENT_TYPE_COLORS,
@@ -8,7 +8,8 @@
 	} from '$lib/constants/placement';
 
 	interface Props {
-		placement: Placement;
+		/** Le placement, avec le nom du chat (chargé par la fiche de la FA) */
+		placement: Placement & { cat?: Pick<Cat, 'name'> | null };
 		isHistory?: boolean;
 	}
 

@@ -72,7 +72,7 @@
 					{babyFeedingColors[host.babyFeeding]?.label ?? host.babyFeeding}
 				</Badge>
 			{:else if col.id === 'isAvailable' || col.id === 'outside' || col.id === 'car' || col.id === 'isStockFeed'}
-				<BooleanIcon value={renderCell(col)} />
+				<BooleanIcon value={renderCell(col) === true} />
 			{:else}
 				{renderCell(col)}
 			{/if}

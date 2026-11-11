@@ -20,8 +20,8 @@ const babyFeedingEnum = z
 	.transform((val) => val as BabyFeeding);
 
 // ✅ Convertir les strings en dates
-const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
-
+// Chaîne 'AAAA-MM-JJ' (navigateur) OU Date (superforms la convertit côté serveur)
+const stringToDate = z.union([z.string(), z.date()]).pipe(z.coerce.date()).nullable().optional();
 // ✅ Convertir les strings en booleans
 const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
 
@@ -96,7 +96,12 @@ export const hostStep4Schema = z.object({
 // REFINEMENTS LOGIC
 //
 
-const hostFormRefinements = (data: any, ctx: any) => {
+// Partial : la même logique sert au formulaire complet ET au schéma de mise à jour (champs facultatifs).
+// Le type vient du schéma : un champ renommé devient une erreur TypeScript ici.
+const hostFormRefinements = (
+	data: Partial<z.infer<typeof hostFormSchemaBase>>,
+	ctx: z.RefinementCtx
+) => {
 	// VALIDATION OUTSIDE
 	if (data.outside && !data.outsideDescription?.trim()) {
 		ctx.addIssue({

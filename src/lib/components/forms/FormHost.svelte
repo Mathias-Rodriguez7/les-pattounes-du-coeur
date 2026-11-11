@@ -38,7 +38,8 @@
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
+				// Erreur de validation : on affiche l'étape concernée
+				if (result.status === 400) goToFirstStepWithError(get(errors));
 				toast.error(
 					result.status === 400
 						? 'Veuillez corriger les erreurs du formulaire'
@@ -85,6 +86,17 @@
 
 	function prevStep() {
 		if (step > 1) step--;
+	}
+
+	// Les champs de chaque étape (ceux de son schéma) : pour retrouver où est une erreur
+	const stepSchemas = [hostStep1Schema, hostStep2Schema, hostStep3Schema, hostStep4Schema];
+
+	/** Affiche la première étape qui contient une erreur (sinon, l'erreur serait cachée) */
+	function goToFirstStepWithError(fieldErrors: Record<string, unknown>) {
+		const index = stepSchemas.findIndex((schema) =>
+			Object.keys(schema.shape).some((field) => fieldErrors[field])
+		);
+		if (index !== -1) step = index + 1;
 	}
 
 	// DatePicker manipule un Date, le schéma attend 'YYYY-MM-DD'

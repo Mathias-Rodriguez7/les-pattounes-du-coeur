@@ -1,11 +1,10 @@
 import type { QuickAdoptionForm } from '../../quickAdoptionForm';
+import type { FormOverride } from '../types';
 
 export function makeValidQuickAdoptionForm(
-	override: Partial<QuickAdoptionForm> = {}
+	override: FormOverride<QuickAdoptionForm> = {}
 ): QuickAdoptionForm {
 	return {
-		catId: crypto.randomUUID(),
-
 		// STEP 1
 		firstName: 'Jean',
 		lastName: 'Dupont',
@@ -28,5 +27,5 @@ export function makeValidQuickAdoptionForm(
 		numberOfChildren: 0,
 
 		...override
-	};
+	} as QuickAdoptionForm;
 }

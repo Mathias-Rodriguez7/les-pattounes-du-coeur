@@ -1,6 +1,7 @@
 import type { ColabFormData } from '../../colabForm';
+import type { FormOverride } from '../types';
 
-export function makeValidColabForm(override: Partial<ColabFormData> = {}): ColabFormData {
+export function makeValidColabForm(override: FormOverride<ColabFormData> = {}): ColabFormData {
 	return {
 		// STEP 1
 		firstName: 'Jean',
@@ -15,5 +16,5 @@ export function makeValidColabForm(override: Partial<ColabFormData> = {}): Colab
 			'Nous souhaitons proposer une collaboration autour de projets digitaux innovants.',
 
 		...override
-	};
+	} as ColabFormData;
 }

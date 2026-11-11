@@ -91,7 +91,12 @@
 </script>
 
 {#if editData && editData.data}
-	<form method="POST" action="?/updateForm" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<form
+		method="POST"
+		action="?/updateForm"
+		use:enhance={handleUpdateEnhance}
+		class="@container space-y-6"
+	>
 		<!-- 🔑 HIDDEN INPUTS -->
 		<input type="hidden" name="formId" value={formId} />
 		<input type="hidden" name="status" value={editData.status} />
@@ -108,12 +113,12 @@
 		</div>
 
 		<!-- 📋 SECTION 1: Infos Personnelles -->
-		<section class="grid grid-cols-7 gap-4">
+		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-7">
 			<SectionCard
 				icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
 				title={VOLUNTEER_SECTION_CONFIG.profile.label}
 				color={VOLUNTEER_SECTION_CONFIG.profile.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="space-y-4">
 					<div class="grid grid-cols-2 gap-4">
@@ -155,7 +160,7 @@
 				icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
 				title={VOLUNTEER_SECTION_CONFIG.contact.label}
 				color={VOLUNTEER_SECTION_CONFIG.contact.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="grid gap-2">
 					<InputField
@@ -187,7 +192,7 @@
 				icon={VOLUNTEER_SECTION_CONFIG.address.icon}
 				title={VOLUNTEER_SECTION_CONFIG.address.label}
 				color={VOLUNTEER_SECTION_CONFIG.address.color}
-				class="col-span-3"
+				class="@2xl:col-span-3"
 			>
 				<div class="space-y-4">
 					<InputField
@@ -240,7 +245,7 @@
 		<Separator />
 
 		<!-- 🏆 SECTION 2: Expérience & Disponibilités -->
-		<section class="grid grid-cols-3 gap-4">
+		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-3">
 			<SectionCard
 				icon={VOLUNTEER_SECTION_CONFIG.experience.icon}
 				title={VOLUNTEER_SECTION_CONFIG.experience.label}

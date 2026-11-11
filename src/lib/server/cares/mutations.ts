@@ -4,8 +4,7 @@ import type { CareType, Prisma, Vaccinate } from '@prisma/client';
 import prisma from '$lib/server/prisma';
 import { createCareSchema } from '$lib/schemas/care';
 import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
+import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
 
 const MAX_DOCUMENTS = 5;
 
@@ -95,7 +94,7 @@ export async function createCare({
 	const names = formData.getAll('mediaOriginalName').map(String);
 
 	if (keys.length > MAX_DOCUMENTS) {
-		await deleteFiles(keys.map((storageKey) => ({ storageKey, isPrivate: true })));
+		await discardUploads('careDocument', keys, catId);
 		return { success: false, error: `${MAX_DOCUMENTS} documents maximum par soin` };
 	}
 
@@ -109,7 +108,7 @@ export async function createCare({
 	const failed = prepared.find((p) => !p.ok);
 	if (failed && !failed.ok) {
 		// Un fichier refusé : on supprime aussi les autres, sinon ils resteraient orphelins
-		await deleteFiles(keys.map((storageKey) => ({ storageKey, isPrivate: true })));
+		await discardUploads('careDocument', keys, catId);
 		return { success: false, error: failed.error, errors: { media: [failed.error] } };
 	}
 
@@ -141,7 +140,7 @@ export async function createCare({
 		});
 	} catch (error) {
 		console.error('Erreur création soin:', error);
-		await deleteFiles(medias.map(({ storageKey }) => ({ storageKey, isPrivate: true })));
+		await discardUploads('careDocument', keys, catId);
 		return { success: false, error: "Erreur lors de l'enregistrement du soin" };
 	}
 

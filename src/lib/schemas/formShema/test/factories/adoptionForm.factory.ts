@@ -1,9 +1,10 @@
 import type { z } from 'zod';
-import { adoptionFormSchema } from '../../adoptionForm';
+import type { adoptionFormSchema } from '../../adoptionForm';
+import type { FormOverride } from '../types';
 
 type AdoptionInput = z.input<typeof adoptionFormSchema>;
 
-export function makeValidAdoptionForm(override: Partial<AdoptionInput> = {}): AdoptionInput {
+export function makeValidAdoptionForm(override: FormOverride<AdoptionInput> = {}): AdoptionInput {
 	return {
 		firstName: 'Jean',
 		lastName: 'Dupont',
@@ -30,5 +31,5 @@ export function makeValidAdoptionForm(override: Partial<AdoptionInput> = {}): Ad
 		numberOfChildren: 0,
 
 		...override
-	};
+	} as AdoptionInput;
 }

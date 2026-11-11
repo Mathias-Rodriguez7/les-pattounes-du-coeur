@@ -7,6 +7,8 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { ChevronRight } from '@lucide/svelte';
 	import { publicMediaUrl } from '$lib/media/urls';
+	import { getAdoptionTone } from '$lib/utils/adoption';
+	import { ADOPTION_TONE } from '$lib/constants/adoption';
 
 	const {
 		cat,
@@ -22,6 +24,9 @@
 		primaryMedia ? publicMediaUrl(primaryMedia.file.storageKey) : '/img/logo.png'
 	);
 	const imageStyle = $derived(focalPointStyle(primaryMedia));
+	// Chat adopté : le nom prend la couleur de l'état de l'adoption (essai, à finaliser, définitive)
+	const adoptionTone = $derived(getAdoptionTone(cat));
+	const tone = $derived(adoptionTone ? ADOPTION_TONE[adoptionTone] : null);
 	const activeSicknessesCount = $derived(
 		cat.sicknesses.filter((s) => s.status !== 'RESOLVED').length
 	);
@@ -47,9 +52,11 @@
 	<Table.Cell class="hidden text-xs sm:table-cell">{cat.catNumber}</Table.Cell>
 
 	<!-- Nom (+ numéro dessous sur mobile) -->
-	<Table.Cell class="max-w-28 font-medium sm:max-w-40">
-		<span class="block truncate">{cat.name ?? 'Sans nom'}</span>
-		<span class="text-muted-foreground block text-xs sm:hidden">{cat.catNumber}</span>
+	<Table.Cell class="max-w-28 font-medium sm:max-w-40" title={tone?.label}>
+		<span class="block truncate {tone?.textClass ?? ''}">{cat.name ?? 'Sans nom'}</span>
+		{#if tone}
+			<span class="sr-only">({tone.label})</span>
+		{/if}
 	</Table.Cell>
 
 	<Table.Cell class="text-center">
@@ -64,14 +71,14 @@
 		{#if activeSicknessesCount > 0}
 			<Badge variant="outline" class="text-xs">{activeSicknessesCount}</Badge>
 		{:else}
-			<span class="text-muted-foreground text-xs">
+			<span class="text-xs text-muted-foreground">
 				<span class="sm:hidden">—</span>
 				<span class="hidden sm:inline">Aucune</span>
 			</span>
 		{/if}
 	</Table.Cell>
 
-	<Table.Cell class="text-muted-foreground w-6 px-0 sm:hidden">
+	<Table.Cell class="w-6 px-0 text-muted-foreground sm:hidden">
 		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

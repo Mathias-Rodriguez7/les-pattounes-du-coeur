@@ -56,31 +56,7 @@ export const actions: Actions = {
 					catId: cat.id,
 					// La demande arrive directement chez la bénévole référente du chat
 					assignedToId: await getCatReferentId(cat.id),
-					data: {
-						firstName: form.data.firstName,
-						lastName: form.data.lastName,
-						phone: form.data.phone,
-						birthDate: form.data.birthDate,
-						address: form.data.address,
-						city: form.data.city,
-						postalCode: form.data.postalCode,
-						district: form.data.district,
-
-						housing: {
-							size: form.data.housingSize,
-							hasGarden: form.data.hasGarden,
-							gardenSize: form.data.gardenSize
-						},
-
-						pets: {
-							hasPets: form.data.hasPets,
-							cats: form.data.numberOfCats,
-							dogs: form.data.numberOfDogs,
-							other: form.data.otherPets
-						},
-
-						children: form.data.numberOfChildren
-					}
+					data: form.data
 				}
 			});
 

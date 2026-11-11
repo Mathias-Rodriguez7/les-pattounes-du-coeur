@@ -13,7 +13,7 @@ export type FilterType = 'text' | 'select' | 'boolean';
 export type ColumnDef = {
 	id: string;
 	header: string;
-	accessor: (row: HostFull) => any;
+	accessor: (row: HostFull) => unknown;
 	sortable?: boolean;
 	mobile?: boolean;
 	filter?: {

@@ -1,4 +1,5 @@
-import type { FormStatus } from '@prisma/client';
+import type { FormStatus, Prisma } from '@prisma/client';
+import { catProfileSelect } from './catProfile';
 
 export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'OTHER';
 
@@ -26,6 +27,10 @@ export type AdoptionFormData = {
 	numberOfDogs: number;
 	otherPets: string;
 	numberOfChildren: number;
+};
+
+export type AdoptionFormJson = Partial<Omit<AdoptionFormData, 'birthDate'>> & {
+	birthDate?: string | null;
 };
 
 export type VolunteerFormData = {
@@ -98,7 +103,8 @@ export type CollabFormData = {
 	partnershipProposal: string;
 };
 
-export type OtherFormData = Record<string, any>;
+// unknown plutôt que any : on peut stocker n'importe quoi, mais il faut vérifier avant de s'en servir
+export type OtherFormData = Record<string, unknown>;
 
 // ===== TYPE UNION =====
 export type AnyFormData =
@@ -111,3 +117,43 @@ export type FormEditData<T extends AnyFormData = AnyFormData> = {
 	data: T;
 	notes?: string | null;
 };
+
+/**
+ * Une demande, avec juste ce que les panneaux affichent.
+ * Partagé : page Formulaires ET fiche du chat (les demandes en attente du chat)
+ */
+export const formInclude = {
+	assignedTo: {
+		select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+	},
+	cat: {
+		select: {
+			// Le profil complet du chat : le panneau l'affiche pour juger la compatibilité
+			...catProfileSelect,
+			id: true,
+			name: true,
+			catNumber: true,
+			sex: true,
+			birthDate: true,
+			status: true,
+			// La référente en premier (la plus ancienne bénévole associée)
+			volunteers: {
+				orderBy: { createdAt: 'asc' },
+				select: {
+					volunteer: {
+						select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+					}
+				}
+			}
+		}
+	}
+} satisfies Prisma.FormInclude;
+
+/** Une demande telle que les panneaux la reçoivent (avec la bénévole assignée et le chat) */
+export type FormWithRelations = Prisma.FormGetPayload<{ include: typeof formInclude }>;
+
+/** Une entrée active de la liste noire, telle qu'on l'affiche aux bénévoles */
+export type BlacklistInfo = { reason: string; since: Date };
+
+/** Une demande avec, si son email est sur liste noire, la raison (calculée par le load) */
+export type FormWithBlacklist = FormWithRelations & { blacklist: BlacklistInfo | null };

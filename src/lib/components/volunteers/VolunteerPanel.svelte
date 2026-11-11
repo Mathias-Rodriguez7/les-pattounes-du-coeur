@@ -83,20 +83,9 @@
 	};
 
 	const handleSuccessfulSave = () => {
-		if (!volunteer) return;
-
-		// Met à jour les données du volunteer avec les changements
-		volunteer.profil.firstName = editData.firstName;
-		volunteer.profil.lastName = editData.lastName;
-		volunteer.profil.email = editData.email;
-		volunteer.profil.phone = editData.phone;
-		volunteer.profil.district = editData.district;
-		volunteer.profil.address = editData.address;
-		volunteer.profil.city = editData.city;
-		volunteer.profil.postalCode = editData.postalCode;
-		volunteer.actif = editData.actif;
-		volunteer.role = editData.role;
-
+		// VolunteerEditForm appelle update() : les données sont rechargées depuis le serveur.
+		// (Avant, on recopiait les champs à la main dans `volunteer` : c'est modifier une prop,
+		// et les données affichées pouvaient différer de ce qui était enregistré)
 		isEditing = false;
 	};
 
@@ -150,22 +139,13 @@
 		FREE: 'bg-orange-100 text-orange-800'
 	};
 
+	// Un compteur par type, construit depuis FORM_TYPES : impossible d'oublier un type
+	// ou d'en inventer un qui n'existe plus (comme l'ancien « ADOPTION »)
 	const formCounts = $derived.by(() => {
-		const counts: Record<FormType, number> = {
-			ADOPTION: 0,
-			VOLUNTEER: 0,
-			HOST: 0,
-			COLAB: 0,
-			ALERT: 0,
-			OTHER: 0
-		};
-
 		const forms = volunteer?.assignedForms ?? [];
-		FORM_TYPES.forEach((type) => {
-			counts[type] = forms.filter((f: Form) => (f.type as FormType) === type).length;
-		});
-
-		return counts;
+		return Object.fromEntries(
+			FORM_TYPES.map((type) => [type, forms.filter((f: Form) => f.type === type).length])
+		) as Record<FormType, number>;
 	});
 
 	const getBadgeClass = (status: string) =>
@@ -271,11 +251,11 @@
 					>
 						<div class="ml-6 grid gap-3">
 							<div class="flex items-center justify-between gap-2">
-								<span class="text-muted-foreground text-xs font-medium">Chats gérés</span>
+								<span class="text-xs font-medium text-muted-foreground">Chats gérés</span>
 								<Badge class="bg-blue-100 text-sm font-bold text-blue-800">{catList.length}</Badge>
 							</div>
 							<div class="flex items-center justify-between gap-2">
-								<span class="text-muted-foreground text-xs font-medium">Adoptions</span>
+								<span class="text-xs font-medium text-muted-foreground">Adoptions</span>
 								<Badge class="bg-green-100 text-sm font-bold text-green-800">
 									{adoptedCatsCount}
 								</Badge>
@@ -292,7 +272,7 @@
 					>
 						<div class="ml-6 grid min-w-0 gap-3 text-sm">
 							<div class="min-w-0">
-								<p class="text-muted-foreground font-medium">Téléphone</p>
+								<p class="font-medium text-muted-foreground">Téléphone</p>
 								<a
 									href="tel:{volunteer.profil.phone}"
 									class="flex items-center gap-2 text-blue-600 hover:underline"
@@ -302,7 +282,7 @@
 								</a>
 							</div>
 							<div class="min-w-0">
-								<p class="text-muted-foreground font-medium">Email</p>
+								<p class="font-medium text-muted-foreground">Email</p>
 								<a
 									href="mailto:{volunteer.profil.email}"
 									class="flex min-w-0 items-center gap-2 text-blue-600 hover:underline"
@@ -324,20 +304,20 @@
 					>
 						<div class="ml-6 space-y-2 text-sm">
 							<div>
-								<p class="text-muted-foreground font-medium">Rue</p>
+								<p class="font-medium text-muted-foreground">Rue</p>
 								<p class="font-medium text-gray-900">{volunteer.profil.address || '—'}</p>
 							</div>
 							<div class="flex flex-wrap gap-x-6 gap-y-2">
 								<div>
-									<p class="text-muted-foreground font-medium">Ville</p>
+									<p class="font-medium text-muted-foreground">Ville</p>
 									<p class="font-medium text-gray-900">{volunteer.profil.city || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-muted-foreground">CP</p>
 									<p class="font-medium text-gray-900">{volunteer.profil.postalCode || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">Quartier</p>
+									<p class="font-medium text-muted-foreground">Quartier</p>
 									<Badge variant="secondary" class="mt-1 text-xs">{location}</Badge>
 								</div>
 							</div>
@@ -357,7 +337,7 @@
 							color={VOLUNTEER_SECTION_CONFIG.cats.color}
 						>
 							{#if catList.length === 0}
-								<p class="text-muted-foreground py-6 text-center text-sm">
+								<p class="py-6 text-center text-sm text-muted-foreground">
 									Aucun chat suivi pour le moment.
 								</p>
 							{:else}
@@ -484,7 +464,7 @@
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full min-h-60 items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="user" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un bénévole</p>
 		</Card.Content>

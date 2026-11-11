@@ -49,7 +49,12 @@
 	{/if}
 	<Select.Root type="single" bind:value {disabled}>
 		<Select.Trigger {id} class={className}>
-			<span class={selectedOption ? '' : 'text-muted-foreground'}>
+			<!-- min-w-0 + truncate : un libellé trop long finit par « … » au lieu de déborder.
+			     title : le libellé complet au survol -->
+			<span
+				class="min-w-0 flex-1 truncate text-left {selectedOption ? '' : 'text-muted-foreground'}"
+				title={selectedLabel}
+			>
 				{selectedLabel}
 			</span>
 		</Select.Trigger>

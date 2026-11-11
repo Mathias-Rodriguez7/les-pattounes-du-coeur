@@ -1,13 +1,20 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { FormType, FormStatus } from '@prisma/client';
-import { updateForm, assignVolunteer, setFlexibleDispatcher } from '$lib/server/forms/mutations';
+import { FormType, FormStatus, type Prisma } from '@prisma/client';
+import {
+	updateForm,
+	rejectForm,
+	assignVolunteer,
+	setFlexibleDispatcher
+} from '$lib/server/forms/mutations';
 import { createVolunteer } from '$lib/server/volunteers/mutations';
 import { createHost } from '$lib/server/hosts/mutations';
-import { createAdoptionSchema } from '$lib/schemas/adoption';
-import { createAdoption } from '$lib/server/adoptions/mutations';
-import { canManageCat } from '$lib/server/permissions/cat';
+import { catPickerSelect } from '$lib/types/cat';
+import { myFormsWhere } from '$lib/server/permissions/form';
+import { createAdoptionAction } from '$lib/server/adoptions/actions';
+import { formInclude } from '$lib/types/form';
+import { withBlacklist } from '$lib/server/accountStatus';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -26,7 +33,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	const isAdmin = volunteer.role === 'ADMIN';
 	const isFlexibleDispatcher = volunteer.isFlexibleDispatcher;
-	const canSeeAllFlexible = isAdmin || isFlexibleDispatcher;
+	// Vue « Tous » : l'admin voit toutes les demandes, la répartitrice toutes les demandes libres
+	const canSeeAll = isAdmin || isFlexibleDispatcher;
 
 	// 🔍 Filtres
 	const typeParam = url.searchParams.get('type');
@@ -43,33 +51,25 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			? (statusParam as FormStatus)
 			: undefined;
 
-	// 🔀 Mode d'affichage : 'mine' par défaut, 'flexible' seulement si autorisé
-	const requestedScope = scopeParam === 'flexible' ? 'flexible' : 'mine';
-	const scope = requestedScope === 'flexible' && canSeeAllFlexible ? 'flexible' : 'mine';
+	// 🔀 Mode d'affichage : 'mine' par défaut, 'all' seulement si autorisé
+	const scope: 'mine' | 'all' = scopeParam === 'all' && canSeeAll ? 'all' : 'mine';
 
-	const baseFilters = {
+	const baseFilters: Prisma.FormWhereInput = {
 		...(typeFilter && { type: typeFilter }),
 		...(statusFilter && { status: statusFilter })
 	};
 
 	// 🏗️ Condition WHERE selon le mode
-	let whereCondition: Record<string, unknown>;
-
-	if (scope === 'flexible') {
-		// Tous les ADOPTION_FLEXIBLE, sans restriction d'assignation
-		whereCondition = {
-			...baseFilters,
-			type: FormType.ADOPTION_FLEXIBLE
-		};
+	// - mine : mes demandes (assignées OU de mes chats), pour tout le monde, admin compris
+	// - all + admin : toutes les demandes
+	// - all + répartitrice : toutes les demandes libres
+	let whereCondition: Prisma.FormWhereInput;
+	if (scope === 'mine') {
+		whereCondition = { AND: [baseFilters, myFormsWhere(volunteerId)] };
+	} else if (isAdmin) {
+		whereCondition = baseFilters;
 	} else {
-		// Uniquement les forms assignés à ce volunteer
-		// Admin : pas de restriction, comme avant
-		whereCondition = isAdmin
-			? baseFilters
-			: {
-					...baseFilters,
-					assignedToId: volunteerId
-				};
+		whereCondition = { ...baseFilters, type: FormType.ADOPTION_FLEXIBLE };
 	}
 
 	// 📊 Stats
@@ -81,64 +81,50 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	]);
 
 	// 📋 Forms
-	const forms = await prisma.form.findMany({
-		where: whereCondition,
-		include: {
-			assignedTo: {
-				include: {
-					profil: { select: { firstName: true, lastName: true } }
-				}
-			}
-		},
-		orderBy: { createdAt: 'desc' }
-	});
-
-	// ✅ Enrichissement ADOPTION_SPECIFIC (inchangé)
-	const enrichedForms = await Promise.all(
-		forms.map(async (form) => {
-			if (form.type === 'ADOPTION_SPECIFIC' && (form.data as any).catId) {
-				const catData = await prisma.cat.findUnique({
-					where: { id: (form.data as any).catId },
-					include: {
-						volunteers: {
-							include: {
-								volunteer: { include: { profil: true } }
-							}
-						}
-					}
-				});
-				return { ...form, catData };
-			}
-			return { ...form, catData: null };
+	// 🆕 Le chat et la bénévole assignée arrivent avec la demande, en une seule requête
+	// (avant : une requête de plus par demande pour retrouver son chat)
+	// Chaque demande arrive avec `blacklist` : la raison, si son email est sur liste noire
+	const forms = await withBlacklist(
+		await prisma.form.findMany({
+			where: whereCondition,
+			include: formInclude,
+			orderBy: { createdAt: 'desc' }
 		})
 	);
 
-	// 📋 Volunteers pour l'assignation (admin uniquement)
-	const volunteers = isAdmin
+	// 📋 Volunteers pour l'assignation : admin, et répartitrice des demandes libres
+	const canAssign = isAdmin || isFlexibleDispatcher;
+	const volunteers = canAssign
 		? await prisma.volunteer.findMany({
-				include: {
+				select: {
+					id: true,
+					isFlexibleDispatcher: true,
 					profil: { select: { firstName: true, lastName: true } }
 				},
 				orderBy: { profil: { firstName: 'asc' } }
 			})
 		: [];
 
-	// 🐱 Chats disponibles pour l'adoption flexible
+	// 🐱 Les chats qu'on peut proposer pour une demande libre :
+	// adoptables, et seulement ceux dont la personne connectée est en charge (admin compris)
 	const cats = await prisma.cat.findMany({
 		where: {
 			status: 'AVAILABLE',
-			isVisible: true
+			isVisible: true,
+			volunteers: { some: { volunteerId } }
 		},
+		select: catPickerSelect,
 		orderBy: { name: 'asc' }
 	});
 
 	return {
-		forms: enrichedForms,
+		forms,
 		volunteers,
 		cats,
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
-		canSeeAllFlexible,
+		canAssign,
+		canSeeAll,
 		scope,
 		filters: {
 			type: typeFilter || null,
@@ -205,6 +191,17 @@ export const actions: Actions = {
 		}
 	},
 
+	rejectForm: async ({ request, locals }) => {
+		try {
+			const result = await rejectForm({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur refus demande:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
 	assignVolunteer: async ({ request, locals }) => {
 		try {
 			const result = await assignVolunteer({ request, locals });
@@ -227,33 +224,6 @@ export const actions: Actions = {
 		}
 	},
 
-	createAdoption: async ({ request, locals }) => {
-		// Le load protège l'affichage, pas les actions : on vérifie ici
-		if (!locals.user) {
-			return fail(401, { error: 'Vous devez être connecté' });
-		}
-
-		const formData = await request.formData();
-		const parsed = createAdoptionSchema.safeParse(Object.fromEntries(formData));
-		if (!parsed.success) {
-			return fail(400, {
-				error: 'Erreur de validation',
-				errors: parsed.error.flatten().fieldErrors
-			});
-		}
-
-		// Admin, ou bénévole associée au chat (la règle de la fiche du chat)
-		if (!(await canManageCat(locals.user, parsed.data.catId))) {
-			return fail(403, { error: "Vous n'êtes pas autorisée à faire adopter ce chat" });
-		}
-
-		try {
-			const adoption = await createAdoption(parsed.data);
-			return { success: true, adoptionId: adoption.id };
-		} catch (err) {
-			// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est plus disponible »)
-			const message = err instanceof Error ? err.message : 'Erreur inconnue';
-			return fail(400, { error: message });
-		}
-	}
+	// Le code est partagé avec la page Chats (adopter depuis la fiche du chat)
+	createAdoption: createAdoptionAction
 };

@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 </script>
 
-<footer class="bg-accent/70 w-full border-t border-black/10 px-6 py-12 backdrop-blur-lg">
+<footer class="w-full border-t border-black/10 bg-accent/70 px-6 py-12 backdrop-blur-lg">
 	<section class="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
 		<!-- GAUCHE : LOGO + SOCIALS -->
 		<div class="flex flex-col items-center gap-6">
@@ -113,23 +113,22 @@
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Agir</h4>
 				<ul class="flex flex-col gap-2 text-sm opacity-70">
 					<li>
-						<a href={resolve('/contact')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
 							>Signaler un chat</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/contact')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
 							>Famille d'accueil</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/contact')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
 							>Devenir bénévole</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/contact')} class="transition-opacity hover:opacity-100">Collaborer</a
-						>
+						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100">Collaborer</a>
 					</li>
 				</ul>
 			</nav>

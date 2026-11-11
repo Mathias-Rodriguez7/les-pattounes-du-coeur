@@ -3,7 +3,8 @@
 	import QuickActions from '$lib/components/dashboard/shared/QuickActions.svelte';
 	import TasksToProcess from '$lib/components/dashboard/shared/TasksToProcess.svelte';
 	import StatsOverview from '$lib/components/dashboard/shared/StatsOverview.svelte';
-	import type { PageData } from './$types';
+	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
+	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 
 	interface Props {
 		data: PageData;
@@ -18,7 +19,7 @@
 <section>
 	<header class="flex items-center justify-between">
 		<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
-			Bonjour {data.user?.firstName} 👋
+			Bonjour {data.user?.profil.firstName} 👋
 		</h1>
 	</header>
 	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px] lg:grid-rows-[1fr]">

@@ -218,17 +218,18 @@
 		? `rounded-lg border p-4 ${current.border} ${current.bg}`
 		: ''} {classList}"
 >
-	<div class="flex items-center gap-2 {variant === 'card' ? 'mb-4' : 'mb-3'}">
+	<!-- flex-wrap : si l'action ne tient pas à côté du titre, elle passe dessous (au lieu d'écraser le titre) -->
+	<div class="flex flex-wrap items-center gap-2 {variant === 'card' ? 'mb-4' : 'mb-3'}">
 		{#if icon}
 			<Icon
 				name={icon}
-				class="h-5 w-5 {variant === 'card' ? current.icon : 'text-muted-foreground'}"
+				class="h-5 w-5 shrink-0 {variant === 'card' ? current.icon : 'text-muted-foreground'}"
 			/>
 		{/if}
 		<h4
 			class="font-semibold {variant === 'card'
 				? 'text-sm text-gray-900'
-				: 'text-foreground text-base'}"
+				: 'text-base text-foreground'}"
 		>
 			{title}
 		</h4>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailField } from '$lib/schemas/fields';
 
 //
 // 🔧 Helpers
@@ -21,7 +22,8 @@ export const colabStep1Schema = z.object({
 
 	companyName: optionalText(),
 
-	email: z.email('Email invalide').trim(),
+	// Même règle que les autres formulaires : espaces retirés, minuscules, puis vérification
+	email: emailField(),
 
 	phone: z
 		.string()

@@ -6,9 +6,12 @@ import {
 	type UpdateNewsInput
 } from '$lib/schemas/news';
 import { canManageNews, canDeleteNews } from '$lib/permissions/news';
-import { prepareMedia, deleteMedia, type MediaData } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
-
+import {
+	prepareMedia,
+	deleteMedia,
+	discardUploads,
+	type MediaData
+} from '$lib/server/media/mutations';
 const NEWS_FIELDS = ['title', 'type', 'content'] as const;
 
 function convertFormData(formData: FormData): Record<string, string | string[] | null> {
@@ -111,7 +114,7 @@ export async function createNews({ request, locals }: { request: Request; locals
 	} catch (error) {
 		console.error('Erreur création News:', error);
 		// Le fichier est sur S3 mais la news n'a pas été créée : on le supprime
-		if (uploadedKey) await deleteFiles([{ storageKey: uploadedKey, isPrivate: false }]);
+		if (uploadedKey) await discardUploads('news', [uploadedKey]);
 		return {
 			success: false,
 			error: 'Erreur lors de la création',
@@ -245,7 +248,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 		};
 	} catch (error) {
 		console.error('Erreur mise à jour News:', error);
-		if (uploadedKey) await deleteFiles([{ storageKey: uploadedKey, isPrivate: false }]);
+		if (uploadedKey) await discardUploads('news', [uploadedKey]);
 		return {
 			success: false,
 			error: 'Erreur lors de la mise à jour',
@@ -315,5 +318,3 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 		};
 	}
 }
-
-

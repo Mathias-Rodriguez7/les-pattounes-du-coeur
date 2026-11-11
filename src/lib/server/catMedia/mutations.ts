@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import prisma from '$lib/server/prisma';
 import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
+import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
 
 const MAX_FILES_PER_UPLOAD = 10;
 
@@ -50,7 +49,7 @@ export async function addCatMedia({ request, locals }: Args): Promise<Result> {
 	// Plusieurs fichiers : même méthode que pour les soins
 	const keys = formData.getAll('mediaStorageKey').map(String);
 	const names = formData.getAll('mediaOriginalName').map(String);
-	const cleanUp = () => deleteFiles(keys.map((storageKey) => ({ storageKey, isPrivate: false })));
+	const cleanUp = () => discardUploads('catGallery', keys, catId);
 
 	if (keys.length === 0) return { success: false, error: 'Aucun fichier envoyé' };
 	if (keys.length > MAX_FILES_PER_UPLOAD) {

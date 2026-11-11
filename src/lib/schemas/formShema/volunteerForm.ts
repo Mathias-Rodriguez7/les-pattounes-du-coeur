@@ -7,8 +7,8 @@ const districtEnum = z
 	.transform((val) => val as District);
 
 // ✅ Convertir les strings en dates
-const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
-
+// Chaîne 'AAAA-MM-JJ' (navigateur) OU Date (superforms la convertit côté serveur)
+const stringToDate = z.union([z.string(), z.date()]).pipe(z.coerce.date()).nullable().optional();
 const optionalText = z
 	.string()
 	.nullish()
@@ -77,7 +77,12 @@ export const volunteerStep4Schema = z.object({
 // REFINEMENTS LOGIC
 //
 
-const volunteerFormRefinements = (data: any, ctx: any) => {
+// Partial : la même logique sert au formulaire complet ET au schéma de mise à jour (champs facultatifs).
+// Le type vient du schéma : un champ renommé devient une erreur TypeScript ici.
+const volunteerFormRefinements = (
+	data: Partial<z.infer<typeof volunteerFormSchemaBase>>,
+	ctx: z.RefinementCtx
+) => {
 	// Cat experience
 	if (data.hasCatExperience && !data.catExperienceDescription?.trim()) {
 		ctx.addIssue({

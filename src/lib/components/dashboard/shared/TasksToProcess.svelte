@@ -1,5 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
+	import { resolve } from '$app/paths';
+	import type { Pathname } from '$app/types';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -12,6 +14,7 @@
 			label: string;
 			description: string;
 			value: number;
+			/** Une route existante : vérifié côté serveur par link() (le type se perd en sérialisant) */
 			href: string;
 		}>;
 	}
@@ -28,7 +31,7 @@
 
 	<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 		{#each taskGroups as group (group.theme)}
-			<div class="border-border bg-card rounded-xl border px-4 py-6 sm:px-6">
+			<div class="rounded-xl border border-border bg-card px-4 py-6 sm:px-6">
 				<div class="flex items-center gap-3 sm:gap-4">
 					<div
 						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
@@ -43,8 +46,8 @@
 					<div class="mt-4 flex flex-col gap-3">
 						{#each group.tasks as task (task.label)}
 							<a
-								href={task.href || '#'}
-								class="hover:border-primary/50 flex flex-col gap-2 rounded-lg border border-transparent px-2 py-2 transition-all hover:shadow-md"
+								href={resolve(task.href as Pathname)}
+								class="flex flex-col gap-2 rounded-lg border border-transparent px-2 py-2 transition-all hover:border-primary/50 hover:shadow-md"
 							>
 								<div class="flex items-center justify-between gap-2">
 									<p class="text-xs font-semibold">{task.label}</p>
@@ -55,7 +58,7 @@
 										{task.value}
 									</span>
 								</div>
-								<p class="text-muted-foreground text-xs">{task.description}</p>
+								<p class="text-xs text-muted-foreground">{task.description}</p>
 							</a>
 							{#if group.tasks.indexOf(task) < group.tasks.length - 1}
 								<Separator />
@@ -63,7 +66,7 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="text-muted-foreground mt-4 text-xs">Aucune tâche</p>
+					<p class="mt-4 text-xs text-muted-foreground">Aucune tâche</p>
 				{/if}
 			</div>
 		{/each}

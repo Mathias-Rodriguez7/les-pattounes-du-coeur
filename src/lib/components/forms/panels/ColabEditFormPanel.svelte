@@ -81,7 +81,12 @@
 </script>
 
 {#if editData && editData.data}
-	<form method="POST" action="?/updateForm" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<form
+		method="POST"
+		action="?/updateForm"
+		use:enhance={handleUpdateEnhance}
+		class="@container space-y-6"
+	>
 		<!-- 🔑 HIDDEN INPUTS -->
 		<input type="hidden" name="formId" value={formId} />
 
@@ -97,12 +102,12 @@
 		</div>
 
 		<!-- 👤 SECTION 1: Identité & Contact -->
-		<section class="grid grid-cols-8 gap-4">
+		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-8">
 			<SectionCard
 				icon={COLAB_SECTION_CONFIG.status.icon}
 				title={COLAB_SECTION_CONFIG.status.label}
 				color={COLAB_SECTION_CONFIG.status.color}
-				class="col-span-2"
+				class="@2xl:col-span-2"
 			>
 				<div class="space-y-4">
 					<SelectField
@@ -120,7 +125,7 @@
 				icon={COLAB_SECTION_CONFIG.profile.icon}
 				title={COLAB_SECTION_CONFIG.profile.label}
 				color={COLAB_SECTION_CONFIG.profile.color}
-				class="col-span-3"
+				class="@2xl:col-span-3"
 			>
 				<div class="space-y-4">
 					<div class="grid grid-cols-2 gap-4">
@@ -163,7 +168,7 @@
 				icon={COLAB_SECTION_CONFIG.contact.icon}
 				title={COLAB_SECTION_CONFIG.contact.label}
 				color={COLAB_SECTION_CONFIG.contact.color}
-				class="col-span-3"
+				class="@2xl:col-span-3"
 			>
 				<div class="grid gap-2">
 					<InputField

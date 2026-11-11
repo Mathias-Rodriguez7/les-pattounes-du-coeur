@@ -22,7 +22,7 @@
 		formId: string;
 		volunteers: VolunteerBasic[];
 		currentVolunteerId?: string | null;
-		onSuccess?: (form: any) => void;
+		onSuccess?: (form: unknown) => void;
 	}
 
 	let { formId, volunteers, currentVolunteerId = null, onSuccess }: Props = $props();

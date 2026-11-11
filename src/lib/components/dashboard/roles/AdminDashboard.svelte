@@ -6,7 +6,8 @@
 	import StatsOverview from '$lib/components/dashboard/shared/StatsOverview.svelte';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
-	import type { PageData } from './$types';
+	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
+	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 
 	interface Props {
 		data: PageData;
@@ -15,10 +16,11 @@
 	let { data }: Props = $props();
 	let isManagerView = $state(false);
 
-	const adminQuickActions = data.adminQuickActions;
-	const managerQuickActions = data.managerQuickActions;
-	const adminTasks = data.adminTasks;
-	const managerTasks = data.managerTasks;
+	// $derived : les valeurs suivent `data` (rechargé après chaque action), au lieu d'en garder une copie
+	const adminQuickActions = $derived(data.adminQuickActions);
+	const managerQuickActions = $derived(data.managerQuickActions);
+	const adminTasks = $derived(data.adminTasks ?? []);
+	const managerTasks = $derived(data.managerTasks ?? []);
 
 	const displayedActions = $derived(isManagerView ? managerQuickActions : adminQuickActions);
 	const displayedTasks = $derived(isManagerView ? managerTasks : adminTasks);
@@ -28,7 +30,7 @@
 	<header class="flex items-center justify-between">
 		<div class="flex flex-col gap-1">
 			<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
-				Bonjour {data.user?.firstName} 👋
+				Bonjour {data.user?.profil.firstName} 👋
 			</h1>
 		</div>
 		<!-- SWITCH VIEW -->

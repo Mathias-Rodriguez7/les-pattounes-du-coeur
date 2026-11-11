@@ -16,6 +16,7 @@
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
+	import { getAdoptionTone } from '$lib/utils/adoption';
 
 	const { data } = $props();
 
@@ -43,14 +44,14 @@
 	let newCatOpen = $state(false);
 
 	// ===== FILTRES (valeur '' = pas de filtre) =====
-	const DEFAULT_STATUS = 'SOCIALIZE';
-	let statusFilter = $state(DEFAULT_STATUS);
+	let statusFilter = $state('');
 	let sexFilter = $state('');
 	let ageFilter = $state('');
 	let searchQuery = $state('');
 
-	// Mobile : filtres repliés par défaut
-	const activeFiltersCount = $derived([statusFilter, sexFilter, ageFilter].filter(Boolean).length);
+	// « À finaliser » n'est pas un statut de chat : une valeur à part, ajoutée aux statuts
+	const ADOPTION_DUE = 'ADOPTION_DUE';
+	const statusOptions = [...CAT_STATUS, { value: ADOPTION_DUE, label: 'Adoption à finaliser' }];
 
 	// ===== PORTÉE : admin = interrupteur, autres = toujours « mes chats » =====
 	let showAll = $state(false);
@@ -65,7 +66,7 @@
 	}
 
 	function clearFilters() {
-		statusFilter = DEFAULT_STATUS;
+		statusFilter = '';
 		sexFilter = '';
 		ageFilter = '';
 		searchQuery = '';
@@ -118,7 +119,11 @@
 	const filteredCats = $derived.by(() => {
 		let filtered = scopedCats;
 
-		if (statusFilter) filtered = filtered.filter((c) => c.status === statusFilter);
+		if (statusFilter === ADOPTION_DUE) {
+			filtered = filtered.filter((c) => getAdoptionTone(c) === 'DUE');
+		} else if (statusFilter) {
+			filtered = filtered.filter((c) => c.status === statusFilter);
+		}
 		if (sexFilter) filtered = filtered.filter((c) => c.sex === sexFilter);
 		if (ageFilter) filtered = filtered.filter((c) => getAgeBadge(c.birthDate) === ageFilter);
 
@@ -135,7 +140,7 @@
 
 	// Inclut le statut : sinon « Aucun chat » s'affichait alors qu'un filtre était actif
 	const hasActiveFilters = $derived(
-		statusFilter !== DEFAULT_STATUS || !!sexFilter || !!ageFilter || !!searchQuery.trim()
+		statusFilter !== '' || !!sexFilter || !!ageFilter || !!searchQuery.trim()
 	);
 </script>
 
@@ -210,7 +215,7 @@
 								<SelectField
 									id="cat-filter-status"
 									label=""
-									options={CAT_STATUS}
+									options={statusOptions}
 									bind:value={statusFilter}
 									placeholder="Statut"
 									class="w-full sm:w-32"

@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 import type { adoptionFormSchema } from '../../adoptionForm';
-import type { FormOverride } from './types';
+import type { FormOverride } from '../types';
 
 type AdoptionInput = z.input<typeof adoptionFormSchema>;
 

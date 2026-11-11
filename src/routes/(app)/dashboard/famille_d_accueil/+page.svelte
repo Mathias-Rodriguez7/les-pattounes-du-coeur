@@ -2,7 +2,6 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import Icon from '$lib/components/Icon.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
@@ -17,7 +16,7 @@
 		HOST_SOCIALIZE_OPTIONS,
 		HOST_BABY_FEEDING_OPTIONS
 	} from '$lib/constants/host.js';
-	import { X, SlidersHorizontal } from '@lucide/svelte';
+	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
@@ -48,14 +47,6 @@
 	let socializeFilter = $state('');
 	let babyFilter = $state('');
 	let searchQuery = $state('');
-
-	// Mobile : filtres repliés par défaut
-	let showFilters = $state(false);
-
-	// Nombre de filtres actifs, affiché sur le bouton « Filtres »
-	const activeFiltersCount = $derived(
-		[typeFilter, actifFilter, healFilter, socializeFilter, babyFilter].filter(Boolean).length
-	);
 
 	function handleSelectHost(hostId: string) {
 		selectedHostId = hostId;

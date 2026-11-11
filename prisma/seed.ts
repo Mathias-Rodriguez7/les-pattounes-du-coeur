@@ -727,6 +727,15 @@ async function main() {
 	const adoptedCats = cats.slice(0, 30);
 	const now = new Date();
 	const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+	const DAY_MS = 86_400_000;
+
+	// Même calcul que addMonths ($lib/utils/date) : le seed ne peut pas importer $lib
+	const addMonths = (date: Date, months: number) => {
+		const result = new Date(date);
+		result.setMonth(result.getMonth() + months);
+		return result;
+	};
+	const TRIAL_MONTHS = 6;
 
 	for (let i = 0; i < Math.min(adoptedCats.length, adoptants.length); i++) {
 		const adoptedCat = adoptedCats[i];
@@ -735,9 +744,9 @@ async function main() {
 		// Les 5 premiers chats ont d'abord eu une adoption annulée (retour à l'asso)
 		if (i < 5) {
 			const firstAdoptant = adoptants[adoptants.length - 1 - i];
-			const startedAt = dateBetween(oneYearAgo, new Date(now.getTime() - 120 * 86_400_000));
+			const startedAt = dateBetween(oneYearAgo, new Date(now.getTime() - 120 * DAY_MS));
 			const endedAt = new Date(
-				startedAt.getTime() + faker.number.int({ min: 15, max: 60 }) * 86_400_000
+				startedAt.getTime() + faker.number.int({ min: 15, max: 60 }) * DAY_MS
 			);
 
 			const cancelled = await prisma.adoption.create({
@@ -745,6 +754,8 @@ async function main() {
 					catId: adoptedCat.id,
 					profilId: firstAdoptant.id,
 					status: 'CANCELLED',
+					// Elle avait commencé comme toute adoption : par un essai de 6 mois
+					trialEndsAt: addMonths(startedAt, TRIAL_MONTHS),
 					endDate: endedAt,
 					createdAt: startedAt
 				}
@@ -754,8 +765,16 @@ async function main() {
 			await createCatDocument(adoptedCat, 'ADOPTION_RETURN', endedAt, cancelled.id);
 		}
 
-		// Adoption en cours
-		const adoptedAt = faker.date.recent({ days: 90 });
+		// Adoption en cours.
+		// Après un retour : récente (le chat est revenu il y a au moins 60 jours).
+		// Sinon : dans l'année écoulée, pour avoir des essais finis ET des essais en cours.
+		const adoptedAt = i < 5 ? faker.date.recent({ days: 60 }) : dateBetween(oneYearAgo, now);
+		const trialEndsAt = addMonths(adoptedAt, TRIAL_MONTHS);
+
+		// Essai terminé : une fois sur deux, le propriétaire a été changé (FINAL) ;
+		// sinon, il reste en essai… et apparaîtra dans « Adoptions à finaliser »
+		const trialIsOver = trialEndsAt < now;
+		const isFinal = trialIsOver && randomBool(0.5);
 
 		await prisma.cat.update({
 			where: { id: adoptedCat.id },
@@ -766,6 +785,12 @@ async function main() {
 			data: {
 				catId: adoptedCat.id,
 				profilId: adoptant.id,
+				status: isFinal ? 'FINAL' : 'TRIAL',
+				trialEndsAt,
+				// Le changement de propriétaire a lieu quelques jours après la fin de l'essai
+				finalizedAt: isFinal
+					? new Date(trialEndsAt.getTime() + faker.number.int({ min: 1, max: 20 }) * DAY_MS)
+					: null,
 				createdAt: adoptedAt
 			}
 		});

@@ -12,10 +12,12 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import type { AdoptionStatus } from '@prisma/client';
+	import { ADOPTION_STATUS } from '$lib/constants/adoption';
 
 	type AdoptionOption = {
 		id: string;
-		status: string;
+		status: AdoptionStatus;
 		createdAt: Date;
 		profil: { firstName: string; lastName: string };
 	};
@@ -43,8 +45,8 @@
 		{ value: '', label: 'Aucune' },
 		...adoptions.map((a) => ({
 			value: a.id,
-			label: `${a.profil.firstName} ${a.profil.lastName} · ${formatDateNum(a.createdAt)}${
-				a.status === 'CANCELLED' ? ' (annulée)' : ''
+			label: `${a.profil.firstName} ${a.profil.lastName} · ${formatDateNum(a.createdAt)} · ${
+				ADOPTION_STATUS[a.status].label
 			}`
 		}))
 	]);
