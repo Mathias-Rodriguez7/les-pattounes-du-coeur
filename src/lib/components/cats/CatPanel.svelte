@@ -522,59 +522,59 @@
 								title="Demandes d'adoption ({pendingRequests.length})"
 								color="amber"
 							>
-								<div class="flex flex-wrap gap-4">
+								<!-- Une ligne par demande : juste de quoi appeler l'adoptant (détail dans « Traiter ») -->
+								<!-- @container : sur une fiche étroite, le contact passe sous le nom -->
+								<ul
+									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-50"
+								>
 									{#each pendingRequests as request (request.id)}
 										{@const answers = request.data as AdoptionFormJson}
-										{@const children = answers.numberOfChildren ?? 0}
-										<div
-											class="grid max-w-full min-w-0 gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs"
+										<li
+											class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-3 py-2 @lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.5fr)_auto]"
 										>
-											<div class="flex items-baseline justify-between gap-4">
-												<p class="text-sm font-semibold">
-													{answers.firstName ?? ''}
-													{answers.lastName ?? ''}
-												</p>
-												<span class="text-muted-foreground">{formatDateNum(request.createdAt)}</span
-												>
-											</div>
+											<p class="truncate font-semibold">
+												{answers.firstName ?? ''}
+												{answers.lastName ?? ''}
+											</p>
 
-											<div class="flex min-w-0 flex-wrap gap-x-4 gap-y-1">
-												{#if answers.phone}
+											{#if answers.phone}
+												<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
+													<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 													<a
 														href={`tel:${answers.phone}`}
-														class="text-blue-500 underline hover:text-primary"
+														class="text-xs text-blue-500 underline hover:text-primary"
 													>
 														{answers.phone}
 													</a>
-												{/if}
+												</div>
+											{:else}
+												<span class="col-start-1 text-xs text-muted-foreground @lg:col-start-auto"
+													>—</span
+												>
+											{/if}
+
+											<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
+												<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 												<a
 													href={`mailto:${request.email}`}
 													title={request.email}
-													class="max-w-full truncate text-blue-500 underline hover:text-primary"
+													class="truncate text-xs text-blue-500 underline hover:text-primary"
 												>
 													{request.email}
 												</a>
 											</div>
 
-											<!-- Le résumé qui aide à comparer les demandes d'un coup d'œil -->
-											<p class="text-muted-foreground">
-												{answers.housingSize ?? '—'} m² ·
-												{answers.hasGarden ? 'extérieur' : 'sans extérieur'} ·
-												{children} enfant{children > 1 ? 's' : ''} ·
-												{answers.hasPets ? 'a des animaux' : "pas d'animaux"}
-											</p>
-
 											<Button
 												size="sm"
 												variant="outline"
-												class="w-fit justify-self-end"
+												class="col-start-2 row-span-3 row-start-1 @lg:col-start-auto @lg:row-span-1 @lg:row-start-auto"
 												onclick={() => (openRequestId = request.id)}
 											>
 												Traiter
 											</Button>
-										</div>
+										</li>
 									{/each}
-								</div>
+								</ul>
 							</SectionCard>
 						{/if}
 
