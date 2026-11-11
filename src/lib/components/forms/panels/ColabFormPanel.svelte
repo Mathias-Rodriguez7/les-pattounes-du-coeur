@@ -56,7 +56,7 @@
 	<Card.Root>
 		{#if !isEditing}
 			<Card.Header>
-				<section class="flex justify-between gap-6">
+				<section class="flex flex-wrap justify-between gap-4">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">
 							{colabData.firstName}
@@ -73,7 +73,7 @@
 							</Badge>
 						</Card.Description>
 					</div>
-					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
+					<div class="flex flex-col justify-center gap-2 text-right text-sm text-muted-foreground">
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
@@ -94,16 +94,16 @@
 				</section>
 			</Card.Header>
 
-			<Card.Content class="flex flex-col gap-6 text-sm">
+			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
 
-				<section class="grid grid-cols-10 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
 					<!-- 👤 SECTION IDENTITÉ -->
 					<SectionCard
 						icon={COLAB_SECTION_CONFIG.profile.icon}
 						title={COLAB_SECTION_CONFIG.profile.label}
 						color={COLAB_SECTION_CONFIG.profile.color}
-						class="col-span-5"
+						class="@2xl:col-span-5"
 					>
 						<div class="ml-6 grid grid-cols-2 gap-4">
 							<div>
@@ -126,16 +126,16 @@
 						icon={COLAB_SECTION_CONFIG.contact.icon}
 						title={COLAB_SECTION_CONFIG.contact.label}
 						color={COLAB_SECTION_CONFIG.contact.color}
-						class="col-span-5"
+						class="@2xl:col-span-5"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Tel</p>
+								<p class="font-medium text-muted-foreground">Tel</p>
 								<div class="flex items-center gap-2">
 									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`tel:${colabData.phone}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{colabData.phone}
 									</a>
@@ -143,12 +143,12 @@
 							</div>
 
 							<div>
-								<p class="text-muted-foreground font-medium">Mail</p>
+								<p class="font-medium text-muted-foreground">Mail</p>
 								<div class="flex items-center gap-2">
 									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`mailto:${form.email}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{form.email}
 									</a>
@@ -208,7 +208,7 @@
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="fileText" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un formulaire pour voir les détails</p>
 		</Card.Content>

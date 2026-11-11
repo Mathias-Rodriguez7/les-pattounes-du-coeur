@@ -68,7 +68,7 @@
 	<Card.Root>
 		{#if !isEditing}
 			<Card.Header>
-				<section class="flex justify-between gap-6">
+				<section class="flex flex-wrap justify-between gap-4">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">
 							{VolunteerData.firstName}
@@ -80,7 +80,7 @@
 							</Badge>
 						</Card.Description>
 					</div>
-					<div class="text-muted-foreground flex flex-col justify-center gap-2 text-right text-sm">
+					<div class="flex flex-col justify-center gap-2 text-right text-sm text-muted-foreground">
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
@@ -106,16 +106,16 @@
 				</section>
 			</Card.Header>
 
-			<Card.Content class="flex flex-col gap-6 text-sm">
+			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
 
-				<section class="grid grid-cols-10 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
 					<!-- 👤 SECTION CANDIDAT -->
 					<SectionCard
 						icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
 						title={VOLUNTEER_SECTION_CONFIG.profile.label}
 						color={VOLUNTEER_SECTION_CONFIG.profile.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 space-y-3">
 							<!-- Identité -->
@@ -143,16 +143,16 @@
 						icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
 						title={VOLUNTEER_SECTION_CONFIG.contact.label}
 						color={VOLUNTEER_SECTION_CONFIG.contact.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Tel</p>
+								<p class="font-medium text-muted-foreground">Tel</p>
 								<div class="flex items-center gap-2">
 									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`tel:${VolunteerData.phone}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{VolunteerData.phone}
 									</a>
@@ -160,12 +160,12 @@
 							</div>
 
 							<div>
-								<p class="text-muted-foreground font-medium">Mail</p>
+								<p class="font-medium text-muted-foreground">Mail</p>
 								<div class="flex items-center gap-2">
 									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
 									<a
 										href={`mailto:${form.email}`}
-										class="hover:text-primary text-xs text-blue-500 underline"
+										class="text-xs text-blue-500 underline hover:text-primary"
 									>
 										{form.email}
 									</a>
@@ -179,25 +179,25 @@
 						icon={VOLUNTEER_SECTION_CONFIG.address.icon}
 						title={VOLUNTEER_SECTION_CONFIG.address.label}
 						color={VOLUNTEER_SECTION_CONFIG.address.color}
-						class="col-span-4"
+						class="@2xl:col-span-4"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
-								<p class="text-muted-foreground font-medium">Rue</p>
+								<p class="font-medium text-muted-foreground">Rue</p>
 								<p class="font-medium text-gray-900">{VolunteerData.address || '—'}</p>
 							</div>
 
 							<div class="flex gap-4">
 								<div>
-									<p class="text-muted-foreground font-medium">Ville</p>
+									<p class="font-medium text-muted-foreground">Ville</p>
 									<p class="font-medium text-gray-900">{VolunteerData.city || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">CP</p>
+									<p class="font-medium text-muted-foreground">CP</p>
 									<p class="font-medium text-gray-900">{VolunteerData.postalCode || '—'}</p>
 								</div>
 								<div>
-									<p class="text-muted-foreground font-medium">Quartier</p>
+									<p class="font-medium text-muted-foreground">Quartier</p>
 									<p class="font-medium">{VolunteerData.district}</p>
 								</div>
 							</div>
@@ -208,7 +208,7 @@
 				<Separator />
 
 				<!-- 🏆 SECTION EXPÉRIENCE -->
-				<section class="grid grid-cols-3 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-3">
 					<!-- 🐾 SECTION ANIMAUX À LA MAISON -->
 					<SectionCard
 						icon={VOLUNTEER_SECTION_CONFIG.experience.icon}
@@ -217,24 +217,24 @@
 					>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Experience avec des chats</span>
+								<span class="font-medium text-muted-foreground">Experience avec des chats</span>
 								<BooleanIcon value={VolunteerData.hasCatExperience} />
 							</div>
 
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium"
+								<span class="font-medium text-muted-foreground"
 									>Experience avec des associations</span
 								>
 								<BooleanIcon value={VolunteerData.hasAssociationExperience} />
 							</div>
 
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Experience de soins</span>
+								<span class="font-medium text-muted-foreground">Experience de soins</span>
 								<BooleanIcon value={VolunteerData.hasMedicalCareExperience} />
 							</div>
 
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Experience transport animeaux</span>
+								<span class="font-medium text-muted-foreground">Experience transport animeaux</span>
 								<BooleanIcon value={VolunteerData.hasTransportExperience} />
 							</div>
 						</div>
@@ -247,19 +247,19 @@
 					>
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Voiture</span>
+								<span class="font-medium text-muted-foreground">Voiture</span>
 								<BooleanIcon value={VolunteerData.car} />
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">disponible en semaine</span>
+								<span class="font-medium text-muted-foreground">disponible en semaine</span>
 								<BooleanIcon value={VolunteerData.canHelpWeekdays} />
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">disponible le weekend</span>
+								<span class="font-medium text-muted-foreground">disponible le weekend</span>
 								<BooleanIcon value={VolunteerData.canHelpWeekends} />
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-muted-foreground font-medium">Peut aider en cas d'urgence</span>
+								<span class="font-medium text-muted-foreground">Peut aider en cas d'urgence</span>
 								<BooleanIcon value={VolunteerData.canHelpEmergencies} />
 							</div>
 						</div>
@@ -334,7 +334,7 @@
 					color={VOLUNTEER_SECTION_CONFIG.capacity.color}
 				>
 					<div>
-						<p class="text-muted-foreground mb-2">Compétence</p>
+						<p class="mb-2 text-muted-foreground">Compétence</p>
 						<p class="font-medium">{VolunteerData.skills}</p>
 					</div>
 				</SectionCard>
@@ -346,7 +346,7 @@
 					color={VOLUNTEER_SECTION_CONFIG.motivation.color}
 				>
 					<div>
-						<p class="text-muted-foreground mb-2">Motivation</p>
+						<p class="mb-2 text-muted-foreground">Motivation</p>
 						<p class="font-medium">{VolunteerData.motivation}</p>
 					</div>
 				</SectionCard>
@@ -357,7 +357,7 @@
 					color={VOLUNTEER_SECTION_CONFIG.additionalInformation.color}
 				>
 					<div>
-						<p class="text-muted-foreground mb-2">Information additionnelle</p>
+						<p class="mb-2 text-muted-foreground">Information additionnelle</p>
 						<p class="font-medium">
 							{VolunteerData.additionalInformation}
 						</p>
@@ -397,7 +397,7 @@
 	/>
 {:else}
 	<Card.Root class="flex h-full items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="fileText" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez un formulaire pour voir les détails</p>
 		</Card.Content>

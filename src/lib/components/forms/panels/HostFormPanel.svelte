@@ -66,7 +66,7 @@
 	<Card.Root>
 		{#if !isEditing}
 			<Card.Header>
-				<section class="flex justify-between gap-6">
+				<section class="flex flex-wrap justify-between gap-4">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">
 							{hostData.firstName}
@@ -108,16 +108,16 @@
 				</section>
 			</Card.Header>
 
-			<Card.Content class="flex flex-col gap-6 text-sm">
+			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
 
-				<section class="grid grid-cols-10 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
 					<!-- 👤 SECTION CANDIDAT -->
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.profile.icon}
 						title={HOST_SECTION_CONFIG.profile.label}
 						color={HOST_SECTION_CONFIG.profile.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 space-y-3">
 							<!-- Identité -->
@@ -145,7 +145,7 @@
 						icon={HOST_SECTION_CONFIG.contact.icon}
 						title={HOST_SECTION_CONFIG.contact.label}
 						color={HOST_SECTION_CONFIG.contact.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
@@ -181,7 +181,7 @@
 						icon={HOST_SECTION_CONFIG.address.icon}
 						title={HOST_SECTION_CONFIG.address.label}
 						color={HOST_SECTION_CONFIG.address.color}
-						class="col-span-4"
+						class="@2xl:col-span-4"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
@@ -210,7 +210,7 @@
 				<Separator />
 
 				<!-- 🏆 SECTION EXPÉRIENCE -->
-				<section class="grid grid-cols-4 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-4">
 					<!-- 🏠 SECTION LOGEMENT -->
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.home.icon}

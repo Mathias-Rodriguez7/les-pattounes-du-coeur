@@ -29,10 +29,11 @@
 			{statusColors[form.status]?.label || form.status}
 		</Badge>
 	</Table.Cell>
-	<Table.Cell>
-		<span class="text-muted-foreground text-sm">{assignedName}</span>
+	<!-- Téléphone : colonne masquée, pour garder Type, Statut et Date lisibles -->
+	<Table.Cell class="hidden sm:table-cell">
+		<span class="text-sm text-muted-foreground">{assignedName}</span>
 	</Table.Cell>
 	<Table.Cell>
-		<span class="text-muted-foreground text-sm">{formatDateNum(form.createdAt)}</span>
+		<span class="text-sm text-muted-foreground">{formatDateNum(form.createdAt)}</span>
 	</Table.Cell>
 </Table.Row>

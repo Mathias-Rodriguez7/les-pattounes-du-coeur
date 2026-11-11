@@ -144,7 +144,7 @@
 						Retour à la fiche du chat
 					</Button>
 				{/if}
-				<section class="flex justify-between gap-6">
+				<section class="flex flex-wrap justify-between gap-4">
 					<div class="grid gap-2 text-base">
 						<Card.Title class="text-2xl">
 							{adoptionData.firstName}
@@ -187,16 +187,16 @@
 				</section>
 			</Card.Header>
 
-			<Card.Content class="flex flex-col gap-6 text-sm">
+			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
 
-				<section class="grid grid-cols-10 gap-4">
+				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
 					<!-- SECTION CANDIDAT -->
 					<SectionCard
 						icon={FORM_SECTION_CONFIG.profile.icon}
 						title={FORM_SECTION_CONFIG.profile.label}
 						color={FORM_SECTION_CONFIG.profile.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 space-y-3">
 							<div class="grid grid-cols-2 gap-4">
@@ -227,7 +227,7 @@
 						icon={FORM_SECTION_CONFIG.contact.icon}
 						title={FORM_SECTION_CONFIG.contact.label}
 						color={FORM_SECTION_CONFIG.contact.color}
-						class="col-span-3"
+						class="@2xl:col-span-3"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
@@ -263,7 +263,7 @@
 						icon={FORM_SECTION_CONFIG.address.icon}
 						title={FORM_SECTION_CONFIG.address.label}
 						color={FORM_SECTION_CONFIG.address.color}
-						class="col-span-4"
+						class="@2xl:col-span-4"
 					>
 						<div class="ml-6 grid gap-4">
 							<div>
@@ -293,7 +293,9 @@
 
 				<!-- Uniquement l'ADOPTANT ici : 3 blocs (demande libre) ou 2 (demande précise) -->
 				<section
-					class="grid gap-4 {form.type === 'ADOPTION_FLEXIBLE' ? 'grid-cols-3' : 'grid-cols-2'}"
+					class="grid grid-cols-1 gap-4 @lg:grid-cols-2 {form.type === 'ADOPTION_FLEXIBLE'
+						? '@2xl:grid-cols-3'
+						: ''}"
 				>
 					<!-- Demande libre : le chat que l'adoptant RECHERCHE (ses préférences).
 					     Demande précise : le chat demandé a sa propre section, plus bas -->

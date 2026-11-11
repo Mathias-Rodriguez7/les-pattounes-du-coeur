@@ -344,7 +344,7 @@
 							size="sm"
 							disabled={isSubmitting}
 						/>
-						<div class="grid grid-cols-3 gap-4">
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<InputField
 								id="adoption-city"
 								name="city"
