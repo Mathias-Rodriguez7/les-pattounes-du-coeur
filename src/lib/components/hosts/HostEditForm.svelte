@@ -21,7 +21,7 @@
 		HOST_BABY_FEEDING_OPTIONS,
 		HOST_SECTION_CONFIG
 	} from '#lib/constants/host.ts';
-	import type { HostEditData } from '$types/host';
+	import type { HostEditData } from '#lib/types/host.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import DateRangePicker from '../fields/DateRangePicker.svelte';

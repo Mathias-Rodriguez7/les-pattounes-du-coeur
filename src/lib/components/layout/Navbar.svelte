@@ -59,7 +59,7 @@
 				<nav class="flex flex-col gap-1 p-6">
 					<!-- Accueil -->
 					<a
-						href={resolve('/')}
+						href={resolve('')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/' ? 'bg-accent font-semibold' : ''}"

@@ -12,14 +12,9 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter(),
-			alias: {
-				$lib: 'src/lib',
-				$components: 'src/lib/components',
-				$utils: 'src/lib/utils',
-				$schemas: 'src/lib/schemas',
-				$types: 'src/lib/types'
-			}
+			adapter: adapter()
+			// 🆕 Plus d'option `alias` (dépréciée en SvelteKit 3) : les imports passent par
+			// « #lib/… », déclaré dans le champ "imports" de package.json (standard Node)
 		})
 	],
 	server: { fs: { allow: ['static'] } }

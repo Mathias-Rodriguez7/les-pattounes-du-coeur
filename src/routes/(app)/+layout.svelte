@@ -13,7 +13,7 @@
 
 	let mobileMenuOpen = $state(false);
 	// Les pastilles « à faire » de la sidebar (calculées par le layout serveur)
-	const badges = $derived({ '/dashboard/chat': data.dueAdoptionsCount } as const);
+	const badges = $derived({ 'dashboard/chat': data.dueAdoptionsCount } as const);
 	const hasBadges = $derived(Object.values(badges).some((count) => count > 0));
 
 	// Sécurité : ferme le tiroir après chaque navigation (bouton retour, redirection…)

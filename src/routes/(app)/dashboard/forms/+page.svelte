@@ -67,7 +67,8 @@
 
 	function setScope(checked: boolean) {
 		selectedFormId = null;
-		const url = new URL(page.url);
+		// SK3 : page.url est en lecture seule → on travaille sur une COPIE modifiable
+		const url = new URL(page.url.href);
 		if (checked) {
 			url.searchParams.set('scope', 'all');
 		} else {
@@ -76,7 +77,7 @@
 		// resolve() vérifie le chemin de la route, mais n'accepte pas de « ?query » :
 		// la règle ESLint ne reconnaît donc pas ce goto. On la désactive pour CETTE ligne.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(`${resolve('dashboard/forms')}${url.search}`, { keepFocus: true, noScroll: true });
+		goto(`${resolve('dashboard/forms')}${url.search}`, { reset: false }); // SK3 : remplace keepFocus + noScroll
 	}
 
 	// ==========================================

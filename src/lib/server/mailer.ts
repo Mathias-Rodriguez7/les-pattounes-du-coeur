@@ -14,7 +14,7 @@ import { SOS_ALERT_TYPES, type SosAlertType } from '#lib/constants/sos.ts';
 
 const transporter = nodemailer.createTransport({
 	host: SMTP_HOST,
-	port: Number(SMTP_PORT ?? 587),
+	port: Number(SMTP_PORT), // 587 par défaut (src/env.ts)
 	secure: false,
 	auth: { user: SMTP_USER, pass: SMTP_PASS }
 });

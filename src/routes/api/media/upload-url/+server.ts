@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
 import { UPLOAD_PURPOSES, validateFile } from '#lib/media/rules.ts';
@@ -45,5 +45,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		isPrivate: config.isPrivate
 	});
 
-	return json({ uploadUrl, storageKey });
+	return Response.json({ uploadUrl, storageKey }); // SK3 : json() est déprécié, Response.json est standard
 };
