@@ -1,18 +1,17 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { X, Star, Crosshair, LoaderCircle } from '@lucide/svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
 	import VideoPreview from '../media/VideoPreview.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import FocusPointDialog from './FocusPointDialog.svelte';
-	import { publicMediaUrl } from '$lib/media/urls';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { focalPointStyle } from '$lib/utils/catHelpers';
-	import type { CatFull } from '$lib/types/cat';
+	import { publicMediaUrl } from '#lib/media/urls.ts';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
 
 	type GalleryItem = CatFull['media'][number];
 
@@ -83,6 +82,7 @@
 			if (result.type === 'success') toast.success(successMessage);
 			else if (result.type === 'failure')
 				toast.error((result.data?.error as string) ?? 'Action impossible');
+
 			await update();
 		};
 
@@ -237,7 +237,7 @@
 
 		{#if images.length === 0}
 			<div
-				class="text-muted-foreground flex h-32 items-center justify-center rounded-xl border-2 border-dashed"
+				class="flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground"
 			>
 				Aucune photo
 			</div>
@@ -262,7 +262,7 @@
 
 		{#if videos.length === 0}
 			<div
-				class="text-muted-foreground flex h-32 items-center justify-center rounded-xl border-2 border-dashed"
+				class="flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground"
 			>
 				Aucune vidéo
 			</div>

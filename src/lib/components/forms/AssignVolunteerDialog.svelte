@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
+
 	import {
 		Dialog,
 		DialogContent,
@@ -9,14 +9,14 @@
 		DialogHeader,
 		DialogTitle,
 		DialogTrigger
-	} from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import * as Command from '$lib/components/ui/command/index.js';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Popover from '#lib/components/ui/popover/index.js';
+	import * as Command from '#lib/components/ui/command/index.js';
 	import { UserPlus, Check, ChevronsUpDown } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import type { VolunteerBasic } from '$lib/types/volunteer';
-	import { cn } from '$lib/utils';
+	import type { VolunteerBasic } from '#lib/types/volunteer.ts';
+	import { cn } from '#lib/utils.ts';
 
 	interface Props {
 		formId: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import { cn, type WithoutChild } from '$lib/utils.js';
+	import { cn, type WithoutChild } from '#lib/utils.js';
 	import CheckIcon from '@lucide/svelte/icons/check';
 
 	let {
@@ -18,7 +18,7 @@
 	{value}
 	data-slot="select-item"
 	class={cn(
-		"focus:bg-foreground/10 focus:text-foreground/10 not-data-[variant=destructive]:focus:**:text-foreground/10 focus:bg-accent data-highlighted:bg-foreground/10 data-highlighted:text-foreground focus:text-foreground relative flex w-full cursor-default items-center gap-2 rounded-2xl py-1.5 pr-8 pl-2 text-sm outline-hidden select-none  data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+		"relative flex w-full cursor-default items-center gap-2 rounded-2xl py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:bg-foreground/10 focus:text-foreground focus:text-foreground/10 not-data-[variant=destructive]:focus:**:text-foreground/10 data-highlighted:bg-foreground/10 data-highlighted:text-foreground  data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
 		className
 	)}
 	{...restProps}

@@ -1,9 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import { District, VolunteerRole } from '@prisma/client';
-import { createVolunteer, updateVolunteer } from '$lib/server/volunteers/mutations';
-import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
+import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutations.ts';
+import { deleteProfile, blacklistProfile } from '#lib/server/mutations.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN

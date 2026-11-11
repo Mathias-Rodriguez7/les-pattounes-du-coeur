@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Accordion as AccordionPrimitive } from 'bits-ui';
-	import { cn, type WithoutChild } from '$lib/utils.js';
+	import { cn, type WithoutChild } from '#lib/utils.js';
 
 	let {
 		ref = $bindable(null),
@@ -18,7 +18,7 @@
 >
 	<div
 		class={cn(
-			'[&_a]:hover:text-foreground [&_p:not(:last-child)]: pt-0 pb-4 [&_a]:underline [&_a]:underline-offset-3',
+			'[&_p:not(:last-child)]: pt-0 pb-4 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground',
 			className
 		)}
 	>

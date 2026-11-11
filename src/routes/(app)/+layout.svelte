@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Navbar from '$lib/components/layout/Navbar.svelte';
-	import Sidebar from '$lib/components/layout/Sidebar.svelte';
-	import Footer from '$lib/components/layout/Footer.svelte';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import Navbar from '#lib/components/layout/Navbar.svelte';
+	import Sidebar from '#lib/components/layout/Sidebar.svelte';
+	import Footer from '#lib/components/layout/Footer.svelte';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { afterNavigate } from '$app/navigation';
 	import { Menu } from '@lucide/svelte';
 	import { Toaster } from 'svelte-sonner';
@@ -13,11 +13,13 @@
 
 	let mobileMenuOpen = $state(false);
 	// Les pastilles « à faire » de la sidebar (calculées par le layout serveur)
-	const badges = $derived({ '/dashboard/chat': data.dueAdoptionsCount } as const);
+	const badges = $derived({ 'dashboard/chat': data.dueAdoptionsCount } as const);
 	const hasBadges = $derived(Object.values(badges).some((count) => count > 0));
 
 	// Sécurité : ferme le tiroir après chaque navigation (bouton retour, redirection…)
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		mobileMenuOpen = false;
 	});
 </script>
@@ -30,9 +32,7 @@
 	<!-- ================= DASHBOARD ================= -->
 	<div class="flex h-dvh overflow-hidden">
 		<!-- Sidebar fixe : ordinateur uniquement -->
-		<div class="hidden shrink-0 lg:block">
-			<Sidebar user={data.user} {badges} />
-		</div>
+		<div class="hidden shrink-0 lg:block"><Sidebar user={data.user} {badges} /></div>
 
 		<div class="flex min-w-0 flex-1 flex-col">
 			<!-- Barre du haut : téléphone et tablette uniquement -->
@@ -54,6 +54,7 @@
 					<Sheet.Content side="left" class="w-72 p-0">
 						<!-- Titre invisible, obligatoire pour l'accessibilité des fenêtres -->
 						<Sheet.Title class="sr-only">Menu de navigation</Sheet.Title>
+
 						<Sidebar user={data.user} {badges} mobile onClose={() => (mobileMenuOpen = false)} />
 					</Sheet.Content>
 				</Sheet.Root>

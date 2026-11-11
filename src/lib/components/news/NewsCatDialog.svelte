@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Carousel from '$lib/components/ui/carousel';
-	import CatCard from '$lib/components/cats/CatCard.svelte';
-	import type { NewsFull } from '$lib/types/news';
-	import type { CatListItem } from '$lib/types/cat';
-	import { formatDate } from '$lib/utils/date';
+	import * as Carousel from '#lib/components/ui/carousel/index.ts';
+	import CatCard from '#lib/components/cats/CatCard.svelte';
+	import type { NewsFull } from '#lib/types/news.ts';
+	import type { CatListItem } from '#lib/types/cat.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import { resolve } from '$app/paths';
 
 	const { news, cats = [] }: { news: NewsFull; cats?: CatListItem[] } = $props();
@@ -23,7 +23,7 @@
 
 			<div>
 				<p class="text-lg font-semibold">Nouveaux chats</p>
-				<p class="text-muted-foreground text-sm">{content}</p>
+				<p class="text-sm text-muted-foreground">{content}</p>
 			</div>
 		</div>
 		<div class="self-center">
@@ -37,9 +37,9 @@
 			<Carousel.Content class="p-6">
 				{#each cats as cat (cat.id)}
 					<Carousel.Item class="sm:basis-1/2 lg:basis-1/3">
-						<a href={resolve(`/adoptions/chat?cat=${cat.id}`)} class="block w-full">
-							<CatCard {cat} />
-						</a>
+						<a href={resolve(`adoptions/chat?cat=${cat.id}`)} class="block w-full"
+							><CatCard {cat} /></a
+						>
 					</Carousel.Item>
 				{/each}
 			</Carousel.Content>
@@ -51,6 +51,6 @@
 			</div>
 		</Carousel.Root>
 	{:else}
-		<p class="text-muted-foreground text-center text-sm">Aucun chat disponible</p>
+		<p class="text-center text-sm text-muted-foreground">Aucun chat disponible</p>
 	{/if}
 </div>

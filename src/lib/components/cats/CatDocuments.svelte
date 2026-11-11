@@ -3,10 +3,10 @@
 	import DocumentPreview from '../media/DocumentPreview.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import CatDocumentCreateDialog from './CatDocumentCreateDialog.svelte';
-	import { CAT_SECTION_CONFIG, CAT_DOCUMENT_KIND } from '$lib/constants/cat';
-	import { formatDateNum } from '$lib/utils/date';
-	import type { CatFull } from '$lib/types/cat';
-	import { ADOPTION_STATUS } from '$lib/constants/adoption';
+	import { CAT_SECTION_CONFIG, CAT_DOCUMENT_KIND } from '#lib/constants/cat.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
+	import { ADOPTION_STATUS } from '#lib/constants/adoption.ts';
 
 	interface Props {
 		cat: CatFull;

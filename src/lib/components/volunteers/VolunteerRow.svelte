@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import { truncate } from '$lib/utils/string';
-	import { roleColors } from '$lib/constants/volunteer';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { truncate } from '#lib/utils/string.ts';
+	import { roleColors } from '#lib/constants/volunteer.ts';
 	import { ChevronRight } from '@lucide/svelte';
 
 	const { volunteer, isSelected = false, onclick } = $props();
@@ -53,7 +53,7 @@
 	<Table.Cell class="hidden text-center sm:table-cell">{formsCount}</Table.Cell>
 
 	<!-- Flèche : indique sur mobile qu'on peut toucher la ligne -->
-	<Table.Cell class="text-muted-foreground w-8 sm:hidden">
+	<Table.Cell class="w-8 text-muted-foreground sm:hidden">
 		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

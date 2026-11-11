@@ -1,12 +1,21 @@
+import adapter from '@sveltejs/adapter-node';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	server: {
-		fs: {
-			allow: ['static']
-		}
-	}
+	plugins: [
+		tailwindcss(),
+		sveltekit({
+			compilerOptions: {
+				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+				runes: ({ filename }) =>
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+			},
+			adapter: adapter()
+			// 🆕 Plus d'option `alias` (dépréciée en SvelteKit 3) : les imports passent par
+			// « #lib/… », déclaré dans le champ "imports" de package.json (standard Node)
+		})
+	],
+	server: { fs: { allow: ['static'] } }
 });

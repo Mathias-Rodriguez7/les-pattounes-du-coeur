@@ -1,19 +1,19 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { X } from '@lucide/svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import VolunteerRow from '$lib/components/volunteers/VolunteerRow.svelte';
-	import VolunteerPanel from '$lib/components/volunteers/VolunteerPanel.svelte';
-	import NewVolunteerDialog from '$lib/components/volunteers/NewVolunteerDialog.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '$lib/constants/volunteer.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import VolunteerRow from '#lib/components/volunteers/VolunteerRow.svelte';
+	import VolunteerPanel from '#lib/components/volunteers/VolunteerPanel.svelte';
+	import NewVolunteerDialog from '#lib/components/volunteers/NewVolunteerDialog.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '#lib/constants/volunteer.js';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
-	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 

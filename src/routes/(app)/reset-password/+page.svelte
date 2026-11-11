@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Alert from '$lib/components/ui/alert/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import PasswordInput from '$lib/components/auth/PasswordInput.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Alert from '#lib/components/ui/alert/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import PasswordInput from '#lib/components/auth/PasswordInput.svelte';
 	import {
 		ShieldCheck,
 		ArrowLeft,
@@ -31,7 +31,10 @@
 			ok: /[a-z]/.test(password) && /[A-Z]/.test(password)
 		},
 		{ label: 'Un chiffre', ok: /\d/.test(password) },
-		{ label: 'Un caractère spécial', ok: /[^A-Za-z0-9]/.test(password) }
+		{
+			label: 'Un caractère spécial',
+			ok: /[^A-Za-z0-9]/.test(password)
+		}
 	]);
 
 	const score = $derived(rules.filter((r) => r.ok).length);
@@ -61,29 +64,30 @@
 			<Card.Root class="text-center">
 				<Card.Content class="flex flex-col items-center gap-4 pt-8 pb-6">
 					<div
-						class="bg-destructive/10 text-destructive flex size-16 items-center justify-center rounded-full"
+						class="flex size-16 items-center justify-center rounded-full bg-destructive/10 text-destructive"
 					>
 						<LinkIcon class="size-8" />
 					</div>
 					<div class="space-y-2">
 						<h2 class="text-xl font-semibold">Lien invalide ou expiré</h2>
-						<p class="text-muted-foreground text-sm">
+						<p class="text-sm text-muted-foreground">
 							Pour des raisons de sécurité, un lien n'est valable qu'une heure et ne peut servir
 							qu'une seule fois.
 						</p>
 					</div>
 				</Card.Content>
-				<Card.Footer class="justify-center">
-					<Button href={resolve('/forgot-password')} class="w-full">Demander un nouveau lien</Button
-					>
-				</Card.Footer>
+
+				<Card.Footer class="justify-center"
+					><Button href={resolve('forgot-password')} class="w-full">Demander un nouveau lien</Button
+					></Card.Footer
+				>
 			</Card.Root>
 		{:else}
 			<!-- 📝 ÉTAT : FORMULAIRE -->
 			<Card.Root>
 				<Card.Header class="items-center space-y-3 text-center">
 					<div
-						class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
+						class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary"
 					>
 						<ShieldCheck class="size-7" />
 					</div>
@@ -135,7 +139,7 @@
 											></div>
 										{/each}
 									</div>
-									<span class="text-muted-foreground w-16 text-right text-xs">{strength.label}</span
+									<span class="w-16 text-right text-xs text-muted-foreground">{strength.label}</span
 									>
 								</div>
 
@@ -159,7 +163,7 @@
 							{/if}
 
 							{#if form?.errors?.password}
-								<p class="text-destructive text-xs">{form.errors.password}</p>
+								<p class="text-xs text-destructive">{form.errors.password}</p>
 							{/if}
 						</div>
 
@@ -175,9 +179,9 @@
 								required
 							/>
 							{#if mismatch}
-								<p class="text-destructive text-xs">Les mots de passe ne correspondent pas</p>
+								<p class="text-xs text-destructive">Les mots de passe ne correspondent pas</p>
 							{:else if form?.errors?.confirmPassword}
-								<p class="text-destructive text-xs">{form.errors.confirmPassword}</p>
+								<p class="text-xs text-destructive">{form.errors.confirmPassword}</p>
 							{:else if confirmPassword.length > 0}
 								<p class="flex items-center gap-1 text-xs text-green-600">
 									<Check class="size-3.5" /> Les mots de passe correspondent
@@ -196,8 +200,8 @@
 							{/if}
 						</Button>
 						<a
-							href={resolve('/login')}
-							class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
+							href={resolve('login')}
+							class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 						>
 							<ArrowLeft class="size-4" />
 							Retour à la connexion

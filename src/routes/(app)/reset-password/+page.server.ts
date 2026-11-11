@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { hashPassword, hashToken } from '$lib/server/hashing';
+import prisma from '#lib/server/prisma.ts';
+import { hashPassword, hashToken } from '#lib/server/hashing.ts';
 
 async function findVolunteerByToken(token: string) {
 	return prisma.volunteer.findFirst({

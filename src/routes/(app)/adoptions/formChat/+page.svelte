@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { ChevronRight, ChevronLeft, LoaderCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { resolve } from '$app/paths';
@@ -12,21 +12,21 @@
 		step1Schema,
 		step2Schema,
 		step3Schema
-	} from '$lib/schemas/formShema/adoptionForm';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/schemas/formShema/adoptionForm.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		ADOPTION_AGE_OPTIONS,
 		ADOPTION_FUR_OPTIONS,
 		ADOPTION_SEX_OPTIONS,
 		FORM_SECTION_CONFIG
-	} from '$lib/constants/forms';
+	} from '#lib/constants/forms.ts';
 
 	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 
@@ -112,7 +112,7 @@
 					</p>
 					<div class="pt-2">
 						<a
-							href={resolve('/adoptions/chat')}
+							href={resolve('adoptions/chat')}
 							class="inline-flex items-center font-medium text-primary underline underline-offset-4 transition hover:text-primary/80"
 						>
 							<ChevronRight />

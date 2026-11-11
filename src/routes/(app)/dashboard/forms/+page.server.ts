@@ -1,20 +1,20 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import { FormType, FormStatus, type Prisma } from '@prisma/client';
 import {
 	updateForm,
 	rejectForm,
 	assignVolunteer,
 	setFlexibleDispatcher
-} from '$lib/server/forms/mutations';
-import { createVolunteer } from '$lib/server/volunteers/mutations';
-import { createHost } from '$lib/server/hosts/mutations';
-import { catPickerSelect } from '$lib/types/cat';
-import { myFormsWhere } from '$lib/server/permissions/form';
-import { createAdoptionAction } from '$lib/server/adoptions/actions';
-import { formInclude } from '$lib/types/form';
-import { withBlacklist } from '$lib/server/accountStatus';
+} from '#lib/server/forms/mutations.ts';
+import { createVolunteer } from '#lib/server/volunteers/mutations.ts';
+import { createHost } from '#lib/server/hosts/mutations.ts';
+import { catPickerSelect } from '#lib/types/cat.ts';
+import { myFormsWhere } from '#lib/server/permissions/form.ts';
+import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
+import { formInclude } from '#lib/types/form.ts';
+import { withBlacklist } from '#lib/server/accountStatus.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {

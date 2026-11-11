@@ -1,8 +1,8 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import BooleanIcon from '../icons/BooleanIcon.svelte';
-	import { typesColors, healColors, socializeColors } from '$lib/constants/host';
+	import { typesColors, healColors, socializeColors } from '#lib/constants/host.ts';
 	import { ChevronRight } from '@lucide/svelte';
 
 	const { host, isSelected = false, onclick } = $props();
@@ -51,7 +51,7 @@
 		<BooleanIcon value={host.outside} />
 	</Table.Cell>
 
-	<Table.Cell class="text-muted-foreground w-8 sm:hidden">
+	<Table.Cell class="w-8 text-muted-foreground sm:hidden">
 		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

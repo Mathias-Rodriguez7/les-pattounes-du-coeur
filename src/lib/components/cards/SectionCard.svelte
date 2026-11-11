@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Icon from '$lib/components/Icon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	type ColorVariant =
 		| 'red'

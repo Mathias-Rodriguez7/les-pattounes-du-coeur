@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { catListSelect } from '$lib/types/cat';
-import { newsCardSelect } from '$lib/server/news/queries';
+import prisma from '#lib/server/prisma.ts';
+import { catListSelect } from '#lib/types/cat.ts';
+import { newsCardSelect } from '#lib/server/news/queries.ts';
 
 export const load: PageServerLoad = async () => {
 	// News avec les cats associés - limité à 4

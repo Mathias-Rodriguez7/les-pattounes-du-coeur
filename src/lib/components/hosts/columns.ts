@@ -1,12 +1,12 @@
-import type { HostFull } from '$lib/types/host';
+import type { HostFull } from '#lib/types/host.ts';
 import {
 	HOST_ACTIF_OPTIONS,
 	HOST_TYPE_OPTIONS,
 	HOST_HEAL_OPTIONS,
 	HOST_SOCIALIZE_OPTIONS,
 	HOST_BABY_FEEDING_OPTIONS
-} from '$lib/constants/host';
-import { truncate } from '$lib/utils/string';
+} from '#lib/constants/host.ts';
+import { truncate } from '#lib/utils/string.ts';
 
 export type FilterType = 'text' | 'select' | 'boolean';
 

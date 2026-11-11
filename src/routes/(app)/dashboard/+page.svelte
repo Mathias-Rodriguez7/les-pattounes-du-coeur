@@ -1,8 +1,8 @@
 <script lang="ts">
-	import AdminDashboard from '$lib/components/dashboard/roles/AdminDashboard.svelte';
-	import ManagerDashboard from '$lib/components/dashboard/roles/ManagerDashboard.svelte';
-	import CommunicationDashboard from '$lib/components/dashboard/roles/CommunicationDashboard.svelte';
-	import Radial from '$lib/components/charts/Radial.svelte';
+	import AdminDashboard from '#lib/components/dashboard/roles/AdminDashboard.svelte';
+	import ManagerDashboard from '#lib/components/dashboard/roles/ManagerDashboard.svelte';
+	import CommunicationDashboard from '#lib/components/dashboard/roles/CommunicationDashboard.svelte';
+	import Radial from '#lib/components/charts/Radial.svelte';
 	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
 
@@ -25,7 +25,7 @@
 
 		<section class="flex flex-col gap-4">
 			<h2 class="text-xl font-bold">Mes stats</h2>
-			<div class="bg-card border-border rounded-2xl border p-6">
+			<div class="rounded-2xl border border-border bg-card p-6">
 				<div class="flex items-stretch gap-4">
 					<div class="flex flex-1 items-center justify-center">
 						<Radial
@@ -38,7 +38,7 @@
 							otherColor="hsl(var(--muted))"
 						/>
 					</div>
-					<div class="bg-border w-px"></div>
+					<div class="w-px bg-border"></div>
 					<div class="flex flex-1 items-center justify-center">
 						<Radial
 							title="Adoptions {new Date().getFullYear()}"
@@ -50,7 +50,7 @@
 							otherColor="hsl(var(--muted))"
 						/>
 					</div>
-					<div class="bg-border w-px"></div>
+					<div class="w-px bg-border"></div>
 					<div class="flex flex-1 items-center justify-center">
 						<Radial
 							title="Candidatures traitées"

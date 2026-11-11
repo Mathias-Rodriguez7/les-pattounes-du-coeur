@@ -1,8 +1,8 @@
 <!-- src/lib/components/media/DocumentPreview.svelte -->
 <script lang="ts">
-	import { buttonVariants } from '$lib/components/ui/button';
+	import { buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { FileText, FileType, ExternalLink, Download } from '@lucide/svelte';
-	import { formatBytes, DOCX_MIME } from '$lib/media/rules';
+	import { formatBytes, DOCX_MIME } from '#lib/media/rules.ts';
 
 	interface Props {
 		src: string;
@@ -28,7 +28,7 @@
 
 <!-- ===== CARTE ===== -->
 {#snippet card()}
-	<div class="border-border flex items-center gap-3 rounded-lg border p-3">
+	<div class="flex items-center gap-3 rounded-lg border border-border p-3">
 		<div
 			class="flex size-10 shrink-0 items-center justify-center rounded-md
 		{isWord ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}"
@@ -40,7 +40,7 @@
 
 		<div class="min-w-0 flex-1">
 			<p class="truncate text-sm font-medium" title={displayName}>{displayName}</p>
-			<p class="text-muted-foreground text-xs">
+			<p class="text-xs text-muted-foreground">
 				{formatLabel}{sizeBytes ? ` · ${formatBytes(sizeBytes)}` : ''}
 			</p>
 		</div>
@@ -79,12 +79,12 @@
 		{/if}
 		<span class="min-w-0 flex-1 truncate font-medium">{displayName}</span>
 		{#if sizeBytes}
-			<span class="text-muted-foreground shrink-0">{formatBytes(sizeBytes)}</span>
+			<span class="shrink-0 text-muted-foreground">{formatBytes(sizeBytes)}</span>
 		{/if}
 		{#if isWord}
-			<Download class="text-muted-foreground size-3.5 shrink-0" />
+			<Download class="size-3.5 shrink-0 text-muted-foreground" />
 		{:else}
-			<ExternalLink class="text-muted-foreground size-3.5 shrink-0" />
+			<ExternalLink class="size-3.5 shrink-0 text-muted-foreground" />
 		{/if}
 	</a>
 	<!-- eslint-enable svelte/no-navigation-without-resolve -->
@@ -96,7 +96,7 @@
 		<object
 			data={src}
 			type="application/pdf"
-			class="border-border hidden h-200 w-full rounded-lg border lg:block"
+			class="hidden h-200 w-full rounded-lg border border-border lg:block"
 			aria-label={displayName}
 		>
 			{@render card()}

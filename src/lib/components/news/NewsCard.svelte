@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { NewsType } from '@prisma/client';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { getNewsImage } from '$lib/utils/newsImg';
-	import { formatDate } from '$lib/utils/date';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { getNewsImage } from '#lib/utils/newsImg.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 
 	interface Props {
 		/** Seulement ce que la carte affiche : une news complète convient aussi */
@@ -26,7 +26,7 @@
 	</Card.Header>
 
 	<Card.Content class="flex-1">
-		<p class="text-muted-foreground line-clamp-3 text-sm">
+		<p class="line-clamp-3 text-sm text-muted-foreground">
 			{news.content}
 		</p>
 	</Card.Content>

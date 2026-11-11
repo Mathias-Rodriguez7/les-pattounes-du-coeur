@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { District, HostType, Heal, Socialize, BabyFeeding, ColabActivity } from '@prisma/client';
-import { emailField } from '$lib/schemas/fields';
+import { emailField } from '#lib/schemas/fields.ts';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z
@@ -75,7 +75,7 @@ export const createHostSchema = z.object({
 
 	// Cat
 	catAdult: z.coerce.number().int().min(0).default(0),
-	kittyAndKitten: z.coerce.boolean().default(false),
+	kittyAndKitten: stringToBoolean.default(false),
 	kitten: z.coerce.number().int().min(0).default(0),
 
 	// Descriptions

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import SexIcon from '$lib/components/cats/SexIcon.svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import type { CatPublic } from '$lib/types/cat';
-	import { focalPointStyle, hairLabel, getLabel } from '$lib/utils/catHelpers';
-	import { getAgeBadge, formatAge } from '$lib/utils/age';
-	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import SexIcon from '#lib/components/cats/SexIcon.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import type { CatPublic } from '#lib/types/cat.ts';
+	import { focalPointStyle, hairLabel, getLabel } from '#lib/utils/catHelpers.ts';
+	import { getAgeBadge, formatAge } from '#lib/utils/age.ts';
+	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
 	import { Play } from '@lucide/svelte';
-	import { publicMediaUrl } from '$lib/media/urls';
+	import { publicMediaUrl } from '#lib/media/urls.ts';
 
 	let { selectedCat }: { selectedCat: CatPublic | null } = $props();
 
@@ -47,7 +47,7 @@
 		<Dialog.Header class="px-6 pt-6">
 			<Dialog.Title class="text-2xl">
 				{selectedCat.name}
-				<div class="text-muted-foreground flex items-center gap-2 text-sm">
+				<div class="flex items-center gap-2 text-sm text-muted-foreground">
 					<SexIcon sex={selectedCat.sex} class="size-6" />
 					<span>{getAgeBadge(selectedCat.birthDate)}</span>
 				</div>
@@ -197,7 +197,7 @@
 					title={CAT_SECTION_CONFIG.description.label}
 					color={CAT_SECTION_CONFIG.description.color}
 				>
-					<p class="text-muted-foreground ml-6 text-sm leading-relaxed">
+					<p class="ml-6 text-sm leading-relaxed text-muted-foreground">
 						{selectedCat.description}
 					</p>
 				</SectionCard>

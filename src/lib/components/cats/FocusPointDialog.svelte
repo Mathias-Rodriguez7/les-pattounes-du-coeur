@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle } from '@lucide/svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type FocalMedia = {
 		id: string;
@@ -178,10 +177,8 @@
 						class="rounded-2xl"
 						variant={ratio === format.ratio ? 'default' : 'outline'}
 						aria-pressed={ratio === format.ratio}
-						onclick={() => (ratio = format.ratio)}
+						onclick={() => (ratio = format.ratio)}>{format.label}</Button
 					>
-						{format.label}
-					</Button>
 				{/each}
 			</div>
 
@@ -209,7 +206,7 @@
 						<button
 							type="button"
 							data-frame
-							class="focus-visible:ring-primary absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgb(0_0_0/0.55)] focus-visible:ring-2 focus-visible:outline-none"
+							class="absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgb(0_0_0/0.55)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
 							style:left="{frame.left}%"
 							style:top="{frame.top}%"
 							style:width="{frame.width}%"
@@ -228,7 +225,7 @@
 			</div>
 
 			{#if frame && frame.width >= 100 && frame.height >= 100}
-				<p class="text-muted-foreground text-center text-sm">
+				<p class="text-center text-sm text-muted-foreground">
 					Cette photo a déjà ce format : elle sera affichée en entier.
 				</p>
 			{/if}
@@ -244,9 +241,10 @@
 				<input type="hidden" name="focalPointY" value={y.toFixed(1)} />
 
 				<Dialog.Footer>
-					<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>
-						Annuler
-					</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}
+						>Annuler</Button
+					>
+
 					<Button type="submit" disabled={saving}>
 						{#if saving}
 							<LoaderCircle class="size-4 animate-spin" />

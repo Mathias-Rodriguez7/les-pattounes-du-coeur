@@ -4,16 +4,16 @@
 	import type { InfoDocumentCategory } from '@prisma/client';
 	import { fade, fly } from 'svelte/transition';
 	import { FileText, FileType, Download, Eye, Info, Search, SearchX } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { DOCX_MIME, formatBytes } from '$lib/media/rules';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import { DOCX_MIME, formatBytes } from '#lib/media/rules.ts';
 	import {
 		INFO_DOCUMENT_CATEGORY,
 		INFO_DOCUMENT_CATEGORY_ORDER
-	} from '$lib/constants/infoDocument';
-	import InfoDocumentCreateDialog from '$lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
-	import InfoDocumentEditDialog from '$lib/components/infoDocuments/InfoDocumentEditDialog.svelte';
-	import DeleteButton from '$lib/components/buttons/DeleteButton.svelte';
+	} from '#lib/constants/infoDocument.ts';
+	import InfoDocumentCreateDialog from '#lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
+	import InfoDocumentEditDialog from '#lib/components/infoDocuments/InfoDocumentEditDialog.svelte';
+	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -120,13 +120,13 @@
 	</span>
 	<span class="min-w-0 flex-1">
 		<span
-			class="group-hover:text-accent-foreground block truncate text-sm font-medium transition-colors {active
+			class="block truncate text-sm font-medium transition-colors group-hover:text-accent-foreground {active
 				? 'text-accent-foreground'
 				: ''}"
 		>
 			{doc.title}
 		</span>
-		<span class="text-muted-foreground block text-xs">
+		<span class="block text-xs text-muted-foreground">
 			{formatLabel(doc)} · {formatBytes(doc.file.sizeBytes)}
 		</span>
 	</span>
@@ -139,9 +139,9 @@
 			<div>
 				<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
 					Documents d'information
-					<span class="text-muted-foreground text-base font-normal">· {data.documents.length}</span>
+					<span class="text-base font-normal text-muted-foreground">· {data.documents.length}</span>
 				</h1>
-				<p class="text-muted-foreground mt-1 text-sm sm:text-base">
+				<p class="mt-1 text-sm text-muted-foreground sm:text-base">
 					Guides, procédures et modèles utiles dans vos missions.
 				</p>
 			</div>
@@ -153,11 +153,11 @@
 		{#if data.documents.length === 0}
 			<!-- ===== AUCUN DOCUMENT ===== -->
 			<div
-				class="bg-muted/40 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-20 text-center"
+				class="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/40 px-6 py-20 text-center"
 			>
-				<Info class="text-muted-foreground mb-4 size-10" />
+				<Info class="mb-4 size-10 text-muted-foreground" />
 				<h2 class="text-lg font-semibold">Aucun document pour le moment</h2>
-				<p class="text-muted-foreground mt-1 text-sm">
+				<p class="mt-1 text-sm text-muted-foreground">
 					Revenez plus tard, de nouveaux documents seront ajoutés.
 				</p>
 			</div>
@@ -165,11 +165,11 @@
 			<div class="grid gap-4 lg:grid-cols-[320px_1fr] lg:gap-6">
 				<!-- ===== LISTE : panneau translucide, comme la sidebar ===== -->
 				<aside
-					class="bg-accent/10 border-accent/40 flex min-w-0 flex-col gap-3 rounded-2xl border p-3 shadow-sm backdrop-blur-lg sm:p-4"
+					class="flex min-w-0 flex-col gap-3 rounded-2xl border border-accent/40 bg-accent/10 p-3 shadow-sm backdrop-blur-lg sm:p-4"
 				>
 					<div class="relative">
 						<Search
-							class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+							class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
 						/>
 						<Input
 							type="search"
@@ -192,10 +192,10 @@
 								type="button"
 								aria-pressed={on}
 								onclick={() => (category = chip.value)}
-								class="focus-visible:ring-ring shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none
+								class="shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none
 									{on
 									? 'border-primary bg-primary text-primary-foreground'
-									: 'text-muted-foreground hover:text-foreground border-black/10 bg-white/60 hover:bg-white'}"
+									: 'border-black/10 bg-white/60 text-muted-foreground hover:bg-white hover:text-foreground'}"
 							>
 								{chip.label}
 								<span class="ml-0.5 tabular-nums">{chip.count}</span>
@@ -208,7 +208,7 @@
 						<div
 							class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-black/15 bg-white/40 px-4 py-10 text-center"
 						>
-							<SearchX class="text-muted-foreground size-8" />
+							<SearchX class="size-8 text-muted-foreground" />
 							<p class="text-sm font-medium">Aucun document ne correspond</p>
 							<Button variant="outline" size="sm" class="rounded-2xl" onclick={resetFilters}>
 								Réinitialiser
@@ -220,7 +220,7 @@
 								<section aria-labelledby="group-{group.category}">
 									<h2
 										id="group-{group.category}"
-										class="text-muted-foreground mb-1.5 px-1 text-xs font-semibold tracking-wide uppercase"
+										class="mb-1.5 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
 									>
 										{INFO_DOCUMENT_CATEGORY[group.category].plural}
 									</h2>
@@ -236,10 +236,10 @@
 													aria-current={active ? 'true' : undefined}
 													onclick={() => (selectedId = doc.id)}
 													onkeydown={(e) => onKeydown(e, doc)}
-													class="group focus-visible:ring-ring hidden w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:outline-none lg:flex
+													class="group hidden w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none lg:flex
 			{active
-														? 'bg-background ring-primary/30 shadow-sm ring-1'
-														: 'hover:bg-background/70 hover:ring-primary/20 hover:translate-x-0.5 hover:shadow-sm hover:ring-1'}"
+														? 'bg-background shadow-sm ring-1 ring-primary/30'
+														: 'hover:translate-x-0.5 hover:bg-background/70 hover:shadow-sm hover:ring-1 hover:ring-primary/20'}"
 												>
 													{@render docRow(doc, active)}
 												</button>
@@ -250,7 +250,7 @@
 													href={isWord(doc) ? doc.downloadUrl : doc.url}
 													target={isWord(doc) ? undefined : '_blank'}
 													rel="noopener noreferrer"
-													class="group active:bg-background/70 flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2.5 transition-colors lg:hidden"
+													class="group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2.5 transition-colors active:bg-background/70 lg:hidden"
 												>
 													{@render docRow(doc, false)}
 												</a>
@@ -284,19 +284,19 @@
 				<!-- ===== APERÇU (PC uniquement) ===== -->
 				<section
 					aria-live="polite"
-					class="bg-card hidden min-h-[70vh] flex-col overflow-hidden rounded-2xl shadow-sm lg:flex"
+					class="hidden min-h-[70vh] flex-col overflow-hidden rounded-2xl bg-card shadow-sm lg:flex"
 				>
 					{#if selected}
 						<header class="flex items-start justify-between gap-4 border-b px-5 py-4">
 							<div class="min-w-0">
 								<span
-									class="bg-accent text-accent-foreground rounded-full px-2 py-0.5 text-xs font-medium"
+									class="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground"
 								>
 									{INFO_DOCUMENT_CATEGORY[selected.category].label}
 								</span>
 								<h2 class="mt-1.5 truncate text-lg font-semibold">{selected.title}</h2>
 								{#if selected.description}
-									<p class="text-muted-foreground mt-0.5 text-sm">{selected.description}</p>
+									<p class="mt-0.5 text-sm text-muted-foreground">{selected.description}</p>
 								{/if}
 							</div>
 
@@ -326,22 +326,22 @@
 						{#if isWord(selected)}
 							<!-- Un navigateur ne sait pas afficher un Word -->
 							<div class="flex flex-1 flex-col items-center justify-center gap-4 p-10 text-center">
-								<div class="bg-muted flex size-16 items-center justify-center rounded-2xl">
-									<Eye class="text-muted-foreground size-8" />
+								<div class="flex size-16 items-center justify-center rounded-2xl bg-muted">
+									<Eye class="size-8 text-muted-foreground" />
 								</div>
 								<div>
 									<p class="font-medium">Aperçu indisponible</p>
-									<p class="text-muted-foreground mt-1 text-sm">
+									<p class="mt-1 text-sm text-muted-foreground">
 										Un document Word ne peut pas s'afficher dans le navigateur.
 									</p>
 								</div>
 							</div>
 						{:else}
-							<div class="bg-muted relative flex-1">
+							<div class="relative flex-1 bg-muted">
 								{#if loading}
 									<div class="absolute inset-0 flex items-center justify-center">
 										<div
-											class="border-muted-foreground/30 border-t-primary size-8 animate-spin rounded-full border-4"
+											class="size-8 animate-spin rounded-full border-4 border-muted-foreground/30 border-t-primary"
 										></div>
 									</div>
 								{/if}

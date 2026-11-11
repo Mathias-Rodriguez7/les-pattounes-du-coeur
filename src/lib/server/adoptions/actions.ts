@@ -1,12 +1,12 @@
 // src/lib/server/adoptions/actions.ts
 import { fail } from '@sveltejs/kit';
-import prisma from '$lib/server/prisma';
-import { createAdoptionWithContractSchema } from '$lib/schemas/adoption';
+import prisma from '#lib/server/prisma.ts';
+import { createAdoptionWithContractSchema } from '#lib/schemas/adoption.ts';
 import { createAdoption, BlacklistedAdopterError } from './mutations';
-import { findActiveBlacklists } from '$lib/server/accountStatus';
-import { canManageForm } from '$lib/server/permissions/form';
-import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, discardUpload } from '$lib/server/media/mutations';
+import { findActiveBlacklists } from '#lib/server/accountStatus.ts';
+import { canManageForm } from '#lib/server/permissions/form.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { prepareMedia, discardUpload } from '#lib/server/media/mutations.ts';
 
 type Args = { request: Request; locals: App.Locals };
 

@@ -10,13 +10,13 @@
 		volunteerStep2Schema,
 		volunteerStep3Schema,
 		volunteerStep4Schema
-	} from '$lib/schemas/formShema/volunteerForm';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
+	} from '#lib/schemas/formShema/volunteerForm.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
 
 	let { data }: { data: SuperValidated<Infer<typeof volunteerFormSchema>> } = $props();
 

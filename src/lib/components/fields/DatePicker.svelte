@@ -5,10 +5,10 @@
 		CalendarDate,
 		type CalendarDate as CalendarDateType
 	} from '@internationalized/date';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import Calendar from '$lib/components/ui/calendar/calendar.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Popover from '#lib/components/ui/popover/index.js';
+	import Calendar from '#lib/components/ui/calendar/calendar.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { fr } from 'date-fns/locale';
 	import { format } from 'date-fns';

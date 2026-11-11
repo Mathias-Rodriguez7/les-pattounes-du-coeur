@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
-import { emailField } from '$lib/schemas/fields';
+import { emailField } from '#lib/schemas/fields.ts';
 
 // 🔧 Helper nombres sécurisés
 const optionalString = (min = 1, msg?: string) =>

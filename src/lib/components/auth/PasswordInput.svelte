@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as InputGroup from '$lib/components/ui/input-group/index.js';
+	import * as InputGroup from '#lib/components/ui/input-group/index.js';
 	import { Lock, Eye, EyeOff } from '@lucide/svelte';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 

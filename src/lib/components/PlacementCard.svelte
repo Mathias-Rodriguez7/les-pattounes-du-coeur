@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Cat, Placement } from '@prisma/client';
-	import { formatDateNum } from '$lib/utils/date';
+	import { formatDateNum } from '#lib/utils/date.ts';
 	import {
 		PLACEMENT_TYPE_COLORS,
 		PLACEMENT_TYPE_LABELS,
 		getPlacementTypeClass
-	} from '$lib/constants/placement';
+	} from '#lib/constants/placement.ts';
 
 	interface Props {
 		/** Le placement, avec le nom du chat (chargé par la fiche de la FA) */

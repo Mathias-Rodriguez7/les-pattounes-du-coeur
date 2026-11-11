@@ -1,25 +1,24 @@
 <script lang="ts">
-	import { createAdoptionSchema } from '$lib/schemas/adoption';
-	import { getFieldError, flattenErrors } from '$lib/utils/zodErrors';
-	import type { FlattenedErrors } from '$lib/utils/zodErrors';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { createAdoptionSchema } from '#lib/schemas/adoption.ts';
+	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
+	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import MediaUpload from '$lib/components/media/MediaUpload.svelte';
-	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
-	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import type { AdoptionFormJson, BlacklistInfo } from '$lib/types/form';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
+	import { enhance, type SubmitFunction } from '$app/forms';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import MediaUpload from '#lib/components/media/MediaUpload.svelte';
+	import { HOST_SECTION_CONFIG } from '#lib/constants/host.ts';
+	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import type { AdoptionFormJson, BlacklistInfo } from '#lib/types/form.ts';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import { Ban } from '@lucide/svelte';
 	import { untrack } from 'svelte';
-	import { formatDateNum } from '$lib/utils/date';
+	import { formatDateNum } from '#lib/utils/date.ts';
 
 	/** Une demande en attente qu'on peut lier à l'adoption (depuis la fiche du chat) */
 	type LinkableRequest = {
@@ -87,6 +86,7 @@
 		linkedFormId = id;
 		blacklistOverride = false;
 		const request = requests.find((r) => r.id === id);
+
 		fill(request ? { ...(request.data as AdoptionFormJson), email: request.email } : null);
 	}
 	let isSubmitting = $state(false);

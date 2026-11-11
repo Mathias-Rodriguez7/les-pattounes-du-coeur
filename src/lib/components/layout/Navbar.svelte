@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as NavigationMenu from '#lib/components/ui/navigation-menu/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -16,14 +16,16 @@
 		ShoppingBag,
 		Mail
 	} from '@lucide/svelte';
-	import LoginForm from '$lib/components/auth/LoginForm.svelte';
+	import LoginForm from '#lib/components/auth/LoginForm.svelte';
 
 	let mobileMenuOpen = $state(false);
 	let loginOpenMobile = $state(false);
 	let loginOpenDesktop = $state(false);
 
 	// Ferme tous les menus à chaque changement de page
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		mobileMenuOpen = false;
 		loginOpenMobile = false;
 		loginOpenDesktop = false;
@@ -31,7 +33,7 @@
 </script>
 
 <header
-	class="bg-accent/70 border-accent/40 sticky top-0 z-50 w-full border-b shadow-sm backdrop-blur-lg"
+	class="sticky top-0 z-50 w-full border-b border-accent/40 bg-accent/70 shadow-sm backdrop-blur-lg"
 >
 	<!-- ================= MOBILE ================= -->
 	<div class="flex items-center justify-between px-4 md:hidden">
@@ -46,20 +48,20 @@
 				class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left w-90 p-0 duration-300"
 			>
 				<!-- Header du drawer -->
-				<div class="bg-accent/50 flex items-center gap-3 border-b px-5 py-4">
+				<div class="flex items-center gap-3 border-b bg-accent/50 px-5 py-4">
 					<img src="/img/logo.png" alt="logo" class="h-10 w-10" />
 					<div>
 						<p class="font-semibold">Pattounes du Cœur</p>
-						<p class="text-muted-foreground text-xs">Association Montpellier</p>
+						<p class="text-xs text-muted-foreground">Association Montpellier</p>
 					</div>
 				</div>
 
 				<nav class="flex flex-col gap-1 p-6">
 					<!-- Accueil -->
 					<a
-						href={resolve('/')}
+						href={resolve('')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Home class="h-4 w-4 shrink-0" />
@@ -68,15 +70,15 @@
 
 					<!-- Séparateur -->
 					<p
-						class="text-muted-foreground mt-3 mb-1 px-3 text-xs font-semibold tracking-wider uppercase"
+						class="mt-3 mb-1 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
 					>
 						Adoptions
 					</p>
 
 					<a
-						href={resolve('/adoptions/chat')}
+						href={resolve('adoptions/chat')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/adoptions/chat' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Heart class="h-4 w-4 shrink-0" />
@@ -84,9 +86,9 @@
 					</a>
 
 					<a
-						href={resolve('/adoptions/formChat')}
+						href={resolve('adoptions/formChat')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/adoptions/formChat' ? 'bg-accent font-semibold' : ''}"
 					>
 						<FileText class="h-4 w-4 shrink-0" />
@@ -98,7 +100,7 @@
 						onclick={() => (mobileMenuOpen = false)}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
 					>
 						<Heart class="h-4 w-4 shrink-0 text-rose-500" />
 						Faire un don
@@ -106,15 +108,15 @@
 
 					<!-- Séparateur -->
 					<p
-						class="text-muted-foreground mt-3 mb-1 px-3 text-xs font-semibold tracking-wider uppercase"
+						class="mt-3 mb-1 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
 					>
 						Association
 					</p>
 
 					<a
-						href={resolve('/association/info')}
+						href={resolve('association/info')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/info' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Info class="h-4 w-4 shrink-0" />
@@ -122,9 +124,9 @@
 					</a>
 
 					<a
-						href={resolve('/association/news')}
+						href={resolve('association/news')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/news' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Newspaper class="h-4 w-4 shrink-0" />
@@ -132,9 +134,9 @@
 					</a>
 
 					<a
-						href={resolve('/association/conseils')}
+						href={resolve('association/conseils')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/conseils' ? 'bg-accent font-semibold' : ''}"
 					>
 						<BookOpen class="h-4 w-4 shrink-0" />
@@ -157,9 +159,9 @@
 					<div class="my-2 border-t"></div>
 
 					<a
-						href={resolve('/agir')}
+						href={resolve('agir')}
 						onclick={() => (mobileMenuOpen = false)}
-						class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/agir' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Mail class="h-4 w-4 shrink-0" />
@@ -179,10 +181,7 @@
 			</Sheet.Trigger>
 
 			<Sheet.Content side="right" class="w-80">
-				<Sheet.Header>
-					<Sheet.Title>Connexion</Sheet.Title>
-				</Sheet.Header>
-
+				<Sheet.Header><Sheet.Title>Connexion</Sheet.Title></Sheet.Header>
 				<div class="mt-6 px-4">
 					<LoginForm onForgotPassword={() => (loginOpenMobile = false)} />
 				</div>

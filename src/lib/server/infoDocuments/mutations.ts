@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import prisma from '$lib/server/prisma';
-import { createInfoDocumentSchema, updateInfoDocumentSchema } from '$lib/schemas/infoDocument';
+import prisma from '#lib/server/prisma.ts';
+import { createInfoDocumentSchema, updateInfoDocumentSchema } from '#lib/schemas/infoDocument.ts';
 import {
 	prepareMedia,
 	deleteMedia,
 	discardUploads,
 	type MediaData
-} from '$lib/server/media/mutations';
+} from '#lib/server/media/mutations.ts';
 
 type Result = {
 	success: boolean;

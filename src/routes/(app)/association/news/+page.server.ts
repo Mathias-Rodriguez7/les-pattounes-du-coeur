@@ -1,7 +1,7 @@
 // app/association/news/+page.server.ts
 import type { PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
+import prisma from '#lib/server/prisma.ts';
+import { newsListSelect, toNewsFull } from '#lib/server/news/queries.ts';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const newsId = url.searchParams.get('news');

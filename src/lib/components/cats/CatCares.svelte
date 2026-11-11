@@ -3,9 +3,9 @@
 	import DocumentPreview from '../media/DocumentPreview.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import CareCreateDialog from './CareCreateDialog.svelte';
-	import { CAT_SECTION_CONFIG, CAT_CARE_TYPES } from '$lib/constants/cat';
-	import { formatDateNum } from '$lib/utils/date';
-	import type { CatFull } from '$lib/types/cat';
+	import { CAT_SECTION_CONFIG, CAT_CARE_TYPES } from '#lib/constants/cat.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
 
 	interface Props {
 		cat: CatFull;
@@ -38,17 +38,17 @@
 				>
 					<!-- Type, date, véto -->
 					<div class="sm:col-span-1">
-						<span class="text-muted-foreground block text-xs">Soin</span>
+						<span class="block text-xs text-muted-foreground">Soin</span>
 						<span class="font-medium">{CAT_CARE_TYPES[care.type].label}</span>
 
 						<div class="flex flex-wrap gap-x-4 gap-y-2 pt-2">
 							<div>
-								<span class="text-muted-foreground block text-xs">Date</span>
+								<span class="block text-xs text-muted-foreground">Date</span>
 								<span class="text-xs">{formatDateNum(care.date)}</span>
 							</div>
 							{#if care.veterinary}
 								<div class="min-w-0">
-									<span class="text-muted-foreground block text-xs">Vétérinaire</span>
+									<span class="block text-xs text-muted-foreground">Vétérinaire</span>
 									<span class="text-xs wrap-break-word">{care.veterinary}</span>
 								</div>
 							{/if}
@@ -58,12 +58,12 @@
 					<!-- Motif + compte-rendu -->
 					<div class="space-y-2 sm:col-span-2">
 						<div>
-							<span class="text-muted-foreground block text-xs">Motif</span>
+							<span class="block text-xs text-muted-foreground">Motif</span>
 							<p class="text-xs wrap-break-word whitespace-pre-line">{care.reason}</p>
 						</div>
 						{#if care.description}
 							<div>
-								<span class="text-muted-foreground block text-xs">Compte-rendu</span>
+								<span class="block text-xs text-muted-foreground">Compte-rendu</span>
 								<p class="text-xs wrap-break-word whitespace-pre-line">{care.description}</p>
 							</div>
 						{/if}
@@ -73,12 +73,12 @@
 					<div class="min-w-0 space-y-2 sm:col-span-2">
 						{#if care.sickness}
 							<div>
-								<span class="text-muted-foreground block text-xs">Maladie</span>
+								<span class="block text-xs text-muted-foreground">Maladie</span>
 								<span class="text-xs">{care.sickness.name}</span>
 							</div>
 						{/if}
 						<div>
-							<span class="text-muted-foreground mb-1 block text-xs">
+							<span class="mb-1 block text-xs text-muted-foreground">
 								Documents ({care.documents.length})
 							</span>
 							{#if care.documents.length > 0}

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import { enhance, type SubmitFunction } from '$app/forms';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
 	import InputField from '../fields/InputField.svelte';
@@ -21,8 +20,8 @@
 		HOST_SOCIALIZE_OPTIONS,
 		HOST_BABY_FEEDING_OPTIONS,
 		HOST_SECTION_CONFIG
-	} from '$lib/constants/host';
-	import type { HostEditData } from '$types/host';
+	} from '#lib/constants/host.ts';
+	import type { HostEditData } from '#lib/types/host.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import DateRangePicker from '../fields/DateRangePicker.svelte';

@@ -1,6 +1,15 @@
 // Seul point de contact avec le stockage S3 (RustFS en local, R2/Scaleway/AWS en prod).
-import { env } from '$env/dynamic/private';
-import { env as publicEnv } from '$env/dynamic/public';
+import {
+	S3_ENDPOINT,
+	S3_PUBLIC_ENDPOINT,
+	S3_REGION,
+	S3_FORCE_PATH_STYLE,
+	S3_ACCESS_KEY_ID,
+	S3_SECRET_ACCESS_KEY,
+	S3_BUCKET_PUBLIC,
+	S3_BUCKET_PRIVATE
+} from '$app/env/private';
+import { PUBLIC_MEDIA_BASE_URL } from '$app/env/public';
 import {
 	S3Client,
 	PutObjectCommand,
@@ -12,17 +21,14 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 import type { MediaType } from '@prisma/client';
-import { validateFile } from '$lib/media/rules';
+import { validateFile } from '#lib/media/rules.ts';
 
 // =====================================================================
 // CONFIGURATION (lue au premier usage, pas au démarrage)
 // =====================================================================
 
-function required(name: string): string {
-	const value = env[name];
-	if (!value) throw new Error(`[storage] Variable d'environnement manquante : ${name}`);
-	return value;
-}
+// 🆕 SvelteKit 3 : les variables sont déclarées et vérifiées dans src/env.ts,
+// au démarrage. Plus besoin de vérifier ici qu'elles existent.
 
 type Storage = {
 	/** Pour les opérations du serveur (vérifier, supprimer) */
@@ -38,11 +44,11 @@ function getStorage(): Storage {
 	if (storage) return storage;
 
 	const base: S3ClientConfig = {
-		region: required('S3_REGION'),
-		forcePathStyle: env.S3_FORCE_PATH_STYLE === 'true',
+		region: S3_REGION,
+		forcePathStyle: S3_FORCE_PATH_STYLE,
 		credentials: {
-			accessKeyId: required('S3_ACCESS_KEY_ID'),
-			secretAccessKey: required('S3_SECRET_ACCESS_KEY')
+			accessKeyId: S3_ACCESS_KEY_ID,
+			secretAccessKey: S3_SECRET_ACCESS_KEY
 		},
 		// Les sommes de contrôle automatiques du SDK ne sont pas gérées par tous les
 		// fournisseurs compatibles S3 : on ne les envoie que quand c'est obligatoire.
@@ -51,11 +57,11 @@ function getStorage(): Storage {
 	};
 
 	storage = {
-		client: new S3Client({ ...base, endpoint: required('S3_ENDPOINT') }),
-		signer: new S3Client({ ...base, endpoint: required('S3_PUBLIC_ENDPOINT') }),
+		client: new S3Client({ ...base, endpoint: S3_ENDPOINT }),
+		signer: new S3Client({ ...base, endpoint: S3_PUBLIC_ENDPOINT }),
 		buckets: {
-			public: required('S3_BUCKET_PUBLIC'),
-			private: required('S3_BUCKET_PRIVATE')
+			public: S3_BUCKET_PUBLIC,
+			private: S3_BUCKET_PRIVATE
 		}
 	};
 	return storage;
@@ -176,7 +182,7 @@ export async function verifyUpload(params: {
 
 /** Adresse directe d'un fichier PUBLIC (pas de signature, ne périme pas) */
 export function getPublicUrl(storageKey: string): string {
-	const base = publicEnv.PUBLIC_MEDIA_BASE_URL;
+	const base = PUBLIC_MEDIA_BASE_URL;
 	if (!base) throw new Error('[storage] Variable manquante : PUBLIC_MEDIA_BASE_URL');
 	return `${base.replace(/\/$/, '')}/${storageKey}`;
 }

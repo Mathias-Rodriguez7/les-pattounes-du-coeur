@@ -3,8 +3,8 @@
 	import type { Snippet } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { Search, SlidersHorizontal } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
 
 	interface Props {
 		/** Le texte recherché (bind:search) */

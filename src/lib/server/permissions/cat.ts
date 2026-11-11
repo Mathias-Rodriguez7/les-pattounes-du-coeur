@@ -1,5 +1,5 @@
-import prisma from '$lib/server/prisma';
-import type { AppUser } from '$lib/types/user';
+import prisma from '#lib/server/prisma.ts';
+import type { AppUser } from '#lib/types/user.ts';
 
 /**
  * ADMIN : tous les chats. Les autres : seulement les chats auxquels ils sont associés.

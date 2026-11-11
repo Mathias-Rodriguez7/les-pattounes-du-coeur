@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { createHostSchema } from '$lib/schemas/host';
-	import { getFieldError } from '$lib/utils/zodErrors';
-	import type { FlattenedErrors } from '$lib/utils/zodErrors';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { createHostSchema } from '#lib/schemas/host.ts';
+	import { getFieldError } from '#lib/utils/zodErrors.ts';
+	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';
@@ -21,7 +20,7 @@
 		HOST_SOCIALIZE_OPTIONS,
 		HOST_BABY_FEEDING_OPTIONS,
 		HOST_SECTION_CONFIG
-	} from '$lib/constants/host';
+	} from '#lib/constants/host.ts';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { format } from 'date-fns';
 

@@ -22,7 +22,6 @@ const prisma = new PrismaClient({ adapter });
 // ENUMS
 // ---------------------
 const SEX = ['MALE', 'FEMALE', 'UNKNOWN'] as const;
-const STATUS = ['AVAILABLE', 'SOCIALIZE', 'ADOPTED', 'FREE', 'DEAD'] as const;
 const HAIR = ['SHORT', 'MEDIUM', 'LONG'] as const;
 const VACCINATE = ['YES', 'NO', 'PARTIAL'] as const;
 

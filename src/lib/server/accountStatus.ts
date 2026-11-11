@@ -1,6 +1,6 @@
 import type { ColabActivity } from '@prisma/client';
-import prisma from '$lib/server/prisma';
-import type { BlacklistInfo } from '$lib/types/form';
+import prisma from '#lib/server/prisma.ts';
+import type { BlacklistInfo } from '#lib/types/form.ts';
 
 // À utiliser dans un `include` Prisma : récupère au plus 1 blacklist active
 export const activeBlacklists = {

@@ -2,11 +2,11 @@
 	import { toast } from 'svelte-sonner';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { sosFormSchema } from '$lib/schemas/formShema/sosForm';
-	import { SOS_ALERT_TYPE_OPTIONS } from '$lib/constants/sos';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
+	import { sosFormSchema } from '#lib/schemas/formShema/sosForm.ts';
+	import { SOS_ALERT_TYPE_OPTIONS } from '#lib/constants/sos.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
 
 	let { data }: { data: SuperValidated<Infer<typeof sosFormSchema>> } = $props();
 

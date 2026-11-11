@@ -1,8 +1,8 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
-	import QuickActions from '$lib/components/dashboard/shared/QuickActions.svelte';
-	import TasksToProcess from '$lib/components/dashboard/shared/TasksToProcess.svelte';
-	import StatsOverview from '$lib/components/dashboard/shared/StatsOverview.svelte';
+	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
+	import QuickActions from '#lib/components/dashboard/shared/QuickActions.svelte';
+	import TasksToProcess from '#lib/components/dashboard/shared/TasksToProcess.svelte';
+	import StatsOverview from '#lib/components/dashboard/shared/StatsOverview.svelte';
 	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
 	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 

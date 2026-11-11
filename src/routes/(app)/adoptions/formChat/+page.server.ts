@@ -1,8 +1,8 @@
 // src/routes/(app)/adoptions/formChat/+page.server.ts
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { adoptionFormSchema } from '$lib/schemas/formShema/adoptionForm';
-import prisma from '$lib/server/prisma';
+import { adoptionFormSchema } from '#lib/schemas/formShema/adoptionForm.ts';
+import prisma from '#lib/server/prisma.ts';
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 

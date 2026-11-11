@@ -1,17 +1,15 @@
-<!-- src/lib/components/news/NewCreateDialog.svelte -->
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle } from '@lucide/svelte';
 	import InputField from '../fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news.js';
-	import { enhance } from '$app/forms';
+	import { NEWS_TYPE_OPTIONS_CLASSIC } from '#lib/constants/news.js';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 
 	interface Props {
 		open?: boolean;
@@ -79,6 +77,8 @@
 	};
 </script>
 
+<!-- src/lib/components/news/NewCreateDialog.svelte -->
+
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-h-[90dvh] overflow-y-auto sm:max-w-lg lg:max-w-2xl">
 		<Dialog.Header>
@@ -116,14 +116,14 @@
 				placeholder="Description..."
 			/>
 
-				<MediaUpload
-					id="new-news-media"
-					accept={['DOCUMENT']}
-					bind:files
-					{progress}
-					label="Document (PDF)"
-					disabled={submitting}
-				/>
+			<MediaUpload
+				id="new-news-media"
+				accept={['DOCUMENT']}
+				bind:files
+				{progress}
+				label="Document (PDF)"
+				disabled={submitting}
+			/>
 
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={onCancel} disabled={submitting}>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { fade, fly } from 'svelte/transition';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { resolve } from '$app/paths';
 </script>
 
@@ -23,13 +23,13 @@
 						</Card.Header>
 
 						<Card.Content class="flex flex-col  gap-4">
-							<p class="text-muted-foreground leading-relaxed">
+							<p class="leading-relaxed text-muted-foreground">
 								Au fil des années, l’association s’est développée autour d’une mission simple : agir
 								concrètement pour améliorer la vie des chats tout en sensibilisant à leur
 								protection. L'association fonctionne en grande partie grâce aux dons et au soutien
 								de sa communauté.
 							</p>
-							<p class="text-muted-foreground leading-relaxed">
+							<p class="leading-relaxed text-muted-foreground">
 								Chaque sauvetage représente un engagement important et des coûts significatifs :
 								soins vétérinaires (stérilisation, identification, consultations...), alimentation
 								pour les chats libres, ainsi que tout le nécessaire pour les chats en famille
@@ -51,13 +51,13 @@
 						</Card.Header>
 
 						<Card.Content class="flex flex-col gap-4">
-							<p class="text-muted-foreground leading-relaxed">
+							<p class="leading-relaxed text-muted-foreground">
 								En parallèle, les chats sociables et les chatons sont pris en charge, accueillis en
 								famille d’accueil, puis proposés à l’adoption. Ce passage en foyer temporaire leur
 								permet de se remettre, de s’habituer à l’humain et d’être adoptés dans les
 								meilleures conditions.
 							</p>
-							<p class="text-muted-foreground leading-relaxed">
+							<p class="leading-relaxed text-muted-foreground">
 								L’ensemble de ces actions repose sur des ressources importantes (soins vétérinaires,
 								alimentation, matériel), financées par les dons et des partenaires. Ces
 								contributions sont indispensables pour poursuivre les actions sur le terrain et
@@ -109,12 +109,12 @@
 				</Card.Header>
 
 				<Card.Content class="flex flex-col gap-4">
-					<p class="text-muted-foreground leading-relaxed">
+					<p class="leading-relaxed text-muted-foreground">
 						L’association repose uniquement sur des bénévoles, nous n’avons aucun emploi salarié.
 						Différents rôles sont présents dans l’association :
 					</p>
 
-					<ul class="text-muted-foreground list-decimal space-y-2 pl-5 leading-relaxed">
+					<ul class="list-decimal space-y-2 pl-5 leading-relaxed text-muted-foreground">
 						<li>
 							<span class="font-bold">Les familles d’accueil</span> ont pour rôle d’accueillir des minous
 							jusqu’à leur adoption. Les chats placés sont souvent malades, peu sociables, ou trop jeunes
@@ -157,9 +157,9 @@
 					</ul>
 
 					<div class="mt-4 flex">
-						<a href={resolve(`/association/news`)}>
-							<Button><span class="flex items-center gap-2"> Nous rejoindre </span></Button>
-						</a>
+						<a href={resolve(`association/news`)}
+							><Button><span class="flex items-center gap-2">Nous rejoindre</span></Button></a
+						>
 					</div>
 				</Card.Content>
 			</Card.Root>

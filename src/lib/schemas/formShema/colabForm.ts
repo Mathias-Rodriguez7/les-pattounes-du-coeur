@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { emailField } from '$lib/schemas/fields';
+import { emailField } from '#lib/schemas/fields.ts';
 
 //
 // 🔧 Helpers

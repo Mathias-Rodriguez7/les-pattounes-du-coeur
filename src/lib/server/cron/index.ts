@@ -1,7 +1,7 @@
 // src/lib/server/cron/index.ts
 import cron from 'node-cron';
 import { endFinishedBreaks } from './updateHostVolunteerStatus';
-import { generateCatsNews } from '$lib/server/news/catsNews';
+import { generateCatsNews } from '#lib/server/news/catsNews.ts';
 
 const TIMEZONE = 'Europe/Paris';
 
@@ -32,7 +32,9 @@ export function startCrons() {
 		() =>
 			run('News chats', async () => {
 				const news = await generateCatsNews();
-				console.log(news ? `📰 ${news.title} (${news._count.cats} chats)` : '📰 Aucun chat à annoncer');
+				console.log(
+					news ? `📰 ${news.title} (${news._count.cats} chats)` : '📰 Aucun chat à annoncer'
+				);
 			}),
 		{ timezone: TIMEZONE }
 	);

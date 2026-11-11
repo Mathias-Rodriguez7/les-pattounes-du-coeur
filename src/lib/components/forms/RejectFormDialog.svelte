@@ -1,11 +1,10 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle, X } from '@lucide/svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	interface Props {
 		formId: string;
@@ -86,14 +85,10 @@
 			/>
 
 			<div class="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" variant="destructive" disabled={submitting}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

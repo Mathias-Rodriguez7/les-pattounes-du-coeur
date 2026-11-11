@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { typesColors } from '$lib/constants/news.js';
-	import { truncate } from '$lib/utils/string';
-	import { formatDateNum } from '$lib/utils/date';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { typesColors } from '#lib/constants/news.js';
+	import { truncate } from '#lib/utils/string.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
 
 	let { news, onclick, isSelected = false } = $props();
 </script>

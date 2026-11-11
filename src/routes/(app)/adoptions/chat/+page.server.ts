@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { catPublicSelect } from '$lib/types/cat';
+import prisma from '#lib/server/prisma.ts';
+import { catPublicSelect } from '#lib/types/cat.ts';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const catId = url.searchParams.get('cat');

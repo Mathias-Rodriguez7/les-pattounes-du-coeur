@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getFormPanelComponent } from '$lib/utils/formPanels';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getFormPanelComponent } from '#lib/utils/formPanels.ts';
 
 	let { cats, form, volunteers = [], isAdmin = false, canAssign = false } = $props();
 

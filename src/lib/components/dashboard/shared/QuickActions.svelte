@@ -1,9 +1,9 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
+	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
-	import type { Pathname } from '$app/types';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import type { Path } from '$app/types';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 
 	interface Action {
 		label: string;
@@ -25,7 +25,7 @@
 	<SectionHeader title="Actions rapides" />
 	<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 		{#each actions as action (action.label)}
-			<a href={resolve(action.href as Pathname)} class="group">
+			<a href={resolve(action.href as Path)} class="group">
 				<div
 					class="rounded-xl border border-border bg-card px-4 py-6 transition-all hover:border-primary/50 hover:shadow-md sm:px-6 sm:py-8"
 				>

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Alert from '$lib/components/ui/alert/index.js';
-	import LoginForm from '$lib/components/auth/LoginForm.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Alert from '#lib/components/ui/alert/index.js';
+	import LoginForm from '#lib/components/auth/LoginForm.svelte';
 	import { LogIn, CircleCheckBig, CircleAlert } from '@lucide/svelte';
 	import type { ActionData } from './$types';
 
@@ -21,7 +21,7 @@
 		<Card.Root>
 			<Card.Header class="items-center space-y-3 text-center">
 				<div
-					class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
+					class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary"
 				>
 					<LogIn class="size-7" />
 				</div>

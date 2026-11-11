@@ -1,14 +1,13 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle, Undo2 } from '@lucide/svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	interface Props {
 		adoptionId: string;
@@ -138,14 +137,10 @@
 			/>
 
 			<div class="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Retour</Button
 				>
-					Retour
-				</Button>
+
 				<Button type="submit" variant="destructive" disabled={submitting}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { verifyPassword } from '$lib/server/hashing';
-import prisma from '$lib/server/prisma';
-import { activeBlacklists, isAccountDisabled } from '$lib/server/accountStatus';
+import { verifyPassword } from '#lib/server/hashing.ts';
+import prisma from '#lib/server/prisma.ts';
+import { activeBlacklists, isAccountDisabled } from '#lib/server/accountStatus.ts';
 
 export const actions = {
 	default: async ({ request, cookies }) => {

@@ -1,19 +1,19 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getAgeBadge } from '$lib/utils/age';
-	import { getLabel, getSexIcon, hairLabel } from '$lib/utils/catHelpers';
-	import type { CatPickerItem } from '$lib/types/cat';
-	import type { AdoptionFormJson } from '$lib/types/form';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { ADOPTION_SECTION_CONFIG, ageLabels, furLabels } from '$lib/constants/forms';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import { getLabel, getSexIcon, hairLabel } from '#lib/utils/catHelpers.ts';
+	import type { CatPickerItem } from '#lib/types/cat.ts';
+	import type { AdoptionFormJson } from '#lib/types/form.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { ADOPTION_SECTION_CONFIG, ageLabels, furLabels } from '#lib/constants/forms.ts';
 	import { X } from '@lucide/svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import { HOST_SECTION_CONFIG } from '$lib/constants/host';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import { HOST_SECTION_CONFIG } from '#lib/constants/host.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 
 	interface Props {
 		/** Les chats qu'on peut proposer (déjà filtrés par le serveur) */

@@ -1,20 +1,19 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { enhance, type SubmitFunction } from '$app/forms';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
-	import DeleteButton from '$lib/components/buttons/DeleteButton.svelte';
-	import BlacklistButton from '$lib/components/buttons/BlacklistButton.svelte';
-	import { COLAB_SECTION_CONFIG } from '$lib/constants/colab';
-	import type { FormEditData, CollabFormData } from '$lib/types/form';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import { FORM_STATUS_OPTIONS } from '$lib/constants/forms';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
+	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
+	import BlacklistButton from '#lib/components/buttons/BlacklistButton.svelte';
+	import { COLAB_SECTION_CONFIG } from '#lib/constants/colab.ts';
+	import type { FormEditData, CollabFormData } from '#lib/types/form.ts';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import { FORM_STATUS_OPTIONS } from '#lib/constants/forms.ts';
 
 	let {
 		editData = $bindable<FormEditData<CollabFormData> | null>(),

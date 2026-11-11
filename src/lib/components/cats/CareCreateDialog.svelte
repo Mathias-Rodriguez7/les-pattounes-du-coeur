@@ -1,18 +1,16 @@
-<!-- src/lib/components/cats/CareCreateDialog.svelte -->
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { Plus, LoaderCircle } from '@lucide/svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { CAT_CARE_TYPE_OPTIONS } from '$lib/constants/cat';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import { CAT_CARE_TYPE_OPTIONS } from '#lib/constants/cat.ts';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type SicknessOption = { id: string; name: string; status: string };
 
@@ -102,6 +100,8 @@
 	};
 </script>
 
+<!-- src/lib/components/cats/CareCreateDialog.svelte -->
+
 <Dialog.Root bind:open>
 	<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'sm' })}>
 		<Plus class="size-4" />
@@ -136,6 +136,7 @@
 					bind:value={type}
 					required
 				/>
+
 				<DatePicker name="date" label="Date du soin" value={date} onSelect={(d) => (date = d)} />
 			</div>
 

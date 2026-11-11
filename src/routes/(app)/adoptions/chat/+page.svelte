@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
 	import { Search } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import CatCard from '$lib/components/cats/CatCard.svelte';
-	import CatDialog from '$lib/components/cats/CatDialog.svelte';
-	import type { CatPublic } from '$lib/types/cat';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import * as Select from '#lib/components/ui/select/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import CatCard from '#lib/components/cats/CatCard.svelte';
+	import CatDialog from '#lib/components/cats/CatDialog.svelte';
+	import type { CatPublic } from '#lib/types/cat.ts';
 	import { fade, fly } from 'svelte/transition';
 	import type { PageData } from './$types';
 
@@ -147,7 +147,7 @@
 		<h1 class="text-2xl font-bold">Ils attendent leur famille</h1>
 
 		<!-- FILTER BAR -->
-		<div class="bg-card flex flex-wrap items-center justify-between gap-4 rounded-4xl px-6 py-4">
+		<div class="flex flex-wrap items-center justify-between gap-4 rounded-4xl bg-card px-6 py-4">
 			<!-- FILTER BUTTON -->
 			<Sheet.Root>
 				<Sheet.Trigger>
@@ -158,7 +158,7 @@
 					<!-- HEADER -->
 					<div class="space-y-1">
 						<h2 class="text-2xl font-bold">Filtres</h2>
-						<p class="text-muted-foreground text-sm">Affinez votre recherche</p>
+						<p class="text-sm text-muted-foreground">Affinez votre recherche</p>
 					</div>
 
 					<!-- COMPATIBILITÉS -->
@@ -167,7 +167,7 @@
 
 						<div class="space-y-3">
 							<Label
-								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
 							>
 								<Checkbox
 									checked={filters.okDog ?? false}
@@ -176,12 +176,12 @@
 									}}
 								/>
 								<div>
-									<p class="text-muted-foreground text-xs">Compatible avec les chiens</p>
+									<p class="text-xs text-muted-foreground">Compatible avec les chiens</p>
 								</div>
 							</Label>
 
 							<Label
-								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
 							>
 								<Checkbox
 									checked={filters.okCat ?? false}
@@ -190,12 +190,12 @@
 									}}
 								/>
 								<div>
-									<p class="text-muted-foreground text-xs">Compatible avec les chats</p>
+									<p class="text-xs text-muted-foreground">Compatible avec les chats</p>
 								</div>
 							</Label>
 
 							<Label
-								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
 							>
 								<Checkbox
 									checked={filters.okChild ?? false}
@@ -204,12 +204,12 @@
 									}}
 								/>
 								<div>
-									<p class="text-muted-foreground text-xs">Compatible avec les enfants</p>
+									<p class="text-xs text-muted-foreground">Compatible avec les enfants</p>
 								</div>
 							</Label>
 
 							<Label
-								class="hover:bg-secondary flex items-center gap-3 rounded-4xl border p-3 transition"
+								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
 							>
 								<Checkbox
 									checked={filters.garden ?? false}
@@ -218,7 +218,7 @@
 									}}
 								/>
 								<div>
-									<p class="text-muted-foreground text-xs">Accès extérieur recommandé</p>
+									<p class="text-xs text-muted-foreground">Accès extérieur recommandé</p>
 								</div>
 							</Label>
 						</div>

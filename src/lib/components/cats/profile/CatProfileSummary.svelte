@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CatProfile } from '$lib/types/catProfile';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
-	import { getSexIcon } from '$lib/utils/catHelpers';
-	import { getAgeBadge } from '$lib/utils/age';
-	import { formatDateNum } from '$lib/utils/date';
+	import type { CatProfile } from '#lib/types/catProfile.ts';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import Icon from '#lib/components/Icon.svelte';
+	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
+	import { getSexIcon } from '#lib/utils/catHelpers.ts';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
 	import CatCompatibilityCard from './CatCompatibilityCard.svelte';
 	import CatHealthCard from './CatHealthCard.svelte';
 

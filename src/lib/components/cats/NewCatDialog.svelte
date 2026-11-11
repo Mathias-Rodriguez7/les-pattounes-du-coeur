@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { createCatSchema } from '$lib/schemas/cat';
-	import { getFieldError } from '$lib/utils/zodErrors';
-	import type { FlattenedErrors } from '$lib/utils/zodErrors';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { createCatSchema } from '#lib/schemas/cat.ts';
+	import { getFieldError } from '#lib/utils/zodErrors.ts';
+	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { format } from 'date-fns';
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
@@ -21,7 +20,7 @@
 		CAT_HAIR_LENGTH,
 		CAT_VACCINATE,
 		CAT_SECTION_CONFIG
-	} from '$lib/constants/cat';
+	} from '#lib/constants/cat.ts';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 
 	let { open = $bindable(false), onCancel } = $props();

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { formatDate } from '$lib/utils/date';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { formatDate } from '#lib/utils/date.ts';
 
 	interface Props {
 		news: { title: string; createdAt: Date; cats: unknown[] };
@@ -26,7 +26,7 @@
 		<Card.Description class="text-xs">{formatDate(news.createdAt)}</Card.Description>
 	</Card.Header>
 	<Card.Content class="flex-1">
-		<p class="text-muted-foreground line-clamp-3 text-sm">
+		<p class="line-clamp-3 text-sm text-muted-foreground">
 			{content}
 		</p>
 	</Card.Content>

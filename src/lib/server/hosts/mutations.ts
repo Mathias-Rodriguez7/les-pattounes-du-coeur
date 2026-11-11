@@ -1,5 +1,5 @@
 // mutations.ts
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createHostSchema,
 	updateHostSchema,

@@ -1,9 +1,9 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
-import { UPLOAD_PURPOSES, validateFile } from '$lib/media/rules';
-import { UPLOAD_PURPOSE_CONFIG } from '$lib/server/media/purposes';
-import { createUploadUrl } from '$lib/server/storage';
+import { UPLOAD_PURPOSES, validateFile } from '#lib/media/rules.ts';
+import { UPLOAD_PURPOSE_CONFIG } from '#lib/server/media/purposes.ts';
+import { createUploadUrl } from '#lib/server/storage.ts';
 
 const bodySchema = z.object({
 	purpose: z.enum(UPLOAD_PURPOSES),
@@ -45,5 +45,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		isPrivate: config.isPrivate
 	});
 
-	return json({ uploadUrl, storageKey });
+	return Response.json({ uploadUrl, storageKey }); // SK3 : json() est déprécié, Response.json est standard
 };

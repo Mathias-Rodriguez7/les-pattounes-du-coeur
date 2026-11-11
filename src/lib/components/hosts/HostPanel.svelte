@@ -1,24 +1,24 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import Icon from '$lib/components/Icon.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import Icon from '#lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
-	import type { HostFull, HostEditData } from '$lib/types/';
+	import type { HostFull, HostEditData } from '#lib/types//index.ts';
 	import type { ColabActivity, HostType, Heal, Socialize, BabyFeeding } from '@prisma/client';
-	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import { healLabel, socializeLabel, babyFeedingLabel } from '#lib/types//index.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import HostEditForm from './HostEditForm.svelte';
-	import { formatAge } from '$lib/utils/age';
+	import { formatAge } from '#lib/utils/age.ts';
 	import PlacementCard from '../PlacementCard.svelte';
-	import * as Accordion from '$lib/components/ui/accordion';
-	import { HOST_SECTION_CONFIG, STATUS_CONFIG, TYPE_COLORS } from '$lib/constants/host';
+	import * as Accordion from '#lib/components/ui/accordion/index.ts';
+	import { HOST_SECTION_CONFIG, STATUS_CONFIG, TYPE_COLORS } from '#lib/constants/host.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import { formatDate } from '$lib/utils/date';
-	import { PLACEMENT_TYPE_COLORS, PLACEMENT_TYPE_LABELS } from '$lib/constants/placement';
+	import { formatDate } from '#lib/utils/date.ts';
+	import { PLACEMENT_TYPE_COLORS, PLACEMENT_TYPE_LABELS } from '#lib/constants/placement.ts';
 
 	const { host, isAdmin = false }: { host: HostFull | null; isAdmin?: boolean } = $props();
 

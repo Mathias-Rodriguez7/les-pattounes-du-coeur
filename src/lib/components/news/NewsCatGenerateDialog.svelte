@@ -1,15 +1,13 @@
-<!-- src/lib/components/news/NewsCatsGenerateDialog.svelte -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Input } from '$lib/components/ui/input';
-	import InputField from '$lib/components/fields/InputField.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
 	import { LoaderCircle, Plus, Search } from '@lucide/svelte';
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 
@@ -96,6 +94,8 @@
 	};
 </script>
 
+<!-- src/lib/components/news/NewsCatsGenerateDialog.svelte -->
+
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
 		<Dialog.Header>
@@ -123,13 +123,13 @@
 			<section class="flex flex-col gap-2">
 				<div class="flex items-center justify-between">
 					<h3 class="text-sm font-medium">Chats de la news</h3>
-					<span class="text-muted-foreground text-xs tabular-nums">
+					<span class="text-xs text-muted-foreground tabular-nums">
 						{selectedIds.length} sélectionné{selectedIds.length > 1 ? 's' : ''}
 					</span>
 				</div>
 
 				{#if rows.length === 0}
-					<p class="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
+					<p class="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
 						Aucun nouveau chat cette semaine. Ajoutez-en avec la recherche ci-dessous.
 					</p>
 				{:else}
@@ -137,7 +137,7 @@
 						{#each rows as cat (cat.id)}
 							<li>
 								<label
-									class="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm"
+									class="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-muted"
 								>
 									<Checkbox
 										checked={selectedIds.includes(cat.id)}
@@ -145,7 +145,7 @@
 									/>
 									<span class="min-w-0 flex-1 truncate">{label(cat)}</span>
 									{#if addedIds.includes(cat.id)}
-										<span class="text-muted-foreground text-xs">ajouté</span>
+										<span class="text-xs text-muted-foreground">ajouté</span>
 									{/if}
 								</label>
 							</li>
@@ -159,7 +159,7 @@
 				<h3 class="text-sm font-medium">Ajouter un chat</h3>
 				<div class="relative">
 					<Search
-						class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+						class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
 					/>
 					<!-- Entrée ne doit pas envoyer le formulaire depuis la recherche -->
 					<Input
@@ -173,7 +173,7 @@
 				</div>
 
 				{#if search.trim() && results.length === 0}
-					<p class="text-muted-foreground text-sm">Aucun chat à l'adoption ne correspond.</p>
+					<p class="text-sm text-muted-foreground">Aucun chat à l'adoption ne correspond.</p>
 				{/if}
 
 				<ul class="flex flex-col gap-1">
@@ -182,9 +182,9 @@
 							<button
 								type="button"
 								onclick={() => add(cat.id)}
-								class="hover:bg-muted flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm"
+								class="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-muted"
 							>
-								<Plus class="text-primary size-4 shrink-0" />
+								<Plus class="size-4 shrink-0 text-primary" />
 								<span class="truncate">{label(cat)}</span>
 							</button>
 						</li>
@@ -198,14 +198,10 @@
 			{/each}
 
 			<Dialog.Footer>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => (open = false)}
-					disabled={submitting}
+				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}
+					>Annuler</Button
 				>
-					Annuler
-				</Button>
+
 				<Button type="submit" disabled={submitting || selectedIds.length === 0}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />

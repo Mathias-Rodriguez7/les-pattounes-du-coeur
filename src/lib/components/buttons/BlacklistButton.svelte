@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
+
 	import {
 		Dialog,
 		DialogContent,
@@ -8,9 +8,9 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import Icon from '$lib/components/Icon.svelte';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import Icon from '#lib/components/Icon.svelte';
 	import { toast } from 'svelte-sonner';
 
 	interface Props {
@@ -98,6 +98,7 @@
 </div>
 
 <!-- ✅ DIALOG BLACKLIST -->
+
 <Dialog open={showBlacklistDialog} onOpenChange={(open) => (showBlacklistDialog = open)}>
 	<DialogContent class="max-w-sm">
 		<DialogHeader>

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Pencil } from '@lucide/svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import { COLAB_SECTION_CONFIG } from '$lib/constants/colab';
-	import type { FormEditData, CollabFormData } from '$lib/types/form';
-	import { statusColors } from '$lib/constants/forms';
-	import { formatDate } from '$lib/utils/date';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import { COLAB_SECTION_CONFIG } from '#lib/constants/colab.ts';
+	import type { FormEditData, CollabFormData } from '#lib/types/form.ts';
+	import { statusColors } from '#lib/constants/forms.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import ColabEditFormPanel from './ColabEditFormPanel.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 

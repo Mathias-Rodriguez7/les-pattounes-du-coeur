@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { VolunteerEditData } from '$lib/types/volunteer';
+	import { enhance, type SubmitFunction } from '$app/forms';
+	import type { VolunteerEditData } from '#lib/types/volunteer.ts';
 	import {
 		VOLUNTEER_STATUS_OPTIONS,
 		VOLUNTEER_ROLE_OPTIONS,
 		VOLUNTEER_SECTION_CONFIG
-	} from '$lib/constants/volunteer';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	} from '#lib/constants/volunteer.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
@@ -18,7 +17,7 @@
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import DateRangePicker from '../fields/DateRangePicker.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { X } from '@lucide/svelte';
 
 	let {

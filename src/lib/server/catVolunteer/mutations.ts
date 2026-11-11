@@ -1,4 +1,4 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 
 function convertFormData(formData: FormData): Record<string, string | null> {
 	const data: Record<string, string | null> = {};

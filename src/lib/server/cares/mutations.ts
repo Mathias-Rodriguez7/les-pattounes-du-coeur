@@ -1,10 +1,10 @@
 // src/lib/server/cares/mutations.ts
 import { z } from 'zod';
 import type { CareType, Prisma, Vaccinate } from '@prisma/client';
-import prisma from '$lib/server/prisma';
-import { createCareSchema } from '$lib/schemas/care';
-import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
+import prisma from '#lib/server/prisma.ts';
+import { createCareSchema } from '#lib/schemas/care.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { prepareMedia, deleteMedia, discardUploads } from '#lib/server/media/mutations.ts';
 
 const MAX_DOCUMENTS = 5;
 

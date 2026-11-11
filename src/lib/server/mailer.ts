@@ -1,16 +1,22 @@
 // src/lib/server/mailer.ts
 import nodemailer from 'nodemailer';
-import { env } from '$env/dynamic/private';
-import { SOS_ALERT_TYPES, type SosAlertType } from '$lib/constants/sos';
+
+import {
+	SMTP_HOST,
+	SMTP_PORT,
+	SMTP_USER,
+	SMTP_PASS,
+	SMTP_FROM,
+	ASSOCIATION_EMAIL
+} from '$app/env/private';
+
+import { SOS_ALERT_TYPES, type SosAlertType } from '#lib/constants/sos.ts';
 
 const transporter = nodemailer.createTransport({
-	host: env.SMTP_HOST,
-	port: Number(env.SMTP_PORT ?? 587),
+	host: SMTP_HOST,
+	port: Number(SMTP_PORT), // 587 par défaut (src/env.ts)
 	secure: false,
-	auth: {
-		user: env.SMTP_USER,
-		pass: env.SMTP_PASS
-	}
+	auth: { user: SMTP_USER, pass: SMTP_PASS }
 });
 
 export async function sendVolunteerWelcomeEmail({
@@ -31,7 +37,7 @@ export async function sendVolunteerWelcomeEmail({
 		: 'Votre compte bénévole a été créé.';
 
 	await transporter.sendMail({
-		from: env.SMTP_FROM,
+		from: SMTP_FROM,
 		to,
 		subject: 'Votre accès bénévole',
 		text: `Bonjour ${firstName},
@@ -76,14 +82,14 @@ type SosAlert = {
 
 /** Envoie un signalement SOS à l'association. « Répondre » écrit directement au visiteur. */
 export async function sendSosAlertEmail(alert: SosAlert) {
-	const to = env.ASSOCIATION_EMAIL;
+	const to = ASSOCIATION_EMAIL;
 	if (!to) throw new Error('ASSOCIATION_EMAIL manquant dans la configuration');
 
 	const type = SOS_ALERT_TYPES[alert.alertType];
 	const name = `${alert.firstName} ${alert.lastName}`;
 
 	await transporter.sendMail({
-		from: env.SMTP_FROM,
+		from: SMTP_FROM,
 		to,
 		replyTo: alert.email,
 		subject: `🚨 SOS : ${type} (${alert.address})`,

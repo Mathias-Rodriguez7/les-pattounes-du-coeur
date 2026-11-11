@@ -1,8 +1,8 @@
 <script lang="ts">
-	import * as Accordion from '$lib/components/ui/accordion';
-	import { Badge } from '$lib/components/ui/badge';
+	import * as Accordion from '#lib/components/ui/accordion/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { FileText, PawPrint, AlertTriangle } from '@lucide/svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { fade, fly } from 'svelte/transition';
 </script>
 

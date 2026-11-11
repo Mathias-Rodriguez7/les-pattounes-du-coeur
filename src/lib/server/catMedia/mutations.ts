@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import prisma from '$lib/server/prisma';
-import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
+import prisma from '#lib/server/prisma.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { prepareMedia, deleteMedia, discardUploads } from '#lib/server/media/mutations.ts';
 
 const MAX_FILES_PER_UPLOAD = 10;
 

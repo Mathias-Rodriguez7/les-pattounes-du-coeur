@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Cat } from '@prisma/client';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
 
 	interface Props {
 		cat: Pick<Cat, 'isOkDog' | 'isOkCat' | 'isOkChild' | 'isOutside'>;

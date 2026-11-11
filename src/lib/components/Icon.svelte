@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { iconMap } from '$lib/config/iconMap';
+	import { iconMap } from '#lib/config/iconMap.ts';
 
 	interface Props {
 		name: string;

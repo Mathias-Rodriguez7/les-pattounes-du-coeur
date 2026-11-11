@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Cat } from '@prisma/client';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
-	import { getLabel, vaccinateLabel } from '$lib/utils/catHelpers';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
+	import { getLabel, vaccinateLabel } from '#lib/utils/catHelpers.ts';
 
 	interface Props {
 		cat: Pick<

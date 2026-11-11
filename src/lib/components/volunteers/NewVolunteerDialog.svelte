@@ -1,19 +1,18 @@
 <script lang="ts">
-	import { createVolunteerSchema } from '$lib/schemas/volunteer';
-	import { flattenErrors, getFieldError } from '$lib/utils/zodErrors';
-	import type { FlattenedErrors } from '$lib/utils/zodErrors';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { createVolunteerSchema } from '#lib/schemas/volunteer.ts';
+	import { flattenErrors, getFieldError } from '#lib/utils/zodErrors.ts';
+	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { toast } from 'svelte-sonner';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
 	import { format } from 'date-fns';
 
 	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();

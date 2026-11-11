@@ -1,21 +1,21 @@
 <!-- app/dashboard/news/+page.svelte -->
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import NewsRow from '$lib/components/news/NewsRow.svelte';
-	import NewsPanel from '$lib/components/news/NewsPanel.svelte';
-	import NewCreateDialog from '$lib/components/news/NewCreateDialog.svelte';
-	import { NEWS_TYPE_OPTIONS } from '$lib/constants/news.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import Icon from '#lib/components/Icon.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import NewsRow from '#lib/components/news/NewsRow.svelte';
+	import NewsPanel from '#lib/components/news/NewsPanel.svelte';
+	import NewCreateDialog from '#lib/components/news/NewCreateDialog.svelte';
+	import { NEWS_TYPE_OPTIONS } from '#lib/constants/news.js';
 	import { X, Sparkles } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
-	import NewsCatGenerateDialog from '$lib/components/news/NewsCatGenerateDialog.svelte';
+	import NewsCatGenerateDialog from '#lib/components/news/NewsCatGenerateDialog.svelte';
 
 	const { data } = $props();
 

@@ -1,17 +1,17 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import Icon from '$lib/components/Icon.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import Icon from '#lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { formatDate } from '$lib/utils/date';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import NewsEditForm from './NewsEditForm.svelte';
 	import NewsCatsPanel from './NewsCatsPanel.svelte';
-	import { NEWS_SECTION_CONFIG, NEWS_TYPE_CONFIG } from '$lib/constants/news';
-	import type { NewsFull, NewsEditData } from '$lib/types/news';
+	import { NEWS_SECTION_CONFIG, NEWS_TYPE_CONFIG } from '#lib/constants/news.ts';
+	import type { NewsFull, NewsEditData } from '#lib/types/news.ts';
 	import MediaPreview from '../media/MediaPreview.svelte';
 
 	interface Props {
@@ -124,7 +124,7 @@
 								{news.content}
 							</p>
 						{:else}
-							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun contenu</p>
+							<p class="text-sm text-muted-foreground italic sm:ml-6">Aucun contenu</p>
 						{/if}
 					</SectionCard>
 				</section>
@@ -149,7 +149,7 @@
 								variant="embed"
 							/>
 						{:else}
-							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun média</p>
+							<p class="text-sm text-muted-foreground italic sm:ml-6">Aucun média</p>
 						{/if}
 					</SectionCard>
 				{/if}
@@ -170,7 +170,7 @@
 	</Card.Root>
 {:else}
 	<Card.Root class="flex h-full min-h-60 items-center justify-center">
-		<Card.Content class="text-muted-foreground text-center">
+		<Card.Content class="text-center text-muted-foreground">
 			<Icon name="news" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez une news</p>
 		</Card.Content>

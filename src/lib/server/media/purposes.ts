@@ -1,9 +1,9 @@
 import type { MediaType } from '@prisma/client';
-import type { AppUser } from '$lib/types/user';
-import type { UploadPurpose } from '$lib/media/rules';
-import type { StorageFolder } from '$lib/server/storage';
-import { canManageNews } from '$lib/permissions/news';
-import { canManageCat } from '$lib/server/permissions/cat';
+import type { AppUser } from '#lib/types/user.ts';
+import type { UploadPurpose } from '#lib/media/rules.ts';
+import type { StorageFolder } from '#lib/server/storage.ts';
+import { canManageNews } from '#lib/permissions/news.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
 
 type PurposeConfig = {
 	allowed: MediaType[];

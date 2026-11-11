@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import type { HostFull } from '$lib/types/host';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import type { HostFull } from '#lib/types/host.ts';
 	import type { ColumnDef } from './columns';
 	import {
 		typesColors,
@@ -8,11 +8,11 @@
 		socializeColors,
 		statusColors,
 		babyFeedingColors
-	} from '$lib/constants/host';
-	import { Badge } from '$lib/components/ui/badge';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { COMPATIBILITY_COLORS, type Compatibility } from '$lib/utils/compatibility';
+	} from '#lib/constants/host.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import { COMPATIBILITY_COLORS, type Compatibility } from '#lib/utils/compatibility.ts';
 
 	interface Props {
 		host: HostFull;

@@ -1,19 +1,17 @@
-<!-- src/lib/components/infoDocuments/InfoDocumentEditDialog.svelte -->
 <script lang="ts">
 	import type { InfoDocumentCategory } from '@prisma/client';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { Pencil, LoaderCircle } from '@lucide/svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import MediaUpload from '$lib/components/media/MediaUpload.svelte';
-	import DocumentPreview from '$lib/components/media/DocumentPreview.svelte';
-	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '$lib/constants/infoDocument';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { enhance } from '$app/forms';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import MediaUpload from '#lib/components/media/MediaUpload.svelte';
+	import DocumentPreview from '#lib/components/media/DocumentPreview.svelte';
+	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '#lib/constants/infoDocument.ts';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	interface Props {
 		/** Seulement les champs utiles : n'importe quel objet qui les a convient */
@@ -92,6 +90,8 @@
 	};
 </script>
 
+<!-- src/lib/components/infoDocuments/InfoDocumentEditDialog.svelte -->
+
 <Dialog.Root bind:open>
 	{#if iconOnly}
 		<Dialog.Trigger
@@ -151,7 +151,7 @@
 			<!-- Le fichier actuel, tant qu'on n'en a pas choisi un autre -->
 			{#if files.length === 0}
 				<div>
-					<span class="text-muted-foreground mb-1 block text-xs">Fichier actuel</span>
+					<span class="mb-1 block text-xs text-muted-foreground">Fichier actuel</span>
 					<DocumentPreview
 						variant="compact"
 						src={doc.url}

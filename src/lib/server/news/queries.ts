@@ -1,8 +1,8 @@
 // src/lib/server/news/queries.ts
 import type { Prisma } from '@prisma/client';
-import { catListSelect } from '$lib/types/cat';
-import { getPublicUrl } from '$lib/server/storage';
-import type { NewsFull } from '$lib/types/news';
+import { catListSelect } from '#lib/types/cat.ts';
+import { getPublicUrl } from '#lib/server/storage.ts';
+import type { NewsFull } from '#lib/types/news.ts';
 
 /** Ce que charge une news, dans le dashboard comme sur le site public */
 export const newsListSelect = {

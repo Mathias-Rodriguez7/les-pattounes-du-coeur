@@ -1,17 +1,17 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createNewsSchema,
 	updateNewsSchema,
 	type CreateNewsInput,
 	type UpdateNewsInput
-} from '$lib/schemas/news';
-import { canManageNews, canDeleteNews } from '$lib/permissions/news';
+} from '#lib/schemas/news.ts';
+import { canManageNews, canDeleteNews } from '#lib/permissions/news.ts';
 import {
 	prepareMedia,
 	deleteMedia,
 	discardUploads,
 	type MediaData
-} from '$lib/server/media/mutations';
+} from '#lib/server/media/mutations.ts';
 const NEWS_FIELDS = ['title', 'type', 'content'] as const;
 
 function convertFormData(formData: FormData): Record<string, string | string[] | null> {

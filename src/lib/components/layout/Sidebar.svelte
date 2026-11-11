@@ -2,10 +2,10 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { Pathname } from '$app/types';
+	import type { Path } from '$app/types';
 	import type { VolunteerRole } from '@prisma/client';
-	import type { AppUser } from '$lib/types/user';
-	import { VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import type { AppUser } from '#lib/types/user.ts';
+	import { VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
 	import {
 		LayoutDashboard,
 		Cat,
@@ -25,8 +25,8 @@
 		mobile?: boolean;
 		/** Appelé au clic sur un lien (ex : fermer le tiroir mobile) */
 		onClose?: () => void;
-		/** Pastilles « à faire » par lien, ex : { '/dashboard/chat': 2 } (0 ou absent = rien) */
-		badges?: Partial<Record<Pathname, number>>;
+		/** Pastilles « à faire » par lien, ex : { 'dashboard/chat': 2 } (0 ou absent = rien) */
+		badges?: Partial<Record<Path, number>>;
 	};
 
 	let { user, mobile = false, onClose, badges = {} }: Props = $props();
@@ -38,7 +38,7 @@
 	type NavItem = {
 		label: string;
 		icon: typeof LayoutDashboard;
-		href: Pathname;
+		href: Path;
 		roles: VolunteerRole[];
 	};
 
@@ -46,38 +46,51 @@
 		{
 			label: 'Dashboard',
 			icon: LayoutDashboard,
-			href: '/dashboard',
+			href: 'dashboard',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{
 			label: 'Chats',
 			icon: Cat,
-			href: '/dashboard/chat',
+			href: 'dashboard/chat',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{
 			label: "Familles d'accueil",
 			icon: HouseHeart,
-			href: '/dashboard/famille_d_accueil',
+			href: 'dashboard/famille_d_accueil',
 			roles: ['ADMIN']
 		},
-		{ label: 'Bénévoles', icon: Users, href: '/dashboard/benevole', roles: ['ADMIN'] },
-		{ label: 'News', icon: Newspaper, href: '/dashboard/news', roles: ['ADMIN', 'COMMUNICATION'] },
+
+		{
+			label: 'Bénévoles',
+			icon: Users,
+			href: 'dashboard/benevole',
+			roles: ['ADMIN']
+		},
+
+		{
+			label: 'News',
+			icon: Newspaper,
+			href: 'dashboard/news',
+			roles: ['ADMIN', 'COMMUNICATION']
+		},
+
 		{
 			label: 'Formulaires',
 			icon: ClipboardList,
-			href: '/dashboard/forms',
+			href: 'dashboard/forms',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{
 			label: 'Information',
 			icon: FileQuestionMark,
-			href: '/dashboard/information',
+			href: 'dashboard/information',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		}
 	];
 
-	const profileHref: Pathname = '/dashboard/profil';
+	const profileHref: Path = 'dashboard/profil';
 
 	const items = $derived(allItems.filter((item) => item.roles.includes(user.role)));
 	const initials = $derived(`${user.profil.firstName[0]}${user.profil.lastName[0]}`.toUpperCase());
@@ -86,9 +99,14 @@
 	);
 
 	// Actif aussi sur les sous-pages (/dashboard/chat/123), sauf pour /dashboard lui-même
-	function isActive(href: string): boolean {
+	// SK3 : un Path n'a plus de « / » au début ('dashboard/chat'), alors que l'URL en a un.
+	// On compare donc avec resolve(href), qui donne la vraie URL ('/dashboard/chat').
+	function isActive(href: Path): boolean {
 		const path = page.url.pathname;
-		return href === '/dashboard' ? path === href : path === href || path.startsWith(`${href}/`);
+		const target = resolve(href);
+		return href === 'dashboard'
+			? path === target
+			: path === target || path.startsWith(`${target}/`);
 	}
 </script>
 

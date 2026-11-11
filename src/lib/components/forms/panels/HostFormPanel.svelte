@@ -1,20 +1,20 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import Icon from '$lib/components/Icon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import type { FormEditData, HostFormData } from '$lib/types/form';
-	import { statusColors } from '$lib/constants/forms';
-	import { formatDate } from '$lib/utils/date';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import Icon from '#lib/components/Icon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import type { FormEditData, HostFormData } from '#lib/types/form.ts';
+	import { statusColors } from '#lib/constants/forms.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import HostEditFormPanel from './HostEditFormPanel.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Pencil } from '@lucide/svelte';
-	import { HOST_SECTION_CONFIG, TYPE_COLORS } from '$lib/constants/host';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
-	import { healLabel, socializeLabel, babyFeedingLabel } from '$lib/types/';
+	import { HOST_SECTION_CONFIG, TYPE_COLORS } from '#lib/constants/host.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
+	import { healLabel, socializeLabel, babyFeedingLabel } from '#lib/types//index.ts';
 	import type { Heal, Socialize, BabyFeeding } from '@prisma/client';
-	import NewHostDialog from '$lib/components/hosts/NewHostDialog.svelte';
+	import NewHostDialog from '#lib/components/hosts/NewHostDialog.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
 	const { form, volunteers = [], isAdmin = false } = $props();

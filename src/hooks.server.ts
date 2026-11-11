@@ -1,9 +1,9 @@
-import type { Handle } from '@sveltejs/kit';
-import { building } from '$app/environment';
-import prisma from '$lib/server/prisma';
-import type { AppUser } from '$lib/types/user';
-import { activeBlacklists, isAccountDisabled } from '$lib/server/accountStatus';
-import { startCrons } from '$lib/server/cron';
+import type { Handle } from '@sveltejs/kit/hooks';
+import { building } from '$app/env';
+import prisma from '#lib/server/prisma.ts';
+import type { AppUser } from '#lib/types/user.ts';
+import { activeBlacklists, isAccountDisabled } from '#lib/server/accountStatus.ts';
+import { startCrons } from '#lib/server/cron/index.ts';
 
 // Lance les crons une seule fois au démarrage du serveur (pas pendant le build)
 if (!building) startCrons();

@@ -1,37 +1,37 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import Icon from '$lib/components/Icon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import Icon from '#lib/components/Icon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 	import {
 		FORM_SECTION_CONFIG,
 		statusColors,
 		ageLabels,
 		furLabels,
 		ADOPTION_SECTION_CONFIG
-	} from '$lib/constants/forms';
-	import { formatAge } from '$lib/utils/age';
-	import { formatDate, formatDateNum } from '$lib/utils/date';
+	} from '#lib/constants/forms.ts';
+	import { formatAge } from '#lib/utils/age.ts';
+	import { formatDate, formatDateNum } from '#lib/utils/date.ts';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { getSexIcon } from '$lib/utils/catHelpers';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { getSexIcon } from '#lib/utils/catHelpers.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 	import AdoptionCreateDialog from './AdoptionCreateDialog.svelte';
-	import CatPicker from '$lib/components/cats/CatPicker.svelte';
+	import CatPicker from '#lib/components/cats/CatPicker.svelte';
 	import type {
 		FormEditData,
 		AdoptionFormData,
 		AdoptionFormJson,
 		FormWithRelations,
 		BlacklistInfo
-	} from '$lib/types/form';
-	import type { VolunteerBasic } from '$lib/types/volunteer';
-	import type { CatPickerItem } from '$lib/types/cat';
+	} from '#lib/types/form.ts';
+	import type { VolunteerBasic } from '#lib/types/volunteer.ts';
+	import type { CatPickerItem } from '#lib/types/cat.ts';
 	import { ArrowLeft, Ban, Pencil } from '@lucide/svelte';
 	import RejectFormDialog from '../RejectFormDialog.svelte';
-	import CatProfileSummary from '$lib/components/cats/profile/CatProfileSummary.svelte';
+	import CatProfileSummary from '#lib/components/cats/profile/CatProfileSummary.svelte';
 
 	interface Props {
 		/** blacklist : la raison si l'email est sur liste noire (ajoutée par le load) */

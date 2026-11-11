@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from 'svelte/elements';
-	import { cn, type WithElementRef } from '$lib/utils.js';
+	import { cn, type WithElementRef } from '#lib/utils.js';
 
 	type InputType = Exclude<HTMLInputTypeAttribute, 'file'>;
 
@@ -29,7 +29,7 @@
 		data-slot={dataSlot}
 		class={cn(
 			baseClass,
-			'file:text-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium',
+			'file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
 			className
 		)}
 		type="file"

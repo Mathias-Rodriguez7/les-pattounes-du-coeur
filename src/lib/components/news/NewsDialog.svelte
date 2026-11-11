@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import type { NewsFull } from '$lib/types/news';
-	import NewsCatDialog from '$lib/components/news/NewsCatDialog.svelte';
-	import { formatDate } from '$lib/utils/date';
-	import DocumentPreview from '$lib/components/media/DocumentPreview.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import type { NewsFull } from '#lib/types/news.ts';
+	import NewsCatDialog from '#lib/components/news/NewsCatDialog.svelte';
+	import { formatDate } from '#lib/utils/date.ts';
+	import DocumentPreview from '#lib/components/media/DocumentPreview.svelte';
 
 	let { selectedNews }: { selectedNews: NewsFull | null } = $props();
 

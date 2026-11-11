@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import prisma from '$lib/server/prisma';
-import { createCatDocumentSchema } from '$lib/schemas/catDocument';
-import { canManageCat } from '$lib/server/permissions/cat';
-import { prepareMedia, deleteMedia, discardUploads } from '$lib/server/media/mutations';
+import prisma from '#lib/server/prisma.ts';
+import { createCatDocumentSchema } from '#lib/schemas/catDocument.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { prepareMedia, deleteMedia, discardUploads } from '#lib/server/media/mutations.ts';
 
 type Result = {
 	success: boolean;

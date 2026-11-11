@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { X, Search, Trash2, Undo2 } from '@lucide/svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import InputField from '../fields/InputField.svelte';
@@ -13,12 +13,11 @@
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import MediaPreview from '../media/MediaPreview.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news';
-	import type { NewsEditData } from '$lib/types/news';
-	import { enhance } from '$app/forms';
+	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '#lib/constants/news.ts';
+	import type { NewsEditData } from '#lib/types/news.ts';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 
@@ -153,7 +152,6 @@
 					required
 				/>
 			{/if}
-			
 		</div>
 	</SectionCard>
 
@@ -188,7 +186,7 @@
 								{catLabel(cat)}
 								<button
 									type="button"
-									class="hover:bg-muted-foreground/20 rounded-full p-0.5"
+									class="rounded-full p-0.5 hover:bg-muted-foreground/20"
 									onclick={() => toggleCat(cat.id, false)}
 									aria-label="Retirer {catLabel(cat)}"
 								>
@@ -198,11 +196,11 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="text-muted-foreground text-sm italic">Aucun chat sélectionné</p>
+					<p class="text-sm text-muted-foreground italic">Aucun chat sélectionné</p>
 				{/if}
 
 				<div class="relative">
-					<Search class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+					<Search class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						type="search"
 						placeholder="Chercher un chat (nom ou numéro)…"
@@ -214,7 +212,7 @@
 
 				<div class="max-h-60 overflow-y-auto rounded-md border p-2">
 					{#each filteredCats as cat (cat.id)}
-						<div class="hover:bg-muted/50 rounded-md px-2 py-1.5">
+						<div class="rounded-md px-2 py-1.5 hover:bg-muted/50">
 							<CheckboxField
 								id="edit-news-cat-{cat.id}"
 								label={catLabel(cat)}
@@ -230,7 +228,7 @@
 				</div>
 
 				{#if fieldError('catIds')}
-					<p class="text-destructive text-sm">{fieldError('catIds')}</p>
+					<p class="text-sm text-destructive">{fieldError('catIds')}</p>
 				{/if}
 			</div>
 
@@ -259,7 +257,7 @@
 						type="button"
 						variant="ghost"
 						size="sm"
-						class="text-destructive hover:text-destructive self-start"
+						class="self-start text-destructive hover:text-destructive"
 						onclick={() => (removeCurrent = true)}
 						disabled={isSaving}
 					>
@@ -271,10 +269,10 @@
 						class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed p-3 text-sm"
 					>
 						<span class="text-muted-foreground">Le document sera retiré à l'enregistrement.</span>
-						<Button type="button" variant="ghost" size="sm" onclick={() => (removeCurrent = false)}>
-							<Undo2 class="size-4" />
-							Annuler
-						</Button>
+
+						<Button type="button" variant="ghost" size="sm" onclick={() => (removeCurrent = false)}
+							><Undo2 class="size-4" /> Annuler</Button
+						>
 					</div>
 					<!-- Envoyé SEULEMENT quand on a cliqué « Retirer » -->
 					<input type="hidden" name="removeMedia" value="true" />
