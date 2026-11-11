@@ -11,7 +11,7 @@
 		furLabels,
 		ADOPTION_SECTION_CONFIG
 	} from '$lib/constants/forms';
-	import { formatAge, getAgeBadge } from '$lib/utils/age';
+	import { formatAge } from '$lib/utils/age';
 	import { formatDate } from '$lib/utils/date';
 	import AdoptionEditFormPanel from './AdoptionEditFormPanel.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -30,6 +30,7 @@
 	import type { CatPickerItem } from '$lib/types/cat';
 	import { ArrowLeft, Pencil } from '@lucide/svelte';
 	import RejectFormDialog from '../RejectFormDialog.svelte';
+	import CatProfileSummary from '$lib/components/cats/profile/CatProfileSummary.svelte';
 
 	interface Props {
 		form: FormWithRelations;
@@ -182,27 +183,6 @@
 						<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
 							<Pencil class="h-5 w-5" />
 						</Button>
-
-						<!-- Une demande déjà acceptée ou refusée ne se traite plus -->
-						{#if form.status === 'PENDING'}
-							{#if form.type === 'ADOPTION_SPECIFIC'}
-								<Button
-									type="button"
-									disabled={!adoptionCatId}
-									onclick={() => (showCreateDialog = true)}
-								>
-									Créer l'adoption
-								</Button>
-							{:else if form.type === 'ADOPTION_FLEXIBLE'}
-								<Button type="button" onclick={() => (showCatPicker = true)}>
-									Choisir un chat
-								</Button>
-							{/if}
-							<RejectFormDialog
-								formId={form.id}
-								requesterName={`${adoptionData.firstName ?? ''} ${adoptionData.lastName ?? ''}`.trim()}
-							/>
-						{/if}
 					</div>
 				</section>
 			</Card.Header>
@@ -311,36 +291,13 @@
 
 				<Separator />
 
-				<section class="grid grid-cols-3 gap-4">
-					{#if form.type === 'ADOPTION_SPECIFIC' && catData}
-						<!-- SECTION CHAT SPÉCIFIQUE -->
-						<SectionCard
-							icon={FORM_SECTION_CONFIG.catSpecific.icon}
-							title={FORM_SECTION_CONFIG.catSpecific.label}
-							color={FORM_SECTION_CONFIG.catSpecific.color}
-						>
-							<div class="grid gap-4 text-xs">
-								<div class="flex items-center justify-between">
-									<p class="text-muted-foreground">Nom</p>
-									<p class="font-medium">{catData.name || '—'}</p>
-								</div>
-								<div class="flex items-center justify-between">
-									<p class="text-muted-foreground">Date de naissance</p>
-									<p class="font-medium">{formatDate(catData.birthDate) || '—'}</p>
-								</div>
-								{#if sexIcon}
-									<div class="flex items-center justify-between" title={sexIcon.label}>
-										<p class="text-muted-foreground">Sex</p>
-										<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
-									</div>
-								{/if}
-								<div class="flex items-center justify-between">
-									<p class="text-muted-foreground">Âge</p>
-									{getAgeBadge(catData.birthDate) || catData.birthDate}
-								</div>
-							</div>
-						</SectionCard>
-					{:else if form.type === 'ADOPTION_FLEXIBLE'}
+				<!-- Uniquement l'ADOPTANT ici : 3 blocs (demande libre) ou 2 (demande précise) -->
+				<section
+					class="grid gap-4 {form.type === 'ADOPTION_FLEXIBLE' ? 'grid-cols-3' : 'grid-cols-2'}"
+				>
+					<!-- Demande libre : le chat que l'adoptant RECHERCHE (ses préférences).
+					     Demande précise : le chat demandé a sa propre section, plus bas -->
+					{#if form.type === 'ADOPTION_FLEXIBLE'}
 						<!-- SECTION CHAT RECHERCHÉ (FLEXIBLE) -->
 						<SectionCard
 							icon={FORM_SECTION_CONFIG.cat.icon}
@@ -467,6 +424,37 @@
 						<p class="font-medium">{form.notes || '—'}</p>
 					</div>
 				</SectionCard>
+
+				<!-- Demande précise : le profil du chat demandé, pour juger si l'adoptant lui convient -->
+				{#if form.type === 'ADOPTION_SPECIFIC' && catData}
+					<Separator />
+					<SectionCard title="Le chat demandé : {catData.name ?? 'sans nom'}" variant="plain">
+						<CatProfileSummary cat={catData} />
+					</SectionCard>
+				{/if}
+
+				<!-- Les décisions en bas : la bénévole a tout lu avant d'accepter ou de refuser.
+				     Une demande déjà acceptée ou refusée ne se traite plus -->
+				{#if form.status === 'PENDING'}
+					<Separator />
+					<div class="flex flex-wrap justify-end gap-2">
+						<RejectFormDialog
+							formId={form.id}
+							requesterName={`${adoptionData.firstName ?? ''} ${adoptionData.lastName ?? ''}`.trim()}
+						/>
+						{#if form.type === 'ADOPTION_SPECIFIC'}
+							<Button
+								type="button"
+								disabled={!adoptionCatId}
+								onclick={() => (showCreateDialog = true)}
+							>
+								Créer l'adoption
+							</Button>
+						{:else if form.type === 'ADOPTION_FLEXIBLE'}
+							<Button type="button" onclick={() => (showCatPicker = true)}>Choisir un chat</Button>
+						{/if}
+					</div>
+				{/if}
 			</Card.Content>
 		{/if}
 	</Card.Root>

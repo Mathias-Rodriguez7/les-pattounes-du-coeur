@@ -7,15 +7,8 @@
 	import type { CatFull, CatEditData } from '$lib/types/cat';
 	import type { HostFull } from '$lib/types/host';
 	import type { VolunteerBasic } from '$lib/types/volunteer';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import {
-		statusLabel,
-		hairLabel,
-		vaccinateLabel,
-		getLabel,
-		getSexIcon
-	} from '$lib/utils/catHelpers';
+	import { statusLabel, hairLabel, getLabel, getSexIcon } from '$lib/utils/catHelpers';
 	import CatEditForm from './CatEditForm.svelte';
 	import { getAgeBadge, formatAge } from '$lib/utils/age';
 	import SectionCard from '../cards/SectionCard.svelte';
@@ -41,6 +34,8 @@
 	import { ADOPTABLE_STATUSES, ADOPTION_STATUS } from '$lib/constants/adoption';
 	import AdoptionCreateDialog from '../forms/panels/AdoptionCreateDialog.svelte';
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
+	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
+	import CatHealthCard from './profile/CatHealthCard.svelte';
 	import type { AdoptionFormJson } from '$lib/types/form';
 
 	interface Props {
@@ -583,43 +578,37 @@
 							</SectionCard>
 						{/if}
 
-						{#if isAdopted && adoption}
-							<!-- Adoptant : remplace les placements. Même présentation que les bénévoles -->
-						{:else}
-							<!-- Familles d'accueil -->
-							<SectionCard
-								icon={CAT_SECTION_CONFIG.host.icon}
-								title={CAT_SECTION_CONFIG.host.label}
-								color={CAT_SECTION_CONFIG.host.color}
-							>
-								{#snippet action()}
-									{#if isAdmin}
-										<PlacementCreateForm catId={cat.id} {cat} hosts={hosts ?? []} />
-									{/if}
-								{/snippet}
-
-								{#if activePlacements.length > 0}
-									<div class="ml-0 grid gap-4 sm:ml-6">
-										{@render placementGroup('FA (Proposition)', activeProposalPlacements)}
-										{@render placementGroup('FA (Transfert)', activeTransferPlacements)}
-										{@render placementGroup(
-											'FA (Classic)',
-											activeLongPlacement ? [activeLongPlacement] : []
-										)}
-										{@render placementGroup(
-											'FA (Relais)',
-											activeShortPlacement ? [activeShortPlacement] : []
-										)}
-									</div>
-								{:else}
-									<div
-										class="flex items-center justify-center rounded-xl border-2 border-dotted p-4"
-									>
-										<p>Aucune FA associée à ce chat</p>
-									</div>
+						<!-- Familles d'accueil -->
+						<SectionCard
+							icon={CAT_SECTION_CONFIG.host.icon}
+							title={CAT_SECTION_CONFIG.host.label}
+							color={CAT_SECTION_CONFIG.host.color}
+						>
+							{#snippet action()}
+								{#if isAdmin}
+									<PlacementCreateForm catId={cat.id} {cat} hosts={hosts ?? []} />
 								{/if}
-							</SectionCard>
-						{/if}
+							{/snippet}
+
+							{#if activePlacements.length > 0}
+								<div class="ml-0 grid gap-4 sm:ml-6">
+									{@render placementGroup('FA (Proposition)', activeProposalPlacements)}
+									{@render placementGroup('FA (Transfert)', activeTransferPlacements)}
+									{@render placementGroup(
+										'FA (Classic)',
+										activeLongPlacement ? [activeLongPlacement] : []
+									)}
+									{@render placementGroup(
+										'FA (Relais)',
+										activeShortPlacement ? [activeShortPlacement] : []
+									)}
+								</div>
+							{:else}
+								<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
+									<p>Aucune FA associée à ce chat</p>
+								</div>
+							{/if}
+						</SectionCard>
 					</section>
 
 					<Separator />
@@ -667,67 +656,9 @@
 									</div>
 								</SectionCard>
 
-								<SectionCard
-									icon={CAT_SECTION_CONFIG.compatibility.icon}
-									title={CAT_SECTION_CONFIG.compatibility.label}
-									color={CAT_SECTION_CONFIG.compatibility.color}
-									class="lg:col-span-1"
-								>
-									<div class="ml-6 space-y-1">
-										<div class="flex items-center justify-between">
-											<span class="text-muted-foreground">Chien</span>
-											<BooleanIcon value={cat.isOkDog ?? false} />
-										</div>
-										<div class="flex items-center justify-between">
-											<span class="text-muted-foreground">Chat</span>
-											<BooleanIcon value={cat.isOkCat ?? false} />
-										</div>
-										<div class="flex items-center justify-between">
-											<span class="text-muted-foreground">Enfant</span>
-											<BooleanIcon value={cat.isOkChild ?? false} />
-										</div>
-										<div class="flex items-center justify-between">
-											<span class="text-muted-foreground">Jardin</span>
-											<BooleanIcon value={cat.isOutside ?? false} />
-										</div>
-									</div>
-								</SectionCard>
-
-								<SectionCard
-									icon={CAT_SECTION_CONFIG.health.icon}
-									title={CAT_SECTION_CONFIG.health.label}
-									color={CAT_SECTION_CONFIG.health.color}
-									class="sm:col-span-2"
-								>
-									<div class="ml-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-										<div class="grid grid-cols-2 gap-2 text-sm">
-											<span class="text-muted-foreground">Vaccin</span>
-											<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>
-											<span class="text-muted-foreground">Test FIV</span>
-											<div class="flex justify-start">
-												<BooleanIcon value={cat.isFivTest ?? false} />
-											</div>
-											<span class="text-muted-foreground">Vermifuge</span>
-											<div class="flex justify-start">
-												<BooleanIcon value={cat.isDeworming ?? false} />
-											</div>
-										</div>
-										<div class="grid grid-cols-2 gap-2 text-sm">
-											<span class="text-muted-foreground">Stérilisé·e</span>
-											<div class="flex justify-start">
-												<BooleanIcon
-													value={(cat.isSterilize ?? false) || (cat.isAlreadySterilized ?? false)}
-												/>
-											</div>
-											<span class="text-muted-foreground">Identifié·e</span>
-											<div class="flex justify-start">
-												<BooleanIcon value={cat.isIdentify ?? false} />
-											</div>
-											<span class="text-muted-foreground">Puce</span>
-											<span class="break-all">{cat.chipId ?? '—'}</span>
-										</div>
-									</div>
-								</SectionCard>
+								<!-- Les mêmes cartes que le panneau d'une demande d'adoption -->
+								<CatCompatibilityCard {cat} class="lg:col-span-1" />
+								<CatHealthCard {cat} class="sm:col-span-2" />
 							</div>
 
 							{#if cat.description}

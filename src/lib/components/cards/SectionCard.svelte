@@ -222,13 +222,13 @@
 		{#if icon}
 			<Icon
 				name={icon}
-				class="h-5 w-5 {variant === 'card' ? current.icon : 'text-muted-foreground'}"
+				class="h-5 w-5 shrink-0 {variant === 'card' ? current.icon : 'text-muted-foreground'}"
 			/>
 		{/if}
 		<h4
 			class="font-semibold {variant === 'card'
 				? 'text-sm text-gray-900'
-				: 'text-foreground text-base'}"
+				: 'text-base text-foreground'}"
 		>
 			{title}
 		</h4>

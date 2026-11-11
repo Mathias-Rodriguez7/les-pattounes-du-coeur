@@ -1,4 +1,5 @@
 import type { FormStatus, Prisma } from '@prisma/client';
+import { catProfileSelect } from './catProfile';
 
 export type FormType = 'ADOPTION' | 'VOLUNTEER' | 'HOST' | 'COLAB' | 'OTHER';
 
@@ -126,6 +127,8 @@ export const formInclude = {
 	},
 	cat: {
 		select: {
+			// Le profil complet du chat : le panneau l'affiche pour juger la compatibilité
+			...catProfileSelect,
 			id: true,
 			name: true,
 			catNumber: true,
