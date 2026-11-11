@@ -112,7 +112,7 @@
 					</p>
 					<div class="pt-2">
 						<a
-							href={resolve('/adoptions/chat')}
+							href={resolve('adoptions/chat')}
 							class="inline-flex items-center font-medium text-primary underline underline-offset-4 transition hover:text-primary/80"
 						>
 							<ChevronRight />

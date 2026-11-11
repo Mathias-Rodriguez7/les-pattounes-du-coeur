@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
-	import type { Pathname } from '$app/types';
+	import type { Path } from '$app/types';
 	import Icon from '$lib/components/Icon.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -46,7 +46,7 @@
 					<div class="mt-4 flex flex-col gap-3">
 						{#each group.tasks as task (task.label)}
 							<a
-								href={resolve(task.href as Pathname)}
+								href={resolve(task.href as Path)}
 								class="flex flex-col gap-2 rounded-lg border border-transparent px-2 py-2 transition-all hover:border-primary/50 hover:shadow-md"
 							>
 								<div class="flex items-center justify-between gap-2">

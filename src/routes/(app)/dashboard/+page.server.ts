@@ -1,13 +1,13 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
-import type { Pathname } from '$app/types';
+import type { Path } from '$app/types';
 
 /**
  * Un lien du dashboard : uniquement une route qui EXISTE (TypeScript le vérifie).
  * Avant, beaucoup de liens menaient à des pages inexistantes (/dashboard/fa, /dashboard/formulaire…).
  */
-const link = (path: Pathname): Pathname => path;
+const link = (path: Path): Path => path;
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -163,7 +163,7 @@ async function getAssociationStats() {
 		totalCatsInManagement: catsInManagement,
 		totalActiveHosts: activeHostFamilies,
 		totalActiveVolunteers: activeVolunteers,
-		pendingApplications: pendingApplications
+		pendingApplications
 	};
 }
 
@@ -319,21 +319,13 @@ async function getManagerTasks(volunteerId: string) {
 		await Promise.all([
 			// 1️⃣ TOTAL DE CHATS EN GESTION
 			// Compte tous les chats assignés à ce bénévole
-			prisma.catVolunteer.count({
-				where: {
-					volunteerId: volunteerId
-				}
-			}),
+			prisma.catVolunteer.count({ where: { volunteerId } }),
 
 			// 2️⃣ FICHES DE CHATS INCOMPLÈTES
 			// CHATS - Fiches incomplètes assignées À CE BÉNÉVOLE
 			prisma.cat.count({
 				where: {
-					volunteers: {
-						some: {
-							volunteerId: volunteerId
-						}
-					},
+					volunteers: { some: { volunteerId } },
 					OR: [
 						{ name: null },
 						{ birthDate: null },
@@ -430,20 +422,12 @@ async function getCommunicationTasks(volunteerId: string) {
 		newslettersThisMonth
 	] = await Promise.all([
 		// 1️⃣ TOTAL DE CHATS EN GESTION
-		prisma.catVolunteer.count({
-			where: {
-				volunteerId: volunteerId
-			}
-		}),
+		prisma.catVolunteer.count({ where: { volunteerId } }),
 
 		// 2️⃣ FICHES DE CHATS INCOMPLÈTES
 		prisma.cat.count({
 			where: {
-				volunteers: {
-					some: {
-						volunteerId: volunteerId
-					}
-				},
+				volunteers: { some: { volunteerId } },
 				OR: [
 					{ name: null },
 					{ birthDate: null },
@@ -606,11 +590,7 @@ async function getVolunteerStats(volunteerId: string) {
 		prisma.cat.count({}),
 
 		// 1️⃣ TOTAL CHATS GÉRÉS PAR LE BÉNÉVOLE
-		prisma.catVolunteer.count({
-			where: {
-				volunteerId: volunteerId
-			}
-		}),
+		prisma.catVolunteer.count({ where: { volunteerId } }),
 
 		// 2️⃣ TOTAL ADOPTIONS CETTE ANNÉE DANS L'ASSO
 		prisma.adoption.count({
@@ -624,16 +604,8 @@ async function getVolunteerStats(volunteerId: string) {
 		// 2️⃣ ADOPTIONS CETTE ANNÉE PAR LE BÉNÉVOLE
 		prisma.adoption.count({
 			where: {
-				cat: {
-					volunteers: {
-						some: {
-							volunteerId: volunteerId
-						}
-					}
-				},
-				createdAt: {
-					gte: yearStart
-				}
+				cat: { volunteers: { some: { volunteerId } } },
+				createdAt: { gte: yearStart }
 			}
 		}),
 

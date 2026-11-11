@@ -37,9 +37,9 @@
 			<Carousel.Content class="p-6">
 				{#each cats as cat (cat.id)}
 					<Carousel.Item class="sm:basis-1/2 lg:basis-1/3">
-						<a href={resolve(`/adoptions/chat?cat=${cat.id}`)} class="block w-full">
-							<CatCard {cat} />
-						</a>
+						<a href={resolve(`adoptions/chat?cat=${cat.id}`)} class="block w-full"
+							><CatCard {cat} /></a
+						>
 					</Carousel.Item>
 				{/each}
 			</Carousel.Content>

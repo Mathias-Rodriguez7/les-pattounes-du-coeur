@@ -80,7 +80,7 @@
 		<div class="flex items-center justify-between">
 			<Label for="{id}-password">Mot de passe</Label>
 			<a
-				href={resolve('/forgot-password')}
+				href={resolve('forgot-password')}
 				onclick={onForgotPassword}
 				class="text-sm text-muted-foreground transition-colors hover:text-primary"
 			>

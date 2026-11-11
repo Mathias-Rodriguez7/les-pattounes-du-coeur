@@ -37,7 +37,7 @@
 			if (result.type === 'success') {
 				toast.success('Demande envoyée avec succès 🎉');
 				// 🆕 Retour à la liste des chats : le toast reste affiché pendant la navigation
-				goto(resolve('/adoptions/chat'));
+				goto(resolve('adoptions/chat'));
 			}
 
 			// 🆕 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer

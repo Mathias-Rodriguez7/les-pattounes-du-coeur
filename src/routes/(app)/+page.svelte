@@ -22,25 +22,24 @@
 				loop
 				playsinline
 				class="absolute top-1/2 left-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+				><source src="/videos/cat.mp4" type="video/mp4" /></video
 			>
-				<source src="/videos/cat.mp4" type="video/mp4" />
-			</video>
+
 			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 md:flex">
 				<Card.Root class="relative z-10 bg-accent">
-					<Card.Header>
-						<Card.Title>Bienvenue sur le site de l'association Les Pattounes du Cœur !</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						<p>
+					<Card.Header
+						><Card.Title>Bienvenue sur le site de l'association Les Pattounes du Cœur !</Card.Title
+						></Card.Header
+					>
+					<Card.Content
+						><p>
 							Nous intervenons sur Montpellier et ses alentours auprès des chats errants et
 							abandonnés.
-						</p>
-					</Card.Content>
-					<Card.Footer class="flex justify-end">
-						<a href={resolve(`/association/info`)}>
-							<Button>En savoir plus</Button>
-						</a>
-					</Card.Footer>
+						</p></Card.Content
+					>
+					<Card.Footer class="flex justify-end"
+						><a href={resolve(`association/info`)}><Button>En savoir plus</Button></a></Card.Footer
+					>
 				</Card.Root>
 			</div>
 		</section>
@@ -61,9 +60,8 @@
 						Vous avez repéré un chat errant ou en détresse ? Signalez-le nous, nos bénévoles
 						interviennent rapidement sur Montpellier et ses alentours.
 					</p>
-					<a href={resolve('/agir')}>
-						<Button>Signaler un chat</Button>
-					</a>
+
+					<a href={resolve('agir')}><Button>Signaler un chat</Button></a>
 				</div>
 
 				<!-- SÉPARATEUR -->
@@ -85,9 +83,7 @@
 						sociabilisation, afin qu'il retrouve confiance en l'humain avant l'adoption.
 					</p>
 
-					<a href={resolve('/association/info')}>
-						<Button>Notre mission</Button>
-					</a>
+					<a href={resolve('association/info')}><Button>Notre mission</Button></a>
 				</div>
 
 				<!-- SÉPARATEUR -->
@@ -107,9 +103,8 @@
 						Une fois rétabli, le chat est proposé à l'adoption. Trouvez votre compagnon et
 						offrez-lui une vie heureuse et aimée !
 					</p>
-					<a href={resolve('/adoptions/chat')}>
-						<Button>Voir les chats</Button>
-					</a>
+
+					<a href={resolve('adoptions/chat')}><Button>Voir les chats</Button></a>
 				</div>
 			</div>
 		</section>
@@ -120,22 +115,16 @@
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each data.cats as cat, i (cat.id)}
 					<a
-						href={resolve(`/adoptions/chat?cat=${cat.id}`)}
-						class={cn('block w-full', i > 0 && 'hidden sm:block')}
+						href={resolve(`adoptions/chat?cat=${cat.id}`)}
+						class={cn('block w-full', i > 0 && 'hidden sm:block')}><CatCard {cat} /></a
 					>
-						<CatCard {cat} />
-					</a>
 				{/each}
 			</div>
 
 			<div class="mt-4 flex justify-center">
-				<a href={resolve(`/adoptions/chat`)}>
-					<Button
-						><span class="flex items-center gap-2">
-							Voir <Plus />
-						</span>
-					</Button>
-				</a>
+				<a href={resolve(`adoptions/chat`)}
+					><Button><span class="flex items-center gap-2">Voir <Plus /></span></Button></a
+				>
 			</div>
 		</section>
 
@@ -180,22 +169,16 @@
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each data.news as news, i (news.id)}
 					<a
-						href={resolve(`/association/news?news=${news.id}`)}
-						class={cn('block w-full', i > 0 && 'hidden sm:block')}
+						href={resolve(`association/news?news=${news.id}`)}
+						class={cn('block w-full', i > 0 && 'hidden sm:block')}><NewsCard {news} /></a
 					>
-						<NewsCard {news} />
-					</a>
 				{/each}
 			</div>
 
 			<div class="mt-4 flex justify-center">
-				<a href={resolve(`/association/news`)}>
-					<Button
-						><span class="flex items-center gap-2">
-							Voir <Plus />
-						</span>
-					</Button>
-				</a>
+				<a href={resolve(`association/news`)}
+					><Button><span class="flex items-center gap-2">Voir <Plus /></span></Button></a
+				>
 			</div>
 		</section>
 	</div>

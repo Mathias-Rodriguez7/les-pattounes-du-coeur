@@ -74,7 +74,7 @@
 					</p>
 
 					<a
-						href={resolve('/adoptions/chat')}
+						href={resolve('adoptions/chat')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/adoptions/chat' ? 'bg-accent font-semibold' : ''}"
@@ -84,7 +84,7 @@
 					</a>
 
 					<a
-						href={resolve('/adoptions/formChat')}
+						href={resolve('adoptions/formChat')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/adoptions/formChat' ? 'bg-accent font-semibold' : ''}"
@@ -112,7 +112,7 @@
 					</p>
 
 					<a
-						href={resolve('/association/info')}
+						href={resolve('association/info')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/info' ? 'bg-accent font-semibold' : ''}"
@@ -122,7 +122,7 @@
 					</a>
 
 					<a
-						href={resolve('/association/news')}
+						href={resolve('association/news')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/news' ? 'bg-accent font-semibold' : ''}"
@@ -132,7 +132,7 @@
 					</a>
 
 					<a
-						href={resolve('/association/conseils')}
+						href={resolve('association/conseils')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/association/conseils' ? 'bg-accent font-semibold' : ''}"
@@ -157,7 +157,7 @@
 					<div class="my-2 border-t"></div>
 
 					<a
-						href={resolve('/agir')}
+						href={resolve('agir')}
 						onclick={() => (mobileMenuOpen = false)}
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
                 {page.url.pathname === '/agir' ? 'bg-accent font-semibold' : ''}"
@@ -179,10 +179,7 @@
 			</Sheet.Trigger>
 
 			<Sheet.Content side="right" class="w-80">
-				<Sheet.Header>
-					<Sheet.Title>Connexion</Sheet.Title>
-				</Sheet.Header>
-
+				<Sheet.Header><Sheet.Title>Connexion</Sheet.Title></Sheet.Header>
 				<div class="mt-6 px-4">
 					<LoginForm onForgotPassword={() => (loginOpenMobile = false)} />
 				</div>

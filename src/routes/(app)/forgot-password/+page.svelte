@@ -39,7 +39,7 @@
 				</Card.Content>
 				<Card.Footer class="justify-center">
 					<a
-						href={resolve('/login')}
+						href={resolve('login')}
 						class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
 					>
 						<ArrowLeft class="size-4" />
@@ -109,7 +109,7 @@
 							{/if}
 						</Button>
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 						>
 							<ArrowLeft class="size-4" />

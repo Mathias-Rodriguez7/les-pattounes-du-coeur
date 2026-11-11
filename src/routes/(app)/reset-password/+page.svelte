@@ -31,7 +31,10 @@
 			ok: /[a-z]/.test(password) && /[A-Z]/.test(password)
 		},
 		{ label: 'Un chiffre', ok: /\d/.test(password) },
-		{ label: 'Un caractère spécial', ok: /[^A-Za-z0-9]/.test(password) }
+		{
+			label: 'Un caractère spécial',
+			ok: /[^A-Za-z0-9]/.test(password)
+		}
 	]);
 
 	const score = $derived(rules.filter((r) => r.ok).length);
@@ -73,10 +76,11 @@
 						</p>
 					</div>
 				</Card.Content>
-				<Card.Footer class="justify-center">
-					<Button href={resolve('/forgot-password')} class="w-full">Demander un nouveau lien</Button
-					>
-				</Card.Footer>
+
+				<Card.Footer class="justify-center"
+					><Button href={resolve('forgot-password')} class="w-full">Demander un nouveau lien</Button
+					></Card.Footer
+				>
 			</Card.Root>
 		{:else}
 			<!-- 📝 ÉTAT : FORMULAIRE -->
@@ -196,7 +200,7 @@
 							{/if}
 						</Button>
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 						>
 							<ArrowLeft class="size-4" />

@@ -157,9 +157,9 @@
 					</ul>
 
 					<div class="mt-4 flex">
-						<a href={resolve(`/association/news`)}>
-							<Button><span class="flex items-center gap-2"> Nous rejoindre </span></Button>
-						</a>
+						<a href={resolve(`association/news`)}
+							><Button><span class="flex items-center gap-2">Nous rejoindre</span></Button></a
+						>
 					</div>
 				</Card.Content>
 			</Card.Root>

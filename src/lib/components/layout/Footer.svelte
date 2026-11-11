@@ -64,17 +64,20 @@
 			<nav class="flex flex-col gap-3">
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Adoption</h4>
 				<ul class="flex flex-col gap-2 text-sm opacity-70">
-					<li><a href={resolve('/')} class="transition-opacity hover:opacity-100">Accueil</a></li>
 					<li>
-						<a href={resolve('/adoptions/chat')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('/')} class="transition-opacity hover:opacity-100">Accueil</a>
+					</li>
+					<li>
+						<a href={resolve('adoptions/chat')} class="transition-opacity hover:opacity-100"
 							>Nos chats</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/adoptions/formChat')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('adoptions/formChat')} class="transition-opacity hover:opacity-100"
 							>Adoptions</a
 						>
 					</li>
+
 					<li>
 						<a
 							href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
@@ -91,17 +94,17 @@
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Association</h4>
 				<ul class="flex flex-col gap-2 text-sm opacity-70">
 					<li>
-						<a href={resolve('/association/info')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('association/info')} class="transition-opacity hover:opacity-100"
 							>Info</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/association/news')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('association/news')} class="transition-opacity hover:opacity-100"
 							>News</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/association/conseils')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('association/conseils')} class="transition-opacity hover:opacity-100"
 							>Conseils</a
 						>
 					</li>
@@ -113,22 +116,22 @@
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Agir</h4>
 				<ul class="flex flex-col gap-2 text-sm opacity-70">
 					<li>
-						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('agir')} class="transition-opacity hover:opacity-100"
 							>Signaler un chat</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('agir')} class="transition-opacity hover:opacity-100"
 							>Famille d'accueil</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100"
+						<a href={resolve('agir')} class="transition-opacity hover:opacity-100"
 							>Devenir bénévole</a
 						>
 					</li>
 					<li>
-						<a href={resolve('/agir')} class="transition-opacity hover:opacity-100">Collaborer</a>
+						<a href={resolve('agir')} class="transition-opacity hover:opacity-100">Collaborer</a>
 					</li>
 				</ul>
 			</nav>
