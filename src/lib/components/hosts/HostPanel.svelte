@@ -108,8 +108,9 @@
 			homeDescription: host.homeDescription,
 			presence: host.presence,
 			outsideDescription: host.outsideDescription || '',
-			stopActivity: host.stopActivity,
-			additionalInformation: host.additionalInformation
+			// null en base, '' dans le formulaire (comme les valeurs de départ plus haut)
+			stopActivity: host.stopActivity ?? '',
+			additionalInformation: host.additionalInformation ?? ''
 		};
 
 		isEditing = true;

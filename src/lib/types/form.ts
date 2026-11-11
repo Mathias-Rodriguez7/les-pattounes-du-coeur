@@ -103,7 +103,8 @@ export type CollabFormData = {
 	partnershipProposal: string;
 };
 
-export type OtherFormData = Record<string, any>;
+// unknown plutôt que any : on peut stocker n'importe quoi, mais il faut vérifier avant de s'en servir
+export type OtherFormData = Record<string, unknown>;
 
 // ===== TYPE UNION =====
 export type AnyFormData =

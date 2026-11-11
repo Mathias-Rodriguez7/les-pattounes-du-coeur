@@ -1,5 +1,5 @@
-import type { FormOverride } from './types';
-import type { HostInput } from './makeValidHostForm';
+import type { FormOverride } from '../types';
+import type { HostInput } from '../factories/hostForm.factory';
 
 type Case = { name: string; override: FormOverride<HostInput>; expected: boolean };
 

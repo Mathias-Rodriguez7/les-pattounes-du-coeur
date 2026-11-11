@@ -40,15 +40,6 @@ export const quickAdoptionFormCases = {
 			},
 			expected: false
 		}
-	],
-
-	base: [
-		{
-			name: 'invalid catId',
-			override: {
-				catId: 'invalid-uuid'
-			},
-			expected: false
-		}
 	]
+	// (Plus de cas « catId » : le chat vient de l'URL de la page, plus du formulaire)
 };

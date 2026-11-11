@@ -26,7 +26,7 @@
 				<source src="/videos/cat.mp4" type="video/mp4" />
 			</video>
 			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 md:flex">
-				<Card.Root class="bg-accent relative z-10">
+				<Card.Root class="relative z-10 bg-accent">
 					<Card.Header>
 						<Card.Title>Bienvenue sur le site de l'association Les Pattounes du Cœur !</Card.Title>
 					</Card.Header>
@@ -52,34 +52,34 @@
 				<!-- ÉTAPE 1 -->
 				<div class="flex flex-1 flex-col items-center gap-4 text-center">
 					<div
-						class="bg-primary text-primary-foreground flex h-16 w-16 items-center justify-center rounded-full"
+						class="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground"
 					>
 						<Search size={28} />
 					</div>
 					<h3 class="text-xl font-semibold">Signaler</h3>
-					<p class="text-muted-foreground text-sm">
+					<p class="text-sm text-muted-foreground">
 						Vous avez repéré un chat errant ou en détresse ? Signalez-le nous, nos bénévoles
 						interviennent rapidement sur Montpellier et ses alentours.
 					</p>
-					<a href={resolve('/contact')}>
+					<a href={resolve('/agir')}>
 						<Button>Signaler un chat</Button>
 					</a>
 				</div>
 
 				<!-- SÉPARATEUR -->
-				<div class="text-muted-foreground hidden md:flex md:items-center md:pt-8">
+				<div class="hidden text-muted-foreground md:flex md:items-center md:pt-8">
 					<ArrowRight size={32} />
 				</div>
 
 				<!-- ÉTAPE 2 -->
 				<div class="flex flex-1 flex-col items-center gap-4 text-center">
 					<div
-						class="bg-primary text-primary-foreground flex h-16 w-16 items-center justify-center rounded-full"
+						class="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground"
 					>
 						<Heart size={28} />
 					</div>
 					<h3 class="text-xl font-semibold">Soigner</h3>
-					<p class="text-muted-foreground text-sm">
+					<p class="text-sm text-muted-foreground">
 						Nos bénévoles prennent en charge le chat : vétérinaire, stérilisation, vaccins. Il est
 						ensuite accueilli dans une famille d'accueil pour sa convalescence et sa
 						sociabilisation, afin qu'il retrouve confiance en l'humain avant l'adoption.
@@ -91,19 +91,19 @@
 				</div>
 
 				<!-- SÉPARATEUR -->
-				<div class="text-muted-foreground hidden md:flex md:items-center md:pt-8">
+				<div class="hidden text-muted-foreground md:flex md:items-center md:pt-8">
 					<ArrowRight size={32} />
 				</div>
 
 				<!-- ÉTAPE 3 -->
 				<div class="flex flex-1 flex-col items-center gap-4 text-center">
 					<div
-						class="bg-primary text-primary-foreground flex h-16 w-16 items-center justify-center rounded-full"
+						class="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground"
 					>
 						<Home size={28} />
 					</div>
 					<h3 class="text-xl font-semibold">Adopter</h3>
-					<p class="text-muted-foreground text-sm">
+					<p class="text-sm text-muted-foreground">
 						Une fois rétabli, le chat est proposé à l'adoption. Trouvez votre compagnon et
 						offrez-lui une vie heureuse et aimée !
 					</p>
@@ -139,10 +139,10 @@
 			</div>
 		</section>
 
-		<section class="bg-accent-foreground flex flex-col gap-8 px-4 py-10 md:px-10 lg:px-20">
-			<h2 class="text-popover mb-10 text-center text-3xl font-bold">Chaque don change une vie</h2>
+		<section class="flex flex-col gap-8 bg-accent-foreground px-4 py-10 md:px-10 lg:px-20">
+			<h2 class="mb-10 text-center text-3xl font-bold text-popover">Chaque don change une vie</h2>
 			<div
-				class="bg-primary-foreground flex flex-col gap-6 rounded-2xl p-4 md:p-6 lg:flex-row lg:items-stretch lg:gap-10 lg:p-10"
+				class="flex flex-col gap-6 rounded-2xl bg-primary-foreground p-4 md:p-6 lg:flex-row lg:items-stretch lg:gap-10 lg:p-10"
 			>
 				<div class="flex w-full lg:w-3/4">
 					<div class="h-full w-full">
@@ -208,7 +208,7 @@
 		class="fixed top-1/2 right-4 z-50 -translate-y-1/2"
 	>
 		<div
-			class="group bg-primary text-primary-foreground flex items-center gap-0 overflow-hidden rounded-full p-4 shadow-lg transition-all duration-300 hover:gap-2 hover:px-4"
+			class="group flex items-center gap-0 overflow-hidden rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition-all duration-300 hover:gap-2 hover:px-4"
 		>
 			<HeartHandshake size={30} />
 			<span

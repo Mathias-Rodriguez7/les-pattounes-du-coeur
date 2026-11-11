@@ -73,7 +73,8 @@
 		blacklistReason = '';
 	};
 
-	const isDisabled = isSaving || isDeleting || isBlacklisting;
+	// $derived : sinon le bouton garde l'état du premier affichage et ne se désactive jamais
+	const isDisabled = $derived(isSaving || isDeleting || isBlacklisting);
 </script>
 
 <div>

@@ -77,7 +77,12 @@ export const volunteerStep4Schema = z.object({
 // REFINEMENTS LOGIC
 //
 
-const volunteerFormRefinements = (data: any, ctx: any) => {
+// Partial : la même logique sert au formulaire complet ET au schéma de mise à jour (champs facultatifs).
+// Le type vient du schéma : un champ renommé devient une erreur TypeScript ici.
+const volunteerFormRefinements = (
+	data: Partial<z.infer<typeof volunteerFormSchemaBase>>,
+	ctx: z.RefinementCtx
+) => {
 	// Cat experience
 	if (data.hasCatExperience && !data.catExperienceDescription?.trim()) {
 		ctx.addIssue({

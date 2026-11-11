@@ -102,7 +102,13 @@ export const step3Schema = z.object({
 // REFINEMENTS LOGIC
 //
 
-const adoptionFormRefinements = (data: any, ctx: any) => {
+// La même logique sert au formulaire complet ET au schéma de mise à jour.
+// Le type vient du schéma : un champ renommé devient une erreur TypeScript ici.
+const adoptionFormRefinements = (
+	// Seulement les champs utilisés : le schéma de mise à jour accepte d'autres types (téléphone null…)
+	data: Pick<Partial<z.infer<typeof adoptionFormSchemaBase>>, 'hasGarden' | 'gardenSize'>,
+	ctx: z.RefinementCtx
+) => {
 	if (data.hasGarden && data.gardenSize === undefined) {
 		ctx.addIssue({
 			path: ['gardenSize'],

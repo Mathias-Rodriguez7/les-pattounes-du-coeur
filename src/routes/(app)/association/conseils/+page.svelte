@@ -16,7 +16,7 @@
 		<!-- GRID 3 COL -->
 		<div class="grid gap-6 md:grid-cols-2">
 			<!-- ================= COHABITATION ================= -->
-			<section class="bg-card space-y-4 rounded-2xl p-5 shadow-sm">
+			<section class="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
 				<div class="flex items-center justify-between">
 					<h2 class="flex items-center gap-2 text-lg font-semibold">
 						<PawPrint class="h-4 w-4" />
@@ -25,7 +25,7 @@
 					<Badge variant="secondary">Guide</Badge>
 				</div>
 
-				<Accordion.Root type="single" collapsible class="w-full">
+				<Accordion.Root type="single" class="w-full">
 					<Accordion.Item value="chat">
 						<Accordion.Trigger>Avec un chat</Accordion.Trigger>
 
@@ -37,7 +37,7 @@
 							<a
 								href="https://drive.google.com/file/d/1RykO1L_D0e1Jdfy_5t_NbNuRKgk5JTIk/view?usp=sharing"
 								target="_blank"
-								class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition"
+								class="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 							>
 								📄 Télécharger le protocole
 							</a>
@@ -55,11 +55,11 @@
 							<a
 								href="https://drive.google.com/file/d/1RykO1L_D0e1Jdfy_5t_NbNuRKgk5JTIk/view?usp=sharing"
 								target="_blank"
-								class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition"
+								class="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 							>
 								📄 Télécharger le protocole
 							</a>
-							<ul class="text-muted-foreground list-disc space-y-1 pl-5">
+							<ul class="list-disc space-y-1 pl-5 text-muted-foreground">
 								<li class="text-muted-foreground">
 									Installer les gamelles du chat en hauteur pour les rendre inaccessibles au chien
 								</li>
@@ -75,7 +75,7 @@
 			</section>
 
 			<!-- ================= PERDU / TROUVÉ ================= -->
-			<section class="bg-card space-y-4 rounded-2xl p-5 shadow-sm">
+			<section class="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
 				<div class="flex items-center justify-between">
 					<h2 class="flex items-center gap-2 text-lg font-semibold">
 						<FileText class="h-4 w-4" />
@@ -84,7 +84,7 @@
 					<Badge variant="secondary">Urgence</Badge>
 				</div>
 
-				<Accordion.Root type="single" collapsible>
+				<Accordion.Root type="single">
 					<Accordion.Item value="perdu">
 						<Accordion.Trigger>Chat perdu</Accordion.Trigger>
 
@@ -92,7 +92,7 @@
 							<a
 								href="https://drive.google.com/file/d/1pLGFdUBs8EqYobSi30-M8oWmdYGA85OB/view?usp=sharing"
 								target="_blank"
-								class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition"
+								class="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 							>
 								📄 Télécharger la fiche
 							</a>
@@ -106,7 +106,7 @@
 							<a
 								href="https://drive.google.com/file/d/1bbi_so6YKm4HT71rJALpIc17Nx0gDbdC/view?usp=sharing"
 								target="_blank"
-								class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition"
+								class="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 							>
 								📄 Télécharger la fiche
 							</a>
@@ -116,19 +116,19 @@
 			</section>
 
 			<!-- ================= COMPORTEMENT ================= -->
-			<section class="bg-card space-y-4 rounded-2xl p-5 shadow-sm md:col-span-2">
+			<section class="space-y-4 rounded-2xl bg-card p-5 shadow-sm md:col-span-2">
 				<div class="flex items-center justify-between">
 					<h2 class="flex items-center gap-2 text-lg font-semibold">
-						<AlertTriangle class="text-destructive h-4 w-4" />
+						<AlertTriangle class="h-4 w-4 text-destructive" />
 						Comportement
 					</h2>
 					<Badge variant="destructive">Important</Badge>
 				</div>
 
-				<Accordion.Root type="single" collapsible>
+				<Accordion.Root type="single">
 					<Accordion.Item value="malproprete">
 						<Accordion.Trigger>Malpropreté</Accordion.Trigger>
-						<Accordion.Content class="text-muted-foreground space-y-2 pt-2 text-sm">
+						<Accordion.Content class="space-y-2 pt-2 text-sm text-muted-foreground">
 							<p class="text-muted-foreground">
 								Pour un chat qui était propre avant, il faut tout d’abord éliminer la piste du
 								problème médical en consultant un vétérinaire.
@@ -180,7 +180,7 @@
 
 					<Accordion.Item value="craintif">
 						<Accordion.Trigger>Chat craintif</Accordion.Trigger>
-						<Accordion.Content class="text-muted-foreground space-y-2 pt-2 text-sm">
+						<Accordion.Content class="space-y-2 pt-2 text-sm text-muted-foreground">
 							<p class="text-muted-foreground">
 								Avant d’arriver chez vous, un minou peut avoir connu beaucoup d’expériences, parfois
 								négatives envers l’humain.

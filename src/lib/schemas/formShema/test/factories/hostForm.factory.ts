@@ -1,9 +1,10 @@
 import type { z } from 'zod';
 import type { hostFormSchema } from '../../hostForm';
+import type { FormOverride } from '../types';
 
 export type HostInput = z.input<typeof hostFormSchema>;
 
-export function makeValidHostForm(override: Partial<HostInput> = {}): HostInput {
+export function makeValidHostForm(override: FormOverride<HostInput> = {}): HostInput {
 	return {
 		// STEP 1
 		firstName: 'Jean',
@@ -42,5 +43,5 @@ export function makeValidHostForm(override: Partial<HostInput> = {}): HostInput 
 		additionalMessage: '',
 
 		...override
-	};
+	} as HostInput;
 }

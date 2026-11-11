@@ -41,7 +41,8 @@
 		{ date: new Date('2026-04-01'), cats: 53, adoptions: 27, sterilizations: 0 }
 	];
 
-	type ChartKey = 'cats' | 'Adoadoptionspté' | 'sterilizations';
+	// Les clés viennent de chartConfig : une faute de frappe devient une erreur TypeScript
+	type ChartKey = keyof typeof chartConfig;
 
 	let timeRange = $state('3y');
 

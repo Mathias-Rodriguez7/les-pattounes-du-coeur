@@ -96,7 +96,12 @@ export const hostStep4Schema = z.object({
 // REFINEMENTS LOGIC
 //
 
-const hostFormRefinements = (data: any, ctx: any) => {
+// Partial : la même logique sert au formulaire complet ET au schéma de mise à jour (champs facultatifs).
+// Le type vient du schéma : un champ renommé devient une erreur TypeScript ici.
+const hostFormRefinements = (
+	data: Partial<z.infer<typeof hostFormSchemaBase>>,
+	ctx: z.RefinementCtx
+) => {
 	// VALIDATION OUTSIDE
 	if (data.outside && !data.outsideDescription?.trim()) {
 		ctx.addIssue({

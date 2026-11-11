@@ -1,4 +1,12 @@
-import type { Prisma, Volunteer, VolunteerRole, Form, Profil, ColabActivity } from '@prisma/client';
+import type {
+	Prisma,
+	Volunteer,
+	VolunteerRole,
+	Form,
+	Profil,
+	Host,
+	ColabActivity
+} from '@prisma/client';
 
 /** Les champs secrets d'un bénévole : jamais renvoyés par Prisma (voir src/lib/server/prisma.ts) */
 export const volunteerSecretFields = {
@@ -89,7 +97,8 @@ export type CatVolunteerWithRelations = {
 
 export type VolunteerWithRelations = Omit<Volunteer, 'actif' | VolunteerSecretField> & {
 	actif: ColabActivity | null;
-	profil: Profil;
+	/** host : la bénévole est aussi famille d'accueil (chargé par la page Bénévoles) */
+	profil: Profil & { host?: Host | null };
 	cats: CatVolunteerWithRelations[];
 	assignedForms: Form[];
 	breakStart?: Date | null;

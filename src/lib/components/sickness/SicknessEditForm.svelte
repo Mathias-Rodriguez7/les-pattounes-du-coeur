@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { Sickness } from '@prisma/client';
+	import type { Sickness, SicknessStatus } from '@prisma/client';
+	import { untrack } from 'svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import { Plus, Pencil } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import InputField from '../fields/InputField.svelte';
@@ -28,26 +29,37 @@
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
 
-	// État local du formulaire
-	let name = $state(sickness?.name ?? '');
-	let description = $state(sickness?.description ?? '');
-	let treatment = $state(sickness?.treatment ?? '');
-	let startDate = $state<Date | undefined>(
-		sickness?.startDate ? new Date(sickness.startDate) : undefined
-	);
-	let endDate = $state<Date | undefined>(
-		sickness?.endDate ? new Date(sickness.endDate) : undefined
-	);
-	let status = $state(sickness?.status ?? 'ACTIVE');
+	// État local du formulaire : rempli à chaque OUVERTURE avec la maladie actuelle.
+	// (Avant, il gardait les valeurs du premier affichage : après une modification ou un ajout,
+	// rouvrir le dialogue montrait d'anciennes valeurs.)
+	let name = $state('');
+	let description = $state('');
+	let treatment = $state('');
+	let startDate = $state<Date | undefined>(undefined);
+	let endDate = $state<Date | undefined>(undefined);
+	let status = $state<SicknessStatus>('ACTIVE');
+
+	function fillFromSickness() {
+		name = sickness?.name ?? '';
+		description = sickness?.description ?? '';
+		treatment = sickness?.treatment ?? '';
+		startDate = sickness?.startDate ? new Date(sickness.startDate) : undefined;
+		endDate = sickness?.endDate ? new Date(sickness.endDate) : undefined;
+		status = sickness?.status ?? 'ACTIVE';
+		formErrors = { name: '' };
+	}
+
+	// untrack : seul `open` déclenche le remplissage (pas chaque rechargement de `sickness`)
+	$effect(() => {
+		if (open) untrack(fillFromSickness);
+	});
 
 	let formErrors = $state({ name: '' });
 
-	const handleEnhance: SubmitFunction = ({ formData }) => {
+	// catId et sicknessId partent déjà dans les champs cachés du formulaire
+	// (avant, ils étaient aussi ajoutés ici : envoyés deux fois)
+	const handleEnhance: SubmitFunction = () => {
 		isSaving = true;
-		formData.append('catId', catId);
-		if (isEdit && sickness) {
-			formData.append('sicknessId', sickness.id);
-		}
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
@@ -75,18 +87,20 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Trigger>
-		{#if isEdit}
-			<Button variant="ghost" size="icon">
-				<Pencil class="h-4 w-4" />
-			</Button>
-		{:else}
-			<Button variant="outline" size="sm" class="rounded-2xl">
-				<Plus class="mr-1 h-4 w-4" />
-				Ajouter une maladie
-			</Button>
-		{/if}
-	</Dialog.Trigger>
+	<!-- Le Trigger EST le bouton : pas de <button> dans un <button> -->
+	{#if isEdit}
+		<Dialog.Trigger
+			class={buttonVariants({ variant: 'ghost', size: 'icon' })}
+			aria-label="Modifier la maladie"
+		>
+			<Pencil class="h-4 w-4" />
+		</Dialog.Trigger>
+	{:else}
+		<Dialog.Trigger class="{buttonVariants({ variant: 'outline', size: 'sm' })} rounded-2xl">
+			<Plus class="mr-1 h-4 w-4" />
+			Ajouter une maladie
+		</Dialog.Trigger>
+	{/if}
 
 	<Dialog.Content class="sm:max-w-125">
 		<Dialog.Header>

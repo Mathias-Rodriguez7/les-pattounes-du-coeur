@@ -10,7 +10,10 @@ export const hostFullArgs = {
 	}
 } satisfies Prisma.HostDefaultArgs;
 
-export type HostFull = Prisma.HostGetPayload<typeof hostFullArgs>;
+export type HostFull = Prisma.HostGetPayload<typeof hostFullArgs> & {
+	/** Calculé par le load de la page FA : nombre de placements longs et relais */
+	placementStats?: { long: number; short: number; total: number };
+};
 
 export type HostEditData = {
 	// Statut

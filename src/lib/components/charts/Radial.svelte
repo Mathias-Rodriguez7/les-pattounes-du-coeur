@@ -22,7 +22,8 @@
 		otherColor = '#e5e7eb'
 	}: Props = $props();
 
-	const chartConfig = {
+	// $derived : les couleurs suivent les props si le parent les change
+	const chartConfig = $derived({
 		volunteer: {
 			label: 'Vos stats',
 			color: volunteerColor
@@ -31,7 +32,7 @@
 			label: "Total dans l'asso",
 			color: otherColor
 		}
-	};
+	});
 
 	const percentage = $derived(totalValue > 0 ? Math.round((volunteerValue / totalValue) * 100) : 0);
 </script>
@@ -39,7 +40,7 @@
 <div class="grid h-full grid-rows-[auto_max-content_auto] gap-8">
 	<div class="text-center">
 		<h3 class="text-lg font-semibold">{title}</h3>
-		<p class="text-muted-foreground text-sm">{description}</p>
+		<p class="text-sm text-muted-foreground">{description}</p>
 	</div>
 
 	<div class="relative flex items-center justify-center">
@@ -72,11 +73,11 @@
 		</div>
 		<div class="absolute flex flex-col items-center justify-center">
 			<div class="text-2xl font-bold">{percentage}%</div>
-			<div class="text-muted-foreground text-sm">{unit}</div>
+			<div class="text-sm text-muted-foreground">{unit}</div>
 		</div>
 	</div>
 
-	<div class="text-muted-foreground -mt-16 text-center text-sm">
+	<div class="-mt-16 text-center text-sm text-muted-foreground">
 		{volunteerValue}/{totalValue}
 		{unit.toLowerCase()}
 	</div>

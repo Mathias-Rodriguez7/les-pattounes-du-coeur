@@ -3,7 +3,8 @@
 	import { Lock, Eye, EyeOff } from '@lucide/svelte';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
-	type Props = Omit<HTMLInputAttributes, 'type' | 'value'> & {
+	// 'files' exclu : un champ mot de passe n'a pas de fichiers (et l'Input de shadcn le refuse)
+	type Props = Omit<HTMLInputAttributes, 'type' | 'value' | 'files'> & {
 		value?: string;
 		/** Affiche la bordure rouge d'erreur */
 		invalid?: boolean;
