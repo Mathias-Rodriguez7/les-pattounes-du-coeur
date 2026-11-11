@@ -9,6 +9,11 @@ seventeenYearsAgo.setFullYear(seventeenYearsAgo.getFullYear() - 17);
 export const hostFormCases: Record<string, Case[]> = {
 	step1: [
 		{ name: 'invalid email', override: { email: 'bad-email' }, expected: false },
+		{
+			name: 'email with spaces and uppercase',
+			override: { email: '  Jean@Example.COM  ' },
+			expected: true
+		},
 		{ name: 'invalid postal code', override: { postalCode: '123' }, expected: false },
 		{ name: 'missing city', override: { city: '' }, expected: false },
 		{ name: 'invalid district', override: { district: 'NOPE' }, expected: false }

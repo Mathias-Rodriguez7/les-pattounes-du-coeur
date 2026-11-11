@@ -1,9 +1,14 @@
 import prisma from '$lib/server/prisma';
 import type { CreateAdoptionInput } from '$lib/schemas/adoption';
 import { CatStatus, FormStatus } from '@prisma/client';
+import { isEmailBlacklisted } from '../accountStatus';
 
 export async function createAdoption(input: CreateAdoptionInput) {
 	return prisma.$transaction(async (tx) => {
+		// 0. Vérifier que l'adoptant n'est pas blacklisté
+		if (await isEmailBlacklisted(input.email, tx)) {
+			throw new Error('Cet adoptant est sur la liste noire');
+		}
 		// 1. Vérifier que le chat est disponible
 		const cat = await tx.cat.findUnique({
 			where: { id: input.catId },
@@ -15,10 +20,11 @@ export async function createAdoption(input: CreateAdoptionInput) {
 			throw new Error(`Le chat ${cat.name} n'est plus disponible`);
 		}
 
-		// 2. Vérifier qu'il n'a pas déjà une adoption (contrainte @@unique([catId]))
-		const existingAdoption = await tx.adoption.findUnique({
-			where: { catId: input.catId }
+		// 2. Vérifier qu'il n'a pas déjà une adoption
+		const existingAdoption = await tx.adoption.findFirst({
+			where: { catId: input.catId, status: 'ACTIVE' }
 		});
+
 		if (existingAdoption) throw new Error('Ce chat a déjà une adoption');
 
 		// 3. Créer ou mettre à jour le profil (upsert sur l'email)

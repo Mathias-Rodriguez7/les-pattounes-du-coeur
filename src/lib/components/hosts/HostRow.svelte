@@ -2,8 +2,8 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Badge } from '$lib/components/ui/badge';
 	import BooleanIcon from '../icons/BooleanIcon.svelte';
-	import { truncate } from '$lib/utils/string';
 	import { typesColors, healColors, socializeColors } from '$lib/constants/host';
+	import { ChevronRight } from '@lucide/svelte';
 
 	const { host, isSelected = false, onclick } = $props();
 
@@ -17,46 +17,41 @@
 		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
 >
-	<!-- Nom Complet -->
-	<Table.Cell class="font-semibold text-gray-900" title={fullName}>
-		{truncate(fullName, 8)}
+	<Table.Cell class="max-w-36 truncate font-semibold text-gray-900" title={fullName}>
+		{fullName}
 	</Table.Cell>
 
-	<!-- Type (CLASSIC/RELAY) -->
 	<Table.Cell>
 		<Badge class={typesColors[host.type]?.color || 'bg-gray-100 text-gray-800'}>
 			{typesColors[host.type]?.label || host.type}
 		</Badge>
 	</Table.Cell>
 
-	<!-- animaux dans le foyer -->
-	<Table.Cell class="text-center">
+	<Table.Cell class="hidden text-center sm:table-cell">
 		<BooleanIcon value={host.hasAnimalsAtHome} />
 	</Table.Cell>
 
-	<!-- Socia -->
-	<Table.Cell class="text-sm">
+	<Table.Cell class="hidden text-sm sm:table-cell">
 		<Badge class={socializeColors[host.socialize]?.color || 'bg-gray-100 text-gray-800'}>
 			{socializeColors[host.socialize]?.label || host.socialize}
 		</Badge>
 	</Table.Cell>
 
-	<!-- Soin -->
-	<Table.Cell class="text-center text-sm">
+	<Table.Cell class="hidden text-center text-sm sm:table-cell">
 		<Badge class={healColors[host.heal]?.color || 'bg-gray-100 text-gray-800'}>
 			{healColors[host.heal]?.label || host.heal}
 		</Badge>
 	</Table.Cell>
 
-	<!-- Nombre de chats en placement -->
-	<Table.Cell class="text-center">
-		<span class="inline-flex items-center justify-center rounded-full text-sm font-medium">
-			{placementsCount}
-		</span>
+	<Table.Cell class="hidden text-center text-sm font-medium sm:table-cell">
+		{placementsCount}
 	</Table.Cell>
 
-	<!-- Icône exterieur -->
-	<Table.Cell class="text-center">
+	<Table.Cell class="hidden text-center sm:table-cell">
 		<BooleanIcon value={host.outside} />
+	</Table.Cell>
+
+	<Table.Cell class="text-muted-foreground w-8 sm:hidden">
+		<ChevronRight class="size-4" />
 	</Table.Cell>
 </Table.Row>

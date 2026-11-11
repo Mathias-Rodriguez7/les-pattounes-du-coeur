@@ -1,6 +1,7 @@
 // src/lib/server/prisma.ts
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { volunteerSecretFields } from '$lib/types/volunteer';
 
 // ✅ Utiliser process.env directement (disponible côté serveur)
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -15,7 +16,11 @@ const prismaClientSingleton = () => {
 	});
 
 	return new PrismaClient({
-		adapter
+		adapter,
+		// 🔒 Ces champs ne sortent JAMAIS de la base par défaut, quel que soit l'include ou le select.
+		// Le code qui en a vraiment besoin (connexion, changement de mot de passe) le demande
+		// explicitement avec `omit: { password: false }`.
+		omit: { volunteer: volunteerSecretFields }
 	});
 };
 

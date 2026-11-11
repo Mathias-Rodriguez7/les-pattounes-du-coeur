@@ -1,10 +1,7 @@
 <script lang="ts">
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -19,6 +16,7 @@
 		ShoppingBag,
 		Mail
 	} from '@lucide/svelte';
+	import LoginForm from '$lib/components/auth/LoginForm.svelte';
 
 	let mobileMenuOpen = $state(false);
 	let loginOpenMobile = $state(false);
@@ -185,28 +183,9 @@
 					<Sheet.Title>Connexion</Sheet.Title>
 				</Sheet.Header>
 
-				<form method="POST" action="/login" class="mt-6 grid gap-4 px-4">
-					<div class="grid gap-2">
-						<Label>Email</Label>
-						<Input name="email" type="email" required />
-					</div>
-
-					<div class="grid gap-2">
-						<div class="flex justify-between">
-							<Label>Mot de passe</Label>
-							<a
-								href={resolve('/forgot-password')}
-								onclick={() => (loginOpenMobile = false)}
-								class="ms-auto inline-block text-sm underline"
-							>
-								Mot de passe oublié ?
-							</a>
-						</div>
-						<Input name="password" type="password" required />
-					</div>
-
-					<Button type="submit" class="w-full">Connexion</Button>
-				</form>
+				<div class="mt-6 px-4">
+					<LoginForm onForgotPassword={() => (loginOpenMobile = false)} />
+				</div>
 			</Sheet.Content>
 		</Sheet.Root>
 	</div>
@@ -315,28 +294,12 @@
 					<Sheet.Title>Connexion</Sheet.Title>
 				</Sheet.Header>
 
-				<form method="POST" action="/login" class="mt-6 grid gap-4 px-4">
-					<div class="grid gap-2">
-						<Label>Email</Label>
-						<Input name="email" type="email" required />
-					</div>
-
-					<div class="grid gap-2">
-						<div class="flex justify-between">
-							<Label>Mot de passe</Label>
-							<a
-								href={resolve('/forgot-password')}
-								onclick={() => (loginOpenDesktop = false)}
-								class="ms-auto inline-block text-sm underline"
-							>
-								Mot de passe oublié ?
-							</a>
-						</div>
-						<Input name="password" type="password" required />
-					</div>
-
-					<Button type="submit" class="h-12 w-full text-xl">Connexion</Button>
-				</form>
+				<div class="mt-6 px-4">
+					<LoginForm
+						onForgotPassword={() => (loginOpenDesktop = false)}
+						buttonClass="h-12 w-full text-xl"
+					/>
+				</div>
 			</Sheet.Content>
 		</Sheet.Root>
 	</div>

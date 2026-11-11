@@ -1,5 +1,12 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
+import { emailField } from '$lib/schemas/fields';
+import {
+	CAT_AGE_PREFERENCES,
+	CAT_SEX_PREFERENCES,
+	CAT_FUR_PREFERENCES,
+	enumKeys
+} from '$lib/constants/forms';
 
 // 🔧 Helpers
 const optionalString = (min = 1, msg?: string) =>
@@ -40,7 +47,7 @@ export const step1Schema = z.object({
 	firstName: z.string().trim().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().trim().min(1, 'Le nom est obligatoire'),
 	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
-	email: z.email('Email invalide'),
+	email: emailField(),
 	address: z.string().trim().min(1, "L'adresse est obligatoire"),
 	birthDate: adultBirthDate,
 	city: z.string().trim().min(1, 'La ville est obligatoire'),
@@ -56,18 +63,18 @@ export const step1Schema = z.object({
 //
 export const step2Schema = z.object({
 	catAge: z
-		.enum(['kitten', 'adult', 'senior', 'free'], {
+		.enum(enumKeys(CAT_AGE_PREFERENCES), {
 			message: "Veuillez sélectionner l'âge du chat"
 		})
 		.default('free'),
 	catSex: z
-		.enum(['male', 'female', 'free'], {
+		.enum(enumKeys(CAT_SEX_PREFERENCES), {
 			message: 'Veuillez sélectionner le sexe du chat'
 		})
 		.default('free'),
 	color: optionalString(2, 'Veuillez indiquer une couleur'),
 	furLength: z
-		.enum(['short', 'medium', 'long', 'free'], {
+		.enum(enumKeys(CAT_FUR_PREFERENCES), {
 			message: 'Veuillez sélectionner la longueur du poil'
 		})
 		.default('free'),
@@ -147,7 +154,7 @@ export const updateAdoptionFormSchema = z
 			.regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide')
 			.optional()
 			.nullable(),
-		email: z.string().email('Email invalide').optional().nullable(),
+		email: emailField().optional().nullable(),
 		address: optionalString(1, "L'adresse est obligatoire"),
 		birthDate: adultBirthDate.optional(),
 		city: optionalString(1, 'La ville est obligatoire'),
@@ -162,10 +169,10 @@ export const updateAdoptionFormSchema = z
 			.optional(),
 
 		// Champs optionnels de step 2
-		catAge: z.enum(['kitten', 'adult', 'senior', 'free']).optional(),
-		catSex: z.enum(['male', 'female', 'free']).optional(),
+		catAge: z.enum(enumKeys(CAT_AGE_PREFERENCES)).optional(),
+		catSex: z.enum(enumKeys(CAT_SEX_PREFERENCES)).optional(),
 		color: optionalString(2, 'Veuillez indiquer une couleur'),
-		furLength: z.enum(['short', 'medium', 'long', 'free']).optional(),
+		furLength: z.enum(enumKeys(CAT_FUR_PREFERENCES)).optional(),
 		temperament: optionalString(5, 'Le caractère doit contenir au moins 5 caractères'),
 
 		// Champs optionnels de step 3

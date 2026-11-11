@@ -1,13 +1,20 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import type { News } from '$lib/types/news';
+	import { formatDate } from '$lib/utils/date';
 
-	const { news } = $props<{ news: News }>();
+	interface Props {
+		news: { title: string; createdAt: Date; cats: unknown[] };
+	}
 
-	const catCount = news.cats.length;
+	let { news }: Props = $props();
 
-	const content = `${catCount} chat${catCount > 1 ? 's' : ''} disponible${catCount > 1 ? 's' : ''} à l’adoption`;
+	// $derived : le texte suit la news si elle change (c'était l'avertissement de svelte-check)
+	const content = $derived.by(() => {
+		const n = news.cats.length;
+		const s = n > 1 ? 's' : '';
+		return `${n} chat${s} disponible${s} à l'adoption`;
+	});
 </script>
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
@@ -16,7 +23,7 @@
 	</div>
 	<Card.Header class="flex items-center justify-between">
 		<Card.Title class="text-lg">{news.title}</Card.Title>
-		<Card.Description class="text-xs">{news.date}</Card.Description>
+		<Card.Description class="text-xs">{formatDate(news.createdAt)}</Card.Description>
 	</Card.Header>
 	<Card.Content class="flex-1">
 		<p class="text-muted-foreground line-clamp-3 text-sm">

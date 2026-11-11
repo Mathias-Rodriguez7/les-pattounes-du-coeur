@@ -4,6 +4,7 @@
 	import { get } from 'svelte/store';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import type { HostType } from '@prisma/client';
 	import {
 		hostFormSchema,
 		hostStep1Schema,
@@ -18,24 +19,31 @@
 	import DatePicker from '$lib/components/fields/DatePicker.svelte';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 
-	let { data } = $props<{
-		data: SuperValidated<Infer<typeof hostFormSchema>>;
-	}>();
+	// Annoter les props (et non `$props<…>()`) : sinon `data` est `any`, et tout le formulaire perd ses types
+	let { data }: { data: SuperValidated<Infer<typeof hostFormSchema>> } = $props();
 
 	let step = $state(1);
 	const totalSteps = 4;
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
+	// superForm ne doit recevoir que les données de DÉPART : il gère ensuite son propre état
+	// svelte-ignore state_referenced_locally
 	const form = superForm(data, {
 		validators: zod4Client(hostFormSchema),
 		onResult({ result }) {
 			if (result.type === 'success') {
 				toast.success('Candidature envoyée avec succès 🎉');
+				birthDate = undefined;
 				form.reset();
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				toast.error("Une erreur s'est produite ❌");
+				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
+				toast.error(
+					result.status === 400
+						? 'Veuillez corriger les erreurs du formulaire'
+						: ((result.data?.message as string) ?? "Une erreur s'est produite")
+				);
 			}
 		}
 	});
@@ -86,20 +94,19 @@
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
 
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
+	/** Champ nombre facultatif : '' (champ vide) ↔ null (pas de valeur) */
+	const toNullableNumber = (v: string | number | undefined) =>
+		v === '' || v === undefined ? null : Number(v);
 
-	// OPTIONS
+	// OPTIONS (constantes : elles ne changent jamais)
+	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
+		value,
+		label
+	}));
+
 	const hostTypes = [
 		{ value: 'CLASSIC', label: "Famille d'accueil classique" },
 		{ value: 'RELAY', label: 'Famille relais' }
-	];
-
-	const spaceOptions = [
-		{ value: 'SMALL', label: 'Petit espace' },
-		{ value: 'MEDIUM', label: 'Espace moyen' },
-		{ value: 'LARGE', label: 'Grand espace' }
 	];
 
 	const healOptions = [
@@ -123,21 +130,14 @@
 		{ value: 'RELAY', label: 'Relais biberonnage' }
 	];
 
+	// `presence` est un texte libre dans la fiche FA : on enregistre la phrase, pas un code
 	const presenceOptions = [
-		{ value: 'FULL_TIME_HOME', label: 'Toujours à la maison' },
-		{ value: 'HOME_HALF_DAY', label: 'Présent une bonne partie de la journée' },
-		{ value: 'EVENINGS_ONLY', label: 'Présent surtout le soir' },
-		{ value: 'WEEKENDS_ONLY', label: 'Disponible le week-end' },
-		{ value: 'OCCASIONAL', label: 'Présence occasionnelle' }
-	];
-
-	const durationOptions = [
-		{ value: 'LESS_THAN_1_MONTH', label: "Moins d'1 mois" },
-		{ value: '1_TO_3_MONTHS', label: '1 à 3 mois' },
-		{ value: '3_TO_6_MONTHS', label: '3 à 6 mois' },
-		{ value: 'MORE_THAN_6_MONTHS', label: 'Plus de 6 mois' },
-		{ value: 'LONG_TERM', label: 'Long terme' }
-	];
+		'Toujours à la maison',
+		'Présent une bonne partie de la journée',
+		'Présent surtout le soir',
+		'Disponible le week-end',
+		'Présence occasionnelle'
+	].map((label) => ({ value: label, label }));
 </script>
 
 <form method="POST" action="?/host" use:enhance class="space-y-8">
@@ -145,7 +145,7 @@
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">
 			<h2 class="text-2xl font-semibold">Informations personnelles</h2>
-			<p class="text-muted-foreground text-sm">Parlez-nous un peu de vous.</p>
+			<p class="text-sm text-muted-foreground">Parlez-nous un peu de vous.</p>
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
@@ -242,7 +242,7 @@
 						placeholder="Quartier"
 						size="sm"
 						options={districtOptions}
-						bind:value={$formData.district}
+						bind:value={() => $formData.district ?? '', (v) => ($formData.district = v || null)}
 					/>
 				{/if}
 			</div>
@@ -253,19 +253,18 @@
 	<div class:hidden={step !== 2} class="space-y-6">
 		<h2 class="text-xl font-semibold">Accueil & capacités</h2>
 
-		<SelectField
+		<!-- La fiche FA enregistre une surface en m² (un nombre), pas une taille « petit / moyen / grand » -->
+		<InputField
 			id="space"
 			name="space"
-			label="Espace disponible"
-			placeholder="Choisir"
-			options={spaceOptions}
+			label="Surface du logement (m²)"
+			type="number"
+			placeholder="50"
 			bind:value={$formData.space}
+			error={$errors.space?.[0]}
 			required
 			size="sm"
 		/>
-		{#if $errors.space}
-			<p class="-mt-4 text-xs text-red-500">{$errors.space[0]}</p>
-		{/if}
 
 		<TextareaField
 			id="homeDescription"
@@ -284,7 +283,7 @@
 			checked={$formData.outside}
 			onChange={(value) => {
 				$formData.outside = value;
-				if (!value) $formData.outsideDescription = undefined;
+				if (!value) $formData.outsideDescription = null;
 			}}
 		/>
 
@@ -294,7 +293,10 @@
 				name="outsideDescription"
 				label="Description extérieur"
 				placeholder="Jardin, balcon sécurisé..."
-				bind:value={$formData.outsideDescription}
+				bind:value={
+					() => $formData.outsideDescription ?? '',
+					(v) => ($formData.outsideDescription = v || null)
+				}
 				error={$errors.outsideDescription?.[0]}
 				required
 			/>
@@ -308,9 +310,9 @@
 			onChange={(value) => {
 				$formData.hasAnimalsAtHome = value;
 				if (!value) {
-					$formData.numberOfCatsAtHome = undefined;
-					$formData.numberOfDogsAtHome = undefined;
-					$formData.otherAnimalsAtHome = undefined;
+					$formData.numberOfCatsAtHome = null;
+					$formData.numberOfDogsAtHome = null;
+					$formData.otherAnimalsAtHome = null;
 				}
 			}}
 		/>
@@ -322,8 +324,11 @@
 					name="numberOfCatsAtHome"
 					label="Chats"
 					type="number"
-					min="0"
-					bind:value={$formData.numberOfCatsAtHome}
+					bind:value={
+						() => $formData.numberOfCatsAtHome ?? '',
+						(v) => ($formData.numberOfCatsAtHome = toNullableNumber(v))
+					}
+					error={$errors.numberOfCatsAtHome?.[0]}
 					size="sm"
 				/>
 				<InputField
@@ -331,8 +336,11 @@
 					name="numberOfDogsAtHome"
 					label="Chiens"
 					type="number"
-					min="0"
-					bind:value={$formData.numberOfDogsAtHome}
+					bind:value={
+						() => $formData.numberOfDogsAtHome ?? '',
+						(v) => ($formData.numberOfDogsAtHome = toNullableNumber(v))
+					}
+					error={$errors.numberOfDogsAtHome?.[0]}
 					size="sm"
 				/>
 			</div>
@@ -342,7 +350,10 @@
 				name="otherAnimalsAtHome"
 				label="Autres animaux"
 				placeholder="Lapins, oiseaux, etc..."
-				bind:value={$formData.otherAnimalsAtHome}
+				bind:value={
+					() => $formData.otherAnimalsAtHome ?? '',
+					(v) => ($formData.otherAnimalsAtHome = v || null)
+				}
 			/>
 		{/if}
 	</div>
@@ -357,7 +368,9 @@
 			label="Type d'accueil"
 			placeholder="Choisir un type"
 			options={hostTypes}
-			bind:value={$formData.type}
+			bind:value={
+				() => $formData.type ?? '', (v) => ($formData.type = (v || null) as HostType | null)
+			}
 			required
 			size="sm"
 		/>
@@ -420,70 +433,62 @@
 	<div class:hidden={step !== 4} class="space-y-8">
 		<div class="space-y-2">
 			<h2 class="text-xl font-semibold">Engagement & disponibilité</h2>
-			<p class="text-muted-foreground text-sm">
+			<p class="text-sm text-muted-foreground">
 				Ces informations nous permettent de trouver les chats les plus adaptés à votre situation.
 			</p>
 		</div>
 
+		<!-- Les mêmes champs que la fiche FA : catAdult, kitten, kittyAndKitten -->
 		<div class="space-y-4">
 			<div class="space-y-1">
-				<h3 class="font-medium">Types de chats acceptés</h3>
-				<p class="text-muted-foreground text-sm">Quels profils pouvez-vous accueillir ?</p>
+				<h3 class="font-medium">Chats que vous pouvez accueillir</h3>
+				<p class="text-sm text-muted-foreground">Combien de chats, et de quel profil ?</p>
 			</div>
 
-			<div class="grid gap-4 md:grid-cols-3">
-				<CheckboxField
-					id="canHostAdultCats"
-					name="canHostAdultCats"
-					label="🐱 Chats adultes (accueil de chats adultes seuls)"
-					checked={$formData.canHostAdultCats}
-					onChange={(value) => ($formData.canHostAdultCats = value)}
+			<div class="grid grid-cols-2 gap-4">
+				<InputField
+					id="catAdult"
+					name="catAdult"
+					label="🐱 Chats adultes"
+					type="number"
+					placeholder="0"
+					bind:value={$formData.catAdult}
+					error={$errors.catAdult?.[0]}
+					size="sm"
 				/>
-
-				<CheckboxField
-					id="canHostKittens"
-					name="canHostKittens"
-					label="🐾 Chatons (accueil de plusieurs chatons)"
-					checked={$formData.canHostKittens}
-					onChange={(value) => ($formData.canHostKittens = value)}
-				/>
-
-				<CheckboxField
-					id="canHostMotherAndKittens"
-					name="canHostMotherAndKittens"
-					label="👩‍🍼 Maman + petits (accueil d'une mère et sa portée)"
-					checked={$formData.canHostMotherAndKittens}
-					onChange={(value) => ($formData.canHostMotherAndKittens = value)}
+				<InputField
+					id="kitten"
+					name="kitten"
+					label="🐾 Chatons"
+					type="number"
+					placeholder="0"
+					bind:value={$formData.kitten}
+					error={$errors.kitten?.[0]}
+					size="sm"
 				/>
 			</div>
+
+			<CheckboxField
+				id="kittyAndKitten"
+				name="kittyAndKitten"
+				label="👩‍🍼 Une maman avec sa portée"
+				checked={$formData.kittyAndKitten}
+				onChange={(value) => ($formData.kittyAndKitten = value)}
+			/>
 		</div>
 
 		<SelectField
-			id="presenceWeek"
-			name="presenceWeek"
+			id="presence"
+			name="presence"
 			label="Présence dans le logement"
 			placeholder="Sélectionner une présence"
 			options={presenceOptions}
-			bind:value={$formData.presenceWeek}
+			bind:value={$formData.presence}
 			required
 			size="sm"
 		/>
-		{#if $errors.presenceWeek}
-			<p class="-mt-4 text-xs text-red-500">{$errors.presenceWeek[0]}</p>
-		{/if}
-
-		<SelectField
-			id="availabilityDuration"
-			name="availabilityDuration"
-			label="Durée d'engagement prévue"
-			placeholder="Sélectionner une durée"
-			options={durationOptions}
-			bind:value={$formData.availabilityDuration}
-			required
-			size="sm"
-		/>
-		{#if $errors.availabilityDuration}
-			<p class="-mt-4 text-xs text-red-500">{$errors.availabilityDuration[0]}</p>
+		{#if $errors.presence}
+			<p class="-mt-4 text-xs text-red-500">{$errors.presence[0]}</p>
 		{/if}
 
 		<TextareaField
@@ -500,7 +505,7 @@
 			id="additionalMessage"
 			name="additionalMessage"
 			label="Informations complémentaires"
-			placeholder="Vous pouvez ajouter toute information utile..."
+			placeholder="Vous pouvez ajouter toute information utile (durée d'engagement prévue…)"
 			bind:value={$formData.additionalMessage}
 			error={$errors.additionalMessage?.[0]}
 		/>
@@ -526,7 +531,7 @@
 			<button
 				type="submit"
 				disabled={$delayed}
-				class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+				class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
 			>
 				{$delayed ? 'Envoi...' : 'Envoyer la candidature'}
 			</button>
@@ -535,13 +540,13 @@
 
 	<!-- PROGRESS -->
 	<div class="space-y-2 pt-4">
-		<div class="bg-muted h-2 w-full rounded-full">
+		<div class="h-2 w-full rounded-full bg-muted">
 			<div
-				class="bg-primary h-2 rounded-full transition-all duration-300"
+				class="h-2 rounded-full bg-primary transition-all duration-300"
 				style={`width: ${progress}%`}
 			></div>
 		</div>
-		<p class="text-muted-foreground text-center text-xs">
+		<p class="text-center text-xs text-muted-foreground">
 			Étape {step} / {totalSteps}
 		</p>
 	</div>

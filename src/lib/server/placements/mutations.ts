@@ -5,9 +5,11 @@ import {
 	type CreatePlacementInput,
 	type UpdatePlacementInput
 } from '../../schemas/placement';
+import { placementHasDates } from '$lib/constants/placement';
 
 // ==========================================
 // CREATE - Créer un placement
+// ⚠️ Ne vérifie pas les droits : c'est le rôle de l'action qui l'appelle
 // ==========================================
 export async function createPlacement(input: CreatePlacementInput) {
 	const parsed = createPlacementSchema.safeParse(input);
@@ -21,7 +23,7 @@ export async function createPlacement(input: CreatePlacementInput) {
 		};
 	}
 
-	const { catId, hostId, type, status, startedDate, endedDate, notes } = parsed.data;
+	const { catId, hostId, type, status, startDate, endDate } = parsed.data;
 
 	try {
 		const placement = await prisma.placement.create({
@@ -30,8 +32,9 @@ export async function createPlacement(input: CreatePlacementInput) {
 				hostId,
 				type,
 				status,
-				startDate: startedDate ?? new Date(),
-				endDate: endedDate ?? null
+				// Dates uniquement pour un placement réel (classique ou relais)
+				startDate: placementHasDates(type) ? (startDate ?? new Date()) : null,
+				endDate: placementHasDates(type) ? (endDate ?? null) : null
 			},
 			include: {
 				cat: true,
@@ -56,8 +59,8 @@ export async function createPlacement(input: CreatePlacementInput) {
 
 // ==========================================
 // CREATE MULTIPLE - Proposer un chat à plusieurs FA
-// Même type/status/notes pour tous, pas de dates
-// (les dates seront renseignées lors de l'update
+// Même type et même statut pour toutes, sans dates
+// (les dates seront renseignées lors de l'update,
 // quand une FA confirme le placement)
 // ==========================================
 interface CreatePlacementsInput {
@@ -68,7 +71,7 @@ interface CreatePlacementsInput {
 }
 
 export async function createPlacements(input: CreatePlacementsInput) {
-	const { catId, hostIds, type, status, notes } = input;
+	const { catId, hostIds, type, status } = input;
 
 	if (!catId || hostIds.length === 0) {
 		return {
@@ -130,6 +133,7 @@ export async function createPlacements(input: CreatePlacementsInput) {
 
 // ==========================================
 // UPDATE - Mettre à jour un placement
+// ⚠️ Ne vérifie pas les droits : c'est le rôle de l'action qui l'appelle
 // ==========================================
 export async function updatePlacement(placementId: string, input: UpdatePlacementInput) {
 	const parsed = updatePlacementSchema.safeParse(input);
@@ -143,10 +147,23 @@ export async function updatePlacement(placementId: string, input: UpdatePlacemen
 		};
 	}
 
+	const data = parsed.data;
+
+	// Le type FINAL décide : celui du formulaire, sinon celui déjà en base
+	const finalType =
+		data.type ??
+		(await prisma.placement.findUnique({ where: { id: placementId }, select: { type: true } }))
+			?.type;
+
+	if (!placementHasDates(finalType)) {
+		data.startDate = null;
+		data.endDate = null;
+	}
+
 	try {
 		const placement = await prisma.placement.update({
 			where: { id: placementId },
-			data: parsed.data,
+			data,
 			include: {
 				cat: true,
 				host: { include: { profil: true } }
@@ -172,6 +189,7 @@ export async function updatePlacement(placementId: string, input: UpdatePlacemen
 // DELETE - Supprimer un placement
 // Pas de restriction de type : permet de corriger une erreur
 // de création, quel que soit le type (LONG/SHORT compris)
+// ⚠️ Ne vérifie pas les droits : c'est le rôle de l'action qui l'appelle
 // ==========================================
 export async function deletePlacement(placementId: string) {
 	try {

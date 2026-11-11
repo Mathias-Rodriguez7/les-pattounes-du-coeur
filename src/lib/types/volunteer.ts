@@ -1,11 +1,21 @@
 import type { Prisma, Volunteer, VolunteerRole, Form, Profil, ColabActivity } from '@prisma/client';
 
+/** Les champs secrets d'un bénévole : jamais renvoyés par Prisma (voir src/lib/server/prisma.ts) */
+export const volunteerSecretFields = {
+	password: true,
+	resetToken: true,
+	resetTokenExpiresAt: true
+} as const;
+
+type VolunteerSecretField = keyof typeof volunteerSecretFields;
+
 export type SelectOption = {
 	value: string;
 	label: string;
 };
 
 export type VolunteerFull = Prisma.VolunteerGetPayload<{
+	omit: typeof volunteerSecretFields;
 	include: {
 		profil: true;
 		cats: {
@@ -77,7 +87,7 @@ export type CatVolunteerWithRelations = {
 	};
 };
 
-export type VolunteerWithRelations = Omit<Volunteer, 'actif'> & {
+export type VolunteerWithRelations = Omit<Volunteer, 'actif' | VolunteerSecretField> & {
 	actif: ColabActivity | null;
 	profil: Profil;
 	cats: CatVolunteerWithRelations[];

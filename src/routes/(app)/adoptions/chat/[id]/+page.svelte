@@ -8,10 +8,10 @@
 		step1Schema,
 		step2Schema
 	} from '$lib/schemas/formShema/quickAdoptionForm';
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { get } from 'svelte/store';
-	import type { Cat } from '$lib/types/cat';
+	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
 	import { DISTRICT_LABELS } from '$lib/utils/districts';
 	import InputField from '$lib/components/fields/InputField.svelte';
@@ -22,16 +22,12 @@
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
 	import { FORM_SECTION_CONFIG } from '$lib/constants/forms';
 
-	let {
-		data
-	}: {
-		data: {
-			cat: Cat;
-			form: SuperValidated<Infer<typeof QuickAdoptionFormSchema>>;
-		};
-	} = $props();
+	// 🆕 Le type vient du load (cat = { name }, catId, form) : plus besoin de l'écrire à la main
+	let { data }: { data: PageData } = $props();
 
 	// ✅ FORM CONFIG
+	// 🆕 superForm ne doit recevoir que les données de DÉPART : il gère ensuite son propre état
+	// svelte-ignore state_referenced_locally
 	const form = superForm(data.form, {
 		validators: zod4Client(QuickAdoptionFormSchema),
 
@@ -42,14 +38,17 @@
 				step = 1;
 			}
 
+			// 🆕 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
 			if (result.type === 'failure') {
-				console.log('❌ FORM FAILURE:', result);
-				toast.error('Erreur: ' + JSON.stringify(result));
+				toast.error(
+					result.status === 400
+						? 'Veuillez corriger les erreurs du formulaire'
+						: ((result.data?.message as string) ?? "Une erreur s'est produite")
+				);
 			}
 		}
 	});
 
-	// ⚠️ IMPORTANT
 	const { form: formData, enhance, errors } = form;
 
 	// DatePicker manipule un Date, le schéma attend 'YYYY-MM-DD'
@@ -59,9 +58,10 @@
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
 
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
+	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
+		value,
+		label
+	}));
 
 	// ✅ STATE
 	let step = $state(1);
@@ -69,7 +69,9 @@
 
 	const progress = $derived((step / totalSteps) * 100);
 
-	const catName = data.cat.name;
+	// 🆕 $derived : si la page se recharge pour un autre chat, le nom suit.
+	// Un chat peut ne pas avoir de nom (seulement un numéro) : on prévoit un texte de secours.
+	const catName = $derived(data.cat.name ?? 'ce chat');
 
 	// ✅ VALIDATION STEP
 	function validateCurrentStep() {
@@ -102,8 +104,8 @@
 
 				<Card.Description class="space-y-3 text-left leading-relaxed">
 					<p>
-						Vous souhaitez adopter <strong>{catName}</strong> 🐱, mais vous ne savez pas encore si c’est
-						le bon compagnon pour vous ?
+						Vous souhaitez adopter <strong>{catName}</strong>, mais vous ne savez pas encore si
+						c’est le bon compagnon pour vous ?
 					</p>
 
 					<p>
@@ -224,6 +226,7 @@
 										error={$errors.postalCode?.[0]}
 									/>
 									{#if $formData.city?.toLowerCase() === 'montpellier'}
+										<!-- 🆕 Le schéma dit null pour « aucun quartier », SelectField dit '' -->
 										<SelectField
 											id="district"
 											name="district"
@@ -231,14 +234,16 @@
 											placeholder="Quartier"
 											size="sm"
 											options={districtOptions}
-											bind:value={$formData.district}
+											bind:value={
+												() => $formData.district ?? '', (v) => ($formData.district = v || null)
+											}
 										/>
 									{/if}
 								</div>
 							</div>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -349,7 +354,7 @@
 							/>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -377,14 +382,14 @@
 
 			<!-- PROGRESS -->
 			<Card.Footer class="flex flex-col gap-2">
-				<div class="bg-muted h-2 w-full rounded-full">
+				<div class="h-2 w-full rounded-full bg-muted">
 					<div
-						class="bg-primary h-2 rounded-full transition-all duration-300"
+						class="h-2 rounded-full bg-primary transition-all duration-300"
 						style={`width: ${progress}%`}
 					></div>
 				</div>
 
-				<p class="text-muted-foreground text-center text-xs">
+				<p class="text-center text-xs text-muted-foreground">
 					Étape {step} / {totalSteps}
 				</p>
 			</Card.Footer>

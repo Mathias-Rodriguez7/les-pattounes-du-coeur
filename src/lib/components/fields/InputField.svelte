@@ -51,6 +51,7 @@
 		bind:value
 		{placeholder}
 		{disabled}
+		{required}
 		class={`${sizeClasses[size]} ${error ? 'border-red-500' : ''}`}
 	/>
 

@@ -1,8 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { hash, verify } from 'argon2';
+import { hashPassword, verifyPassword } from '$lib/server/hashing';
 import { z } from 'zod';
+import { updateVolunteer } from '$lib/server/volunteers/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -30,8 +31,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 				lastName: volunteer.profil.lastName,
 				email: volunteer.profil.email,
 				phone: volunteer.profil.phone,
+				birthDate: volunteer.profil.birthDate,
+				address: volunteer.profil.address,
+				city: volunteer.profil.city,
+				postalCode: volunteer.profil.postalCode,
+				district: volunteer.profil.district ?? '',
 				role: volunteer.role,
-				actif: volunteer.actif
+				actif: volunteer.actif,
+				breakEnd: volunteer.breakEnd,
+				createdAt: volunteer.createdAt
 			},
 			isAuthenticated: true
 		};
@@ -70,7 +78,7 @@ export const actions: Actions = {
 
 		try {
 			const formData = await request.formData();
-			const newEmail = formData.get('newEmail') as string;
+			const newEmail = formData.get('newEmail')?.toString().trim().toLowerCase() ?? '';
 			const currentPassword = formData.get('currentPassword') as string;
 
 			const result = updateEmailSchema.safeParse({ newEmail, currentPassword });
@@ -83,9 +91,10 @@ export const actions: Actions = {
 				});
 			}
 
-			// 🔍 Vérifier que le volunteer existe
+			// 🔍 Vérifier que le volunteer existe (avec son mot de passe chiffré, pour le comparer)
 			const volunteer = await prisma.volunteer.findUnique({
 				where: { id: locals.user.id },
+				omit: { password: false },
 				include: { profil: true }
 			});
 
@@ -94,7 +103,7 @@ export const actions: Actions = {
 			}
 
 			// 🔐 Vérifier le mot de passe actuel
-			const passwordValid = await verify(volunteer.password, currentPassword);
+			const passwordValid = await verifyPassword(volunteer.password, currentPassword);
 			if (!passwordValid) {
 				return fail(400, {
 					success: false,
@@ -142,7 +151,7 @@ export const actions: Actions = {
 		}
 	},
 
-	updatePassword: async ({ request, locals }) => {
+	updatePassword: async ({ request, locals, cookies }) => {
 		if (!locals.user) {
 			return fail(401, { success: false, error: 'Non authentifié', action: 'updatePassword' });
 		}
@@ -169,7 +178,8 @@ export const actions: Actions = {
 			}
 
 			const volunteer = await prisma.volunteer.findUnique({
-				where: { id: locals.user.id }
+				where: { id: locals.user.id },
+				omit: { password: false }
 			});
 
 			if (!volunteer) {
@@ -181,7 +191,7 @@ export const actions: Actions = {
 			}
 
 			// 🔐 Vérifier le mot de passe actuel
-			const passwordValid = await verify(volunteer.password, currentPassword);
+			const passwordValid = await verifyPassword(volunteer.password, currentPassword);
 			if (!passwordValid) {
 				return fail(400, {
 					success: false,
@@ -192,13 +202,22 @@ export const actions: Actions = {
 			}
 
 			// 🔐 Hasher le nouveau mot de passe
-			const newPasswordHash = await hash(newPassword);
+			const newPasswordHash = await hashPassword(newPassword);
+			const currentToken = cookies.get('session');
 
-			// ✅ Mettre à jour le mot de passe
-			await prisma.volunteer.update({
-				where: { id: locals.user.id },
-				data: { password: newPasswordHash }
-			});
+			// Mise à jour du mot de passe + déconnexion des AUTRES appareils
+			await prisma.$transaction([
+				prisma.volunteer.update({
+					where: { id: locals.user.id },
+					data: { password: newPasswordHash }
+				}),
+				prisma.session.deleteMany({
+					where: {
+						volunteerId: locals.user.id,
+						token: { not: currentToken }
+					}
+				})
+			]);
 
 			return {
 				success: true,
@@ -213,5 +232,24 @@ export const actions: Actions = {
 				action: 'updatePassword'
 			});
 		}
+	},
+
+	updateProfile: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non authentifié', action: 'updateProfile' });
+		}
+
+		const formData = await request.formData();
+
+		// L'id vient de la session, JAMAIS du navigateur
+		formData.set('volunteerId', locals.user.id);
+
+		const result = await updateVolunteer({ formData, locals });
+
+		if (!result.success) {
+			return fail(400, { ...result, action: 'updateProfile' });
+		}
+
+		return { success: true, message: 'Profil mis à jour', action: 'updateProfile' };
 	}
 };

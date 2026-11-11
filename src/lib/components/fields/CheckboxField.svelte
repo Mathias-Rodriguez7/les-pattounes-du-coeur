@@ -4,7 +4,7 @@
 
 	interface Props {
 		id: string;
-		name: string;
+		name?: string;
 		label: string;
 		checked?: boolean;
 		description?: string;
@@ -34,7 +34,9 @@
 
 <div class="flex items-start gap-3">
 	<!-- ✅ INPUT HIDDEN POUR LE FORM -->
-	<input type="hidden" {name} value={internalChecked ? 'true' : 'false'} />
+	{#if name}
+		<input type="hidden" {name} value={internalChecked ? 'true' : 'false'} />
+	{/if}
 
 	<!-- ✅ CHECKBOX + LABEL -->
 	<Checkbox {id} checked={internalChecked} onCheckedChange={handleChange} {disabled} />

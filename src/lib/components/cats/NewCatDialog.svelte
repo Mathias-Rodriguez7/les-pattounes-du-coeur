@@ -7,6 +7,7 @@
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { format } from 'date-fns';
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';
@@ -59,11 +60,12 @@
 	let description = $state('');
 
 	function validateForm(): boolean {
-		const formData = {
+		const result = createCatSchema.safeParse({
 			catNumber: catNumber.trim(),
 			name: name.trim() || null,
 			sex,
-			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : null,
+			// format() : date locale, sans décalage de fuseau horaire
+			birthDate: birthDate ? format(birthDate, 'yyyy-MM-dd') : null,
 			status,
 			isVisible,
 
@@ -85,14 +87,10 @@
 			chipId: chipId.trim() || null,
 
 			description: description.trim() || null
-		};
-
-		const result = createCatSchema.safeParse(formData);
+		});
 
 		if (!result.success) {
-			const flattened = result.error.flatten();
-			console.error('❌ Erreurs de validation:', flattened.fieldErrors);
-			fieldErrors = flattened.fieldErrors as FlattenedErrors;
+			fieldErrors = result.error.flatten().fieldErrors as FlattenedErrors;
 			toast.error('Veuillez corriger les erreurs du formulaire');
 			return false;
 		}
@@ -131,31 +129,33 @@
 		fieldErrors = {};
 	}
 
-	const handleEnhance: SubmitFunction = () => {
-		const isValid = validateForm();
-		if (!isValid) {
-			return async () => {};
+	// Vide le formulaire à chaque fermeture (Annuler, croix, Échap, clic à côté)
+	$effect(() => {
+		if (!open) resetForm();
+	});
+
+	const handleEnhance: SubmitFunction = ({ cancel }) => {
+		// cancel() ANNULE réellement l'envoi (retourner une fonction vide ne l'annulait pas)
+		if (!validateForm()) {
+			cancel();
+			return;
 		}
 
 		isSubmitting = true;
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Chat créé avec succès ✅');
-				resetForm();
+				toast.success('Chat créé avec succès');
 				open = false;
 				await update();
 			} else if (result.type === 'failure') {
 				if (result.data?.errors) {
-					fieldErrors = result.data.errors;
-					toast.error('Erreurs de validation du serveur');
-				} else {
-					toast.error(result.data?.message || 'Erreur lors de la création');
+					fieldErrors = result.data.errors as FlattenedErrors;
 				}
-				await update();
+				toast.error((result.data?.error as string) || 'Erreur lors de la création');
+				await update({ reset: false });
 			} else if (result.type === 'error') {
 				toast.error('Erreur serveur');
-				console.error('Erreur:', result.error);
 			}
 
 			isSubmitting = false;
@@ -163,13 +163,13 @@
 	};
 
 	const handleCancelClick = () => {
-		if (onCancel) onCancel();
-		resetForm();
+		open = false;
+		onCancel?.();
 	};
 </script>
 
-<Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content size="xl" class="max-h-[90vh] overflow-y-auto">
+<Dialog.Root bind:open>
+	<Dialog.Content size="xl" class="max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Créer un nouveau chat</Dialog.Title>
 			<Dialog.Description>
@@ -179,14 +179,14 @@
 		</Dialog.Header>
 
 		<form method="POST" action="?/createCat" use:enhance={handleEnhance} class="space-y-6">
-			<!-- Identité & Statut -->
-			<section class="grid grid-cols-2 gap-4">
+			<!-- Identité & Statut : PC 2 colonnes (comme avant) | Mobile empilés -->
+			<section class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				<SectionCard
 					icon={CAT_SECTION_CONFIG.statuts.icon}
 					title={CAT_SECTION_CONFIG.statuts.label}
 					color={CAT_SECTION_CONFIG.statuts.color}
 				>
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<InputField
 							id="catNumber"
 							name="catNumber"
@@ -227,7 +227,7 @@
 					title={CAT_SECTION_CONFIG.profile.label}
 					color={CAT_SECTION_CONFIG.profile.color}
 				>
-					<div class="grid grid-cols-2 gap-x-4 gap-y-2">
+					<div class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
 						<InputField
 							id="name"
 							name="name"
@@ -292,13 +292,14 @@
 
 			<Separator />
 
-			<!-- Compatibilités & Santé -->
+			<!-- Compatibilités & Santé (déjà responsive) -->
 			<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				<SectionCard
 					icon={CAT_SECTION_CONFIG.compatibility.icon}
 					title={CAT_SECTION_CONFIG.compatibility.label}
 					color={CAT_SECTION_CONFIG.compatibility.color}
 				>
+					<!-- Libellés courts : 2 colonnes même sur mobile -->
 					<div class="grid grid-cols-2 gap-4">
 						<CheckboxField
 							id="isOkDog"
@@ -340,7 +341,7 @@
 					title={CAT_SECTION_CONFIG.health.label}
 					color={CAT_SECTION_CONFIG.health.color}
 				>
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<SelectField
 							id="vaccinate"
 							name="vaccinate"
@@ -357,6 +358,7 @@
 							label="N° de puce"
 							bind:value={chipId}
 							placeholder="250269812345678"
+							error={getFieldError(fieldErrors, 'chipId')}
 							size="sm"
 							disabled={isSubmitting}
 						/>
@@ -425,9 +427,7 @@
 
 			<Separator />
 
-			<div>
-				<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
-			</div>
+			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
 		</form>
 	</Dialog.Content>
 </Dialog.Root>

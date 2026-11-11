@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
+import { emailField } from '$lib/schemas/fields';
 
 // 🔧 Helper nombres sécurisés
 const optionalString = (min = 1, msg?: string) =>
@@ -42,7 +43,7 @@ export const step1Schema = z.object({
 	firstName: z.string().trim().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().trim().min(1, 'Le nom est obligatoire'),
 	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
-	email: z.email('Email invalide'),
+	email: emailField(),
 	address: z.string().trim().min(1, "L'adresse est obligatoire"),
 	birthDate: adultBirthDate,
 	city: z.string().trim().min(1, 'La ville est obligatoire'),

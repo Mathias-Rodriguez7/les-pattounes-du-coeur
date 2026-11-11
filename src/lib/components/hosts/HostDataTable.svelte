@@ -1,15 +1,19 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button';
-	import { ArrowUp, ArrowDown, ArrowUpDown } from '@lucide/svelte';
+	import { ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, Sparkles } from '@lucide/svelte';
+	import { slide } from 'svelte/transition';
 	import type { HostFull } from '$lib/types/host';
+	import type { CatFull } from '$lib/types/cat';
 	import { columns as defaultColumns, type ColumnDef } from './columns';
+	import { getHostCompatibility } from '$lib/utils/compatibility';
 	import HostPlacementRow from './HostPlacementRow.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import InputField from '$lib/components/fields/InputField.svelte';
 
 	interface Props {
 		hosts: HostFull[];
+		cat?: CatFull;
 		selectedHostIds?: string[];
 		onSelectionChange?: (hostIds: string[]) => void;
 		columns?: ColumnDef[];
@@ -17,6 +21,7 @@
 
 	let {
 		hosts,
+		cat,
 		selectedHostIds = [],
 		onSelectionChange,
 		columns = defaultColumns
@@ -24,13 +29,23 @@
 
 	const DEFAULT_FILTERS: Record<string, string> = { actif: 'ACTIVE' };
 
+	// Valeurs initiales voulues : la Dialog recrée le tableau à chaque ouverture,
+	// donc `cat` ne change pas pendant que le tableau est affiché.
+	// svelte-ignore state_referenced_locally
+	const DEFAULT_SORT_COLUMN = cat ? 'compatibility' : null;
+	// svelte-ignore state_referenced_locally
+	const DEFAULT_SORT_DIRECTION: 'asc' | 'desc' = cat ? 'desc' : 'asc';
+
 	// --- État global ---
 	let globalFilter = $state('');
 	let columnFilters = $state<Record<string, string>>({ ...DEFAULT_FILTERS });
-	let sortColumn = $state<string | null>(null);
-	let sortDirection = $state<'asc' | 'desc'>('asc');
+	let sortColumn = $state<string | null>(DEFAULT_SORT_COLUMN);
+	let sortDirection = $state<'asc' | 'desc'>(DEFAULT_SORT_DIRECTION);
+	// Sélection de départ seulement : ensuite, le tableau gère la sienne
+	// svelte-ignore state_referenced_locally
 	let internalSelected = $state<string[]>(selectedHostIds);
 	let compareMode = $state(false);
+	let showFilters = $state(false);
 
 	const ALL_OPTION = { value: '', label: 'Tous' };
 	const BOOLEAN_OPTIONS = [
@@ -38,6 +53,34 @@
 		{ value: 'true', label: 'Oui' },
 		{ value: 'false', label: 'Non' }
 	];
+
+	// --- Compatibilité : calculée une fois par FA ---
+	const compatibilityById = $derived(
+		cat ? new Map(hosts.map((h) => [h.id, getHostCompatibility(h, cat)])) : null
+	);
+
+	// Colonne "Compat." insérée juste après "Nom"
+	const allColumns = $derived<ColumnDef[]>(
+		compatibilityById
+			? columns.flatMap((col) =>
+					col.id === 'name'
+						? [
+								col,
+								{
+									id: 'compatibility',
+									header: 'Compat.',
+									accessor: (row: HostFull) => compatibilityById?.get(row.id)?.score ?? 0,
+									sortable: true,
+									mobile: true
+								}
+							]
+						: [col]
+				)
+			: columns
+	);
+
+	const activeFiltersCount = $derived(Object.values(columnFilters).filter(Boolean).length);
+	const isSortedByCompatibility = $derived(!!cat && sortColumn === 'compatibility');
 
 	function handleToggle(hostId: string, checked: boolean) {
 		if (checked) {
@@ -53,8 +96,13 @@
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
 			sortColumn = colId;
-			sortDirection = 'asc';
+			sortDirection = colId === 'compatibility' ? 'desc' : 'asc';
 		}
+	}
+
+	function sortByCompatibility() {
+		sortColumn = 'compatibility';
+		sortDirection = 'desc';
 	}
 
 	function setColumnFilter(colId: string, value: string) {
@@ -76,7 +124,7 @@
 		if (globalFilter.trim()) {
 			const q = globalFilter.trim().toLowerCase();
 			result = result.filter((host) =>
-				columns.some((col) =>
+				allColumns.some((col) =>
 					String(col.accessor(host) ?? '')
 						.toLowerCase()
 						.includes(q)
@@ -86,7 +134,7 @@
 
 		for (const [colId, value] of Object.entries(columnFilters)) {
 			if (!value) continue;
-			const col = columns.find((c) => c.id === colId);
+			const col = allColumns.find((c) => c.id === colId);
 			if (!col) continue;
 
 			result = result.filter((host) => {
@@ -109,18 +157,16 @@
 	// --- Tri ---
 	const sortedHosts = $derived.by(() => {
 		if (!sortColumn) return filteredHosts;
-		const col = columns.find((c) => c.id === sortColumn);
+		const col = allColumns.find((c) => c.id === sortColumn);
 		if (!col) return filteredHosts;
 
 		return [...filteredHosts].sort((a, b) => {
 			const va = col.accessor(a);
 			const vb = col.accessor(b);
-			let cmp = 0;
-			if (typeof va === 'number' && typeof vb === 'number') {
-				cmp = va - vb;
-			} else {
-				cmp = String(va ?? '').localeCompare(String(vb ?? ''));
-			}
+			const cmp =
+				typeof va === 'number' && typeof vb === 'number'
+					? va - vb
+					: String(va ?? '').localeCompare(String(vb ?? ''));
 			return sortDirection === 'asc' ? cmp : -cmp;
 		});
 	});
@@ -128,13 +174,81 @@
 	function resetFilters() {
 		globalFilter = '';
 		columnFilters = { ...DEFAULT_FILTERS };
+		sortColumn = DEFAULT_SORT_COLUMN;
+		sortDirection = DEFAULT_SORT_DIRECTION;
 	}
 </script>
 
+{#snippet filtersButton(classList: string)}
+	<Button
+		class="rounded-2xl {classList}"
+		variant={showFilters ? 'default' : 'outline'}
+		size="sm"
+		aria-expanded={showFilters}
+		onclick={() => (showFilters = !showFilters)}
+	>
+		<SlidersHorizontal class="h-4 w-4" />
+		Filtres{activeFiltersCount ? ` (${activeFiltersCount})` : ''}
+	</Button>
+{/snippet}
+
 <div class="space-y-3">
-	<!-- Filtres par colonne -->
-	<div class="flex items-center justify-between gap-2">
-		<div class="flex flex-wrap gap-2">
+	<!-- Barre d'outils -->
+	<div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+		<div class="flex gap-4">
+			{@render filtersButton('hidden lg:inline-flex')}
+
+			<!-- Message de tri -->
+			<div class="text-muted-foreground flex min-h-8 items-center gap-2 text-sm">
+				{#if isSortedByCompatibility}
+					<Sparkles class="h-4 w-4 shrink-0 text-amber-500" />
+					<span>
+						Trié par compatibilité avec <strong class="text-foreground"
+							>{cat?.name ?? 'ce chat'}</strong
+						>
+						: les FA les plus adaptées sont en haut.
+					</span>
+				{:else if cat}
+					<button
+						type="button"
+						class="flex items-center gap-1 underline-offset-2 hover:underline"
+						onclick={sortByCompatibility}
+					>
+						<Sparkles class="h-4 w-4 shrink-0" />
+						Revenir au tri par compatibilité
+					</button>
+				{/if}
+			</div>
+		</div>
+
+		<!-- Recherche + boutons -->
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+			<InputField
+				type="text"
+				placeholder="Rechercher un hôte…"
+				bind:value={globalFilter}
+				size="sm"
+			/>
+
+			<div class="flex flex-wrap gap-2">
+				{@render filtersButton('lg:hidden')}
+				<Button class="rounded-2xl" size="sm" onclick={resetFilters}>Réinitialiser</Button>
+				<Button
+					class="rounded-2xl"
+					variant={compareMode ? 'default' : 'outline'}
+					size="sm"
+					disabled={internalSelected.length === 0 && !compareMode}
+					onclick={toggleCompareMode}
+				>
+					{compareMode ? 'Afficher tout' : `Comparer (${internalSelected.length})`}
+				</Button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Filtres par colonne (repliés par défaut) -->
+	{#if showFilters}
+		<div transition:slide={{ duration: 150 }} class="flex flex-wrap gap-2 p-3">
 			{#each columns.filter((c) => c.filter) as col (col.id)}
 				{#if col.filter?.type === 'select'}
 					<div class="w-20">
@@ -170,37 +284,16 @@
 				{/if}
 			{/each}
 		</div>
-		<!-- Barre de recherche globale -->
-		<div class="mt-4 flex flex-col items-center gap-2">
-			<InputField
-				type="text"
-				placeholder="Rechercher un hôte…"
-				bind:value={globalFilter}
-				size="sm"
-			/>
-
-			<div class="flex gap-2">
-				<Button size="sm" onclick={resetFilters}>Réinitialiser</Button>
-				<Button
-					variant={compareMode ? 'default' : 'outline'}
-					size="sm"
-					disabled={internalSelected.length === 0 && !compareMode}
-					onclick={toggleCompareMode}
-				>
-					{compareMode ? 'Afficher tout' : `Comparer (${internalSelected.length})`}
-				</Button>
-			</div>
-		</div>
-	</div>
+	{/if}
 
 	<!-- Table avec scroll -->
-	<div class="mt-2 h-[calc(100vh-24rem)] min-h-80 overflow-auto rounded-md">
+	<div class="mt-2 h-[60dvh] min-h-80 overflow-auto rounded-md lg:h-[calc(100vh-24rem)]">
 		<Table.Root containerClass="overflow-visible">
 			<Table.Header class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
 				<Table.Row>
 					<Table.Head class="w-10"></Table.Head>
-					{#each columns as col (col.id)}
-						<Table.Head>
+					{#each allColumns as col (col.id)}
+						<Table.Head class={col.mobile ? '' : 'hidden lg:table-cell'}>
 							{#if col.sortable}
 								<button
 									class="flex items-center gap-1 hover:underline"
@@ -227,7 +320,10 @@
 			<Table.Body>
 				{#if sortedHosts.length === 0}
 					<Table.Row>
-						<Table.Cell colspan={columns.length + 1} class="text-muted-foreground py-8 text-center">
+						<Table.Cell
+							colspan={allColumns.length + 1}
+							class="text-muted-foreground py-8 text-center"
+						>
 							Aucun hôte ne correspond à ces critères.
 						</Table.Cell>
 					</Table.Row>
@@ -235,7 +331,8 @@
 					{#each sortedHosts as host (host.id)}
 						<HostPlacementRow
 							{host}
-							{columns}
+							columns={allColumns}
+							compatibility={compatibilityById?.get(host.id)}
 							selected={internalSelected.includes(host.id)}
 							onToggle={handleToggle}
 						/>

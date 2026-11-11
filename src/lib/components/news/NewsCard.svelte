@@ -1,10 +1,16 @@
 <script lang="ts">
+	import type { NewsType } from '@prisma/client';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import type { News } from '$lib/types/news';
 	import { getNewsImage } from '$lib/utils/newsImg';
+	import { formatDate } from '$lib/utils/date';
 
-	let { news } = $props<{ news: News }>();
+	interface Props {
+		/** Seulement ce que la carte affiche : une news complète convient aussi */
+		news: { title: string; type: NewsType; content: string | null; createdAt: Date };
+	}
+
+	let { news }: Props = $props();
 </script>
 
 <Card.Root class="flex h-full flex-col overflow-hidden transition duration-300 hover:scale-105">
@@ -15,7 +21,7 @@
 	<Card.Header class="flex items-center justify-between">
 		<Card.Title class="text-lg">{news.title}</Card.Title>
 		<Card.Description class="text-xs">
-			{news.formattedDate}
+			{formatDate(news.createdAt)}
 		</Card.Description>
 	</Card.Header>
 

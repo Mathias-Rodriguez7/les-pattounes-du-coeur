@@ -2,8 +2,9 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import SelectField from '$lib/components/fields/SelectField.svelte';
 	import { getGradientStyle } from '$lib/utils/iconThemes';
@@ -11,24 +12,34 @@
 	import NewsPanel from '$lib/components/news/NewsPanel.svelte';
 	import NewCreateDialog from '$lib/components/news/NewCreateDialog.svelte';
 	import { NEWS_TYPE_OPTIONS } from '$lib/constants/news.js';
+	import { X, Sparkles } from '@lucide/svelte';
+	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
+	import NewsCatGenerateDialog from '$lib/components/news/NewsCatGenerateDialog.svelte';
 
 	const { data } = $props();
 
-	let news = $derived(data.news);
+	const news = $derived(data.news);
 	const stats = $derived(data.stats);
 
+	// true à partir de 1024 px (valeur supposée côté serveur : ordinateur)
+	const isDesktop = new MediaQuery('min-width: 1024px', true);
+
 	let selectedNewsId = $state<string | null>(null);
-	let selectedNews = $derived(news.find((n) => n.id === selectedNewsId) ?? null);
+	const selectedNews = $derived(news.find((n) => n.id === selectedNewsId) ?? null);
 
+	let mobilePanelOpen = $state(false);
 	let newsCreateOpen = $state(false);
+	let newsCatsOpen = $state(false);
 
+	// ===== FILTRES =====
 	let typeFilter = $state('');
 	let searchQuery = $state('');
 
-	const handleSelectNews = (newsId: string) => {
+	function handleSelectNews(newsId: string) {
 		selectedNewsId = newsId;
-	};
+		if (!isDesktop.current) mobilePanelOpen = true;
+	}
 
 	const statCards = $derived([
 		{ label: 'Publications', value: stats.total, icon: 'news', theme: 'cats' },
@@ -36,12 +47,7 @@
 		{ label: 'Newsletters', value: stats.newsletters, icon: 'mail', theme: 'fa' },
 		{ label: 'Histoires', value: stats.history, icon: 'mail', theme: 'fa' },
 		{ label: 'News chats', value: stats.newscasts, icon: 'calendarCheck', theme: 'activ' },
-		{
-			label: 'Évènements',
-			value: stats.events,
-			icon: 'calendarCheck',
-			theme: 'adoptions'
-		}
+		{ label: 'Évènements', value: stats.events, icon: 'calendarCheck', theme: 'adoptions' }
 	]);
 
 	const filteredNews = $derived.by(() => {
@@ -56,7 +62,7 @@
 			filtered = filtered.filter(
 				(n) =>
 					n.title.toLowerCase().includes(query) ||
-					n.cats.some((nc) => nc.cat.name?.toLowerCase().includes(query))
+					n.cats.some((cat) => cat.name?.toLowerCase().includes(query))
 			);
 		}
 
@@ -71,113 +77,181 @@
 	}
 </script>
 
+<svelte:head>
+	<title>News – Les Pattounes du Cœur</title>
+</svelte:head>
+
+<!-- Défini une fois, utilisé dans le PC et dans le Sheet mobile -->
+{#snippet panel()}
+	<NewsPanel
+		news={selectedNews}
+		cats={data.cats}
+		canEdit={data.canManageNews}
+		canDelete={data.canDeleteNews}
+	/>
+{/snippet}
+
 <main in:fade={{ duration: 200 }}>
-	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-10">
-		<!-- Bandeau stats -->
-		<section class="grid grid-cols-6 gap-4">
+	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
+		<!-- ================= STATS ================= -->
+		<section class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
 			{#each statCards as card (card.label)}
-				<Card.Root>
-					<Card.Header class="flex flex-row items-center justify-between pb-2">
-						<Card.Title class="text-sm font-medium">{card.label}</Card.Title>
+				<Card.Root class="gap-2 py-4">
+					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
+						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
+							{card.label}
+						</Card.Title>
 						<Icon
 							name={card.icon}
 							withWrapper={true}
-							wrapperClass="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+							wrapperClass="flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg sm:size-10 sm:rounded-2xl"
 							style="background: {getGradientStyle(card.theme)}"
-							iconClass="h-5 w-5"
+							iconClass="size-4 sm:size-5"
 						/>
 					</Card.Header>
-					<Card.Content>
-						<p class="text-2xl font-bold">{card.value}</p>
+					<Card.Content class="px-4">
+						<p class="text-xl font-bold sm:text-2xl">{card.value}</p>
 					</Card.Content>
 				</Card.Root>
 			{/each}
 		</section>
 
-		<!-- Tableau + Panel détail -->
+		<!-- ================= LISTE + DÉTAIL ================= -->
 		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-			<Card.Root class="flex flex-col lg:col-span-2">
-				<Card.Header class="flex shrink-0 flex-row items-center justify-between">
-					<Card.Title class="text-2xl font-bold">News</Card.Title>
-					<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
-						<Icon name="plus" class="mr-2 h-4 w-4" />
-						Nouvelle news
-					</Button>
-				</Card.Header>
+			<!-- LISTE : sur PC, sa hauteur suit celle du panneau -->
+			<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
+				<Card.Root class="flex flex-col lg:absolute lg:inset-0">
+					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
+						<Card.Title class="text-xl font-bold sm:text-2xl">
+							News
+							<span class="text-base font-normal text-muted-foreground">
+								({filteredNews.length})
+							</span>
+						</Card.Title>
 
-				<Card.Content>
-					<div class="grid items-center gap-2">
-						<div class="flex flex-wrap gap-2">
-							<SelectField
-								id="news-type-filter"
-								label=""
-								options={NEWS_TYPE_OPTIONS}
-								bind:value={typeFilter}
-								placeholder="Type"
-								class="w-40"
-							/>
-						</div>
+						{#if data.canManageNews}
+							<div class="flex items-center gap-2">
+								<!-- Action secondaire : tonale (rose pâle), avant l'action principale -->
+								<Button
+									size="sm"
+									class="rounded-2xl bg-accent text-accent-foreground shadow-none hover:bg-accent/80"
+									onclick={() => (newsCatsOpen = true)}
+								>
+									<Sparkles class="size-4" />
+									News chats
+								</Button>
 
-						<div class="flex items-center gap-2">
-							<Button class="rounded-2xl" size="sm" onclick={clearFilters}>Réinitialiser</Button>
-
-							<div class="relative flex-1">
-								<Icon
-									name="search"
-									class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-								/>
-								<Input
-									type="text"
-									placeholder="Chercher un titre ou un chat..."
-									bind:value={searchQuery}
-									class="pl-9"
-								/>
+								<!-- Action principale : pleine, à droite -->
+								<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
+									<Icon name="plus" class="h-4 w-4" />
+									<span class="hidden sm:inline">News</span>
+									<span class="sm:hidden">Ajouter</span>
+								</Button>
 							</div>
-						</div>
-					</div>
+						{/if}
+					</Card.Header>
 
-					<div class="mt-2 h-[calc(120vh-24rem)] min-h-80 overflow-auto rounded-md">
-						<Table.Root containerClass="overflow-visible">
-							<Table.Header
-								class="bg-background sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]"
-							>
-								<Table.Row>
-									<Table.Head>Titre</Table.Head>
-									<Table.Head>Type</Table.Head>
-									<Table.Head>Date</Table.Head>
-								</Table.Row>
-							</Table.Header>
-							<Table.Body>
-								{#each filteredNews as item (item.id)}
-									<NewsRow
-										news={item}
-										onclick={() => handleSelectNews(item.id)}
-										isSelected={selectedNewsId === item.id}
-									/>
-								{:else}
+					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
+						<!-- Un seul filtre : pas besoin de le replier sur mobile -->
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Chercher un titre ou un chat…"
+							searchLabel="Chercher une news par titre ou par chat"
+							onReset={clearFilters}
+						>
+							{#snippet filters()}
+								<SelectField
+									id="news-type-filter"
+									label=""
+									options={NEWS_TYPE_OPTIONS}
+									bind:value={typeFilter}
+									placeholder="Type"
+									class="w-36 sm:w-40"
+								/>
+							{/snippet}
+						</TableToolbar>
+
+						<!-- Tableau -->
+						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
+							<Table.Root containerClass="overflow-visible">
+								<Table.Header
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
+								>
 									<Table.Row>
-										<Table.Cell colspan={4} class="text-muted-foreground py-8 text-center">
-											{#if searchQuery}
-												Aucune news trouvée pour "{searchQuery}"
-											{:else if hasActiveFilters}
-												Aucune news ne correspond aux filtres
-											{:else}
-												Aucune news
-											{/if}
-										</Table.Cell>
+										<Table.Head>Titre</Table.Head>
+										<Table.Head>Type</Table.Head>
+										<Table.Head>Date</Table.Head>
 									</Table.Row>
-								{/each}
-							</Table.Body>
-						</Table.Root>
-					</div>
-				</Card.Content>
-			</Card.Root>
-
-			<div class="col-span-3 overflow-y-auto">
-				<NewsPanel news={selectedNews} isAdmin={data.isAdmin} />
+								</Table.Header>
+								<Table.Body>
+									{#each filteredNews as item (item.id)}
+										<NewsRow
+											news={item}
+											onclick={() => handleSelectNews(item.id)}
+											isSelected={selectedNewsId === item.id}
+										/>
+									{:else}
+										<Table.Row>
+											<Table.Cell colspan={3} class="text-muted-foreground py-10 text-center">
+												{#if searchQuery.trim()}
+													Aucune news trouvée pour « {searchQuery.trim()} »
+												{:else if hasActiveFilters}
+													Aucune news ne correspond à ce filtre.
+												{:else}
+													Aucune news pour le moment.
+												{/if}
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
+						</div>
+					</Card.Content>
+				</Card.Root>
 			</div>
-		</section>
 
-		<NewCreateDialog bind:open={newsCreateOpen} onCancel={() => (newsCreateOpen = false)} />
+			<!-- DÉTAIL : ordinateur -->
+			{#if isDesktop.current}
+				<div class="min-w-0 lg:col-span-3">
+					{@render panel()}
+				</div>
+			{/if}
+		</section>
 	</div>
 </main>
+
+<!-- DÉTAIL : plein écran sur mobile -->
+{#if !isDesktop.current}
+	<Sheet.Root bind:open={mobilePanelOpen}>
+		<Sheet.Content
+			side="right"
+			showCloseButton={false}
+			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
+		>
+			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
+				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
+					{selectedNews?.title ?? 'Détail de la news'}
+				</Sheet.Title>
+				<Sheet.Close
+					class={buttonVariants({ variant: 'ghost', size: 'icon' })}
+					aria-label="Fermer et revenir à la liste"
+				>
+					<X class="size-5" />
+				</Sheet.Close>
+			</header>
+
+			<div class="p-3">
+				{@render panel()}
+			</div>
+		</Sheet.Content>
+	</Sheet.Root>
+{/if}
+
+{#if data.canManageNews}
+	<NewCreateDialog bind:open={newsCreateOpen} onCancel={() => (newsCreateOpen = false)} />
+	<NewsCatGenerateDialog
+		bind:open={newsCatsOpen}
+		cats={data.adoptableCats}
+		candidateIds={data.candidateIds}
+	/>
+{/if}

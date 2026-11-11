@@ -12,15 +12,17 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { COMPATIBILITY_COLORS, type Compatibility } from '$lib/utils/compatibility';
 
 	interface Props {
 		host: HostFull;
 		columns: ColumnDef[];
 		selected: boolean;
+		compatibility?: Compatibility; // 👈
 		onToggle: (hostId: string, checked: boolean) => void;
 	}
 
-	let { host, columns, selected, onToggle }: Props = $props();
+	let { host, columns, selected, compatibility, onToggle }: Props = $props();
 
 	function renderCell(col: ColumnDef) {
 		return col.accessor(host);
@@ -38,10 +40,19 @@
 	</Table.Cell>
 
 	{#each columns as col (col.id)}
-		<Table.Cell>
-			{#if col.id === 'type'}
-				<Badge class={typesColors[host.type]?.color ?? 'bg-gray-100 text-gray-800'}>
-					{typesColors[host.type]?.label ?? host.type}
+		<Table.Cell class={col.mobile ? '' : 'hidden lg:table-cell'}>
+			{#if col.id === 'compatibility' && compatibility}
+				<Badge
+					class={COMPATIBILITY_COLORS[compatibility.level]}
+					title={compatibility.reasons.map((r) => r.label).join(' · ') ||
+						'Aucun critère particulier'}
+				>
+					{compatibility.score}%
+				</Badge>
+			{:else if col.id === 'type'}
+				{@const typeInfo = host.type ? typesColors[host.type] : null}
+				<Badge class={typeInfo?.color ?? 'bg-gray-100 text-gray-800'}>
+					{typeInfo?.label ?? '—'}
 				</Badge>
 			{:else if col.id === 'heal'}
 				<Badge class={healColors[host.heal]?.color ?? 'bg-gray-100 text-gray-800'}>
@@ -52,8 +63,9 @@
 					{socializeColors[host.socialize]?.label ?? host.socialize}
 				</Badge>
 			{:else if col.id === 'actif'}
-				<Badge class={statusColors[host.actif]?.color ?? 'bg-gray-100 text-gray-800'}>
-					{statusColors[host.actif]?.label ?? host.actif}
+				{@const actifInfo = host.actif ? statusColors[host.actif] : null}
+				<Badge class={actifInfo?.color ?? 'bg-gray-100 text-gray-800'}>
+					{actifInfo?.label ?? '—'}
 				</Badge>
 			{:else if col.id === 'babyFeeding'}
 				<Badge class={babyFeedingColors[host.babyFeeding]?.color ?? 'bg-gray-100 text-gray-800'}>

@@ -4,7 +4,10 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
-import { hashPassword } from '../src/lib/server/password';
+import { hashPassword } from '../src/lib/server/hashing';
+import { randomUUID } from 'node:crypto';
+import { S3Client, PutObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
+import { readFile } from 'node:fs/promises';
 
 // ---------------------
 // DB
@@ -45,7 +48,17 @@ const NEWS_TYPES = ['NEWS', 'NEWSLETTER', 'HISTORY', 'NEWSCATS', 'EVENT'] as con
 const FORM_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
 const SICKNESS_STATUS = ['ACTIVE', 'TREATED', 'RESOLVED'] as const;
-const CARE_TYPE = ['VACCINE', 'TREATMENT', 'SURGERY', 'OTHER', 'CONTROL', 'STERILIZE'] as const;
+const CARE_TYPE = [
+	'VACCINE',
+	'TREATMENT',
+	'SURGERY',
+	'OTHER',
+	'CONTROL',
+	'STERILIZE',
+	'DEWORMING',
+	'FIV_TEST',
+	'IDENTIFICATION'
+] as const;
 const PLACEMENT_TYPE = ['PROPOSAL', 'TRANSFER', 'LONG', 'SHORT'] as const;
 
 // ---------------------
@@ -53,22 +66,154 @@ const PLACEMENT_TYPE = ['PROPOSAL', 'TRANSFER', 'LONG', 'SHORT'] as const;
 // ---------------------
 const randomBool = (p = 0.5) => Math.random() < p;
 
-const CAT_IMAGES = [
-	'/img/cats/cat1.jpg',
-	'/img/cats/cat2.jpg',
-	'/img/cats/cat3.jpg',
-	'/img/cats/cat4.jpg'
-] as const;
+// ---------------------
+// S3 (RustFS en local)
+// ---------------------
+const s3 = new S3Client({
+	endpoint: process.env.S3_ENDPOINT,
+	region: process.env.S3_REGION,
+	forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+	credentials: {
+		accessKeyId: process.env.S3_ACCESS_KEY_ID ?? '',
+		secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? ''
+	},
+	requestChecksumCalculation: 'WHEN_REQUIRED',
+	responseChecksumValidation: 'WHEN_REQUIRED'
+});
+const PUBLIC_BUCKET = process.env.S3_BUCKET_PUBLIC ?? 'pattounes-public';
 
-const CAT_VIDEO = '/videos/cat.mp4';
+const PRIVATE_BUCKET = process.env.S3_BUCKET_PRIVATE ?? 'pattounes-private';
 
-function randomImage(i: number) {
-	return CAT_IMAGES[i % CAT_IMAGES.length];
+// Un vrai PDF d'exemple : envoyé une fois dans chaque bucket, puis copié pour chaque document
+const SAMPLE_PDF_PATH = 'prisma/data/samples/sample.pdf';
+const SAMPLE_PDF_KEY = 'seed/sample.pdf';
+let samplePdfSize = 0;
+
+type Sample = {
+	path: string; // dans static/
+	type: 'IMAGE' | 'VIDEO';
+	mimeType: string;
+	extension: string;
+	sizeBytes: number; // rempli à l'envoi
+};
+
+const SAMPLE_IMAGES: Sample[] = ['cat1', 'cat2', 'cat3', 'cat4'].map((name) => ({
+	path: `img/cats/${name}.jpg`,
+	type: 'IMAGE',
+	mimeType: 'image/jpeg',
+	extension: 'jpg',
+	sizeBytes: 0
+}));
+const SAMPLE_VIDEO: Sample = {
+	path: 'videos/cat.mp4',
+	type: 'VIDEO',
+	mimeType: 'video/mp4',
+	extension: 'mp4',
+	sizeBytes: 0
+};
+
+const sampleKey = (sample: Sample) => `seed/${sample.path.split('/').pop()}`;
+
+/** Envoie une fois les fichiers d'exemple dans le bucket public */
+async function uploadSamples() {
+	for (const sample of [...SAMPLE_IMAGES, SAMPLE_VIDEO]) {
+		const body = await readFile(`static/${sample.path}`);
+		sample.sizeBytes = body.length;
+		await s3.send(
+			new PutObjectCommand({
+				Bucket: PUBLIC_BUCKET,
+				Key: sampleKey(sample),
+				Body: body,
+				ContentType: sample.mimeType
+			})
+		);
+	}
+
+	const pdf = await readFile(SAMPLE_PDF_PATH);
+	samplePdfSize = pdf.length;
+	for (const Bucket of [PUBLIC_BUCKET, PRIVATE_BUCKET]) {
+		await s3.send(
+			new PutObjectCommand({
+				Bucket,
+				Key: SAMPLE_PDF_KEY,
+				Body: pdf,
+				ContentType: 'application/pdf'
+			})
+		);
+	}
 }
 
-function getLocalPdf() {
-	return '/pdf/newsletter.pdf';
+/** Copie un exemple dans la galerie d'un chat. La copie se fait DANS S3 : rien ne transite par le seed */
+async function copySampleToCat(catId: string, sample: Sample) {
+	const storageKey = `cats/${catId}/gallery/${randomUUID()}.${sample.extension}`;
+	await s3.send(
+		new CopyObjectCommand({
+			Bucket: PUBLIC_BUCKET,
+			CopySource: `${PUBLIC_BUCKET}/${sampleKey(sample)}`,
+			Key: storageKey
+		})
+	);
+	return storageKey;
 }
+
+/**
+ * Copie le PDF d'exemple dans S3, puis renvoie les données de sa ligne Media
+ * (à utiliser dans un `create` imbriqué). La copie se fait DANS S3.
+ */
+async function pdfMedia(folder: string, originalName: string, isPrivate: boolean) {
+	const Bucket = isPrivate ? PRIVATE_BUCKET : PUBLIC_BUCKET;
+	const storageKey = `${folder}/${randomUUID()}.pdf`;
+
+	await s3.send(
+		new CopyObjectCommand({
+			Bucket,
+			CopySource: `${Bucket}/${SAMPLE_PDF_KEY}`,
+			Key: storageKey
+		})
+	);
+
+	return {
+		type: 'DOCUMENT' as const,
+		storageKey,
+		mimeType: 'application/pdf',
+		sizeBytes: samplePdfSize,
+		originalName,
+		isPrivate
+	};
+}
+
+const DOC_FILE_NAMES = {
+	SURRENDER: 'acte-abandon',
+	ADOPTION_CONTRACT: 'contrat-adoption',
+	ADOPTION_RETURN: 'retour-adoption',
+	OTHER: 'document'
+} as const;
+
+async function createCatDocument(
+	cat: { id: string; catNumber: string },
+	kind: keyof typeof DOC_FILE_NAMES,
+	date: Date,
+	adoptionId?: string
+) {
+	return prisma.catDocument.create({
+		data: {
+			cat: { connect: { id: cat.id } },
+			kind,
+			date,
+			...(adoptionId ? { adoption: { connect: { id: adoptionId } } } : {}),
+			media: {
+				create: await pdfMedia(
+					`cats/${cat.id}/documents`,
+					`${cat.catNumber}_${DOC_FILE_NAMES[kind]}.pdf`,
+					true
+				)
+			}
+		}
+	});
+}
+
+/** Une date aléatoire entre deux dates */
+const dateBetween = (from: Date, to: Date) => faker.date.between({ from, to });
 
 // Format CAAMMnnn sur 8 caractères : C + YY + MM + SSS
 function generateCatNumber(sequenceNumber: number): string {
@@ -143,6 +288,8 @@ async function main() {
 	// CLEAN
 	// ---------------------
 	console.log('🧹 Nettoyage de la BDD...');
+	await prisma.careDocument.deleteMany();
+	await prisma.catDocument.deleteMany();
 	await prisma.newsCat.deleteMany();
 	await prisma.catVolunteer.deleteMany();
 	await prisma.placement.deleteMany();
@@ -152,6 +299,7 @@ async function main() {
 	await prisma.mediaCat.deleteMany();
 
 	await prisma.news.deleteMany();
+	await prisma.media.deleteMany({ where: { infoDocument: null } });
 	await prisma.cat.deleteMany();
 	await prisma.volunteer.deleteMany();
 	await prisma.host.deleteMany();
@@ -159,6 +307,9 @@ async function main() {
 	await prisma.form.deleteMany();
 	await prisma.session.deleteMany();
 	await prisma.profil.deleteMany();
+
+	console.log('📤 Envoi des fichiers d’exemple dans S3...');
+	await uploadSamples();
 
 	// ---------------------
 	// 👤 PROFILS FAKE (150)
@@ -172,7 +323,7 @@ async function main() {
 				firstName: faker.person.firstName().slice(0, 60),
 				lastName: faker.person.lastName().slice(0, 60),
 				birthDate: faker.date.birthdate({ min: 18, max: 70, mode: 'age' }),
-				email: `${faker.string.alphanumeric(8)}_${i}@test.com`,
+				email: `${faker.string.alphanumeric({ length: 8, casing: 'lower' })}_${i}@test.com`,
 				phone: faker.string.numeric(10),
 				address: faker.location.streetAddress().slice(0, 100),
 				city: 'Montpellier',
@@ -320,14 +471,23 @@ async function main() {
 	const cats = [];
 
 	for (let i = 0; i < 150; i++) {
+		const isVisible = randomBool(0.8);
 		const cat = await prisma.cat.create({
 			data: {
 				name: faker.person.firstName(),
 				catNumber: generateCatNumber(i + 1),
 				sex: faker.helpers.arrayElement(SEX),
 				birthDate: faker.date.birthdate({ min: 1, max: 30, mode: 'age' }),
-				isVisible: randomBool(0.8),
-				status: faker.helpers.arrayElement(STATUS),
+				isVisible,
+				// Publiés dans les 6 dernières semaines : environ 1 sur 6 tombe dans les 7 derniers jours
+				publishedAt: isVisible ? faker.date.recent({ days: 42 }) : null,
+				// Réaliste : la moitié des chats sont à l'adoption
+				status: faker.helpers.weightedArrayElement([
+					{ weight: 5, value: 'AVAILABLE' },
+					{ weight: 2, value: 'SOCIALIZE' },
+					{ weight: 2, value: 'ADOPTED' },
+					{ weight: 1, value: 'FREE' }
+				] as const),
 				hairLength: faker.helpers.arrayElement(HAIR),
 				color: faker.color.human(),
 				origin: faker.location.country(),
@@ -349,66 +509,36 @@ async function main() {
 	}
 
 	// ---------------------
-	// 🖼️ MEDIA
+	// 🖼️ GALERIE (copies des fichiers d'exemple dans S3)
 	// ---------------------
-	console.log('🖼️ Création des médias...');
+	console.log('🖼️ Création des galeries...');
 
 	for (const cat of cats) {
-		const imageCount = faker.number.int({ min: 3, max: 8 });
-		const documentCount = faker.number.int({ min: 3, max: 8 });
+		// 1 à 4 photos, et une vidéo pour 1 chat sur 5
+		const gallery = [
+			...faker.helpers.arrayElements(SAMPLE_IMAGES, faker.number.int({ min: 1, max: 4 })),
+			...(randomBool(0.2) ? [SAMPLE_VIDEO] : [])
+		];
 
-		const medias: Array<{
-			type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-			url: string;
-			mimeType: string;
-			originalName: string;
-		}> = [];
-
-		// Images : entre 3 et 8
-		for (let j = 0; j < imageCount; j++) {
-			const url = randomImage(j);
-			medias.push({
-				type: 'IMAGE',
-				url,
-				mimeType: 'image/jpeg',
-				originalName: url.split('/').pop() ?? 'cat.jpg'
-			});
-		}
-
-		// Vidéo : exactement 1
-		medias.push({
-			type: 'VIDEO',
-			url: CAT_VIDEO,
-			mimeType: 'video/mp4',
-			originalName: 'cat.mp4'
-		});
-
-		// Documents : entre 3 et 8
-		for (let j = 0; j < documentCount; j++) {
-			const url = getLocalPdf();
-			medias.push({
-				type: 'DOCUMENT',
-				url,
-				mimeType: 'application/pdf',
-				originalName: url.split('/').pop() ?? 'document.pdf'
-			});
-		}
-
-		// La première image est la photo principale
-		for (let k = 0; k < medias.length; k++) {
-			const m = medias[k];
+		for (let k = 0; k < gallery.length; k++) {
+			const sample = gallery[k];
+			const storageKey = await copySampleToCat(cat.id, sample);
 
 			await prisma.mediaCat.create({
 				data: {
-					catId: cat.id,
-					type: m.type,
-					url: m.url,
-					storageKey: m.url,
-					mimeType: m.mimeType,
-					sizeBytes: faker.number.int({ min: 50_000, max: 2_000_000 }),
-					originalName: m.originalName,
-					isPrimary: k === 0,
-					...generateFocalPoint()
+					cat: { connect: { id: cat.id } },
+					isPrimary: k === 0, // la première image est la photo principale
+					...generateFocalPoint(),
+					file: {
+						create: {
+							type: sample.type,
+							storageKey,
+							mimeType: sample.mimeType,
+							sizeBytes: sample.sizeBytes,
+							originalName: sample.path.split('/').pop(),
+							isPrivate: false
+						}
+					}
 				}
 			});
 		}
@@ -418,11 +548,15 @@ async function main() {
 	// 🤒 SICKNESSES
 	// ---------------------
 	console.log('🤒 Création des maladies...');
+	// catId → ids de ses maladies (pour relier les soins ensuite)
+	const sicknessIdsByCat = new Map<string, string[]>();
+
 	for (const cat of cats) {
 		const sicknessCount = faker.number.int({ min: 0, max: 3 });
+		const ids: string[] = [];
 
 		for (let i = 0; i < sicknessCount; i++) {
-			await prisma.sickness.create({
+			const sickness = await prisma.sickness.create({
 				data: {
 					catId: cat.id,
 					name: faker.lorem.word(),
@@ -433,7 +567,10 @@ async function main() {
 					status: faker.helpers.arrayElement(SICKNESS_STATUS)
 				}
 			});
+			ids.push(sickness.id);
 		}
+
+		sicknessIdsByCat.set(cat.id, ids);
 	}
 
 	// ---------------------
@@ -493,20 +630,51 @@ async function main() {
 	}
 
 	// ---------------------
-	// 💊 CARES
+	// 💊 CARES + documents véto
 	// ---------------------
-	console.log('💊 Création des soins...');
+	console.log('💊 Création des soins et des documents véto...');
+	const CARE_DOC_NAMES = ['ordonnance', 'facture', 'compte-rendu', 'resultats-analyses'];
+
 	for (const cat of cats.slice(0, 100)) {
 		const careCount = faker.number.int({ min: 1, max: 3 });
+		const catSicknesses = sicknessIdsByCat.get(cat.id) ?? [];
 
 		for (let i = 0; i < careCount; i++) {
+			const type = faker.helpers.arrayElement(CARE_TYPE);
+
+			// Seuls un traitement ou un contrôle peuvent concerner une maladie
+			const canHaveSickness = type === 'TREATMENT' || type === 'CONTROL';
+			const sicknessId =
+				canHaveSickness && catSicknesses.length > 0 && randomBool(0.7)
+					? faker.helpers.arrayElement(catSicknesses)
+					: null;
+
+			// 0 à 2 documents par soin
+			const docNames = faker.helpers.arrayElements(
+				CARE_DOC_NAMES,
+				faker.number.int({ min: 0, max: 2 })
+			);
+
+			// 1. D'abord les PDF : on attend que TOUTES les copies S3 soient finies
+			const careMedias = await Promise.all(
+				docNames.map((name) =>
+					pdfMedia(`cats/${cat.id}/cares`, `${cat.catNumber}_${name}.pdf`, true)
+				)
+			);
+
+			// 2. Ensuite le soin, avec des données déjà prêtes (plus aucune promesse dedans)
 			await prisma.care.create({
 				data: {
 					catId: cat.id,
-					type: faker.helpers.arrayElement(CARE_TYPE),
+					type,
+					date: faker.date.recent({ days: 365 }),
 					reason: faker.lorem.sentence(),
 					description: faker.lorem.sentence(),
-					veterinary: randomBool(0.7) ? faker.company.name() : null
+					veterinary: randomBool(0.7) ? faker.company.name() : null,
+					sicknessId,
+					documents: {
+						create: careMedias.map((media) => ({ media: { create: media } }))
+					}
 				}
 			});
 		}
@@ -516,44 +684,101 @@ async function main() {
 	// 📰 NEWS
 	// ---------------------
 	console.log('📰 Création des news...');
+	// Les chats qu'une News chats peut annoncer (comme dans generateCatsNews)
+	const announceable = cats.filter((c) => c.isVisible && c.status === 'AVAILABLE');
+
 	for (let i = 0; i < 30; i++) {
-		const relatedCats = faker.helpers.arrayElements(cats, faker.number.int({ min: 2, max: 5 }));
+		const type = faker.helpers.arrayElement(NEWS_TYPES);
+		const isCatsNews = type === 'NEWSCATS';
+
+		// Entre 8 jours et 6 mois : jamais dans la fenêtre des 7 jours du cron
+		const createdAt = faker.date.between({
+			from: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+			to: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
+		});
+
+		// Un PDF public par news, sauf pour les News chats
+		const media = isCatsNews ? null : await pdfMedia('news', 'newsletter.pdf', false);
+
+		// Des chats seulement pour les News chats
+		const newsCats = isCatsNews
+			? faker.helpers.arrayElements(announceable, faker.number.int({ min: 2, max: 6 }))
+			: [];
 
 		await prisma.news.create({
 			data: {
 				title: faker.lorem.sentence(),
-				type: faker.helpers.arrayElement(NEWS_TYPES),
-				content: faker.lorem.paragraph(),
-				mediaUrl: getLocalPdf(),
-				cats: {
-					create: relatedCats.map((c) => ({ catId: c.id }))
-				}
+				type, // ✅ le MÊME tirage que celui qui décide du PDF
+				content: isCatsNews ? null : faker.lorem.paragraph(),
+				createdAt,
+				...(media && { media: { create: media } }),
+				...(newsCats.length > 0 && {
+					cats: { create: newsCats.map((c) => ({ catId: c.id })) }
+				})
 			}
 		});
 	}
 
 	// ---------------------
-	// 🐾 ADOPTIONS
+	// 🐾 ADOPTIONS (+ contrats, retours)
 	// ---------------------
 	console.log('🐾 Création des adoptions...');
 	const adoptants = profils.slice(110, 150);
 	const adoptedCats = cats.slice(0, 30);
+	const now = new Date();
+	const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
 	for (let i = 0; i < Math.min(adoptedCats.length, adoptants.length); i++) {
 		const adoptedCat = adoptedCats[i];
 		const adoptant = adoptants[i];
+
+		// Les 5 premiers chats ont d'abord eu une adoption annulée (retour à l'asso)
+		if (i < 5) {
+			const firstAdoptant = adoptants[adoptants.length - 1 - i];
+			const startedAt = dateBetween(oneYearAgo, new Date(now.getTime() - 120 * 86_400_000));
+			const endedAt = new Date(
+				startedAt.getTime() + faker.number.int({ min: 15, max: 60 }) * 86_400_000
+			);
+
+			const cancelled = await prisma.adoption.create({
+				data: {
+					catId: adoptedCat.id,
+					profilId: firstAdoptant.id,
+					status: 'CANCELLED',
+					endDate: endedAt,
+					createdAt: startedAt
+				}
+			});
+
+			await createCatDocument(adoptedCat, 'ADOPTION_CONTRACT', startedAt, cancelled.id);
+			await createCatDocument(adoptedCat, 'ADOPTION_RETURN', endedAt, cancelled.id);
+		}
+
+		// Adoption en cours
+		const adoptedAt = faker.date.recent({ days: 90 });
 
 		await prisma.cat.update({
 			where: { id: adoptedCat.id },
 			data: { status: 'ADOPTED' }
 		});
 
-		await prisma.adoption.create({
+		const adoption = await prisma.adoption.create({
 			data: {
 				catId: adoptedCat.id,
-				profilId: adoptant.id
+				profilId: adoptant.id,
+				createdAt: adoptedAt
 			}
 		});
+
+		await createCatDocument(adoptedCat, 'ADOPTION_CONTRACT', adoptedAt, adoption.id);
+	}
+
+	// ---------------------
+	// 📄 ABANDONS (chat cédé par son propriétaire, sans profil)
+	// ---------------------
+	console.log('📄 Création des actes d’abandon...');
+	for (const cat of cats.slice(120, 135)) {
+		await createCatDocument(cat, 'SURRENDER', faker.date.recent({ days: 365 }));
 	}
 
 	// ---------------------
@@ -593,11 +818,20 @@ async function main() {
 		const randomAdoptant = faker.helpers.arrayElement(adoptants);
 		const randomCat = faker.helpers.arrayElement(cats);
 
+		// Comme dans l'app : la première bénévole associée au chat (le seed ne peut pas importer $lib)
+		const referent = await prisma.catVolunteer.findFirst({
+			where: { catId: randomCat.id },
+			orderBy: { createdAt: 'asc' },
+			select: { volunteerId: true }
+		});
+
 		await prisma.form.create({
 			data: {
 				type: 'ADOPTION_SPECIFIC',
 				status: faker.helpers.arrayElement(FORM_STATUS),
 				email: randomAdoptant.email,
+				catId: randomCat.id,
+				assignedToId: referent?.volunteerId ?? null,
 				data: {
 					firstName: randomAdoptant.firstName,
 					lastName: randomAdoptant.lastName,
@@ -615,11 +849,9 @@ async function main() {
 					numberOfCats: faker.number.int({ min: 0, max: 5 }),
 					numberOfDogs: faker.number.int({ min: 0, max: 3 }),
 					otherPets: randomBool(0.3) ? faker.word.noun() : undefined,
-					numberOfChildren: faker.number.int({ min: 0, max: 4 }),
-					catId: randomCat.id
+					numberOfChildren: faker.number.int({ min: 0, max: 4 })
 				},
-				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined,
-				assignedToId: randomBool(0.7) ? faker.helpers.arrayElement(volunteers).id : undefined
+				notes: randomBool(0.3) ? faker.lorem.sentence() : undefined
 			}
 		});
 	}
@@ -643,7 +875,7 @@ async function main() {
 					city: randomAdoptant.city,
 					postalCode: randomAdoptant.postalCode,
 					district: randomAdoptant.district ?? 'CENTRE_VILLE',
-					catAge: faker.helpers.arrayElement(['kitten', 'adult', 'senior', 'free']),
+					catAge: faker.helpers.arrayElement(['kitten', 'junior', 'adult', 'senior', 'free']),
 					catSex: faker.helpers.arrayElement(['male', 'female', 'free']),
 					color: faker.color.human(),
 					furLength: faker.helpers.arrayElement(['short', 'medium', 'long', 'free']),
@@ -769,12 +1001,12 @@ async function main() {
 			data: {
 				type: 'COLAB',
 				status: faker.helpers.arrayElement(FORM_STATUS),
-				email: faker.internet.email(),
+				email: faker.internet.email().toLowerCase(),
 				data: {
 					firstName: faker.person.firstName(),
 					lastName: faker.person.lastName(),
 					companyName: randomBool(0.8) ? faker.company.name() : undefined,
-					email: faker.internet.email(),
+					email: faker.internet.email().toLowerCase(),
 					phone: `0${faker.number.int({ min: 100000000, max: 999999999 })}`,
 					presentation: faker.lorem.paragraphs(1),
 					partnershipProposal: faker.lorem.paragraphs(1)

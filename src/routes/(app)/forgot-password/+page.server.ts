@@ -2,11 +2,12 @@ import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import prisma from '$lib/server/prisma';
 import { sendResetPasswordEmail } from '$lib/server/mail';
-import { randomBytes, createHash } from 'node:crypto';
-import { env } from '$env/dynamic/private';
+import { randomBytes } from 'node:crypto';
+import { dev } from '$app/environment';
+import { hashToken } from '$lib/server/hashing';
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, url }) => {
 		const data = await request.formData();
 		const email = data.get('email')?.toString().trim().toLowerCase();
 
@@ -30,7 +31,7 @@ export const actions: Actions = {
 		}
 
 		const token = randomBytes(32).toString('hex');
-		const hashedToken = createHash('sha256').update(token).digest('hex');
+		const hashedToken = hashToken(token);
 
 		await prisma.volunteer.update({
 			where: { id: profil.volunteer.id },
@@ -40,8 +41,10 @@ export const actions: Actions = {
 			}
 		});
 
-		const resetUrl = `${env.PUBLIC_APP_URL}/reinitialisation/${token}`;
+		const resetUrl = `${url.origin}/reset-password?token=${token}`;
 
+		// En développement uniquement : affiche le lien dans le terminal (pas encore de SMTP)
+		if (dev) console.log('🔗 Lien de réinitialisation :', resetUrl);
 		try {
 			await sendResetPasswordEmail(profil.email, resetUrl);
 		} catch (err) {

@@ -22,6 +22,7 @@
 		deleteLabel?: string;
 		deleteConfirmMessage?: string;
 		showDelete?: boolean;
+		iconOnly?: boolean;
 		actionName?: string; // ✅ ex: '?/deleteProfile' ou '?/deleteCat'
 		fieldName?: string; // ✅ ex: 'profileId' ou 'catId'
 		successMessage?: string;
@@ -37,6 +38,7 @@
 		deleteLabel = 'Supprimer',
 		deleteConfirmMessage = 'Êtes-vous sûr ? Cette action est irréversible.',
 		showDelete = false,
+		iconOnly = false,
 		actionName = '?/deleteProfile',
 		fieldName = 'profileId',
 		successMessage = 'Supprimé avec succès ! ✅',
@@ -75,20 +77,34 @@
 
 <div>
 	{#if showDelete}
-		<Button
-			type="button"
-			variant="destructive"
-			class="w-full"
-			disabled={isSaving || isDeleting}
-			onclick={handleDeleteClick}
-		>
-			<Trash2 class="mr-2 h-4 w-4" />
-			{#if isDeleting}
-				Suppression en cours...
-			{:else}
-				{deleteLabel}
-			{/if}
-		</Button>
+		{#if iconOnly}
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+				disabled={isSaving || isDeleting}
+				onclick={handleDeleteClick}
+				aria-label="{deleteLabel} {firstName} {lastName}"
+			>
+				<Trash2 class="size-4" />
+			</Button>
+		{:else}
+			<Button
+				type="button"
+				variant="destructive"
+				class="w-full"
+				disabled={isSaving || isDeleting}
+				onclick={handleDeleteClick}
+			>
+				<Trash2 class="mr-2 h-4 w-4" />
+				{#if isDeleting}
+					Suppression en cours...
+				{:else}
+					{deleteLabel}
+				{/if}
+			</Button>
+		{/if}
 	{/if}
 </div>
 

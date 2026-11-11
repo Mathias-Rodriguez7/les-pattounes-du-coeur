@@ -6,6 +6,10 @@ datasource db {
   provider = "postgresql"
 }
 
+//////////////////////////
+// Personnes
+//////////////////////////
+
 model Profil {
   id            String @id @default(uuid()) @db.Uuid
   firstName     String @map("first_name") @db.VarChar(60)
@@ -87,14 +91,18 @@ model Host {
 
 model BlacklistHistoric {
   id            String @id @default(uuid()) @db.Uuid
-  profilId      String @db.Uuid @map("profil_id")
-  profil        Profil @relation(fields: [profilId], references: [id])
+  profilId      String? @db.Uuid @map("profil_id")
+  profil        Profil? @relation(fields: [profilId], references: [id], onDelete: SetNull)
   email         String @db.VarChar(255)
   description   String @db.Text
   isBlacklisted Boolean @default(false)
   createdAt     DateTime @default(now()) @map("createdAt")
   updatedAt     DateTime @default(now()) @updatedAt @map("updatedAt")
 }
+
+//////////////////////////
+// Chats
+//////////////////////////
 
 model Cat {
   id                  String @id @default(uuid()) @db.Uuid
@@ -103,6 +111,8 @@ model Cat {
   sex                 SexCat
   birthDate           DateTime? @map("birth_date") @db.Date
   isVisible           Boolean @default(false) @map("is_visible")
+  // Date du dernier passage de « masqué » à « visible » : sert aux News chats
+  publishedAt         DateTime? @map("published_at")
   status              CatStatus
   hairLength          HairLength? @map("hair_length")
   color               String? @db.VarChar(255)
@@ -125,13 +135,18 @@ model Cat {
 
   sicknesses          Sickness[]
   media               MediaCat[]
+  documents           CatDocument[] // 🆕 abandon, contrats, retours…
   volunteers          CatVolunteer[]
   placements          Placement[]
   cares               Care[]
   news                NewsCat[]
   adoptions           Adoption[]
+  forms               Form[]
+
+  @@index([isVisible, status, publishedAt])
 }
 
+// État de santé : ce que le chat A (rempli à la main par la bénévole)
 model Sickness {
   id          String @id @default(uuid()) @db.Uuid
   catId       String @db.Uuid @map("cat_id")
@@ -147,39 +162,147 @@ model Sickness {
   createdAt   DateTime @default(now()) @map("createdAt")
   updatedAt   DateTime @updatedAt @map("updatedAt")
 
+  cares       Care[] // 🆕 soins liés à cette maladie
+
   @@index([catId])
 }
 
-model MediaCat {
-  id           String    @id @default(uuid()) @db.Uuid
-  catId        String    @db.Uuid @map("cat_id")
-  cat          Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
+// Acte vétérinaire : ce que le véto a FAIT, à une date donnée
+model Care {
+  id          String @id @default(uuid()) @db.Uuid
+  catId       String @db.Uuid @map("cat_id")
+  cat         Cat @relation(fields: [catId], references: [id])
+  type        CareType
+  date        DateTime @db.Date // 🆕 date de l'acte (≠ createdAt = date de saisie)
+  veterinary  String? @db.VarChar(255)
+  description String? @db.Text
+  reason      String @db.Text
 
+  // 🆕 maladie concernée (facultatif : un vaccin n'en a pas)
+  sicknessId  String? @db.Uuid @map("sickness_id")
+  sickness    Sickness? @relation(fields: [sicknessId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  documents   CareDocument[] // 🆕 ordonnance, facture, résultats…
+
+  @@index([catId])
+  @@index([sicknessId])
+}
+
+//////////////////////////
+// Médias & documents
+//////////////////////////
+
+// 🆕 Le FICHIER stocké sur S3. Son rôle est décrit par la table qui pointe dessus.
+model Media {
+  id           String    @id @default(uuid()) @db.Uuid
   type         MediaType
-  url          String    @db.Text
-  storageKey   String    @map("storage_key") @db.Text   // clé de l'objet (suppression R2)
+  storageKey   String    @unique @map("storage_key") @db.Text // ex : private/cats/<catId>/<uuid>.pdf
   mimeType     String    @map("mime_type") @db.VarChar(100)
   sizeBytes    Int       @map("size_bytes")
   originalName String?   @map("original_name") @db.VarChar(255)
-
-  isPrimary    Boolean   @default(false) @map("is_primary")
-
-  // Point focal en pourcentage (0 à 100), utilisé pour object-position
-  focalPointX  Float     @default(50) @map("focal_point_x")
-  focalPointY  Float     @default(50) @map("focal_point_y")
+  isPrivate    Boolean   @default(false) @map("is_private") // true → URL signée obligatoire
 
   createdAt    DateTime  @default(now()) @map("createdAt")
   updatedAt    DateTime  @updatedAt @map("updatedAt")
 
+  // Relations inverses (une seule sera remplie pour un fichier donné)
+  catGallery   MediaCat?
+  news         News?
+  catDocument  CatDocument?
+  careDocument CareDocument?
+  infoDocument InfoDocument?
+}
+
+// Galerie photo/vidéo du chat (migration vers Media : plus tard)
+model MediaCat {
+  id          String   @id @default(uuid()) @db.Uuid
+  catId       String   @db.Uuid @map("cat_id")
+  cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+
+  fileId      String   @unique @db.Uuid @map("file_id")
+  file        Media    @relation(fields: [fileId], references: [id])
+
+  isPrimary   Boolean  @default(false) @map("is_primary")
+
+  // Point focal en pourcentage (0 à 100), utilisé pour object-position
+  focalPointX Float    @default(50) @map("focal_point_x")
+  focalPointY Float    @default(50) @map("focal_point_y")
+
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
+
   @@index([catId])
 }
+
+// 🆕 Documents administratifs / légaux d'un chat (toujours privés)
+model CatDocument {
+  id         String          @id @default(uuid()) @db.Uuid
+  catId      String          @db.Uuid @map("cat_id")
+  cat        Cat             @relation(fields: [catId], references: [id], onDelete: Cascade)
+  mediaId    String          @unique @db.Uuid @map("media_id")
+  media      Media           @relation(fields: [mediaId], references: [id])
+
+  kind       CatDocumentKind
+  date       DateTime        @db.Date // date de l'acte (abandon, signature…)
+  note       String?         @db.Text
+
+  // Si le document concerne une adoption précise (contrat, retour)
+  adoptionId String?         @db.Uuid @map("adoption_id")
+  adoption   Adoption?       @relation(fields: [adoptionId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime        @default(now()) @map("createdAt")
+  updatedAt  DateTime        @updatedAt @map("updatedAt")
+
+  @@index([catId])
+  @@index([adoptionId])
+}
+
+// 🆕 Documents remis par le véto pour un soin (toujours privés)
+model CareDocument {
+  id        String   @id @default(uuid()) @db.Uuid
+  careId    String   @db.Uuid @map("care_id")
+  care      Care     @relation(fields: [careId], references: [id], onDelete: Cascade)
+  mediaId   String   @unique @db.Uuid @map("media_id")
+  media     Media    @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  @@index([careId])
+}
+
+// Documents d'information pour les bénévoles (guides, modèles…), toujours privés
+model InfoDocument {
+  id          String               @id @default(uuid()) @db.Uuid
+  title       String               @db.VarChar(255)
+  description String?              @db.Text
+  category    InfoDocumentCategory
+
+  fileId      String               @unique @db.Uuid @map("file_id")
+  file        Media                @relation(fields: [fileId], references: [id])
+
+  createdAt   DateTime             @default(now()) @map("createdAt")
+  updatedAt   DateTime             @updatedAt @map("updatedAt")
+
+  @@index([category])
+}
+
+//////////////////////////
+// News
+//////////////////////////
 
 model News {
   id        String @id @default(uuid()) @db.Uuid
   title     String @db.VarChar(255)
   type      NewsType
   content   String? @db.Text
-  mediaUrl  String? @map("media_url") @db.Text
+
+  // 🆕 Un seul PDF par news
+  mediaId   String? @unique @db.Uuid @map("media_id")
+  media     Media?  @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 
@@ -196,6 +319,10 @@ model NewsCat {
 
   @@id([newsId, catId])
 }
+
+//////////////////////////
+// Suivi des chats
+//////////////////////////
 
 model CatVolunteer {
   catId       String @db.Uuid @map("cat_id")
@@ -230,11 +357,22 @@ model Adoption {
   profilId  String @db.Uuid @map("profil_id")
   profil    Profil @relation(fields: [profilId], references: [id])
 
+  status    AdoptionStatus @default(ACTIVE) // 🆕
+  endDate   DateTime? @map("end_date") @db.Date // 🆕 date d'annulation / de retour
+
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 
-  @@unique([catId])
+  documents CatDocument[] // 🆕 contrat, retour…
+
+  // 🔁 Plus de @@unique([catId]) : un chat peut être adopté à nouveau après un retour.
+  // "Une seule adoption ACTIVE par chat" est vérifié dans la mutation (transaction).
+  @@index([catId])
 }
+
+//////////////////////////
+// Auth & formulaires
+//////////////////////////
 
 model Session {
   id          String @id @default(uuid()) @db.Uuid
@@ -255,6 +393,9 @@ model Form {
   status       FormStatus @default(PENDING)
   email        String @db.VarChar(255)
   data         Json @default("{}")
+    // Le chat concerné : demande précise, ou chat choisi pour une demande libre
+  catId        String? @db.Uuid @map("cat_id")
+  cat          Cat?    @relation(fields: [catId], references: [id], onDelete: SetNull)
 
   assignedToId String? @db.Uuid @map("assigned_to_id")
   assignedTo   Volunteer? @relation("assignedForms", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -266,18 +407,7 @@ model Form {
   @@index([type])
   @@index([status])
   @@index([assignedToId])
-}
-
-model Care {
-  id          String @id @default(uuid()) @db.Uuid
-  catId       String @db.Uuid @map("cat_id")
-  cat         Cat @relation(fields: [catId], references: [id])
-  type        CareType
-  veterinary  String? @db.VarChar(255)
-  description String? @db.Text
-  reason      String @db.Text
-  createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
+  @@index([catId])
 }
 
 //////////////////////////
@@ -368,6 +498,9 @@ enum CareType {
   OTHER
   CONTROL
   STERILIZE
+  DEWORMING      // 🆕 vermifuge
+  FIV_TEST       // 🆕 test FIV/FeLV
+  IDENTIFICATION // 🆕 puce
 }
 
 enum NewsType {
@@ -410,4 +543,26 @@ enum MediaType {
   IMAGE
   VIDEO
   DOCUMENT
+}
+
+// 🆕
+enum AdoptionStatus {
+  ACTIVE
+  CANCELLED
+}
+
+// 🆕
+enum CatDocumentKind {
+  SURRENDER         // abandon / cession à l'association
+  ADOPTION_CONTRACT // contrat d'adoption
+  ADOPTION_RETURN   // retour / annulation d'adoption
+  OTHER
+}
+
+enum InfoDocumentCategory {
+  GUIDE
+  CONTRACT
+  HEALTH
+  ADOPTION
+  OTHER
 }

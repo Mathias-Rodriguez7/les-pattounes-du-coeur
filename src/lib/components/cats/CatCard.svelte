@@ -5,12 +5,15 @@
 	import { focalPointStyle } from '$lib/utils/catHelpers';
 	import { getAgeBadge } from '$lib/utils/age';
 	import { truncate } from '$lib/utils/string';
+	import { publicMediaUrl } from '$lib/media/urls';
 
 	let { cat }: { cat: CatListItem } = $props();
 
 	// Image principale : le load serveur filtre déjà sur isPrimary, on prend la première
 	const primaryMedia = $derived(cat.media[0] ?? null);
-	const imageSrc = $derived(primaryMedia?.url ?? '/img/logo.png');
+	const imageSrc = $derived(
+		primaryMedia ? publicMediaUrl(primaryMedia.file.storageKey) : '/img/logo.png'
+	);
 	const imageStyle = $derived(focalPointStyle(primaryMedia));
 </script>
 

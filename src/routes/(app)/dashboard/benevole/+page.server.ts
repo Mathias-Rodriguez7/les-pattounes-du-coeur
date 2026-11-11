@@ -178,7 +178,7 @@ export const actions: Actions = {
 
 	updateVolunteer: async ({ request, locals }) => {
 		try {
-			const result = await updateVolunteer({ request, locals });
+			const result = await updateVolunteer({ formData: await request.formData(), locals });
 			if (!result.success) {
 				return fail(400, result);
 			}

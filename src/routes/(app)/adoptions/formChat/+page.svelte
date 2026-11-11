@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
+	import { ChevronRight, ChevronLeft, LoaderCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { resolve } from '$app/paths';
 	import { fade, fly } from 'svelte/transition';
@@ -20,7 +20,7 @@
 	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
 	import TextareaField from '$lib/components/fields/TextareaField.svelte';
 	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		ADOPTION_AGE_OPTIONS,
 		ADOPTION_FUR_OPTIONS,
@@ -34,6 +34,8 @@
 	const totalSteps = 3;
 	const progress = $derived(((step - 1) / (totalSteps - 1)) * 100);
 
+	// superForm ne doit recevoir que les données de DÉPART : il gère ensuite son propre état
+	// svelte-ignore state_referenced_locally
 	const form = superForm(data.form, {
 		validators: zod4Client(adoptionFormSchema),
 		onResult({ result }) {
@@ -44,7 +46,14 @@
 				step = 1;
 			}
 			if (result.type === 'failure') {
-				toast.error("Une erreur s'est produite ❌");
+				// Un message du serveur passe en premier ; sinon, un texte selon le code
+				const message = result.data?.message as string | undefined;
+				toast.error(
+					message ??
+						(result.status === 400
+							? 'Veuillez corriger les erreurs du formulaire'
+							: "Une erreur s'est produite")
+				);
 			}
 		}
 	});
@@ -104,7 +113,7 @@
 					<div class="pt-2">
 						<a
 							href={resolve('/adoptions/chat')}
-							class="text-primary hover:text-primary/80 inline-flex items-center font-medium underline underline-offset-4 transition"
+							class="inline-flex items-center font-medium text-primary underline underline-offset-4 transition hover:text-primary/80"
 						>
 							<ChevronRight />
 							Je préfère voir les chats disponibles
@@ -228,14 +237,16 @@
 											placeholder="Quartier"
 											size="sm"
 											options={districtOptions}
-											bind:value={$formData.district}
+											bind:value={
+												() => $formData.district ?? '', (v) => ($formData.district = v || null)
+											}
 										/>
 									{/if}
 								</div>
 							</div>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -299,7 +310,7 @@
 							</div>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -410,7 +421,7 @@
 							/>
 						</SectionCard>
 
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							<span class="text-destructive">*</span> Champs obligatoires
 						</p>
 					</div>
@@ -432,20 +443,27 @@
 								<ChevronRight class="h-4 w-4" />
 							</button>
 						{:else}
-							<SaveCancelButtons isSaving={$delayed} />
+							<Button type="submit" class="rounded-2xl" disabled={$delayed}>
+								{#if $delayed}
+									<LoaderCircle class="size-4 animate-spin" />
+									Envoi…
+								{:else}
+									Envoyer ma demande
+								{/if}
+							</Button>
 						{/if}
 					</div>
 				</form>
 			</Card.Content>
 
 			<Card.Footer class="flex flex-col gap-2">
-				<div class="bg-muted h-2 w-full rounded-full">
+				<div class="h-2 w-full rounded-full bg-muted">
 					<div
-						class="bg-primary h-2 rounded-full transition-all duration-300"
+						class="h-2 rounded-full bg-primary transition-all duration-300"
 						style={`width: ${progress}%`}
 					></div>
 				</div>
-				<p class="text-muted-foreground text-center text-xs">
+				<p class="text-center text-xs text-muted-foreground">
 					Étape {step} / {totalSteps}
 				</p>
 			</Card.Footer>

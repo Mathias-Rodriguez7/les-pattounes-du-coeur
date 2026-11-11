@@ -1,27 +1,46 @@
 // app/dashboard/news/+page.server.ts
-import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { catListSelect } from '$lib/types/cat';
-import { createNews, updateNews, deleteNews, generateCatsNews } from '$lib/server/news/mutations';
+import { createNews, updateNews, deleteNews } from '$lib/server/news/mutations';
+import { canManageNews, canDeleteNews } from '$lib/permissions/news';
+import { fail, redirect } from '@sveltejs/kit';
+import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
+import { generateCatsNews, getNewsCatsCandidateIds } from '$lib/server/news/catsNews';
+import { generateCatsSchema } from '$lib/schemas/news';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const news = await prisma.news.findMany({
-		orderBy: { createdAt: 'desc' },
-		select: {
-			id: true,
-			title: true,
-			content: true,
-			type: true,
-			mediaUrl: true,
-			createdAt: true,
-			cats: {
-				select: {
-					cat: { select: catListSelect }
-				}
-			}
-		}
-	});
+	// Même règle que la barre latérale, mais appliquée par le serveur
+	if (!locals.user) redirect(302, '/');
+	if (!canManageNews(locals.user.role)) redirect(302, '/dashboard');
+
+	const role = locals.user.role;
+	const canManage = canManageNews(role);
+
+		// Requêtes indépendantes → lancées en parallèle
+	const [news, cats, adoptableCats, candidateIds] = await Promise.all([
+		prisma.news.findMany({
+			orderBy: { createdAt: 'desc' },
+			select: newsListSelect
+		}),
+		// Liste des chats pour le formulaire d'édition : seulement pour ceux qui éditent,
+		// et seulement les champs utiles (tout ce que renvoie le load part au navigateur)
+		canManage
+			? prisma.cat.findMany({
+					select: { id: true, name: true, catNumber: true },
+					orderBy: { catNumber: 'asc' }
+				})
+			: Promise.resolve([]),
+		// « Générer une News chats » : les chats qu'on peut ajouter…
+		canManage
+			? prisma.cat.findMany({
+					where: { isVisible: true, status: 'AVAILABLE' },
+					select: { id: true, name: true, catNumber: true },
+					orderBy: { catNumber: 'asc' }
+				})
+			: Promise.resolve([]),
+		// … et ceux que la règle propose (pré-cochés)
+		canManage ? getNewsCatsCandidateIds() : Promise.resolve([])
+	]);
 
 	const stats = {
 		total: news.length,
@@ -33,13 +52,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 
 	return {
-		news: news.map((n) => ({
-			...n,
-			cats: n.cats.map((nc) => nc.cat)
-		})),
+		news: news.map(toNewsFull),
+		cats,
+		adoptableCats,
+		candidateIds,
 		stats,
-		// même logique que tes autres pages, adapte selon locals
-		isAdmin: locals.user?.role === 'ADMIN'
+		canManageNews: canManage,
+		canDeleteNews: canDeleteNews(role)
 	};
 };
 
@@ -68,26 +87,37 @@ export const actions: Actions = {
 		return { ...result, action: 'delete' };
 	},
 
-	generateCats: async ({ request, locals }) => {
-		if (!locals.user || locals.user.role !== 'ADMIN') {
-			return fail(403, {
+		generateCats: async ({ request, locals }) => {
+		if (!locals.user || !canManageNews(locals.user.role)) {
+			return fail(403, { success: false, error: 'Non autorisé', action: 'generateCats' });
+		}
+
+		const formData = await request.formData();
+		const parsed = generateCatsSchema.safeParse({
+			title: formData.get('title') ?? undefined,
+			// getAll : une case cochée = une valeur « catIds »
+			catIds: formData.getAll('catIds')
+		});
+		if (!parsed.success) {
+			return fail(400, {
 				success: false,
-				error: 'Non autorisé',
-				errors: {},
+				error: parsed.error.issues[0]?.message ?? 'Sélection invalide',
 				action: 'generateCats'
 			});
 		}
 
-		const formData = await request.formData();
-		const title = formData.get('title')?.toString();
-
 		try {
-			const news = await generateCatsNews({ title });
+			const news = await generateCatsNews(parsed.data);
+			if (!news) {
+				return fail(400, {
+					success: false,
+					error: "Aucun des chats choisis n'est encore à l'adoption",
+					action: 'generateCats'
+				});
+			}
 			return {
 				success: true,
-				message: 'News chats générée avec succès',
-				data: news,
-				errors: {},
+				message: `News chats créée (${news._count.cats} chat${news._count.cats > 1 ? 's' : ''})`,
 				action: 'generateCats'
 			};
 		} catch (error) {
@@ -95,7 +125,6 @@ export const actions: Actions = {
 			return fail(500, {
 				success: false,
 				error: 'Erreur lors de la génération',
-				errors: {},
 				action: 'generateCats'
 			});
 		}

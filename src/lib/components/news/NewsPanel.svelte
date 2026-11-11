@@ -9,19 +9,19 @@
 	import { formatDate } from '$lib/utils/date';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import NewsEditForm from './NewsEditForm.svelte';
+	import NewsCatsPanel from './NewsCatsPanel.svelte';
 	import { NEWS_SECTION_CONFIG, NEWS_TYPE_CONFIG } from '$lib/constants/news';
 	import type { NewsFull, NewsEditData } from '$lib/types/news';
-	import NewsCatsPanel from './NewsCatsPanel.svelte';
+	import MediaPreview from '../media/MediaPreview.svelte';
 
-	const {
-		news,
-		cats = [],
-		isAdmin = false
-	}: {
+	interface Props {
 		news: NewsFull | null;
-		cats?: { id: string; name: string; catNumber: string }[];
-		isAdmin?: boolean;
-	} = $props();
+		cats?: { id: string; name: string | null; catNumber: string }[];
+		canEdit?: boolean;
+		canDelete?: boolean;
+	}
+
+	const { news, cats = [], canEdit = false, canDelete = false }: Props = $props();
 
 	let isEditing = $state(false);
 
@@ -29,34 +29,31 @@
 		title: '',
 		content: '',
 		type: 'NEWS',
-		mediaUrl: '',
+		currentMedia: null,
 		catIds: []
 	});
 
-	const startEditing = () => {
+	// Quand on sélectionne une autre news, on quitte le mode édition
+	$effect(() => {
+		void news?.id; // on "lit" l'id pour que l'effet se relance quand il change
+		isEditing = false;
+	});
+
+	function startEditing() {
 		if (!news) return;
 		editData = {
 			title: news.title,
 			content: news.content ?? '',
 			type: news.type,
-			mediaUrl: news.mediaUrl ?? '',
-			catIds: news.cats.map((nc) => nc.cat.id)
+			currentMedia: news.mediaFile,
+			catIds: news.cats.map((cat) => cat.id) // les chats sont déjà aplatis par le load
 		};
 		isEditing = true;
-	};
+	}
 
-	const handleCancelEdit = () => {
-		isEditing = false;
-	};
-
-	const handleSuccessfulSave = () => {
-		if (!news) return;
-		news.title = editData.title;
-		news.content = editData.content;
-		news.type = editData.type;
-		news.mediaUrl = editData.mediaUrl;
-		isEditing = false;
-	};
+	// Les données à jour arrivent via update() dans NewsEditForm : on ne touche pas à la prop
+	const handleSuccessfulSave = () => (isEditing = false);
+	const handleCancelEdit = () => (isEditing = false);
 
 	const currentType = $derived(
 		news?.type && news.type in NEWS_TYPE_CONFIG
@@ -70,10 +67,10 @@
 		{#if !isEditing}
 			<!-- ===== HEADER ===== -->
 			<Card.Header>
-				<div class="flex h-25 justify-between">
-					<div class="flex gap-8">
+				<div class="flex justify-between gap-2 lg:h-25">
+					<div class="flex min-w-0 gap-4 lg:gap-8">
 						<!-- Icône + type -->
-						<div class="flex flex-col items-center justify-around">
+						<div class="flex shrink-0 flex-col items-center justify-around gap-2">
 							{#key news.type}
 								<Icon
 									name={currentType.icon}
@@ -87,19 +84,28 @@
 						</div>
 
 						<!-- Titre + date -->
-						<div class="flex flex-col justify-around">
-							<Card.Title class="text-2xl">{news.title}</Card.Title>
-							<Card.Description class="text-xl">
+						<div class="flex min-w-0 flex-col justify-around gap-1">
+							<Card.Title class="text-lg wrap-break-word sm:text-xl lg:text-2xl">
+								{news.title}
+							</Card.Title>
+							<Card.Description class="text-sm sm:text-base lg:text-xl">
 								{formatDate(new Date(news.createdAt))}
 							</Card.Description>
 						</div>
 					</div>
 
-					<div>
-						<Button variant="ghost" size="icon" onclick={startEditing}>
-							<Pencil class="h-5 w-5" />
-						</Button>
-					</div>
+					{#if canEdit}
+						<div class="shrink-0">
+							<Button
+								variant="ghost"
+								size="icon"
+								onclick={startEditing}
+								aria-label="Modifier la news"
+							>
+								<Pencil class="h-5 w-5" />
+							</Button>
+						</div>
+					{/if}
 				</div>
 			</Card.Header>
 
@@ -108,23 +114,24 @@
 				<Separator />
 
 				<section>
-					<!-- Contenu -->
 					<SectionCard
 						icon={NEWS_SECTION_CONFIG.content.icon}
 						title={NEWS_SECTION_CONFIG.content.label}
 						color={NEWS_SECTION_CONFIG.content.color}
 					>
 						{#if news.content}
-							<p class="ml-6 text-sm whitespace-pre-line text-gray-700">{news.content}</p>
+							<p class="text-sm wrap-break-word whitespace-pre-line text-gray-700 sm:ml-6">
+								{news.content}
+							</p>
 						{:else}
-							<p class="text-muted-foreground ml-6 text-sm italic">Aucun contenu</p>
+							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun contenu</p>
 						{/if}
 					</SectionCard>
 				</section>
 
 				<Separator />
+
 				{#if news.type === 'NEWSCATS'}
-					<!-- 🐱 Mode chats : remplace le média -->
 					<NewsCatsPanel cats={news.cats} />
 				{:else}
 					<SectionCard
@@ -132,46 +139,29 @@
 						title={NEWS_SECTION_CONFIG.media.label}
 						color={NEWS_SECTION_CONFIG.media.color}
 					>
-						{#if news.mediaUrl}
-							{#if news.mediaUrl.endsWith('.pdf')}
-								<object
-									data={news.mediaUrl}
-									type="application/pdf"
-									class="h-200 w-full rounded-lg border border-gray-200"
-									aria-label="PDF viewer"
-								>
-									<p class="text-muted-foreground text-sm">
-										Impossible d'afficher le PDF.
-										<a href={news.mediaUrl} target="_blank" class="underline">Télécharger</a>
-									</p>
-								</object>
-							{:else if news.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)}
-								<div class="overflow-hidden rounded-lg">
-									<img src={news.mediaUrl} alt="Media" class="h-full w-full object-cover" />
-								</div>
-							{:else}
-								<a
-									href={news.mediaUrl}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="ml-6 block text-sm text-blue-600 underline hover:text-blue-800"
-								>
-									{news.mediaUrl}
-								</a>
-							{/if}
+						{#if news.mediaFile}
+							<MediaPreview
+								src={news.mediaFile.url}
+								mimeType={news.mediaFile.mimeType}
+								sizeBytes={news.mediaFile.sizeBytes}
+								name={news.mediaFile.name ?? news.title}
+								alt={news.title}
+								variant="embed"
+							/>
 						{:else}
-							<p class="text-muted-foreground ml-6 text-sm italic">Aucun média</p>
+							<p class="text-muted-foreground text-sm italic sm:ml-6">Aucun média</p>
 						{/if}
 					</SectionCard>
 				{/if}
 			</Card.Content>
 		{:else}
+			<!-- ===== MODE ÉDITION ===== -->
 			<Card.Content class="grid grid-cols-1 gap-6">
-				<!-- ===== MODE ÉDITION ===== -->
 				<NewsEditForm
 					bind:editData
 					newsId={news.id}
 					{cats}
+					{canDelete}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>
@@ -179,7 +169,7 @@
 		{/if}
 	</Card.Root>
 {:else}
-	<Card.Root class="flex h-full items-center justify-center">
+	<Card.Root class="flex h-full min-h-60 items-center justify-center">
 		<Card.Content class="text-muted-foreground text-center">
 			<Icon name="news" class="mx-auto mb-2 h-8 w-8 opacity-50" />
 			<p class="text-sm">Sélectionnez une news</p>

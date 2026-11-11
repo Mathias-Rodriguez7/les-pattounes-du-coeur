@@ -5,6 +5,8 @@ import {
 	type CreateCatInput,
 	type UpdateCatInput
 } from '../../schemas/cat';
+import { z } from 'zod';
+import { deleteFiles } from '$lib/server/storage';
 
 const CAT_FIELDS = [
 	'name',
@@ -60,7 +62,7 @@ function buildCatData(data: CreateCatInput | UpdateCatInput) {
 }
 
 export async function createCat({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || !['ADMIN', 'MANAGER'].includes(locals.user.role)) {
+	if (!locals.user || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(locals.user.role)) {
 		return { success: false, error: 'Non autorisé', errors: {} };
 	}
 
@@ -124,6 +126,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 				isIdentify: validatedData.isIdentify,
 				chipId: validatedData.chipId,
 				isVisible: validatedData.isVisible,
+				publishedAt: validatedData.isVisible ? new Date() : null,
 				description: validatedData.description
 			}
 		});
@@ -141,7 +144,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 }
 
 export async function updateCat({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || !['ADMIN', 'MANAGER'].includes(locals.user.role)) {
+	if (!locals.user || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(locals.user.role)) {
 		return { success: false, error: 'Non autorisé', errors: {} };
 	}
 
@@ -205,6 +208,13 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 		// catNumber toujours inclus (obligatoire en update)
 		catData.catNumber = validatedData.catNumber;
 
+		// 🆕 Passage de « masqué » à « visible » : le chat est (re)publié maintenant.
+		// Dans tous les autres cas, on garde la date existante.
+		const becomesVisible = !existingCat.isVisible && validatedData.isVisible === true;
+		if (becomesVisible) {
+			catData.publishedAt = new Date();
+		}
+
 		const updatedCat = await prisma.cat.update({
 			where: { id: catId },
 			data: catData
@@ -219,4 +229,82 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 		console.error('❌ ERREUR UPDATE CAT:', error);
 		return { success: false, error: 'Erreur lors de la mise à jour du chat', errors: {} };
 	}
+}
+
+// ==========================================
+// DELETE - Supprimer un chat (ADMIN uniquement)
+// Sert à corriger une erreur de saisie : un chat qui a une histoire
+// (adoption, documents légaux) change de statut au lieu d'être supprimé.
+// ==========================================
+export async function deleteCat({ request, locals }: { request: Request; locals: App.Locals }) {
+	if (!locals.user || locals.user.role !== 'ADMIN') {
+		return { success: false, error: 'Non autorisé' };
+	}
+
+	const formData = await request.formData();
+	const parsedId = z.string().uuid().safeParse(formData.get('catId'));
+	if (!parsedId.success) return { success: false, error: 'Chat invalide' };
+	const catId = parsedId.data;
+
+	// Tout ce qu'il faudra nettoyer sur S3, lu AVANT de supprimer
+	const cat = await prisma.cat.findUnique({
+		where: { id: catId },
+		select: {
+			_count: { select: { adoptions: true, documents: true } },
+			media: { select: { file: { select: { id: true, storageKey: true, isPrivate: true } } } },
+			documents: { select: { media: { select: { id: true, storageKey: true, isPrivate: true } } } },
+			cares: {
+				select: {
+					documents: {
+						select: { media: { select: { id: true, storageKey: true, isPrivate: true } } }
+					}
+				}
+			}
+		}
+	});
+
+	if (!cat) return { success: false, error: 'Chat introuvable' };
+
+	// 🛡️ Garde-fou : on ne détruit pas des preuves légales
+	if (cat._count.adoptions > 0 || cat._count.documents > 0) {
+		return {
+			success: false,
+			error:
+				'Ce chat a une adoption ou des documents (abandon, contrat…) : il ne peut pas être supprimé. Changez plutôt son statut.'
+		};
+	}
+
+	// Lignes Media (documents et soins) + fichiers de la galerie
+	const mediaRows = [
+		...cat.media.map((m) => m.file),
+		...cat.documents.map((d) => d.media),
+		...cat.cares.flatMap((care) => care.documents.map((d) => d.media))
+	];
+
+	try {
+		await prisma.$transaction(async (tx) => {
+			// 1. Ce qui n'a pas de cascade et bloquerait la suppression
+			await tx.newsCat.deleteMany({ where: { catId } });
+			await tx.catVolunteer.deleteMany({ where: { catId } });
+			await tx.placement.deleteMany({ where: { catId } });
+			await tx.adoption.deleteMany({ where: { catId } });
+			await tx.care.deleteMany({ where: { catId } }); // + CareDocument (cascade)
+
+			// 2. Le chat (+ maladies, galerie et CatDocument en cascade)
+			await tx.cat.delete({ where: { id: catId } });
+
+			// 3. Les lignes Media qui ne servent plus à rien
+			if (mediaRows.length > 0) {
+				await tx.media.deleteMany({ where: { id: { in: mediaRows.map((m) => m.id) } } });
+			}
+		});
+	} catch (error) {
+		console.error('Erreur suppression chat:', error);
+		return { success: false, error: 'Erreur lors de la suppression du chat' };
+	}
+
+	// 4. Les fichiers, une fois la base à jour
+	await deleteFiles([...mediaRows.map(({ storageKey, isPrivate }) => ({ storageKey, isPrivate }))]);
+
+	return { success: true, message: 'Chat supprimé' };
 }

@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     depends_on:
       - db
+      - s3
     ports:
       - '5173:5173'
     environment:
@@ -28,5 +29,46 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  # Serveur S3 local (développement uniquement)
+  s3-perms:
+    image: alpine:3.20
+    command: chown -R 10001:10001 /data
+    volumes:
+      - s3_data:/data
+
+  # Serveur S3 local (développement uniquement)
+  s3:
+    image: rustfs/rustfs:1.0.3
+    container_name: les_pattounes_s3
+    restart: unless-stopped
+    depends_on:
+      s3-perms:
+        condition: service_completed_successfully
+    command: /data
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_ACCESS_KEY}
+      RUSTFS_ADDRESS: ':9000'
+      RUSTFS_CONSOLE_ENABLE: 'true'
+      RUSTFS_CONSOLE_ADDRESS: ':9001'
+      # Autorise ton appli (dans le navigateur) à envoyer des fichiers directement
+      RUSTFS_CORS_ALLOWED_ORIGINS: http://localhost:5173
+    ports:
+      - '9000:9000' # API S3
+      - '9001:9001' # interface web
+    volumes:
+      - s3_data:/data
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: les_pattounes_mailpit
+    ports:
+      - '8025:8025' # l'interface web pour lire les e-mails
+    environment:
+      # En dev : accepter n'importe quel identifiant, sans chiffrement
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
   db_data:
+  s3_data:

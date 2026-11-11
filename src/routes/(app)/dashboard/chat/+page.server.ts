@@ -1,8 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/server/prisma';
-import { createCat, updateCat } from '$lib/server/cats/mutations';
-import { deleteProfile } from '$lib/server/mutations';
+import { createCat, updateCat, deleteCat } from '$lib/server/cats/mutations';
 import {
 	createPlacements,
 	updatePlacement,
@@ -11,6 +10,17 @@ import {
 import type { UpdatePlacementInput } from '$lib/schemas/placement';
 import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
 import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
+import { createCatDocument, deleteCatDocument } from '$lib/server/catDocuments/mutations';
+import { canManageCat, canManagePlacement } from '$lib/server/permissions/cat';
+import { catFullArgs } from '$lib/types/cat';
+import { hostFullArgs } from '$lib/types/host';
+import { createCare, deleteCare } from '$lib/server/cares/mutations';
+import {
+	addCatMedia,
+	setPrimaryCatMedia,
+	deleteCatMedia,
+	updateCatMediaFocalPoint
+} from '$lib/server/catMedia/mutations';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -40,21 +50,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			await Promise.all([
 				prisma.cat.findMany({
 					where: catsWhere,
-					include: {
-						media: true,
-						sicknesses: true,
-						placements: {
-							include: {
-								host: { include: { profil: true } }
-							}
-						},
-						volunteers: {
-							include: {
-								volunteer: { include: { profil: true } }
-							}
-						},
-						adoptions: { include: { profil: true } }
-					},
+					...catFullArgs,
 					orderBy: { createdAt: 'desc' }
 				}),
 
@@ -86,12 +82,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 				})
 			]);
 
-		const hosts = await prisma.host.findMany({
-			include: { profil: true }
-		});
+		// Avec leurs placements : nécessaires pour le score de compatibilité et « Chats actuels »
+		const hosts = await prisma.host.findMany(hostFullArgs);
 
+		// Juste ce qu'il faut pour la liste « Associer une bénévole »
 		const volunteers = await prisma.volunteer.findMany({
-			include: { profil: true }
+			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
 		const catsWithOwnership = cats.map((cat) => ({
@@ -148,34 +144,33 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteProfile: async ({ request }) => {
+	deleteCat: async ({ request, locals }) => {
 		try {
-			const data = await request.formData();
-			const profileId = data.get('profileId') as string;
-
-			if (!profileId) {
-				return fail(400, { success: false, error: 'ID manquant' });
-			}
-
-			return await deleteProfile(profileId);
+			const result = await deleteCat({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
 		} catch (error) {
-			console.error('Erreur suppression profil:', error);
+			console.error('Erreur deleteCat:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},
 
 	// ==========================================
 	// ACTION: Placement
+	// Mêmes droits que le chat : admin, ou bénévole associée
 	// ==========================================
-	createPlacement: async ({ request }) => {
+	createPlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 
 			const catId = formData.get('catId')?.toString() ?? '';
 			const hostIds = formData.getAll('hostIds').map((v) => v.toString());
 			const type = formData.get('type')?.toString() ?? '';
 			const status = formData.get('status')?.toString() ?? '';
-			const notes = formData.get('notes')?.toString() || '';
 
 			if (!catId) {
 				return fail(400, { success: false, error: 'catId manquant' });
@@ -185,7 +180,11 @@ export const actions: Actions = {
 				return fail(400, { success: false, error: 'Aucun hôte sélectionné' });
 			}
 
-			const result = await createPlacements({ catId, hostIds, type, status, notes });
+			if (!(await canManageCat(locals.user, catId))) {
+				return fail(403, { success: false, error: "Vous n'avez pas le droit de placer ce chat" });
+			}
+
+			const result = await createPlacements({ catId, hostIds, type, status });
 
 			if (!result.success) {
 				return fail(400, result);
@@ -198,8 +197,12 @@ export const actions: Actions = {
 		}
 	},
 
-	updatePlacement: async ({ request }) => {
+	updatePlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 			const placementId = formData.get('placementId')?.toString();
 
@@ -207,13 +210,21 @@ export const actions: Actions = {
 				return fail(400, { success: false, error: 'placementId manquant' });
 			}
 
+			// Le chat est lu en base, pas dans le formulaire
+			if (!(await canManagePlacement(locals.user, placementId))) {
+				return fail(403, {
+					success: false,
+					error: "Vous n'avez pas le droit de modifier ce placement"
+				});
+			}
+
+			// ⚠️ Mêmes noms que les champs de PlacementEditForm (startDate / endDate)
 			const input = {
 				hostId: formData.get('hostId')?.toString() || undefined,
 				type: formData.get('type')?.toString() || undefined,
 				status: formData.get('status')?.toString() || undefined,
-				startedDate: formData.get('startedDate')?.toString() || null,
-				endedDate: formData.get('endedDate')?.toString() || null,
-				notes: formData.get('notes')?.toString() || undefined
+				startDate: formData.get('startDate')?.toString() || null,
+				endDate: formData.get('endDate')?.toString() || null
 			};
 
 			const result = await updatePlacement(placementId, input as UpdatePlacementInput);
@@ -229,13 +240,24 @@ export const actions: Actions = {
 		}
 	},
 
-	deletePlacement: async ({ request }) => {
+	deletePlacement: async ({ request, locals }) => {
 		try {
+			if (!locals.user) {
+				return fail(401, { success: false, error: 'Non autorisé' });
+			}
+
 			const formData = await request.formData();
 			const placementId = formData.get('placementId')?.toString();
 
 			if (!placementId) {
 				return fail(400, { success: false, error: 'placementId manquant' });
+			}
+
+			if (!(await canManagePlacement(locals.user, placementId))) {
+				return fail(403, {
+					success: false,
+					error: "Vous n'avez pas le droit de supprimer ce placement"
+				});
 			}
 
 			const result = await deletePlacement(placementId);
@@ -318,6 +340,103 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur removeCatVolunteer:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Documents du chat
+	// ==========================================
+	createCatDocument: async ({ request, locals }) => {
+		try {
+			const result = await createCatDocument({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur createCatDocument:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCatDocument: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatDocument({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCatDocument:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: care du chat
+	// ==========================================
+	createCare: async ({ request, locals }) => {
+		try {
+			const result = await createCare({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur createCare:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCare: async ({ request, locals }) => {
+		try {
+			const result = await deleteCare({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCare:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// ==========================================
+	// ACTION: Media du chat
+	// ==========================================
+	addCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await addCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur addCatMedia:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	setPrimaryCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await setPrimaryCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur setPrimaryCatMedia:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	updateCatMediaFocalPoint: async ({ request, locals }) => {
+		try {
+			const result = await updateCatMediaFocalPoint({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur updateCatMediaFocalPoint:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	deleteCatMedia: async ({ request, locals }) => {
+		try {
+			const result = await deleteCatMedia({ request, locals });
+			if (!result.success) return fail(400, result);
+			return result;
+		} catch (error) {
+			console.error('Erreur deleteCatMedia:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	}

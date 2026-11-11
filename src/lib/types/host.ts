@@ -1,23 +1,16 @@
 import type { Prisma, Heal, Socialize, BabyFeeding, HostType, ColabActivity } from '@prisma/client';
+import { volunteerSecretFields } from '$lib/types/volunteer';
 
-// Types Prisma avec relations
-export type HostFull = Prisma.HostGetPayload<{
+// ✅ Ce que charge une FA complète : la requête ET le type en découlent
+export const hostFullArgs = {
 	include: {
-		profil: true;
-		placements: {
-			include: {
-				cat: true;
-			};
-		};
-	};
-}> & {
-	// ✅ Force le typage des enums
-	heal: Heal;
-	socialize: Socialize;
-	babyFeeding: BabyFeeding;
-	actif: ColabActivity;
-	type: HostType;
-};
+		// volunteer : HostPanel indique si la FA est aussi bénévole
+		profil: { include: { volunteer: { omit: volunteerSecretFields } } },
+		placements: { include: { cat: true } }
+	}
+} satisfies Prisma.HostDefaultArgs;
+
+export type HostFull = Prisma.HostGetPayload<typeof hostFullArgs>;
 
 export type HostEditData = {
 	// Statut

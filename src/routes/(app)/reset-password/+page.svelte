@@ -1,64 +1,96 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import InputField from '$lib/components/fields/InputField.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Lock, Eye, EyeOff, ArrowLeft, CircleAlert, LoaderCircle } from '@lucide/svelte';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import PasswordInput from '$lib/components/auth/PasswordInput.svelte';
+	import {
+		ShieldCheck,
+		ArrowLeft,
+		CircleAlert,
+		LoaderCircle,
+		Check,
+		X,
+		LinkIcon
+	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let password = $state('');
 	let confirmPassword = $state('');
-	let showPassword = $state(false);
-	let showConfirm = $state(false);
 	let isSubmitting = $state(false);
 
+	// Critères affichés en direct. Seul le premier est obligatoire (même règle que le serveur).
+	const rules = $derived([
+		{ label: 'Au moins 8 caractères', ok: password.length >= 8 },
+		{
+			label: 'Une majuscule et une minuscule',
+			ok: /[a-z]/.test(password) && /[A-Z]/.test(password)
+		},
+		{ label: 'Un chiffre', ok: /\d/.test(password) },
+		{ label: 'Un caractère spécial', ok: /[^A-Za-z0-9]/.test(password) }
+	]);
+
+	const score = $derived(rules.filter((r) => r.ok).length);
+
+	const strength = $derived(
+		score <= 1
+			? { label: 'Faible', color: 'bg-destructive' }
+			: score === 2
+				? { label: 'Moyen', color: 'bg-amber-500' }
+				: score === 3
+					? { label: 'Bon', color: 'bg-primary' }
+					: { label: 'Excellent', color: 'bg-green-600' }
+	);
+
 	const mismatch = $derived(confirmPassword.length > 0 && password !== confirmPassword);
-	const tooShort = $derived(password.length > 0 && password.length < 8);
+	const canSubmit = $derived(password.length >= 8 && password === confirmPassword);
 </script>
 
 <svelte:head>
-	<title>Réinitialiser le mot de passe</title>
+	<title>Nouveau mot de passe – Les Pattounes du Cœur</title>
 </svelte:head>
 
 <section class="flex min-h-[70vh] items-center justify-center px-4 py-12">
 	<div class="w-full max-w-sm">
 		{#if !data.valid}
+			<!-- ❌ ÉTAT : LIEN INVALIDE -->
 			<Card.Root class="text-center">
 				<Card.Content class="flex flex-col items-center gap-4 pt-8 pb-6">
-					<div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-						<CircleAlert class="h-7 w-7 text-red-600" />
+					<div
+						class="bg-destructive/10 text-destructive flex size-16 items-center justify-center rounded-full"
+					>
+						<LinkIcon class="size-8" />
 					</div>
-					<div class="space-y-1">
-						<h2 class="text-lg font-semibold">Lien invalide</h2>
+					<div class="space-y-2">
+						<h2 class="text-xl font-semibold">Lien invalide ou expiré</h2>
 						<p class="text-muted-foreground text-sm">
-							Ce lien de réinitialisation est invalide ou a expiré.
+							Pour des raisons de sécurité, un lien n'est valable qu'une heure et ne peut servir
+							qu'une seule fois.
 						</p>
 					</div>
 				</Card.Content>
-				<Card.Footer class="flex-col gap-3">
-					<a
-						href={resolve('/forgot-password')}
-						class="text-primary text-sm font-medium hover:underline"
+				<Card.Footer class="justify-center">
+					<Button href={resolve('/forgot-password')} class="w-full">Demander un nouveau lien</Button
 					>
-						Demander un nouveau lien
-					</a>
 				</Card.Footer>
 			</Card.Root>
 		{:else}
+			<!-- 📝 ÉTAT : FORMULAIRE -->
 			<Card.Root>
-				<Card.Header class="space-y-3">
+				<Card.Header class="items-center space-y-3 text-center">
 					<div
-						class="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full"
+						class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
 					>
-						<Lock class="h-6 w-6" />
+						<ShieldCheck class="size-7" />
 					</div>
-					<div class="space-y-1">
-						<Card.Title class="text-xl">Nouveau mot de passe</Card.Title>
-						<Card.Description>Choisissez un mot de passe d'au moins 8 caractères.</Card.Description>
-					</div>
+					<Card.Title class="text-2xl">Nouveau mot de passe</Card.Title>
+					<Card.Description
+						>Choisissez un mot de passe que vous n'utilisez pas ailleurs.</Card.Description
+					>
 				</Card.Header>
 
 				<form
@@ -71,90 +103,103 @@
 						};
 					}}
 				>
-					<Card.Content class="space-y-4">
-						<div class="relative">
-							<InputField
+					<Card.Content class="space-y-5">
+						{#if form?.error}
+							<Alert.Root variant="destructive">
+								<CircleAlert />
+								<Alert.Description>{form.error}</Alert.Description>
+							</Alert.Root>
+						{/if}
+
+						<!-- NOUVEAU MOT DE PASSE -->
+						<div class="grid gap-2">
+							<Label for="password">Nouveau mot de passe</Label>
+							<PasswordInput
 								id="password"
 								name="password"
-								label="Nouveau mot de passe"
-								type={showPassword ? 'text' : 'password'}
+								autocomplete="new-password"
 								bind:value={password}
+								invalid={!!form?.errors?.password}
 								required
-								size="lg"
 							/>
-							<button
-								type="button"
-								onclick={() => (showPassword = !showPassword)}
-								aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-								class="absolute top-9.5 right-3 text-slate-500 hover:text-slate-700"
-							>
-								{#if showPassword}
-									<EyeOff class="h-4 w-4" />
-								{:else}
-									<Eye class="h-4 w-4" />
-								{/if}
-							</button>
-							{#if tooShort}
-								<p class="mt-1 text-xs text-red-500">Au moins 8 caractères requis</p>
-							{:else if form?.errors?.password}
-								<p class="mt-1 text-xs text-red-500">{form.errors.password}</p>
+
+							{#if password.length > 0}
+								<!-- Barre de robustesse : 4 segments -->
+								<div class="flex items-center gap-2">
+									<div class="flex flex-1 gap-1">
+										{#each rules as rule, i (rule.label)}
+											<div
+												class="h-1.5 flex-1 rounded-full transition-colors {i < score
+													? strength.color
+													: 'bg-muted'}"
+											></div>
+										{/each}
+									</div>
+									<span class="text-muted-foreground w-16 text-right text-xs">{strength.label}</span
+									>
+								</div>
+
+								<!-- Liste des critères -->
+								<ul class="grid gap-1 text-xs">
+									{#each rules as rule (rule.label)}
+										<li
+											class="flex items-center gap-1.5 {rule.ok
+												? 'text-foreground'
+												: 'text-muted-foreground'}"
+										>
+											{#if rule.ok}
+												<Check class="size-3.5 text-green-600" />
+											{:else}
+												<X class="size-3.5" />
+											{/if}
+											{rule.label}
+										</li>
+									{/each}
+								</ul>
+							{/if}
+
+							{#if form?.errors?.password}
+								<p class="text-destructive text-xs">{form.errors.password}</p>
 							{/if}
 						</div>
 
-						<div class="relative">
-							<InputField
+						<!-- CONFIRMATION -->
+						<div class="grid gap-2">
+							<Label for="confirmPassword">Confirmer le mot de passe</Label>
+							<PasswordInput
 								id="confirmPassword"
 								name="confirmPassword"
-								label="Confirmer le mot de passe"
-								type={showConfirm ? 'text' : 'password'}
+								autocomplete="new-password"
 								bind:value={confirmPassword}
+								invalid={mismatch || !!form?.errors?.confirmPassword}
 								required
-								size="lg"
 							/>
-							<button
-								type="button"
-								onclick={() => (showConfirm = !showConfirm)}
-								aria-label={showConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-								class="absolute top-9.5 right-3 text-slate-500 hover:text-slate-700"
-							>
-								{#if showConfirm}
-									<EyeOff class="h-4 w-4" />
-								{:else}
-									<Eye class="h-4 w-4" />
-								{/if}
-							</button>
 							{#if mismatch}
-								<p class="mt-1 text-xs text-red-500">Les mots de passe ne correspondent pas</p>
+								<p class="text-destructive text-xs">Les mots de passe ne correspondent pas</p>
 							{:else if form?.errors?.confirmPassword}
-								<p class="mt-1 text-xs text-red-500">{form.errors.confirmPassword}</p>
+								<p class="text-destructive text-xs">{form.errors.confirmPassword}</p>
+							{:else if confirmPassword.length > 0}
+								<p class="flex items-center gap-1 text-xs text-green-600">
+									<Check class="size-3.5" /> Les mots de passe correspondent
+								</p>
 							{/if}
 						</div>
-
-						{#if form?.error}
-							<div
-								role="alert"
-								class="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-							>
-								<CircleAlert class="mt-0.5 h-4 w-4 shrink-0" />
-								<span>{form.error}</span>
-							</div>
-						{/if}
 					</Card.Content>
 
-					<Card.Footer class="flex-col gap-3">
-						<Button type="submit" class="w-full" disabled={isSubmitting || mismatch || tooShort}>
+					<Card.Footer class="mt-6 flex-col gap-3">
+						<Button type="submit" class="h-11 w-full" disabled={isSubmitting || !canSubmit}>
 							{#if isSubmitting}
-								<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+								<LoaderCircle class="animate-spin" />
 								Enregistrement…
 							{:else}
-								Réinitialiser le mot de passe
+								Enregistrer le mot de passe
 							{/if}
 						</Button>
 						<a
 							href={resolve('/login')}
-							class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
+							class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
 						>
-							<ArrowLeft class="h-4 w-4" />
+							<ArrowLeft class="size-4" />
 							Retour à la connexion
 						</a>
 					</Card.Footer>

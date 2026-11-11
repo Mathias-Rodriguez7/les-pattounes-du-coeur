@@ -35,61 +35,45 @@
 		onCancel
 	} = $props();
 
-	// États
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
 	let isBlacklisting = $state(false);
 
-	let formErrors = $state({
-		firstName: '',
-		lastName: '',
-		email: '',
-		phone: '',
-		address: '',
-		city: '',
-		postalCode: ''
-	});
+	// Erreurs renvoyées par le serveur (format Zod : { champ: ['message'] })
+	let serverErrors = $state<Record<string, string[] | undefined>>({});
 
-	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
+	function fieldError(field: string): string {
+		return serverErrors[field]?.[0] ?? '';
+	}
+
+	const handleUpdateEnhance: SubmitFunction = () => {
 		isSaving = true;
-
-		formData.append('hostId', hostId || '');
+		serverErrors = {};
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success("la Famille d'accueil mis à jour avec succès ! ✅");
-				if (onSuccess) {
-					onSuccess();
-				}
+				toast.success("Famille d'accueil mise à jour avec succès");
+				await update();
+				onSuccess?.();
 			} else if (result.type === 'failure') {
-				console.error('Erreur mise à jour:', result.data);
-				toast.error(result.data?.error || 'Erreur lors de la mise à jour');
+				serverErrors = (result.data?.errors as Record<string, string[] | undefined>) ?? {};
+				toast.error((result.data?.error as string) || 'Erreur lors de la mise à jour');
+				await update({ reset: false });
 			}
-
-			await update();
 			isSaving = false;
 		};
 	};
 
-	const handleCancelClick = () => {
-		console.log('❌ Édition annulée');
-		if (onCancel) {
-			onCancel();
-		}
-	};
+	const handleCancelClick = () => onCancel?.();
 
 	const handleDeleted = () => {
 		isDeleting = false;
-		if (onSuccess) {
-			onSuccess();
-		}
+		onSuccess?.();
 	};
 
 	const handleBlacklisted = () => {
 		isBlacklisting = false;
-		if (onSuccess) {
-			onSuccess();
-		}
+		onSuccess?.();
 	};
 
 	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
@@ -97,36 +81,41 @@
 		editData.breakEndDate = dates.end;
 	};
 
-	let districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
-	let showBreakDateRange = $derived(editData.actif === 'BREAK');
+	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
+		value,
+		label
+	}));
+	const showBreakDateRange = $derived(editData.actif === 'BREAK');
 </script>
 
 <form method="POST" action="?/updateHost" use:enhance={handleUpdateEnhance} class="space-y-6">
-	<!-- 🔑 HIDDEN INPUTS -->
 	<input type="hidden" name="hostId" value={hostId} />
 
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">
-			Éditer la FA: {editData.firstName || 'Sans nom'}
+	<div class="flex items-center justify-between gap-2">
+		<h2 class="min-w-0 truncate text-lg font-semibold">
+			Éditer la FA : {editData.firstName || 'Sans nom'}
 			{editData.lastName || 'Sans nom'}
 		</h2>
 
-		<Button variant="ghost" size="icon" onclick={handleCancelClick}>
+		<Button
+			variant="ghost"
+			size="icon"
+			class="shrink-0"
+			onclick={handleCancelClick}
+			aria-label="Annuler la modification"
+		>
 			<X class="h-5 w-5" />
 		</Button>
 	</div>
 
-	<!-- 📋 SECTION 1: Statuts et Infos Personnelles -->
-	<section class="grid grid-cols-2 gap-4">
-		<!-- Statu -->
+	<!-- SECTION 1 : Statuts + Profil -->
+	<section class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.statuts.icon}
 			title={HOST_SECTION_CONFIG.statuts.label}
 			color={HOST_SECTION_CONFIG.statuts.color}
 		>
-			<div class="grid grid-cols-2 gap-4">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<SelectField
 					id="actif"
 					name="actif"
@@ -148,7 +137,7 @@
 				/>
 
 				{#if showBreakDateRange}
-					<div class="col-span-2">
+					<div class="sm:col-span-2">
 						<DateRangePicker
 							startValue={editData.breakStart}
 							endValue={editData.breakEnd}
@@ -172,20 +161,19 @@
 			</div>
 		</SectionCard>
 
-		<!-- Profil -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.profile.icon}
 			title={HOST_SECTION_CONFIG.profile.label}
 			color={HOST_SECTION_CONFIG.profile.color}
 		>
-			<div class="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
+			<div class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
 				<InputField
 					id="firstName"
 					name="firstName"
 					label="Prénom"
 					bind:value={editData.firstName}
 					placeholder="Jean"
-					error={formErrors.firstName}
+					error={fieldError('firstName')}
 					required
 					size="sm"
 				/>
@@ -196,7 +184,7 @@
 					label="Nom"
 					bind:value={editData.lastName}
 					placeholder="Dupont"
-					error={formErrors.lastName}
+					error={fieldError('lastName')}
 					required
 					size="sm"
 				/>
@@ -204,18 +192,18 @@
 				<DatePicker
 					name="birthDate"
 					value={editData.birthDate}
-					onSelect={(date) => {
-						editData.birthDate = date;
-					}}
+					onSelect={(date) => (editData.birthDate = date)}
 					label="Date d'anniversaire"
+					error={fieldError('birthDate')}
 				/>
 			</div>
 		</SectionCard>
 	</section>
 
 	<Separator />
-	<section class="grid grid-cols-2 gap-4">
-		<!-- Adresse -->
+
+	<!-- Adresse + Contact -->
+	<section class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.address.icon}
 			title={HOST_SECTION_CONFIG.address.label}
@@ -228,19 +216,20 @@
 					label="Rue"
 					bind:value={editData.address}
 					placeholder="Adresse"
-					error={formErrors.address}
+					error={fieldError('address')}
 					required
 					size="sm"
 				/>
 
-				<div class="flex gap-4">
+				<!-- PC : sur une ligne (comme avant) | Mobile : empilés -->
+				<div class="grid grid-cols-1 gap-4 sm:flex">
 					<InputField
 						id="city"
 						name="city"
 						label="Ville"
 						bind:value={editData.city}
 						placeholder="Ville"
-						error={formErrors.city}
+						error={fieldError('city')}
 						required
 						size="sm"
 					/>
@@ -250,8 +239,8 @@
 						name="postalCode"
 						label="Code postal"
 						bind:value={editData.postalCode}
-						placeholder="75000"
-						error={formErrors.postalCode}
+						placeholder="34000"
+						error={fieldError('postalCode')}
 						required
 						size="sm"
 					/>
@@ -268,7 +257,6 @@
 			</div>
 		</SectionCard>
 
-		<!-- Contact -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.contact.icon}
 			title={HOST_SECTION_CONFIG.contact.label}
@@ -279,9 +267,10 @@
 					id="phone"
 					name="phone"
 					label="Téléphone"
+					type="tel"
 					bind:value={editData.phone}
-					placeholder="06 12 34 56 78"
-					error={formErrors.phone}
+					placeholder="0612345678"
+					error={fieldError('phone')}
 					required
 					size="sm"
 				/>
@@ -293,7 +282,7 @@
 					type="email"
 					bind:value={editData.email}
 					placeholder="jean@example.com"
-					error={formErrors.email}
+					error={fieldError('email')}
 					required
 					size="sm"
 				/>
@@ -303,9 +292,8 @@
 
 	<Separator />
 
-	<!-- 📍 SECTION 2: Adresse, Zone d'accueil, Animaux -->
-	<section class="grid grid-cols-4 gap-4">
-		<!-- Zone d'accueil -->
+	<!-- SECTION 2 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
+	<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.home.icon}
 			title={HOST_SECTION_CONFIG.home.label}
@@ -315,9 +303,11 @@
 				<InputField
 					id="space"
 					name="space"
-					label="Espace en m2"
+					label="Espace en m²"
+					type="number"
 					bind:value={editData.space}
 					placeholder="60"
+					error={fieldError('space')}
 					required
 					size="sm"
 				/>
@@ -330,7 +320,6 @@
 						checked={editData.outside}
 						onChange={(value) => (editData.outside = value)}
 					/>
-
 					<CheckboxField
 						id="car"
 						name="car"
@@ -338,7 +327,6 @@
 						checked={editData.car}
 						onChange={(value) => (editData.car = value)}
 					/>
-
 					<CheckboxField
 						id="isStockFeed"
 						name="isStockFeed"
@@ -350,7 +338,6 @@
 			</div>
 		</SectionCard>
 
-		<!-- Animaux -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.animals.icon}
 			title={HOST_SECTION_CONFIG.animals.label}
@@ -370,20 +357,20 @@
 						id="numberOfCatsAtHome"
 						name="numberOfCatsAtHome"
 						label="Chats"
+						type="number"
 						bind:value={editData.numberOfCatsAtHome}
 						placeholder="0"
 						size="sm"
 					/>
-
 					<InputField
 						id="numberOfDogsAtHome"
 						name="numberOfDogsAtHome"
 						label="Chiens"
+						type="number"
 						bind:value={editData.numberOfDogsAtHome}
 						placeholder="0"
 						size="sm"
 					/>
-
 					<TextareaField
 						id="otherAnimalsAtHome"
 						name="otherAnimalsAtHome"
@@ -395,7 +382,6 @@
 			</div>
 		</SectionCard>
 
-		<!-- Capacités -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.capacity.icon}
 			title={HOST_SECTION_CONFIG.capacity.label}
@@ -410,7 +396,6 @@
 					options={HOST_HEAL_OPTIONS}
 					size="sm"
 				/>
-
 				<SelectField
 					id="socialize"
 					name="socialize"
@@ -419,7 +404,6 @@
 					options={HOST_SOCIALIZE_OPTIONS}
 					size="sm"
 				/>
-
 				<SelectField
 					id="babyFeeding"
 					name="babyFeeding"
@@ -431,7 +415,6 @@
 			</div>
 		</SectionCard>
 
-		<!-- Chat -->
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.cat.icon}
 			title={HOST_SECTION_CONFIG.cat.label}
@@ -442,11 +425,11 @@
 					id="catAdult"
 					name="catAdult"
 					label="Chat adulte"
+					type="number"
 					bind:value={editData.catAdult}
 					placeholder="0"
 					size="sm"
 				/>
-
 				<CheckboxField
 					id="kittyAndKitten"
 					name="kittyAndKitten"
@@ -454,11 +437,11 @@
 					checked={editData.kittyAndKitten}
 					onChange={(value) => (editData.kittyAndKitten = value)}
 				/>
-
 				<InputField
 					id="kitten"
 					name="kitten"
 					label="Chaton"
+					type="number"
 					bind:value={editData.kitten}
 					placeholder="0"
 					size="sm"
@@ -469,7 +452,7 @@
 
 	<Separator />
 
-	<!-- 📝 SECTION 3: Descriptions -->
+	<!-- SECTION 3 : Descriptions (inchangé) -->
 	<section class="space-y-4">
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.homeDescription.icon}
@@ -546,9 +529,10 @@
 
 	<Separator />
 
-	<!-- ✅ SECTION 4: Actions (Boutons) -->
-	<section class="flex justify-between">
-		<div class="flex gap-4">
+	<!-- SECTION 4 : Actions -->
+	<!-- PC : une ligne, comme avant | Mobile : Enregistrer en haut, actions dangereuses en dessous -->
+	<section class="flex flex-col-reverse gap-4 lg:flex-row lg:justify-between">
+		<div class="flex flex-wrap gap-2 lg:gap-4">
 			<BlacklistButton
 				{profileId}
 				firstName={editData.firstName}
@@ -558,7 +542,7 @@
 				{isSaving}
 				{isDeleting}
 				showBlacklist={true}
-				actionName="?/blacklistHost"
+				actionName="?/blacklistProfile"
 				buttonLabel="Ajouter à la liste noire"
 				onSuccess={handleBlacklisted}
 			/>

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { District, HostType, Heal, Socialize, BabyFeeding, ColabActivity } from '@prisma/client';
+import { emailField } from '$lib/schemas/fields';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z
@@ -42,7 +43,7 @@ export const createHostSchema = z.object({
 	firstName: z.string().min(1, 'Le prénom est obligatoire'),
 	lastName: z.string().min(1, 'Le nom est obligatoire'),
 	birthDate: stringToDate,
-	email: z.email('Email invalide'),
+	email: emailField(),
 	phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide'),
 
 	// Adresse

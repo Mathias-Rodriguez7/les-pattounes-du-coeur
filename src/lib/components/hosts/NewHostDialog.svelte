@@ -23,10 +23,10 @@
 		HOST_SECTION_CONFIG
 	} from '$lib/constants/host';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
+	import { format } from 'date-fns';
 
 	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();
 
-	let isSaving = $state(false);
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
@@ -83,7 +83,7 @@
 
 	// ✅ Pré-remplissage uniquement quand initialData change
 	$effect(() => {
-		if (initialData) {
+		if (open && initialData) {
 			firstName = initialData.firstName ?? '';
 			lastName = initialData.lastName ?? '';
 			email = initialData.email ?? '';
@@ -123,7 +123,7 @@
 			// Profil
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
-			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
+			birthDate: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
 			email: email.trim(),
 			phone: phone.trim(),
 			address: address.trim(),
@@ -263,28 +263,25 @@
 	};
 
 	const handleCancelClick = () => {
-		if (onCancel) {
-			onCancel();
-		}
-		resetForm();
+		open = false;
+		onCancel?.();
 	};
 </script>
 
 <!-- Template -->
-<Dialog.Root bind:open onOpenChange={(value) => (open = value)}>
-	<Dialog.Content size="xl" class="max-h-[90vh] overflow-y-auto">
+<Dialog.Root bind:open>
+	<Dialog.Content size="xl" class="max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Créer un nouvel accueillant</Dialog.Title>
+			<Dialog.Title>Créer une nouvelle famille d'accueil</Dialog.Title>
 			<Dialog.Description>
 				Remplissez les champs obligatoires (*) pour ajouter une nouvelle famille d'accueil
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<form method="POST" action="?/createHost" use:enhance={handleEnhance} class="space-y-6">
-			<!-- 📋 SECTION 1: Identité & Contact -->
-
-			<section class="grid grid-cols-4 gap-4">
-				<!-- Statu -->
+			<!-- SECTION 1 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
+			<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<!-- Statut -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.statuts.icon}
 					title={HOST_SECTION_CONFIG.statuts.label}
@@ -373,6 +370,8 @@
 							size="sm"
 							disabled={isSubmitting}
 						/>
+
+						<!-- Ville et CP côte à côte, comme avant -->
 						<div class="flex gap-4">
 							<InputField
 								id="city"
@@ -389,7 +388,7 @@
 							<InputField
 								id="postalCode"
 								name="postalCode"
-								label="Code Postal"
+								label="Code postal"
 								bind:value={postalCode}
 								placeholder="34000"
 								error={getFieldError(fieldErrors, 'postalCode')}
@@ -398,7 +397,8 @@
 								disabled={isSubmitting}
 							/>
 						</div>
-						{#if city.toLowerCase() === 'montpellier'}
+
+						{#if city.trim().toLowerCase() === 'montpellier'}
 							<SelectField
 								id="district"
 								name="district"
@@ -437,8 +437,9 @@
 							id="phone"
 							name="phone"
 							label="Téléphone"
+							type="tel"
 							bind:value={phone}
-							placeholder="06 12 34 56 78"
+							placeholder="0612345678"
 							error={getFieldError(fieldErrors, 'phone')}
 							required
 							size="sm"
@@ -447,10 +448,11 @@
 					</div>
 				</SectionCard>
 			</section>
+
 			<Separator />
 
-			<!-- 📍 SECTION 2 -->
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
+			<!-- SECTION 2 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<!-- Zone d'accueil -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.home.icon}
@@ -471,7 +473,6 @@
 							disabled={isSubmitting}
 						/>
 
-						<!-- ✅ CHECKBOXES REMPLACÉES -->
 						<CheckboxField
 							id="outside"
 							name="outside"
@@ -493,7 +494,7 @@
 						<CheckboxField
 							id="isStockFeed"
 							name="isStockFeed"
-							label="Nourriture au stock"
+							label="Nourriture en stock"
 							checked={isStockFeed}
 							onChange={(value) => (isStockFeed = value)}
 							disabled={isSubmitting}
@@ -508,7 +509,6 @@
 					color={HOST_SECTION_CONFIG.animals.color}
 				>
 					<div class="space-y-4">
-						<!-- ✅ CHECKBOX REMPLACÉE -->
 						<CheckboxField
 							id="hasAnimalsAtHome"
 							name="hasAnimalsAtHome"
@@ -546,7 +546,7 @@
 								name="otherAnimalsAtHome"
 								label="Autres animaux"
 								bind:value={otherAnimalsAtHome}
-								placeholder="Hamster, Oiseau..."
+								placeholder="Hamster, oiseau..."
 								disabled={isSubmitting}
 							/>
 						{/if}
@@ -585,7 +585,7 @@
 						<SelectField
 							id="babyFeeding"
 							name="babyFeeding"
-							label="Biberonage"
+							label="Biberonnage"
 							bind:value={babyFeeding}
 							options={HOST_BABY_FEEDING_OPTIONS}
 							size="sm"
@@ -595,7 +595,7 @@
 					</div>
 				</SectionCard>
 
-				<!-- Chat -->
+				<!-- Chats -->
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.cat.icon}
 					title={HOST_SECTION_CONFIG.cat.label}
@@ -615,7 +615,6 @@
 							disabled={isSubmitting}
 						/>
 
-						<!-- ✅ CHECKBOXES REMPLACÉES -->
 						<CheckboxField
 							id="kittyAndKitten"
 							name="kittyAndKitten"
@@ -628,7 +627,7 @@
 						<InputField
 							id="kitten"
 							name="kitten"
-							label="Chat Chaton"
+							label="Chaton"
 							type="number"
 							bind:value={kitten}
 							placeholder="4"
@@ -643,7 +642,7 @@
 
 			<Separator />
 
-			<!-- 📝 SECTION 4: Descriptions -->
+			<!-- SECTION 3 : Descriptions (inchangé) -->
 			<section class="space-y-4">
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.homeDescription.icon}
@@ -714,10 +713,7 @@
 
 			<Separator />
 
-			<!-- BUTTONS -->
-			<div>
-				<SaveCancelButtons onCancel={handleCancelClick} {isSaving} />
-			</div>
+			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
 		</form>
 	</Dialog.Content>
 </Dialog.Root>

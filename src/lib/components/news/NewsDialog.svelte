@@ -3,8 +3,11 @@
 	import type { NewsFull } from '$lib/types/news';
 	import NewsCatDialog from '$lib/components/news/NewsCatDialog.svelte';
 	import { formatDate } from '$lib/utils/date';
+	import DocumentPreview from '$lib/components/media/DocumentPreview.svelte';
 
 	let { selectedNews }: { selectedNews: NewsFull | null } = $props();
+
+	const pdf = $derived(selectedNews?.mediaFile ?? null);
 </script>
 
 <Dialog.Content size="xl" class="bg-background">
@@ -12,10 +15,9 @@
 		<div>
 			<!-- 🐱 MODE NEWSCATS -->
 			{#if selectedNews.type === 'NEWSCATS'}
-				<NewsCatDialog {selectedNews} cats={selectedNews.cats} />
-
+				<NewsCatDialog news={selectedNews} cats={selectedNews.cats} />
 				<!-- 📄 MODE PDF -->
-			{:else if selectedNews.mediaUrl}
+			{:else if pdf}
 				<Dialog.Header class="flex justify-between p-6">
 					<div class="flex justify-between">
 						<Dialog.Title>{selectedNews.title}</Dialog.Title>
@@ -23,12 +25,14 @@
 					</div>
 				</Dialog.Header>
 
-				<object
-					data={selectedNews.mediaUrl}
-					type="application/pdf"
-					class="h-[70vh] w-full rounded-lg border"
-					aria-label="pdf"
-				></object>
+				<!-- PC : lecteur intégré ; mobile : une carte qui ouvre la visionneuse du téléphone -->
+				<DocumentPreview
+					variant="embed"
+					src={pdf.url}
+					name={pdf.name ?? selectedNews.title}
+					sizeBytes={pdf.sizeBytes}
+					mimeType={pdf.mimeType}
+				/>
 
 				<!-- 📝 MODE TEXTE -->
 			{:else}

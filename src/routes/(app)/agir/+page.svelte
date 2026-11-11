@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { fade, fly } from 'svelte/transition';
 	import FormSOS from '$lib/components/forms/FormSOS.svelte';
@@ -9,14 +9,22 @@
 	import FormColab from '$lib/components/forms/FormColab.svelte';
 	import CountUp from '$lib/components/CountUp.svelte';
 	import { Mail } from '@lucide/svelte';
+	import type { PageData } from './$types';
 
-	let { data } = $props();
+	// 🆕 Typé : chaque formulaire reçoit le bon type de données (avant : `any`)
+	let { data }: { data: PageData } = $props();
+
+	// 🆕 Une seule adresse, utilisée pour le lien ET pour le texte affiché
+	const CONTACT_EMAIL = 'lespattounesducoeur@gmail.com';
+
+	// Les formulaires sont longs : la fenêtre défile au lieu de dépasser de l'écran
+	const dialogClass = 'bg-secondary-foreground max-h-[90dvh] overflow-y-auto sm:max-w-125';
 </script>
 
 <main in:fade={{ duration: 200 }} class="flex justify-center px-4 py-8">
 	<div in:fly={{ y: 20, duration: 300 }} class="mx-auto flex w-full max-w-7xl flex-col gap-6">
 		<!-- 🚨 HERO -->
-		<Card.Root class="border-destructive/20 overflow-hidden">
+		<Card.Root class="overflow-hidden border-destructive/20">
 			<div class="grid gap-6 px-12 lg:grid-cols-2">
 				<div class="flex flex-col justify-center">
 					<Card.Header class="p-0">
@@ -30,45 +38,49 @@
 					<Card.Content class="mt-6 space-y-4 p-0">
 						<ul class="space-y-3">
 							<li class="flex items-start gap-3">
-								<span class="text-primary mt-1">•</span>
+								<span class="mt-1 text-primary">•</span>
 								<span>Chats errants repérés dans les rues</span>
 							</li>
 
 							<li class="flex items-start gap-3">
-								<span class="text-primary mt-1">•</span>
+								<span class="mt-1 text-primary">•</span>
 								<span>Chats maltraités ou abandonnés</span>
 							</li>
 
 							<li class="flex items-start gap-3">
-								<span class="text-primary mt-1">•</span>
+								<span class="mt-1 text-primary">•</span>
 								<span>Intervention rapide grâce à vos signalements</span>
 							</li>
 
 							<li class="flex items-start gap-3">
-								<span class="text-primary mt-1">•</span>
+								<span class="mt-1 text-primary">•</span>
 								<span>Offrez une nouvelle chance à un animal en danger</span>
 							</li>
 						</ul>
 
-						<div class="text-muted-foreground pt-2 text-sm">
+						<div class="pt-2 text-sm text-muted-foreground">
 							<CountUp target={data.savedThisYear} /> chats sauvés cette année 🐱
 						</div>
 
+						<!-- 🆕 Le lien écrivait à contact@association.fr, alors que le texte affichait une autre adresse -->
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- lien mailto, pas une route -->
 						<a
-							href="mailto:contact@association.fr"
-							class="text-muted-foreground hover:text-primary flex items-center gap-2 transition-colors"
+							href="mailto:{CONTACT_EMAIL}"
+							class="flex items-center gap-2 text-muted-foreground transition-colors hover:text-primary"
 						>
 							<Mail class="h-4 w-4" />
-							lespattounesducoeur@gmail.com
+							{CONTACT_EMAIL}
 						</a>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					</Card.Content>
 
 					<Card.Footer class="mt-8 justify-start p-0">
 						<Dialog.Root>
-							<Dialog.Trigger>
-								<Button size="lg">Faire un signalement</Button>
+							<!-- Le Trigger EST le bouton : pas de <button> dans un <button> -->
+							<Dialog.Trigger class={buttonVariants({ size: 'lg' })}>
+								Faire un signalement
 							</Dialog.Trigger>
-							<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
+							<Dialog.Content class={dialogClass}>
 								<FormSOS data={data.sosForm} />
 							</Dialog.Content>
 						</Dialog.Root>
@@ -104,10 +116,10 @@
 
 				<Card.Footer class="justify-end">
 					<Dialog.Root>
-						<Dialog.Trigger>
-							<Button size="lg">Devenir famille d’accueil</Button>
+						<Dialog.Trigger class={buttonVariants({ size: 'lg' })}>
+							Devenir famille d’accueil
 						</Dialog.Trigger>
-						<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
+						<Dialog.Content class={dialogClass}>
 							<FormHost data={data.hostForm} />
 						</Dialog.Content>
 					</Dialog.Root>
@@ -132,10 +144,8 @@
 
 				<Card.Footer class="justify-end">
 					<Dialog.Root>
-						<Dialog.Trigger>
-							<Button size="lg">Je veux aider</Button>
-						</Dialog.Trigger>
-						<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
+						<Dialog.Trigger class={buttonVariants({ size: 'lg' })}>Je veux aider</Dialog.Trigger>
+						<Dialog.Content class={dialogClass}>
 							<FormVolunteer data={data.volunteerForm} />
 						</Dialog.Content>
 					</Dialog.Root>
@@ -171,10 +181,8 @@
 
 					<Card.Footer class="mt-8 justify-start p-0">
 						<Dialog.Root>
-							<Dialog.Trigger>
-								<Button size="lg">Nous contacter</Button>
-							</Dialog.Trigger>
-							<Dialog.Content class="bg-secondary-foreground sm:max-w-125">
+							<Dialog.Trigger class={buttonVariants({ size: 'lg' })}>Nous contacter</Dialog.Trigger>
+							<Dialog.Content class={dialogClass}>
 								<FormColab data={data.colabForm} />
 							</Dialog.Content>
 						</Dialog.Root>
