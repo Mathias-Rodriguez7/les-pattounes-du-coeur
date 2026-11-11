@@ -11,13 +11,13 @@
 		hostStep2Schema,
 		hostStep3Schema,
 		hostStep4Schema
-	} from '$lib/schemas/formShema/hostForm';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	} from '#lib/schemas/formShema/hostForm.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
 
 	// Annoter les props (et non `$props<…>()`) : sinon `data` est `any`, et tout le formulaire perd ses types
 	let { data }: { data: SuperValidated<Infer<typeof hostFormSchema>> } = $props();

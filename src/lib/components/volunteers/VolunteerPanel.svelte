@@ -1,17 +1,17 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { Pencil } from '@lucide/svelte';
-	import * as Pagination from '$lib/components/ui/pagination/index.js';
-	import { statusLabel } from '$lib/utils/catHelpers';
-	import { Badge } from '$lib/components/ui/badge';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import * as Pagination from '#lib/components/ui/pagination/index.js';
+	import { statusLabel } from '#lib/utils/catHelpers.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
-	import { formatAge } from '$lib/utils/age';
+	import { formatAge } from '#lib/utils/age.ts';
 	import {
 		type VolunteerWithRelations,
 		type VolunteerEditData,
@@ -21,15 +21,15 @@
 		FORM_TYPE_LABELS,
 		FORM_TYPES,
 		STATUS_CONFIG
-	} from '$lib/types/';
+	} from '#lib/types//index.ts';
 	import type { ColabActivity, VolunteerRole, Form } from '@prisma/client';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import { formatDate } from '$lib/utils/date';
+	import { formatDate } from '#lib/utils/date.ts';
 	import {
 		VOLUNTEER_SECTION_CONFIG,
 		VOLUNTEER_ROLE_OPTIONS,
 		roleColors
-	} from '$lib/constants/volunteer';
+	} from '#lib/constants/volunteer.ts';
 
 	const {
 		volunteer,

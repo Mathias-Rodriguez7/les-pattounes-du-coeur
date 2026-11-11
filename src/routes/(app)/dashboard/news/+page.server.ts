@@ -1,12 +1,12 @@
 // app/dashboard/news/+page.server.ts
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { createNews, updateNews, deleteNews } from '$lib/server/news/mutations';
-import { canManageNews, canDeleteNews } from '$lib/permissions/news';
+import prisma from '#lib/server/prisma.ts';
+import { createNews, updateNews, deleteNews } from '#lib/server/news/mutations.ts';
+import { canManageNews, canDeleteNews } from '#lib/permissions/news.ts';
 import { fail, redirect } from '@sveltejs/kit';
-import { newsListSelect, toNewsFull } from '$lib/server/news/queries';
-import { generateCatsNews, getNewsCatsCandidateIds } from '$lib/server/news/catsNews';
-import { generateCatsSchema } from '$lib/schemas/news';
+import { newsListSelect, toNewsFull } from '#lib/server/news/queries.ts';
+import { generateCatsNews, getNewsCatsCandidateIds } from '#lib/server/news/catsNews.ts';
+import { generateCatsSchema } from '#lib/schemas/news.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Même règle que la barre latérale, mais appliquée par le serveur

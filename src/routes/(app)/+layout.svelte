@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Navbar from '$lib/components/layout/Navbar.svelte';
-	import Sidebar from '$lib/components/layout/Sidebar.svelte';
-	import Footer from '$lib/components/layout/Footer.svelte';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import Navbar from '#lib/components/layout/Navbar.svelte';
+	import Sidebar from '#lib/components/layout/Sidebar.svelte';
+	import Footer from '#lib/components/layout/Footer.svelte';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { afterNavigate } from '$app/navigation';
 	import { Menu } from '@lucide/svelte';
 	import { Toaster } from 'svelte-sonner';

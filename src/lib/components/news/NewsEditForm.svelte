@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { X, Search, Trash2, Undo2 } from '@lucide/svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import InputField from '../fields/InputField.svelte';
@@ -13,11 +13,11 @@
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import MediaPreview from '../media/MediaPreview.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '$lib/constants/news';
-	import type { NewsEditData } from '$lib/types/news';
+	import { NEWS_SECTION_CONFIG, NEWS_TYPE_OPTIONS_CLASSIC } from '#lib/constants/news.ts';
+	import type { NewsEditData } from '#lib/types/news.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 
 	type CatOption = { id: string; name: string | null; catNumber: string };
 

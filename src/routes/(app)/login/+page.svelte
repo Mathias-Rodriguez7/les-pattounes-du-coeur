@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Alert from '$lib/components/ui/alert/index.js';
-	import LoginForm from '$lib/components/auth/LoginForm.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Alert from '#lib/components/ui/alert/index.js';
+	import LoginForm from '#lib/components/auth/LoginForm.svelte';
 	import { LogIn, CircleCheckBig, CircleAlert } from '@lucide/svelte';
 	import type { ActionData } from './$types';
 

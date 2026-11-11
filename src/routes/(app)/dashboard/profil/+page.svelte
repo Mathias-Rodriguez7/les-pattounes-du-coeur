@@ -1,11 +1,11 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import PasswordField from '$lib/components/fields/PasswordField.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import PasswordField from '#lib/components/fields/PasswordField.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import {
@@ -21,13 +21,13 @@
 		ChevronRight,
 		CalendarClock
 	} from '@lucide/svelte';
-	import { DISTRICTS, DISTRICT_LABELS } from '$lib/utils/districts';
+	import { DISTRICTS, DISTRICT_LABELS } from '#lib/utils/districts.ts';
 	import type { ActionData, PageData } from './$types';
 	import { fade } from 'svelte/transition';
 	import { format } from 'date-fns';
 	import { fr } from 'date-fns/locale';
-	import { VOLUNTEER_STATUS_OPTIONS, VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { VOLUNTEER_STATUS_OPTIONS, VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 

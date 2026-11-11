@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PasswordInput from '$lib/components/auth/PasswordInput.svelte';
+	import PasswordInput from '#lib/components/auth/PasswordInput.svelte';
 
 	type Props = {
 		id: string;

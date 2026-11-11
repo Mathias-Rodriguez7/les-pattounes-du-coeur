@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Input } from '$lib/components/ui/input';
-	import InputField from '$lib/components/fields/InputField.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
 	import { LoaderCircle, Plus, Search } from '@lucide/svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';

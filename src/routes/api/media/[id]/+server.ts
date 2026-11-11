@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
-import prisma from '$lib/server/prisma';
-import { createDownloadUrl, getPublicUrl } from '$lib/server/storage';
+import prisma from '#lib/server/prisma.ts';
+import { createDownloadUrl, getPublicUrl } from '#lib/server/storage.ts';
 
 const idSchema = z.string().uuid();
 

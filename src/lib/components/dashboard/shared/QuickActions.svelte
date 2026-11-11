@@ -1,9 +1,9 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
+	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 
 	interface Action {
 		label: string;

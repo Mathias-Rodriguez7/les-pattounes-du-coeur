@@ -4,16 +4,16 @@
 	import type { InfoDocumentCategory } from '@prisma/client';
 	import { fade, fly } from 'svelte/transition';
 	import { FileText, FileType, Download, Eye, Info, Search, SearchX } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { DOCX_MIME, formatBytes } from '$lib/media/rules';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import { DOCX_MIME, formatBytes } from '#lib/media/rules.ts';
 	import {
 		INFO_DOCUMENT_CATEGORY,
 		INFO_DOCUMENT_CATEGORY_ORDER
-	} from '$lib/constants/infoDocument';
-	import InfoDocumentCreateDialog from '$lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
-	import InfoDocumentEditDialog from '$lib/components/infoDocuments/InfoDocumentEditDialog.svelte';
-	import DeleteButton from '$lib/components/buttons/DeleteButton.svelte';
+	} from '#lib/constants/infoDocument.ts';
+	import InfoDocumentCreateDialog from '#lib/components/infoDocuments/InfoDocumentCreateDialog.svelte';
+	import InfoDocumentEditDialog from '#lib/components/infoDocuments/InfoDocumentEditDialog.svelte';
+	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
 
 	let { data }: { data: PageData } = $props();
 

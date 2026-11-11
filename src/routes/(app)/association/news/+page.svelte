@@ -1,15 +1,15 @@
 <!-- app/association/news/+page.svelte -->
 <script lang="ts">
-	import NewsDialog from '$lib/components/news/NewsDialog.svelte';
-	import NewsCard from '$lib/components/news/NewsCard.svelte';
-	import NewsCatCard from '$lib/components/news/NewsCatCard.svelte';
-	import type { NewsFull } from '$lib/types/news';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Sheet from '$lib/components/ui/sheet';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	import NewsDialog from '#lib/components/news/NewsDialog.svelte';
+	import NewsCard from '#lib/components/news/NewsCard.svelte';
+	import NewsCatCard from '#lib/components/news/NewsCatCard.svelte';
+	import type { NewsFull } from '#lib/types/news.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import * as Sheet from '#lib/components/ui/sheet/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import { Search } from '@lucide/svelte';
 	import { fade, fly } from 'svelte/transition';
 

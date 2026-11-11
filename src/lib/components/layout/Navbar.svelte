@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as NavigationMenu from '#lib/components/ui/navigation-menu/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -16,7 +16,7 @@
 		ShoppingBag,
 		Mail
 	} from '@lucide/svelte';
-	import LoginForm from '$lib/components/auth/LoginForm.svelte';
+	import LoginForm from '#lib/components/auth/LoginForm.svelte';
 
 	let mobileMenuOpen = $state(false);
 	let loginOpenMobile = $state(false);

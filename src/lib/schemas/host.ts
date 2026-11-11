@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { District, HostType, Heal, Socialize, BabyFeeding, ColabActivity } from '@prisma/client';
-import { emailField } from '$lib/schemas/fields';
+import { emailField } from '#lib/schemas/fields.ts';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z

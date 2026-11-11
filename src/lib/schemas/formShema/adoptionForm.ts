@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
-import { emailField } from '$lib/schemas/fields';
+import { emailField } from '#lib/schemas/fields.ts';
 import {
 	CAT_AGE_PREFERENCES,
 	CAT_SEX_PREFERENCES,
 	CAT_FUR_PREFERENCES,
 	enumKeys
-} from '$lib/constants/forms';
+} from '#lib/constants/forms.ts';
 
 // 🔧 Helpers
 const optionalString = (min = 1, msg?: string) =>

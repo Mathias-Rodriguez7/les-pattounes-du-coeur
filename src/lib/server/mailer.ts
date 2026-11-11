@@ -10,7 +10,7 @@ import {
 	ASSOCIATION_EMAIL
 } from '$app/env/private';
 
-import { SOS_ALERT_TYPES, type SosAlertType } from '$lib/constants/sos';
+import { SOS_ALERT_TYPES, type SosAlertType } from '#lib/constants/sos.ts';
 
 const transporter = nodemailer.createTransport({
 	host: SMTP_HOST,

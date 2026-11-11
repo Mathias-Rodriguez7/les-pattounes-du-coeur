@@ -8,8 +8,8 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button/index.js';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { Trash2 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 

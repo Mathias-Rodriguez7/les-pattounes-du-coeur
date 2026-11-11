@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { countMyDueAdoptions } from '$lib/server/adoptions/queries';
+import { countMyDueAdoptions } from '#lib/server/adoptions/queries.ts';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	// Les rappels de la sidebar : uniquement pour une bénévole connectée.

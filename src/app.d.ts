@@ -1,5 +1,5 @@
 import type { VolunteerRole } from '@prisma/client';
-import type { AppUser } from '$lib/types/user';
+import type { AppUser } from '#lib/types/user.ts';
 
 declare global {
 	// Verrou des crons (voir src/lib/server/cron/index.ts)

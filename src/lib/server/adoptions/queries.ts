@@ -1,7 +1,7 @@
 // src/lib/server/adoptions/queries.ts
 import type { Prisma } from '@prisma/client';
-import prisma from '$lib/server/prisma';
-import { todayDateOnly } from '$lib/utils/date';
+import prisma from '#lib/server/prisma.ts';
+import { todayDateOnly } from '#lib/utils/date.ts';
 
 /**
  * Les adoptions à finaliser : période d'essai terminée (trialEndsAt ≤ aujourd'hui).

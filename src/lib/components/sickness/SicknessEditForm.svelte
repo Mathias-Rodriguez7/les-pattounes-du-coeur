@@ -2,8 +2,8 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import type { Sickness, SicknessStatus } from '@prisma/client';
 	import { untrack } from 'svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { Plus, Pencil } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import InputField from '../fields/InputField.svelte';
@@ -12,7 +12,7 @@
 	import DatePicker from '../fields/DatePicker.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
-	import { SICKNESS_STATUS } from '$lib/constants/sickness';
+	import { SICKNESS_STATUS } from '#lib/constants/sickness.ts';
 
 	interface Props {
 		catId: string;

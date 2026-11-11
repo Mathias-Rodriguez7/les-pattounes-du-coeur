@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Icon from '$lib/components/Icon.svelte';
+	import Icon from '#lib/components/Icon.svelte';
 	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	interface Props {
 		data: PageData;

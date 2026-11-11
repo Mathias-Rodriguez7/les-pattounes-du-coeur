@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle } from '@lucide/svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';

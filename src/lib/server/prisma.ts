@@ -1,7 +1,7 @@
 // src/lib/server/prisma.ts
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { volunteerSecretFields } from '$lib/types/volunteer';
+import { volunteerSecretFields } from '#lib/types/volunteer.ts';
 
 // ✅ Utiliser process.env directement (disponible côté serveur)
 const DATABASE_URL = process.env.DATABASE_URL;

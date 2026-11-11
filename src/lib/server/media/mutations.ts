@@ -1,9 +1,9 @@
 import type { MediaType } from '@prisma/client';
-import prisma from '$lib/server/prisma';
-import type { UploadPurpose } from '$lib/media/rules';
+import prisma from '#lib/server/prisma.ts';
+import type { UploadPurpose } from '#lib/media/rules.ts';
 import { UPLOAD_PURPOSE_CONFIG } from './purposes';
-import { verifyUpload, deleteFiles } from '$lib/server/storage';
-import type { AppUser } from '$lib/types/user';
+import { verifyUpload, deleteFiles } from '#lib/server/storage.ts';
+import type { AppUser } from '#lib/types/user.ts';
 
 /** Les champs d'une ligne Media, prêts pour un `create` imbriqué */
 export type MediaData = {

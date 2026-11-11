@@ -1,6 +1,6 @@
 // src/lib/server/permissions/form.ts
 import type { Prisma } from '@prisma/client';
-import type { AppUser } from '$lib/types/user';
+import type { AppUser } from '#lib/types/user.ts';
 import { canManageCat } from './cat';
 
 /**

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as InputGroup from '$lib/components/ui/input-group/index.js';
-	import * as Alert from '$lib/components/ui/alert/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as InputGroup from '#lib/components/ui/input-group/index.js';
+	import * as Alert from '#lib/components/ui/alert/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
 	import { Mail, ArrowLeft, MailCheck, CircleAlert, LoaderCircle, KeyRound } from '@lucide/svelte';
 	import type { ActionData } from './$types';
 

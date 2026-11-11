@@ -1,11 +1,11 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { QuickAdoptionFormSchema } from '$lib/schemas/formShema/quickAdoptionForm';
-import prisma from '$lib/server/prisma';
+import { QuickAdoptionFormSchema } from '#lib/schemas/formShema/quickAdoptionForm.ts';
+import prisma from '#lib/server/prisma.ts';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { z } from 'zod';
-import { getCatReferentId } from '$lib/server/forms/assignment';
+import { getCatReferentId } from '#lib/server/forms/assignment.ts';
 
 export const load: PageServerLoad = async ({ params }) => {
 	// Un id mal formé ferait planter PostgreSQL (colonne uuid) : on répond 404 avant

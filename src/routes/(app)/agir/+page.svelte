@@ -1,13 +1,13 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { fade, fly } from 'svelte/transition';
-	import FormSOS from '$lib/components/forms/FormSOS.svelte';
-	import FormHost from '$lib/components/forms/FormHost.svelte';
-	import FormVolunteer from '$lib/components/forms/FormVolunteer.svelte';
-	import FormColab from '$lib/components/forms/FormColab.svelte';
-	import CountUp from '$lib/components/CountUp.svelte';
+	import FormSOS from '#lib/components/forms/FormSOS.svelte';
+	import FormHost from '#lib/components/forms/FormHost.svelte';
+	import FormVolunteer from '#lib/components/forms/FormVolunteer.svelte';
+	import FormColab from '#lib/components/forms/FormColab.svelte';
+	import CountUp from '#lib/components/CountUp.svelte';
 	import { Mail } from '@lucide/svelte';
 	import type { PageData } from './$types';
 

@@ -13,9 +13,9 @@ import type {
 	News
 } from '@prisma/client';
 import type { PlacementFull } from './placement';
-import type { HostBasic } from '$lib/types/host';
-import { volunteerSecretFields } from '$lib/types/volunteer';
-import { formInclude, type FormWithBlacklist } from '$lib/types/form';
+import type { HostBasic } from '#lib/types/host.ts';
+import { volunteerSecretFields } from '#lib/types/volunteer.ts';
+import { formInclude, type FormWithBlacklist } from '#lib/types/form.ts';
 
 // ✅ La galerie : photo principale d'abord, puis par ordre d'ajout.
 // Jamais d'URL stockée : elle est calculée à partir de la storageKey.

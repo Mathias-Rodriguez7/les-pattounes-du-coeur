@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import type { CatEditData } from '$lib/types/cat';
+	import type { CatEditData } from '#lib/types/cat.ts';
 	import {
 		CAT_SEX,
 		CAT_STATUS,
 		CAT_HAIR_LENGTH,
 		CAT_VACCINATE,
 		CAT_SECTION_CONFIG
-	} from '$lib/constants/cat';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	} from '#lib/constants/cat.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import InputField from '../fields/InputField.svelte';

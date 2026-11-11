@@ -90,5 +90,9 @@
 		"pg": "^8.23.1",
 		"svelte-charts": "^0.0.1",
 		"tailwindcss-animate": "^1.0.7"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }

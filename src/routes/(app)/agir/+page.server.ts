@@ -1,13 +1,13 @@
 import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { sosFormSchema } from '$lib/schemas/formShema/sosForm';
-import { hostFormSchema } from '$lib/schemas/formShema/hostForm';
-import { volunteerFormSchema } from '$lib/schemas/formShema/volunteerForm';
-import { colabForm } from '$lib/schemas/formShema/colabForm.js';
-import prisma from '$lib/server/prisma';
+import { sosFormSchema } from '#lib/schemas/formShema/sosForm.ts';
+import { hostFormSchema } from '#lib/schemas/formShema/hostForm.ts';
+import { volunteerFormSchema } from '#lib/schemas/formShema/volunteerForm.ts';
+import { colabForm } from '#lib/schemas/formShema/colabForm.js';
+import prisma from '#lib/server/prisma.ts';
 import { FormStatus, FormType } from '@prisma/client';
-import { sendSosAlertEmail } from '$lib/server/mailer';
+import { sendSosAlertEmail } from '#lib/server/mailer.ts';
 
 /** Le message envoyé au visiteur quand l'enregistrement échoue (le détail reste dans les logs) */
 const SAVE_ERROR = "Votre demande n'a pas pu être envoyée. Réessayez dans quelques minutes.";

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { statusColors, typesLabels } from '$lib/constants/forms';
-	import { formatDateNum } from '$lib/utils/date';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { statusColors, typesLabels } from '#lib/constants/forms.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
 
 	let { form, isSelected = false, onclick } = $props();
 

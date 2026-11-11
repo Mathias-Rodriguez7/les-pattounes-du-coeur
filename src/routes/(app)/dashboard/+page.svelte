@@ -1,8 +1,8 @@
 <script lang="ts">
-	import AdminDashboard from '$lib/components/dashboard/roles/AdminDashboard.svelte';
-	import ManagerDashboard from '$lib/components/dashboard/roles/ManagerDashboard.svelte';
-	import CommunicationDashboard from '$lib/components/dashboard/roles/CommunicationDashboard.svelte';
-	import Radial from '$lib/components/charts/Radial.svelte';
+	import AdminDashboard from '#lib/components/dashboard/roles/AdminDashboard.svelte';
+	import ManagerDashboard from '#lib/components/dashboard/roles/ManagerDashboard.svelte';
+	import CommunicationDashboard from '#lib/components/dashboard/roles/CommunicationDashboard.svelte';
+	import Radial from '#lib/components/charts/Radial.svelte';
 	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
 

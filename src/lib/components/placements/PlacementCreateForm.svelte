@@ -1,16 +1,16 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.js';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import { Plus, LoaderCircle } from '@lucide/svelte';
-	import type { PlacementFull } from '$lib/types/placement';
-	import type { CatFull } from '$lib/types/cat';
-	import type { HostFull } from '$lib/types/host';
-	import { CAT_SECTION_CONFIG } from '$lib/constants/cat';
-	import { getAgeBadge } from '$lib/utils/age';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getLabel, getSexIcon, vaccinateLabel } from '$lib/utils/catHelpers';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	import type { PlacementFull } from '#lib/types/placement.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
+	import type { HostFull } from '#lib/types/host.ts';
+	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getLabel, getSexIcon, vaccinateLabel } from '#lib/utils/catHelpers.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 	import HostDataTable from '../hosts/HostDataTable.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance, type SubmitFunction } from '$app/forms';

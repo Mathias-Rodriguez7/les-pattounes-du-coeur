@@ -1,8 +1,8 @@
 <!-- src/lib/components/media/DocumentPreview.svelte -->
 <script lang="ts">
-	import { buttonVariants } from '$lib/components/ui/button';
+	import { buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { FileText, FileType, ExternalLink, Download } from '@lucide/svelte';
-	import { formatBytes, DOCX_MIME } from '$lib/media/rules';
+	import { formatBytes, DOCX_MIME } from '#lib/media/rules.ts';
 
 	interface Props {
 		src: string;

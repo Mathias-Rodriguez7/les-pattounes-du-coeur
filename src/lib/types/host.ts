@@ -1,5 +1,5 @@
 import type { Prisma, Heal, Socialize, BabyFeeding, HostType, ColabActivity } from '@prisma/client';
-import { volunteerSecretFields } from '$lib/types/volunteer';
+import { volunteerSecretFields } from '#lib/types/volunteer.ts';
 
 // ✅ Ce que charge une FA complète : la requête ET le type en découlent
 export const hostFullArgs = {

@@ -4,9 +4,13 @@
 	import { get } from 'svelte/store';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { colabForm, colabStep1Schema, colabStep2Schema } from '$lib/schemas/formShema/colabForm';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
+	import {
+		colabForm,
+		colabStep1Schema,
+		colabStep2Schema
+	} from '#lib/schemas/formShema/colabForm.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
 
 	let { data }: { data: SuperValidated<Infer<typeof colabForm>> } = $props();
 

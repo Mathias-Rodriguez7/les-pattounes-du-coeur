@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { SexCat, CatStatus, HairLength, Vaccinate } from '@prisma/client';
-import { booleanField } from '$lib/schemas/fields';
+import { booleanField } from '#lib/schemas/fields.ts';
 
 const sexEnum = z
 	.enum(Object.values(SexCat) as [string, ...string[]])

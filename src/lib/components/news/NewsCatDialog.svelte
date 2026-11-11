@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Carousel from '$lib/components/ui/carousel';
-	import CatCard from '$lib/components/cats/CatCard.svelte';
-	import type { NewsFull } from '$lib/types/news';
-	import type { CatListItem } from '$lib/types/cat';
-	import { formatDate } from '$lib/utils/date';
+	import * as Carousel from '#lib/components/ui/carousel/index.ts';
+	import CatCard from '#lib/components/cats/CatCard.svelte';
+	import type { NewsFull } from '#lib/types/news.ts';
+	import type { CatListItem } from '#lib/types/cat.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import { resolve } from '$app/paths';
 
 	const { news, cats = [] }: { news: NewsFull; cats?: CatListItem[] } = $props();

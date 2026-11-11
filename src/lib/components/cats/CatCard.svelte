@@ -1,11 +1,11 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import SexIcon from '$lib/components/cats/SexIcon.svelte';
-	import type { CatListItem } from '$lib/types/cat';
-	import { focalPointStyle } from '$lib/utils/catHelpers';
-	import { getAgeBadge } from '$lib/utils/age';
-	import { truncate } from '$lib/utils/string';
-	import { publicMediaUrl } from '$lib/media/urls';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import SexIcon from '#lib/components/cats/SexIcon.svelte';
+	import type { CatListItem } from '#lib/types/cat.ts';
+	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import { truncate } from '#lib/utils/string.ts';
+	import { publicMediaUrl } from '#lib/media/urls.ts';
 
 	let { cat }: { cat: CatListItem } = $props();
 

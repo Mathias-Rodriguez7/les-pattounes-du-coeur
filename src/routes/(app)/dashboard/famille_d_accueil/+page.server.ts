@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import { District } from '@prisma/client';
-import { createHost, updateHost } from '$lib/server/hosts/mutations';
-import { deleteProfile, blacklistProfile } from '$lib/server/mutations';
-import { hostFullArgs } from '$lib/types/host';
+import { createHost, updateHost } from '#lib/server/hosts/mutations.ts';
+import { deleteProfile, blacklistProfile } from '#lib/server/mutations.ts';
+import { hostFullArgs } from '#lib/types/host.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Accès : avant le try, pour que le catch n'attrape pas la redirection

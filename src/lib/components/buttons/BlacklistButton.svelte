@@ -8,9 +8,9 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import Icon from '$lib/components/Icon.svelte';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import Icon from '#lib/components/Icon.svelte';
 	import { toast } from 'svelte-sonner';
 
 	interface Props {

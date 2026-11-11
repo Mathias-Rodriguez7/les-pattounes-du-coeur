@@ -1,4 +1,4 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import { redirect } from '@sveltejs/kit';
 
 export const actions = {

@@ -1,5 +1,5 @@
 import type { NewsType } from '@prisma/client';
-import type { CatListItem } from '$lib/types/cat';
+import type { CatListItem } from '#lib/types/cat.ts';
 
 /** Le document d'une news, prêt à afficher */
 export type NewsMediaFile = {

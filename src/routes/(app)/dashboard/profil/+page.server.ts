@@ -1,9 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { hashPassword, verifyPassword } from '$lib/server/hashing';
+import prisma from '#lib/server/prisma.ts';
+import { hashPassword, verifyPassword } from '#lib/server/hashing.ts';
 import { z } from 'zod';
-import { updateVolunteer } from '$lib/server/volunteers/mutations';
+import { updateVolunteer } from '#lib/server/volunteers/mutations.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {

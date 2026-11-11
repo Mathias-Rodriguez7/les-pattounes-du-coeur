@@ -1,10 +1,10 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/dashboard/SectionHeader.svelte';
+	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	interface TaskGroup {
 		theme: string;

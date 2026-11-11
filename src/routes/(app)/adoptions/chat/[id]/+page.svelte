@@ -1,13 +1,13 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Form from '#lib/components/ui/form/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import {
 		QuickAdoptionFormSchema,
 		step1Schema,
 		step2Schema
-	} from '$lib/schemas/formShema/quickAdoptionForm';
+	} from '#lib/schemas/formShema/quickAdoptionForm.ts';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { goto } from '$app/navigation';
@@ -15,14 +15,14 @@
 	import { get } from 'svelte/store';
 	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import { FORM_SECTION_CONFIG } from '$lib/constants/forms';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import { FORM_SECTION_CONFIG } from '#lib/constants/forms.ts';
 
 	// 🆕 Le type vient du load (cat = { name }, catId, form) : plus besoin de l'écrire à la main
 	let { data }: { data: PageData } = $props();

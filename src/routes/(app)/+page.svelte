@@ -1,14 +1,14 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import CatCard from '$lib/components/cats/CatCard.svelte';
-	import AreaChart from '$lib/components/AreaChart.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import CatCard from '#lib/components/cats/CatCard.svelte';
+	import AreaChart from '#lib/components/AreaChart.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { Plus, Search, Heart, Home, ArrowRight, HeartHandshake } from '@lucide/svelte';
-	import NewsCard from '$lib/components/news/NewsCard.svelte';
+	import NewsCard from '#lib/components/news/NewsCard.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
 	import { fade, fly } from 'svelte/transition';
-	import { cn } from '$lib/utils.js';
+	import { cn } from '#lib/utils.js';
 
 	let { data }: { data: PageData } = $props();
 </script>

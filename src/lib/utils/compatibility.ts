@@ -1,6 +1,6 @@
-import type { HostFull } from '$lib/types/host';
-import type { CatFull } from '$lib/types/cat';
-import { getAgeInMonths } from '$lib/utils/age';
+import type { HostFull } from '#lib/types/host.ts';
+import type { CatFull } from '#lib/types/cat.ts';
+import { getAgeInMonths } from '#lib/utils/age.ts';
 
 export type CompatibilityLevel = 'high' | 'medium' | 'low' | 'none';
 

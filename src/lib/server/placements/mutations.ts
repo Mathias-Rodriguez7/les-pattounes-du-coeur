@@ -1,11 +1,11 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createPlacementSchema,
 	updatePlacementSchema,
 	type CreatePlacementInput,
 	type UpdatePlacementInput
 } from '../../schemas/placement';
-import { placementHasDates } from '$lib/constants/placement';
+import { placementHasDates } from '#lib/constants/placement.ts';
 
 // ==========================================
 // CREATE - Créer un placement

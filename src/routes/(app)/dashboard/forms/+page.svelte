@@ -1,22 +1,22 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { Switch } from '$lib/components/ui/switch/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { Switch } from '#lib/components/ui/switch/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import FormRow from '$lib/components/forms/FormRow.svelte';
-	import FormPanel from '$lib/components/forms/FormPanel.svelte';
-	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '$lib/constants/forms.js';
-	import CardAction from '$lib/components/ui/card/card-action.svelte';
-	import AssignDispatcherDialog from '$lib/components/forms/AssignDispatcherDialog.svelte';
+	import FormRow from '#lib/components/forms/FormRow.svelte';
+	import FormPanel from '#lib/components/forms/FormPanel.svelte';
+	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '#lib/constants/forms.js';
+	import CardAction from '#lib/components/ui/card/card-action.svelte';
+	import AssignDispatcherDialog from '#lib/components/forms/AssignDispatcherDialog.svelte';
 	import { fade, fly } from 'svelte/transition';
-	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { resolve } from '$app/paths';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { buttonVariants } from '$lib/components/ui/button';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 

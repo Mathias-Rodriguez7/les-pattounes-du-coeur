@@ -1,11 +1,11 @@
-import prisma from '$lib/server/prisma';
-import type { CancelAdoptionInput, CreateAdoptionInput } from '$lib/schemas/adoption';
+import prisma from '#lib/server/prisma.ts';
+import type { CancelAdoptionInput, CreateAdoptionInput } from '#lib/schemas/adoption.ts';
 import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
-import { addMonths, formatDateNum, todayDateOnly } from '$lib/utils/date';
-import type { MediaData } from '$lib/server/media/mutations';
-import { deleteFiles } from '$lib/server/storage';
-import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '$lib/constants/adoption';
+import { addMonths, formatDateNum, todayDateOnly } from '#lib/utils/date.ts';
+import type { MediaData } from '#lib/server/media/mutations.ts';
+import { deleteFiles } from '#lib/server/storage.ts';
+import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '#lib/constants/adoption.ts';
 
 /** L'adoptant est sur liste noire et personne n'a autorisé l'adoption : l'action affiche la raison */
 export class BlacklistedAdopterError extends Error {

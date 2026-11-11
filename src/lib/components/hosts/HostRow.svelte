@@ -1,8 +1,8 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import BooleanIcon from '../icons/BooleanIcon.svelte';
-	import { typesColors, healColors, socializeColors } from '$lib/constants/host';
+	import { typesColors, healColors, socializeColors } from '#lib/constants/host.ts';
 	import { ChevronRight } from '@lucide/svelte';
 
 	const { host, isSelected = false, onclick } = $props();

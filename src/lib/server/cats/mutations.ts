@@ -1,4 +1,4 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createCatSchema,
 	updateCatSchema,
@@ -6,7 +6,7 @@ import {
 	type UpdateCatInput
 } from '../../schemas/cat';
 import { z } from 'zod';
-import { deleteFiles } from '$lib/server/storage';
+import { deleteFiles } from '#lib/server/storage.ts';
 
 const CAT_FIELDS = [
 	'name',

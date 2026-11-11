@@ -1,11 +1,11 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle, Undo2 } from '@lucide/svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 

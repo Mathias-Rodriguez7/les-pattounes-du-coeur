@@ -1,11 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createInfoDocument,
 	updateInfoDocument,
 	deleteInfoDocument
-} from '$lib/server/infoDocuments/mutations';
+} from '#lib/server/infoDocuments/mutations.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/');

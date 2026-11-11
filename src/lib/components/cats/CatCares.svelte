@@ -3,9 +3,9 @@
 	import DocumentPreview from '../media/DocumentPreview.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import CareCreateDialog from './CareCreateDialog.svelte';
-	import { CAT_SECTION_CONFIG, CAT_CARE_TYPES } from '$lib/constants/cat';
-	import { formatDateNum } from '$lib/utils/date';
-	import type { CatFull } from '$lib/types/cat';
+	import { CAT_SECTION_CONFIG, CAT_CARE_TYPES } from '#lib/constants/cat.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
 
 	interface Props {
 		cat: CatFull;

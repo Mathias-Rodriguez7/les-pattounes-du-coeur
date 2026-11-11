@@ -1,5 +1,5 @@
 // src/lib/server/forms/assignment.ts
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 
 /**
  * La bénévole « référente » d'un chat : la première associée.

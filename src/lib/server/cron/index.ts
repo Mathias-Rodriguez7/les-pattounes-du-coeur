@@ -1,7 +1,7 @@
 // src/lib/server/cron/index.ts
 import cron from 'node-cron';
 import { endFinishedBreaks } from './updateHostVolunteerStatus';
-import { generateCatsNews } from '$lib/server/news/catsNews';
+import { generateCatsNews } from '#lib/server/news/catsNews.ts';
 
 const TIMEZONE = 'Europe/Paris';
 

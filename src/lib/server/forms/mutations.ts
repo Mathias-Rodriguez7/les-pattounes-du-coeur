@@ -1,16 +1,16 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import { FormType } from '@prisma/client';
 import {
 	updateAdoptionFormSchema,
 	type UpdateAdoptionFormInput
-} from '$lib/schemas/formShema/adoptionForm';
+} from '#lib/schemas/formShema/adoptionForm.ts';
 import {
 	updateVolunteerSchema,
 	type UpdateVolunteerInput
-} from '$lib/schemas/formShema/volunteerForm';
-import { updateHostSchema, type UpdateHostInput } from '$lib/schemas/formShema/hostForm';
-import { updateColabSchema, type UpdateColabInput } from '$lib/schemas/formShema/colabForm';
-import { canManageForm } from '$lib/server/permissions/form';
+} from '#lib/schemas/formShema/volunteerForm.ts';
+import { updateHostSchema, type UpdateHostInput } from '#lib/schemas/formShema/hostForm.ts';
+import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema/colabForm.ts';
+import { canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
 
 // 🎯 Union type (utilise les types)

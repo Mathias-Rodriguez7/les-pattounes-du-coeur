@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import type { Path } from '$app/types';
 
 /**

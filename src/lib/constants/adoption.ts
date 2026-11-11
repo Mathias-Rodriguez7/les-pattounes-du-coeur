@@ -1,5 +1,5 @@
 // src/lib/constants/adoption.ts
-import type { AdoptionTone } from '$lib/utils/adoption';
+import type { AdoptionTone } from '#lib/utils/adoption.ts';
 import type { AdoptionStatus, CatStatus } from '@prisma/client';
 
 /** Durée de la période d'essai, en mois (fixée par l'association) */

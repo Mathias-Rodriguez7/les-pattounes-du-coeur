@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import type { PlacementFull } from '$lib/types/placement';
-	import type { CatFull } from '$lib/types/cat';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import type { PlacementFull } from '#lib/types/placement.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
 	import { Pencil } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import SelectField from '../fields/SelectField.svelte';
@@ -15,7 +15,7 @@
 		PLACEMENT_STATUS,
 		PLACEMENT_TYPE_OPTIONS,
 		placementHasDates
-	} from '$lib/constants/placement';
+	} from '#lib/constants/placement.ts';
 
 	interface Props {
 		cat: CatFull;

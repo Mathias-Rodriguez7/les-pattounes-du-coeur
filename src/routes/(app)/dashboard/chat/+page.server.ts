@@ -1,32 +1,32 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import prisma from '$lib/server/prisma';
-import { createCat, updateCat, deleteCat } from '$lib/server/cats/mutations';
+import prisma from '#lib/server/prisma.ts';
+import { createCat, updateCat, deleteCat } from '#lib/server/cats/mutations.ts';
 import {
 	createPlacements,
 	updatePlacement,
 	deletePlacement
-} from '$lib/server/placements/mutations';
-import type { UpdatePlacementInput } from '$lib/schemas/placement';
-import { createSickness, updateSickness, deleteSickness } from '$lib/server/sickness/mutations';
-import { createCatVolunteer, deleteCatVolunteer } from '$lib/server/catVolunteer/mutations';
-import { createCatDocument, deleteCatDocument } from '$lib/server/catDocuments/mutations';
-import { canManageCat, canManagePlacement } from '$lib/server/permissions/cat';
-import { catFullArgs } from '$lib/types/cat';
-import { hostFullArgs } from '$lib/types/host';
-import { createCare, deleteCare } from '$lib/server/cares/mutations';
+} from '#lib/server/placements/mutations.ts';
+import type { UpdatePlacementInput } from '#lib/schemas/placement.ts';
+import { createSickness, updateSickness, deleteSickness } from '#lib/server/sickness/mutations.ts';
+import { createCatVolunteer, deleteCatVolunteer } from '#lib/server/catVolunteer/mutations.ts';
+import { createCatDocument, deleteCatDocument } from '#lib/server/catDocuments/mutations.ts';
+import { canManageCat, canManagePlacement } from '#lib/server/permissions/cat.ts';
+import { catFullArgs } from '#lib/types/cat.ts';
+import { hostFullArgs } from '#lib/types/host.ts';
+import { createCare, deleteCare } from '#lib/server/cares/mutations.ts';
 import {
 	addCatMedia,
 	setPrimaryCatMedia,
 	deleteCatMedia,
 	updateCatMediaFocalPoint
-} from '$lib/server/catMedia/mutations';
-import { finalizeAdoption, cancelAdoption } from '$lib/server/adoptions/mutations';
-import { finalizeAdoptionSchema, cancelAdoptionSchema } from '$lib/schemas/adoption';
-import { prepareMedia, discardUpload, type MediaData } from '$lib/server/media/mutations';
-import { createAdoptionAction } from '$lib/server/adoptions/actions';
-import { attachBlacklist, findActiveBlacklists } from '$lib/server/accountStatus';
-import { updateForm, rejectForm } from '$lib/server/forms/mutations';
+} from '#lib/server/catMedia/mutations.ts';
+import { finalizeAdoption, cancelAdoption } from '#lib/server/adoptions/mutations.ts';
+import { finalizeAdoptionSchema, cancelAdoptionSchema } from '#lib/schemas/adoption.ts';
+import { prepareMedia, discardUpload, type MediaData } from '#lib/server/media/mutations.ts';
+import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
+import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus.ts';
+import { updateForm, rejectForm } from '#lib/server/forms/mutations.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {

@@ -1,25 +1,25 @@
 <script lang="ts">
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { DISTRICT_LABELS } from '$lib/utils/districts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import CheckboxField from '$lib/components/fields/CheckboxField.svelte';
-	import SaveCancelButtons from '$lib/components/buttons/SaveCancelButtons.svelte';
-	import DeleteButton from '$lib/components/buttons/DeleteButton.svelte';
-	import BlacklistButton from '$lib/components/buttons/BlacklistButton.svelte';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
+	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
+	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
+	import BlacklistButton from '#lib/components/buttons/BlacklistButton.svelte';
 	import {
 		VOLUNTEER_SECTION_CONFIG,
 		VOLUNTEER_AVAILABILITY_OPTIONS,
 		VOLUNTEER_AVAILABILITY_DURATION_OPTIONS
-	} from '$lib/constants/volunteer';
-	import type { FormEditData, VolunteerFormData } from '$lib/types/form';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
-	import DatePicker from '$lib/components/fields/DatePicker.svelte';
+	} from '#lib/constants/volunteer.ts';
+	import type { FormEditData, VolunteerFormData } from '#lib/types/form.ts';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
+	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 
 	let {
 		editData = $bindable<FormEditData<VolunteerFormData> | null>(),

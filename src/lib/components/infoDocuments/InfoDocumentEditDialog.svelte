@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { InfoDocumentCategory } from '@prisma/client';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { Pencil, LoaderCircle } from '@lucide/svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import TextareaField from '$lib/components/fields/TextareaField.svelte';
-	import MediaUpload from '$lib/components/media/MediaUpload.svelte';
-	import DocumentPreview from '$lib/components/media/DocumentPreview.svelte';
-	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '$lib/constants/infoDocument';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
+	import InputField from '#lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import MediaUpload from '#lib/components/media/MediaUpload.svelte';
+	import DocumentPreview from '#lib/components/media/DocumentPreview.svelte';
+	import { INFO_DOCUMENT_CATEGORY_OPTIONS } from '#lib/constants/infoDocument.ts';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 

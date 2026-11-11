@@ -1,11 +1,11 @@
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 import {
 	createVolunteerSchema,
 	updateVolunteerSchema,
 	type CreateVolunteerInput,
 	type UpdateVolunteerInput
-} from '$lib/schemas/volunteer';
-import { hashPassword } from '$lib/server/hashing';
+} from '#lib/schemas/volunteer.ts';
+import { hashPassword } from '#lib/server/hashing.ts';
 import { randomBytes } from 'node:crypto';
 import { sendVolunteerWelcomeEmail } from '../mailer';
 import { isEmailBlacklisted } from '../accountStatus';

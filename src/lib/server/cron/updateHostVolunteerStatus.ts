@@ -1,5 +1,5 @@
 // src/lib/server/cron/updateHostVolunteerStatus.ts
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 
 /**
  * Vérifie et met à jour le statut des hosts/volunteers

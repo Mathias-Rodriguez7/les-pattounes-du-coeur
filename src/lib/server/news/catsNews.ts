@@ -1,5 +1,5 @@
 // src/lib/server/news/catsNews.ts
-import prisma from '$lib/server/prisma';
+import prisma from '#lib/server/prisma.ts';
 
 /** La fenêtre de la règle : 7 jours glissants */
 const WINDOW_DAYS = 7;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { emailField } from '$lib/schemas/fields';
-import { SOS_ALERT_TYPES, type SosAlertType } from '$lib/constants/sos';
+import { emailField } from '#lib/schemas/fields.ts';
+import { SOS_ALERT_TYPES, type SosAlertType } from '#lib/constants/sos.ts';
 
 // Les valeurs autorisées viennent des constantes : impossible qu'elles divergent du formulaire
 const alertTypes = Object.keys(SOS_ALERT_TYPES) as [SosAlertType, ...SosAlertType[]];

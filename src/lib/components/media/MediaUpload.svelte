@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { MediaType } from '@prisma/client';
 	import { Upload, X, FileText, Film, Eye, FileType } from '@lucide/svelte';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import ImagePreview from './ImagePreview.svelte';
 	import {
 		MEDIA_RULES,
@@ -10,8 +10,8 @@
 		getMediaTypeFromMime,
 		validateFile,
 		DOCX_MIME
-	} from '$lib/media/rules';
-	import { fileKey } from '$lib/media/upload';
+	} from '#lib/media/rules.ts';
+	import { fileKey } from '#lib/media/upload.ts';
 
 	interface Props {
 		/** Types acceptés, ex : ['DOCUMENT'] ou ['IMAGE', 'VIDEO'] */

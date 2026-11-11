@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { X, Star, Crosshair, LoaderCircle } from '@lucide/svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
 	import VideoPreview from '../media/VideoPreview.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import FocusPointDialog from './FocusPointDialog.svelte';
-	import { publicMediaUrl } from '$lib/media/urls';
-	import { uploadFile, fileKey, UploadError } from '$lib/media/upload';
-	import { focalPointStyle } from '$lib/utils/catHelpers';
-	import type { CatFull } from '$lib/types/cat';
+	import { publicMediaUrl } from '#lib/media/urls.ts';
+	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
+	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
 
 	type GalleryItem = CatFull['media'][number];
 

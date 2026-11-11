@@ -12,7 +12,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 import type { MediaType } from '@prisma/client';
-import { validateFile } from '$lib/media/rules';
+import { validateFile } from '#lib/media/rules.ts';
 
 // =====================================================================
 // CONFIGURATION (lue au premier usage, pas au démarrage)

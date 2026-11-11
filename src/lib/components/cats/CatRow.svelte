@@ -1,14 +1,14 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import type { CatFull } from '$lib/types/cat';
-	import { focalPointStyle, getSexIcon } from '$lib/utils/catHelpers';
-	import { getAgeBadge } from '$lib/utils/age';
-	import { Badge } from '$lib/components/ui/badge';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import type { CatFull } from '#lib/types/cat.ts';
+	import { focalPointStyle, getSexIcon } from '#lib/utils/catHelpers.ts';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { ChevronRight } from '@lucide/svelte';
-	import { publicMediaUrl } from '$lib/media/urls';
-	import { getAdoptionTone } from '$lib/utils/adoption';
-	import { ADOPTION_TONE } from '$lib/constants/adoption';
+	import { publicMediaUrl } from '#lib/media/urls.ts';
+	import { getAdoptionTone } from '#lib/utils/adoption.ts';
+	import { ADOPTION_TONE } from '#lib/constants/adoption.ts';
 
 	const {
 		cat,

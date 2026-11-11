@@ -1,22 +1,22 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Switch } from '$lib/components/ui/switch/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import { getAgeBadge } from '$lib/utils/age';
-	import NewCatDialog from '$lib/components/cats/NewCatDialog.svelte';
-	import CatPanel from '$lib/components/cats/CatPanel.svelte';
-	import CatRow from '$lib/components/cats/CatRow.svelte';
-	import { CAT_AGE, CAT_SEX, CAT_STATUS } from '$lib/constants/cat.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import { getAgeBadge } from '#lib/utils/age.ts';
+	import NewCatDialog from '#lib/components/cats/NewCatDialog.svelte';
+	import CatPanel from '#lib/components/cats/CatPanel.svelte';
+	import CatRow from '#lib/components/cats/CatRow.svelte';
+	import { CAT_AGE, CAT_SEX, CAT_STATUS } from '#lib/constants/cat.js';
 	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
-	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
-	import { getAdoptionTone } from '$lib/utils/adoption';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import { getAdoptionTone } from '#lib/utils/adoption.ts';
 
 	const { data } = $props();
 

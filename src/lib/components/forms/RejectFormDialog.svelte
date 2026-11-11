@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { LoaderCircle, X } from '@lucide/svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';

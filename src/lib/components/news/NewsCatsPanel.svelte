@@ -1,6 +1,6 @@
 <!-- src/lib/components/news/NewsCatsPanel.svelte -->
 <script lang="ts">
-	import type { CatListItem } from '$lib/types/cat';
+	import type { CatListItem } from '#lib/types/cat.ts';
 	import CatCard from '../cats/CatCard.svelte';
 
 	const { cats }: { cats: CatListItem[] } = $props();

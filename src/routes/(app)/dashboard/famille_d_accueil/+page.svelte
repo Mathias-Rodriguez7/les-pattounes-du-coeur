@@ -1,25 +1,25 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import Icon from '$lib/components/Icon.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import { getGradientStyle } from '$lib/utils/iconThemes';
-	import HostRow from '$lib/components/hosts/HostRow.svelte';
-	import HostPanel from '$lib/components/hosts/HostPanel.svelte';
-	import NewHostDialog from '$lib/components/hosts/NewHostDialog.svelte';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import Icon from '#lib/components/Icon.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
+	import HostRow from '#lib/components/hosts/HostRow.svelte';
+	import HostPanel from '#lib/components/hosts/HostPanel.svelte';
+	import NewHostDialog from '#lib/components/hosts/NewHostDialog.svelte';
 	import {
 		HOST_ACTIF_OPTIONS,
 		HOST_TYPE_OPTIONS,
 		HOST_HEAL_OPTIONS,
 		HOST_SOCIALIZE_OPTIONS,
 		HOST_BABY_FEEDING_OPTIONS
-	} from '$lib/constants/host.js';
+	} from '#lib/constants/host.js';
 	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
-	import TableToolbar from '$lib/components/tables/TableToolbar.svelte';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 
 	const { data } = $props();
 

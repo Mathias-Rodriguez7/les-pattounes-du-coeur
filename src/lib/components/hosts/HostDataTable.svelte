@@ -1,15 +1,15 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, Sparkles } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
-	import type { HostFull } from '$lib/types/host';
-	import type { CatFull } from '$lib/types/cat';
+	import type { HostFull } from '#lib/types/host.ts';
+	import type { CatFull } from '#lib/types/cat.ts';
 	import { columns as defaultColumns, type ColumnDef } from './columns';
-	import { getHostCompatibility } from '$lib/utils/compatibility';
+	import { getHostCompatibility } from '#lib/utils/compatibility.ts';
 	import HostPlacementRow from './HostPlacementRow.svelte';
-	import SelectField from '$lib/components/fields/SelectField.svelte';
-	import InputField from '$lib/components/fields/InputField.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import InputField from '#lib/components/fields/InputField.svelte';
 
 	interface Props {
 		hosts: HostFull[];

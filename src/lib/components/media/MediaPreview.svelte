@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MediaType } from '@prisma/client';
-	import { getMediaTypeFromMime } from '$lib/media/rules';
+	import { getMediaTypeFromMime } from '#lib/media/rules.ts';
 	import ImagePreview from './ImagePreview.svelte';
 	import VideoPreview from './VideoPreview.svelte';
 	import DocumentPreview from './DocumentPreview.svelte';

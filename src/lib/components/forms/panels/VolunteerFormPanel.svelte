@@ -1,22 +1,22 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import Icon from '$lib/components/Icon.svelte';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Pencil } from '@lucide/svelte';
-	import SectionCard from '$lib/components/cards/SectionCard.svelte';
+	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 	import {
 		VOLUNTEER_SECTION_CONFIG,
 		VOLUNTEER_AVAILABILITY_LABELS,
 		VOLUNTEER_AVAILABILITY_DURATION_LABELS
-	} from '$lib/constants/volunteer';
-	import type { FormEditData, VolunteerFormData } from '$lib/types/form';
-	import { statusColors } from '$lib/constants/forms';
-	import { formatDate } from '$lib/utils/date';
-	import BooleanIcon from '$lib/components/icons/BooleanIcon.svelte';
+	} from '#lib/constants/volunteer.ts';
+	import type { FormEditData, VolunteerFormData } from '#lib/types/form.ts';
+	import { statusColors } from '#lib/constants/forms.ts';
+	import { formatDate } from '#lib/utils/date.ts';
+	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 	import VolunteerEditFormPanel from './VolunteerEditFormPanel.svelte';
-	import NewVolunteerDialog from '$lib/components/volunteers/NewVolunteerDialog.svelte';
+	import NewVolunteerDialog from '#lib/components/volunteers/NewVolunteerDialog.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
 	const { form, volunteers = [], isAdmin = false } = $props();

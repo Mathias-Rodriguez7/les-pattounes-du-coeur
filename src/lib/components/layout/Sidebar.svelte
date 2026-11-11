@@ -4,8 +4,8 @@
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
 	import type { VolunteerRole } from '@prisma/client';
-	import type { AppUser } from '$lib/types/user';
-	import { VOLUNTEER_ROLE_OPTIONS } from '$lib/constants/volunteer';
+	import type { AppUser } from '#lib/types/user.ts';
+	import { VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
 	import {
 		LayoutDashboard,
 		Cat,

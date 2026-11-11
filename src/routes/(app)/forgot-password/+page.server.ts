@@ -1,10 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import prisma from '$lib/server/prisma';
-import { sendResetPasswordEmail } from '$lib/server/mail';
+import prisma from '#lib/server/prisma.ts';
+import { sendResetPasswordEmail } from '#lib/server/mail.ts';
 import { randomBytes } from 'node:crypto';
 import { dev } from '$app/env';
-import { hashToken } from '$lib/server/hashing';
+import { hashToken } from '#lib/server/hashing.ts';
 
 export const actions: Actions = {
 	default: async ({ request, url }) => {

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import * as InputGroup from '$lib/components/ui/input-group/index.js';
-	import * as Alert from '$lib/components/ui/alert/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import * as InputGroup from '#lib/components/ui/input-group/index.js';
+	import * as Alert from '#lib/components/ui/alert/index.js';
 	import { Mail, Lock, Eye, EyeOff, LoaderCircle, CircleAlert } from '@lucide/svelte';
 
 	type Props = {
