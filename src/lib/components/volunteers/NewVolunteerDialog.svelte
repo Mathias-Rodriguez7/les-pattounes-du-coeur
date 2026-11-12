@@ -2,7 +2,7 @@
 	import { createVolunteerSchema } from '#lib/schemas/volunteer.ts';
 	import { flattenErrors, getFieldError } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { toast } from 'svelte-sonner';
@@ -44,11 +44,6 @@
 	let postalCode = $state('');
 	let selectedDistrict = $state<string>('');
 	let selectedRole = $state<string>('MANAGER');
-
-	const districtOptions = Object.entries(DISTRICT_LABELS).map(([key, label]) => ({
-		value: key,
-		label
-	}));
 
 	// ✅ VALIDATION CÔTÉ CLIENT
 	function validateForm(): boolean {
@@ -278,7 +273,7 @@
 									name="district"
 									label="Quartier"
 									bind:value={selectedDistrict}
-									options={districtOptions}
+									options={DISTRICT_OPTIONS}
 									class="w-full"
 									size="sm"
 									disabled={isSubmitting}

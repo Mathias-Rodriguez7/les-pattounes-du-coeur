@@ -10,7 +10,7 @@
 	import { statusLabel } from '#lib/utils/catHelpers.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { districtLabel } from '#lib/utils/districts.ts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
 	import { formatAge } from '#lib/utils/age.ts';
 	import {
@@ -122,7 +122,7 @@
 
 	const location = $derived(
 		volunteer?.profil.district
-			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			? districtLabel(volunteer.profil.district)
 			: volunteer?.profil.city || '—'
 	);
 

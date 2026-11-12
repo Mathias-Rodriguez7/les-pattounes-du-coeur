@@ -13,7 +13,7 @@
 		step2Schema,
 		step3Schema
 	} from '#lib/schemas/formShema/adoptionForm.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
@@ -66,10 +66,6 @@
 		birthDate = date;
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
-
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
 
 	// Validation par étape + affichage des erreurs de l'étape
 	function validateCurrentStep(): boolean {
@@ -236,7 +232,7 @@
 											label="Quartier"
 											placeholder="Quartier"
 											size="sm"
-											options={districtOptions}
+											options={DISTRICT_OPTIONS}
 											bind:value={
 												() => $formData.district ?? '', (v) => ($formData.district = v || null)
 											}

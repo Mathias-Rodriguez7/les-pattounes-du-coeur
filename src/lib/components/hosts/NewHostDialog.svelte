@@ -2,7 +2,7 @@
 	import { createHostSchema } from '#lib/schemas/host.ts';
 	import { getFieldError } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
@@ -72,13 +72,6 @@
 	let presence = $state('');
 	let outsideDescription = $state('');
 	let additionalInformation = $state('');
-
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([key, label]) => ({
-			value: key,
-			label
-		}))
-	);
 
 	// ✅ Pré-remplissage uniquement quand initialData change
 	$effect(() => {
@@ -404,7 +397,7 @@
 								label="Quartier"
 								bind:value={selectedDistrict}
 								placeholder="Quartier"
-								options={districtOptions}
+								options={DISTRICT_OPTIONS}
 								size="sm"
 								disabled={isSubmitting}
 							/>

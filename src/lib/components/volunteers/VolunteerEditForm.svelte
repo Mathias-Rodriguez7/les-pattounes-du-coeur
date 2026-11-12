@@ -6,7 +6,7 @@
 		VOLUNTEER_ROLE_OPTIONS,
 		VOLUNTEER_SECTION_CONFIG
 	} from '#lib/constants/volunteer.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
@@ -41,11 +41,6 @@
 	}
 
 	const showBreakDateRange = $derived(editData.actif === 'BREAK');
-
-	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
-		value,
-		label
-	}));
 
 	const handleUpdateEnhance: SubmitFunction = ({ formData }) => {
 		isSaving = true;
@@ -228,7 +223,7 @@
 						name="district"
 						label="Quartier"
 						bind:value={editData.district}
-						options={districtOptions}
+						options={DISTRICT_OPTIONS}
 						class="w-full"
 						size="sm"
 					/>

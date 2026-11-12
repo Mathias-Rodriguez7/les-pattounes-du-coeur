@@ -10,7 +10,7 @@
 	import { healLabel, socializeLabel, babyFeedingLabel } from '#lib/types//index.ts';
 	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '#lib/components/ui/separator/index.js';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { districtLabel } from '#lib/utils/districts.ts';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import HostEditForm from './HostEditForm.svelte';
 	import { formatAge } from '#lib/utils/age.ts';
@@ -133,9 +133,7 @@
 	const fullName = $derived(host ? `${host.profil.firstName} ${host.profil.lastName}` : '');
 
 	const location = $derived(
-		host?.profil.district
-			? DISTRICT_LABELS[host.profil.district as keyof typeof DISTRICT_LABELS]
-			: host?.profil.city || '—'
+		host?.profil.district ? districtLabel(host.profil.district) : host?.profil.city || '—'
 	);
 
 	const currentStatus = $derived(

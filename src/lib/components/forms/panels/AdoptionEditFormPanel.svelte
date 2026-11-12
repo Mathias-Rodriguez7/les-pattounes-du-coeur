@@ -2,7 +2,7 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
 	import InputField from '#lib/components/fields/InputField.svelte';
@@ -81,10 +81,6 @@
 			onSuccess();
 		}
 	};
-
-	let districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
 </script>
 
 {#if editData && editData.data}
@@ -233,7 +229,7 @@
 							name="district"
 							label="Quartier"
 							bind:value={editData.data.district}
-							options={districtOptions}
+							options={DISTRICT_OPTIONS}
 							size="sm"
 						/>
 					</div>

@@ -2,7 +2,7 @@
 	import { createAdoptionSchema } from '#lib/schemas/adoption.ts';
 	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { toast } from 'svelte-sonner';
 	import { enhance, type SubmitFunction } from '$app/forms';
@@ -106,11 +106,6 @@
 	// ✅ Le contrat (obligatoire)
 	let files = $state<File[]>([]);
 	let progress = $state<Record<string, number>>({});
-
-	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
-		value,
-		label
-	}));
 
 	// Le serveur renvoie { champ: ['message', …] } (flatten de Zod) : on garde le 1er message
 	function firstMessages(errors: unknown): FlattenedErrors {
@@ -419,7 +414,7 @@
 									label="Quartier"
 									bind:value={selectedDistrict}
 									placeholder="Quartier"
-									options={districtOptions}
+									options={DISTRICT_OPTIONS}
 									size="sm"
 									disabled={isSubmitting}
 								/>
