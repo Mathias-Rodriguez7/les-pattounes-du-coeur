@@ -1,5 +1,9 @@
 <script lang="ts">
 	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
+	import HostHomeFields from '#lib/components/hosts/fields/HostHomeFields.svelte';
+	import HostCapacityFields from '#lib/components/hosts/fields/HostCapacityFields.svelte';
+	import HostCatTypeFields from '#lib/components/hosts/fields/HostCatTypeFields.svelte';
+	import HostDescriptionFields from '#lib/components/hosts/fields/HostDescriptionFields.svelte';
 	import { createHostSchema } from '#lib/schemas/host.ts';
 	import { getFieldError, flattenErrors, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
@@ -8,20 +12,13 @@
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import CheckboxField from '../fields/CheckboxField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import SwitchField from '../fields/SwitchField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import {
-		HOST_TYPE_OPTIONS,
-		HOST_HEAL_OPTIONS,
-		HOST_SOCIALIZE_OPTIONS,
-		HOST_BABY_FEEDING_OPTIONS,
-		HOST_SECTION_CONFIG
-	} from '#lib/constants/host.ts';
+	import { HOST_TYPE_OPTIONS, HOST_SECTION_CONFIG } from '#lib/constants/host.ts';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import {
 		emptyNewHostForm,
@@ -308,197 +305,23 @@
 			<!-- SECTION 2 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<!-- Zone d'accueil -->
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.home.icon}
-					title={HOST_SECTION_CONFIG.home.label}
-					color={HOST_SECTION_CONFIG.home.color}
-				>
-					<div class="space-y-4">
-						<InputField
-							id="space"
-							name="space"
-							label="Espace (m²)"
-							type="number"
-							bind:value={form.space}
-							placeholder="60"
-							error={getFieldError(fieldErrors, 'space')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<CheckboxField
-							id="outside"
-							name="outside"
-							label="Extérieur"
-							checked={form.outside}
-							onChange={(value) => (form.outside = value)}
-							disabled={isSubmitting}
-						/>
-
-						<CheckboxField
-							id="car"
-							name="car"
-							label="Voiture"
-							checked={form.car}
-							onChange={(value) => (form.car = value)}
-							disabled={isSubmitting}
-						/>
-
-						<CheckboxField
-							id="isStockFeed"
-							name="isStockFeed"
-							label="Nourriture en stock"
-							checked={form.isStockFeed}
-							onChange={(value) => (form.isStockFeed = value)}
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
+				<HostHomeFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 
 				<!-- Animaux -->
 				<HostAnimalsFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 
 				<!-- Capacités -->
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.capacity.icon}
-					title={HOST_SECTION_CONFIG.capacity.label}
-					color={HOST_SECTION_CONFIG.capacity.color}
-				>
-					<div class="grid grid-cols-1 gap-4">
-						<SelectField
-							id="heal"
-							name="heal"
-							label="Soins"
-							bind:value={form.heal}
-							options={HOST_HEAL_OPTIONS}
-							size="sm"
-							required
-							disabled={isSubmitting}
-						/>
-
-						<SelectField
-							id="socialize"
-							name="socialize"
-							label="Socialisation"
-							bind:value={form.socialize}
-							options={HOST_SOCIALIZE_OPTIONS}
-							size="sm"
-							required
-							disabled={isSubmitting}
-						/>
-
-						<SelectField
-							id="babyFeeding"
-							name="babyFeeding"
-							label="Biberonnage"
-							bind:value={form.babyFeeding}
-							options={HOST_BABY_FEEDING_OPTIONS}
-							size="sm"
-							required
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
+				<HostCapacityFields bind:data={form} disabled={isSubmitting} />
 
 				<!-- Chats -->
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.cat.icon}
-					title={HOST_SECTION_CONFIG.cat.label}
-					color={HOST_SECTION_CONFIG.cat.color}
-				>
-					<div class="space-y-4">
-						<InputField
-							id="catAdult"
-							name="catAdult"
-							label="Chat adulte"
-							type="number"
-							bind:value={form.catAdult}
-							placeholder="3"
-							error={getFieldError(fieldErrors, 'catAdult')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<CheckboxField
-							id="kittyAndKitten"
-							name="kittyAndKitten"
-							label="Chatte avec portée"
-							checked={form.kittyAndKitten}
-							onChange={(value) => (form.kittyAndKitten = value)}
-							disabled={isSubmitting}
-						/>
-
-						<InputField
-							id="kitten"
-							name="kitten"
-							label="Chaton"
-							type="number"
-							bind:value={form.kitten}
-							placeholder="4"
-							error={getFieldError(fieldErrors, 'kitten')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
+				<HostCatTypeFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 			</div>
 
 			<Separator />
 
 			<!-- SECTION 3 : Descriptions (inchangé) -->
 			<section class="space-y-4">
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.homeDescription.icon}
-					title={HOST_SECTION_CONFIG.homeDescription.label}
-					color={HOST_SECTION_CONFIG.homeDescription.color}
-				>
-					<TextareaField
-						id="homeDescription"
-						name="homeDescription"
-						label="Description du logement"
-						bind:value={form.homeDescription}
-						placeholder="Décrivez votre logement, son ambiance, ses caractéristiques..."
-						error={getFieldError(fieldErrors, 'homeDescription')}
-						disabled={isSubmitting}
-					/>
-				</SectionCard>
-
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.presence.icon}
-					title={HOST_SECTION_CONFIG.presence.label}
-					color={HOST_SECTION_CONFIG.presence.color}
-				>
-					<TextareaField
-						id="presence"
-						name="presence"
-						label="Présence"
-						bind:value={form.presence}
-						placeholder="Décrivez la présence sur une semaine"
-						error={getFieldError(fieldErrors, 'presence')}
-						disabled={isSubmitting}
-					/>
-				</SectionCard>
-
-				{#if form.outside}
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.outsideDescription.icon}
-						title={HOST_SECTION_CONFIG.outsideDescription.label}
-						color={HOST_SECTION_CONFIG.outsideDescription.color}
-					>
-						<TextareaField
-							id="outsideDescription"
-							name="outsideDescription"
-							label="Détails extérieur"
-							bind:value={form.outsideDescription}
-							placeholder="Jardin, balcon, terrasse..."
-							error={getFieldError(fieldErrors, 'outsideDescription')}
-							disabled={isSubmitting}
-						/>
-					</SectionCard>
-				{/if}
+				<HostDescriptionFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 
 				<SectionCard
 					icon={HOST_SECTION_CONFIG.additionalInformation.icon}

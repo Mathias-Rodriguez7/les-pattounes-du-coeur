@@ -32,7 +32,7 @@
 	let { data = $bindable(), errors = {}, disabled = false }: Props = $props();
 
 	// Décocher vide aussi les nombres : l'écran reste cohérent avec ce qui sera enregistré
-	// (le serveur applique la même règle : voir withoutAnimalCounts)
+	// (le serveur applique la même règle : voir hosts/rules.ts)
 	function setHasAnimals(value: boolean) {
 		data.hasAnimalsAtHome = value;
 		if (!value) {

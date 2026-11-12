@@ -9,7 +9,7 @@ import {
 import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
-import { withoutAnimalCounts } from '#lib/hosts/animals.ts';
+import { applyHostRules } from '#lib/hosts/rules.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -293,8 +293,8 @@ export async function updateHost({ request, locals }: { request: Request; locals
 			}
 		}
 
-		// Décocher « Animaux au domicile » efface aussi les nombres (voir withoutAnimalCounts)
-		const hostData = buildHostData(withoutAnimalCounts(validatedData));
+		// Décocher « Animaux au domicile » ou « Extérieur » efface aussi ce qui en dépend (voir hosts/rules.ts)
+		const hostData = buildHostData(applyHostRules(validatedData));
 		const profilData = buildProfilData(validatedData);
 
 		const updatedHost = await prisma.host.update({

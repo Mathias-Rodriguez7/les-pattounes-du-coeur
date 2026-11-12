@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { firstMessages } from '#lib/utils/zodErrors.ts';
 	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
+	import HostHomeFields from '#lib/components/hosts/fields/HostHomeFields.svelte';
+	import HostCapacityFields from '#lib/components/hosts/fields/HostCapacityFields.svelte';
+	import HostCatTypeFields from '#lib/components/hosts/fields/HostCatTypeFields.svelte';
+	import HostDescriptionFields from '#lib/components/hosts/fields/HostDescriptionFields.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -11,16 +15,12 @@
 	import SelectField from '../fields/SelectField.svelte';
 	import SwitchField from '../fields/SwitchField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
-	import CheckboxField from '../fields/CheckboxField.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
 	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import {
 		HOST_ACTIF_OPTIONS,
 		HOST_TYPE_OPTIONS,
-		HOST_HEAL_OPTIONS,
-		HOST_SOCIALIZE_OPTIONS,
-		HOST_BABY_FEEDING_OPTIONS,
 		HOST_SECTION_CONFIG
 	} from '#lib/constants/host.ts';
 	import type { HostEditData } from '#lib/types/host.ts';
@@ -289,165 +289,20 @@
 
 	<!-- SECTION 2 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
 	<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.home.icon}
-			title={HOST_SECTION_CONFIG.home.label}
-			color={HOST_SECTION_CONFIG.home.color}
-		>
-			<div class="space-y-4">
-				<InputField
-					id="space"
-					name="space"
-					label="Espace en m²"
-					type="number"
-					bind:value={editData.space}
-					placeholder="60"
-					error={fieldError('space')}
-					required
-					size="sm"
-				/>
-
-				<div class="space-y-2">
-					<CheckboxField
-						id="outside"
-						name="outside"
-						label="Extérieur"
-						checked={editData.outside}
-						onChange={(value) => (editData.outside = value)}
-					/>
-					<CheckboxField
-						id="car"
-						name="car"
-						label="Voiture"
-						checked={editData.car}
-						onChange={(value) => (editData.car = value)}
-					/>
-					<CheckboxField
-						id="isStockFeed"
-						name="isStockFeed"
-						label="Stock"
-						checked={editData.isStockFeed}
-						onChange={(value) => (editData.isStockFeed = value)}
-					/>
-				</div>
-			</div>
-		</SectionCard>
+		<HostHomeFields bind:data={editData} errors={firstMessages(serverErrors)} />
 
 		<HostAnimalsFields bind:data={editData} errors={firstMessages(serverErrors)} />
 
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.capacity.icon}
-			title={HOST_SECTION_CONFIG.capacity.label}
-			color={HOST_SECTION_CONFIG.capacity.color}
-		>
-			<div class="grid gap-4">
-				<SelectField
-					id="heal"
-					name="heal"
-					label="Soins médicaux"
-					bind:value={editData.heal}
-					options={HOST_HEAL_OPTIONS}
-					size="sm"
-				/>
-				<SelectField
-					id="socialize"
-					name="socialize"
-					label="Socialisation"
-					bind:value={editData.socialize}
-					options={HOST_SOCIALIZE_OPTIONS}
-					size="sm"
-				/>
-				<SelectField
-					id="babyFeeding"
-					name="babyFeeding"
-					label="Biberonnage"
-					bind:value={editData.babyFeeding}
-					options={HOST_BABY_FEEDING_OPTIONS}
-					size="sm"
-				/>
-			</div>
-		</SectionCard>
+		<HostCapacityFields bind:data={editData} />
 
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.cat.icon}
-			title={HOST_SECTION_CONFIG.cat.label}
-			color={HOST_SECTION_CONFIG.cat.color}
-		>
-			<div class="grid gap-4">
-				<InputField
-					id="catAdult"
-					name="catAdult"
-					label="Chat adulte"
-					type="number"
-					bind:value={editData.catAdult}
-					placeholder="0"
-					size="sm"
-				/>
-				<CheckboxField
-					id="kittyAndKitten"
-					name="kittyAndKitten"
-					label="Chatte avec portée"
-					checked={editData.kittyAndKitten}
-					onChange={(value) => (editData.kittyAndKitten = value)}
-				/>
-				<InputField
-					id="kitten"
-					name="kitten"
-					label="Chaton"
-					type="number"
-					bind:value={editData.kitten}
-					placeholder="0"
-					size="sm"
-				/>
-			</div>
-		</SectionCard>
+		<HostCatTypeFields bind:data={editData} errors={firstMessages(serverErrors)} />
 	</section>
 
 	<Separator />
 
 	<!-- SECTION 3 : Descriptions (inchangé) -->
 	<section class="space-y-4">
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.homeDescription.icon}
-			title={HOST_SECTION_CONFIG.homeDescription.label}
-			color={HOST_SECTION_CONFIG.homeDescription.color}
-		>
-			<TextareaField
-				id="homeDescription"
-				name="homeDescription"
-				bind:value={editData.homeDescription}
-				placeholder="Décrivez votre domicile..."
-			/>
-		</SectionCard>
-
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.presence.icon}
-			title={HOST_SECTION_CONFIG.presence.label}
-			color={HOST_SECTION_CONFIG.presence.color}
-		>
-			<TextareaField
-				id="presence"
-				name="presence"
-				label="Présence"
-				bind:value={editData.presence}
-				placeholder="Présence"
-			/>
-		</SectionCard>
-
-		{#if editData.outside}
-			<SectionCard
-				icon={HOST_SECTION_CONFIG.outsideDescription.icon}
-				title={HOST_SECTION_CONFIG.outsideDescription.label}
-				color={HOST_SECTION_CONFIG.outsideDescription.color}
-			>
-				<TextareaField
-					id="outsideDescription"
-					name="outsideDescription"
-					bind:value={editData.outsideDescription}
-					placeholder="Décrivez votre jardin..."
-				/>
-			</SectionCard>
-		{/if}
+		<HostDescriptionFields bind:data={editData} errors={firstMessages(serverErrors)} />
 
 		{#if editData.actif === 'STOP'}
 			<SectionCard
