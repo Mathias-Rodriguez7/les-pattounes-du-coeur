@@ -1,4 +1,7 @@
 <script lang="ts">
+	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
+	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
+	import PersonAddressView from '#lib/components/person/PersonAddressView.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
@@ -112,99 +115,20 @@
 				<Separator />
 
 				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
-					<!-- 👤 SECTION CANDIDAT -->
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.profile.icon}
-						title={HOST_SECTION_CONFIG.profile.label}
-						color={HOST_SECTION_CONFIG.profile.color}
+					<PersonProfileView
+						firstName={hostData.firstName}
+						lastName={hostData.lastName}
+						birthDate={hostData.birthDate}
 						class="@2xl:col-span-3"
-					>
-						<div class="ml-6 space-y-3">
-							<!-- Identité -->
-							<div class="grid grid-cols-2 gap-4">
-								<div>
-									<p class="text-muted-foreground">Prénom</p>
-									<p class="font-medium">{hostData.firstName || '—'}</p>
-								</div>
-								<div>
-									<p class="text-muted-foreground">Nom</p>
-									<p class="font-medium">{hostData.lastName || '—'}</p>
-								</div>
-							</div>
-
-							<!-- Date de naissance -->
-							<div>
-								<p class="text-muted-foreground">Date de naissance</p>
-								<p class="font-medium">{formatDate(hostData.birthDate)}</p>
-							</div>
-						</div>
-					</SectionCard>
-
-					<!-- 📧 SECTION CONTACT -->
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.contact.icon}
-						title={HOST_SECTION_CONFIG.contact.label}
-						color={HOST_SECTION_CONFIG.contact.color}
-						class="@2xl:col-span-3"
-					>
-						<div class="ml-6 grid gap-4">
-							<div>
-								<p class="font-medium text-muted-foreground">Tel</p>
-								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`tel:${hostData.phone}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{hostData.phone}
-									</a>
-								</div>
-							</div>
-
-							<div>
-								<p class="font-medium text-muted-foreground">Mail</p>
-								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`mailto:${form.email}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{form.email}
-									</a>
-								</div>
-							</div>
-						</div>
-					</SectionCard>
-
-					<!-- 🏠 SECTION ADRESSE -->
-					<SectionCard
-						icon={HOST_SECTION_CONFIG.address.icon}
-						title={HOST_SECTION_CONFIG.address.label}
-						color={HOST_SECTION_CONFIG.address.color}
+					/>
+					<PersonContactView phone={hostData.phone} email={form.email} class="@2xl:col-span-3" />
+					<PersonAddressView
+						address={hostData.address}
+						city={hostData.city}
+						postalCode={hostData.postalCode}
+						district={hostData.district}
 						class="@2xl:col-span-4"
-					>
-						<div class="ml-6 grid gap-4">
-							<div>
-								<p class="font-medium text-muted-foreground">Rue</p>
-								<p class="font-medium text-gray-900">{hostData.address || '—'}</p>
-							</div>
-
-							<div class="flex gap-4">
-								<div>
-									<p class="font-medium text-muted-foreground">Ville</p>
-									<p class="font-medium text-gray-900">{hostData.city || '—'}</p>
-								</div>
-								<div>
-									<p class="font-medium text-muted-foreground">CP</p>
-									<p class="font-medium text-gray-900">{hostData.postalCode || '—'}</p>
-								</div>
-								<div>
-									<p class="font-medium text-muted-foreground">Quartier</p>
-									<p class="font-medium">{hostData.district}</p>
-								</div>
-							</div>
-						</div>
-					</SectionCard>
+					/>
 				</section>
 
 				<Separator />

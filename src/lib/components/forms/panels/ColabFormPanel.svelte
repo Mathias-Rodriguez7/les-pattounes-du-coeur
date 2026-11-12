@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import Icon from '#lib/components/Icon.svelte';
@@ -121,41 +122,7 @@
 						</div>
 					</SectionCard>
 
-					<!-- 📧 SECTION CONTACT -->
-					<SectionCard
-						icon={COLAB_SECTION_CONFIG.contact.icon}
-						title={COLAB_SECTION_CONFIG.contact.label}
-						color={COLAB_SECTION_CONFIG.contact.color}
-						class="@2xl:col-span-5"
-					>
-						<div class="ml-6 grid gap-4">
-							<div>
-								<p class="font-medium text-muted-foreground">Tel</p>
-								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`tel:${colabData.phone}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{colabData.phone}
-									</a>
-								</div>
-							</div>
-
-							<div>
-								<p class="font-medium text-muted-foreground">Mail</p>
-								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`mailto:${form.email}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{form.email}
-									</a>
-								</div>
-							</div>
-						</div>
-					</SectionCard>
+					<PersonContactView phone={colabData.phone} email={form.email} class="@2xl:col-span-5" />
 				</section>
 
 				<Separator />
