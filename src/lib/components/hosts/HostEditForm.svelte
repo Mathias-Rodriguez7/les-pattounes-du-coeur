@@ -12,7 +12,7 @@
 	import CheckboxField from '../fields/CheckboxField.svelte';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
-	import BlacklistButton from '../buttons/BlacklistButton.svelte';
+	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import {
 		HOST_ACTIF_OPTIONS,
 		HOST_TYPE_OPTIONS,
@@ -36,7 +36,6 @@
 
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
-	let isBlacklisting = $state(false);
 
 	// Erreurs renvoyées par le serveur (format Zod : { champ: ['message'] })
 	let serverErrors = $state<Record<string, string[] | undefined>>({});
@@ -70,10 +69,7 @@
 		onSuccess?.();
 	};
 
-	const handleBlacklisted = () => {
-		isBlacklisting = false;
-		onSuccess?.();
-	};
+	const handleBlacklisted = () => onSuccess?.();
 
 	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
 		editData.breakStartDate = dates.start;
@@ -532,17 +528,11 @@
 	<!-- PC : une ligne, comme avant | Mobile : Enregistrer en haut, actions dangereuses en dessous -->
 	<section class="flex flex-col-reverse gap-4 lg:flex-row lg:justify-between">
 		<div class="flex flex-wrap gap-2 lg:gap-4">
-			<BlacklistButton
-				{profileId}
-				firstName={editData.firstName}
-				lastName={editData.lastName}
+			<!-- Même module que la page Liste noire : le compte est retrouvé par son email -->
+			<BlacklistAddDialog
 				email={editData.email}
-				{isBlacklisting}
-				{isSaving}
-				{isDeleting}
-				showBlacklist={true}
-				actionName="?/blacklistProfile"
-				buttonLabel="Ajouter à la liste noire"
+				name={`${editData.firstName} ${editData.lastName}`}
+				trigger="button"
 				onSuccess={handleBlacklisted}
 			/>
 

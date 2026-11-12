@@ -25,6 +25,7 @@ import { finalizeAdoption, cancelAdoption } from '#lib/server/adoptions/mutation
 import { finalizeAdoptionSchema, cancelAdoptionSchema } from '#lib/schemas/adoption.ts';
 import { prepareMedia, discardUpload, type MediaData } from '#lib/server/media/mutations.ts';
 import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
+import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus.ts';
 import { updateForm, rejectForm } from '#lib/server/forms/mutations.ts';
 
@@ -96,14 +97,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
-		// Les demandes en attente de chaque chat, avec leur éventuelle liste noire :
+		// Les demandes en attente ET l'adoptant de chaque chat, avec leur éventuelle liste noire :
 		// UNE requête pour tous les emails (pas une par chat)
+		const adopterEmail = (cat: (typeof cats)[number]) => cat.adoptions[0]?.profil?.email;
 		const blacklists = await findActiveBlacklists(
-			cats.flatMap((cat) => cat.forms.map((form) => form.email))
+			cats.flatMap((cat) => [
+				...cat.forms.map((form) => form.email),
+				...(adopterEmail(cat) ? [adopterEmail(cat)!] : [])
+			])
 		);
 		const catsWithOwnership = cats.map((cat) => ({
 			...cat,
 			forms: cat.forms.map((form) => attachBlacklist(form, blacklists)),
+			adopterBlacklist: blacklists.get(adopterEmail(cat)?.trim().toLowerCase() ?? '') ?? null,
 			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
 		}));
 
@@ -555,6 +561,8 @@ export const actions: Actions = {
 	// ACTION: Adoption — depuis la fiche du chat
 	// ==========================================
 	createAdoption: createAdoptionAction,
+	// Depuis la carte Adoptant (admin uniquement)
+	addToBlacklist: addToBlacklistAction,
 
 	finalizeAdoption: async ({ request, locals }) => {
 		if (!locals.user) {

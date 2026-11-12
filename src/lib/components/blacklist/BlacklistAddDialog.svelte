@@ -12,8 +12,12 @@
 		email?: string;
 		/** Nom affiché dans le titre */
 		name?: string | null;
-		/** 'add' : bouton « Ajouter » de la page | 'ghost' : petit bouton rouge dans une carte */
-		trigger?: 'add' | 'ghost';
+		/**
+		 * 'add' : bouton « Ajouter » de la page Liste noire
+		 * 'button' : bouton rouge « Liste noire » (fiches bénévole et FA)
+		 * 'icon' : petite icône rouge, pour une ligne de titre déjà chargée (carte Adoptant)
+		 */
+		trigger?: 'add' | 'button' | 'icon';
 		onSuccess?: () => void;
 	}
 
@@ -67,19 +71,27 @@
 </script>
 
 <Dialog.Root bind:open>
+	<!-- type="button" : le déclencheur est parfois DANS un <form> (fiches en édition).
+	     Sans lui, un <button> envoie le formulaire : on enregistrerait la fiche en ouvrant la fenêtre. -->
 	{#if trigger === 'add'}
-		<Dialog.Trigger class={buttonVariants({ variant: 'destructive', size: 'sm' })}>
+		<Dialog.Trigger type="button" class={buttonVariants({ variant: 'destructive', size: 'sm' })}>
 			<Plus class="size-4" />
 			Ajouter
 		</Dialog.Trigger>
+	{:else if trigger === 'button'}
+		<Dialog.Trigger type="button" class={buttonVariants({ variant: 'destructive' })}>
+			<Ban class="size-4" />
+			Liste noire
+		</Dialog.Trigger>
 	{:else}
 		<Dialog.Trigger
-			class={buttonVariants({ variant: 'ghost', size: 'sm' }) +
-				' text-destructive hover:bg-red-50 hover:text-destructive'}
+			type="button"
+			class={buttonVariants({ variant: 'ghost', size: 'icon' }) +
+				' size-8 text-destructive hover:bg-red-50 hover:text-destructive'}
+			{title}
+			aria-label={title}
 		>
 			<Ban class="size-4" />
-			<span class="sr-only">{title}</span>
-			<span aria-hidden="true">Liste noire</span>
 		</Dialog.Trigger>
 	{/if}
 

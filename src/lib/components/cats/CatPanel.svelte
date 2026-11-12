@@ -32,6 +32,7 @@
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
 	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
 	import AdoptionCancelDialog from '../adoptions/AdoptionCancelDialog.svelte';
+	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import { ADOPTABLE_STATUSES, ADOPTION_STATUS } from '#lib/constants/adoption.ts';
 	import AdoptionCreateDialog from '../forms/panels/AdoptionCreateDialog.svelte';
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
@@ -398,6 +399,14 @@
 								<!-- Les actions sur la ligne du titre : la carte reste aussi haute que la photo.
 								     Annuler (discret) puis Finaliser (principale) -->
 								{#snippet action()}
+									<!-- Liste noire : admin seulement, petite icône pour ne pas charger la ligne -->
+									{#if isAdmin && adoption.profil && !cat.adopterBlacklist}
+										<BlacklistAddDialog
+											email={adoption.profil.email}
+											name={`${adoption.profil.firstName} ${adoption.profil.lastName}`}
+											trigger="icon"
+										/>
+									{/if}
 									{#if canManageCat && adoption.status !== 'CANCELLED'}
 										<!-- Retour du chat : possible pendant l'essai ET après une adoption définitive -->
 										<AdoptionCancelDialog
@@ -425,10 +434,22 @@
 								     sur une ligne si la carte est large, sur plusieurs sinon -->
 									<!-- 3 lignes : le nom, puis le contact (tél + mail côte à côte), puis l'adresse -->
 									<div class="grid min-w-0 gap-2 text-xs">
-										<p class="truncate text-base font-semibold">
-											{adopter.firstName}
-											{adopter.lastName}
-										</p>
+										<div class="flex min-w-0 items-center gap-2">
+											<p class="truncate text-base font-semibold">
+												{adopter.firstName}
+												{adopter.lastName}
+											</p>
+											{#if cat.adopterBlacklist}
+												<!-- La raison au survol, et lue par les lecteurs d'écran -->
+												<Badge
+													class="shrink-0 bg-red-100 text-red-700"
+													title={cat.adopterBlacklist.reason}
+												>
+													Liste noire
+													<span class="sr-only">: {cat.adopterBlacklist.reason}</span>
+												</Badge>
+											{/if}
+										</div>
 
 										<!-- flex-wrap : tél et mail sur la même ligne, le mail passe dessous si la carte est étroite -->
 										<div class="flex min-w-0 flex-wrap gap-x-6 gap-y-2">
