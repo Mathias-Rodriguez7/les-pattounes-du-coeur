@@ -16,6 +16,7 @@ import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { applyHostRules } from '#lib/hosts/rules.ts';
 import { applyVolunteerRules } from '#lib/volunteers/rules.ts';
+import { applyAdoptionRules } from '#lib/adoptions/rules.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -166,15 +167,16 @@ export async function updateForm({
 			}
 		});
 
-		// Fusionner avec les données existantes (voir hosts/rules.ts et volunteers/rules.ts)
+		// Fusionner avec les données existantes (voir les rules.ts de hosts, volunteers et adoptions)
 		if (Object.keys(dataFields).length > 0) {
 			// Les règles du bon type de demande (une case décochée efface ce qui en dépend)
-			const applyRules =
-				existingForm.type === 'HOST'
-					? applyHostRules
-					: existingForm.type === 'VOLUNTEER'
-						? applyVolunteerRules
-						: <T>(data: T) => data;
+			const RULES: Partial<Record<FormType, <T extends Record<string, unknown>>(data: T) => T>> = {
+				HOST: applyHostRules,
+				VOLUNTEER: applyVolunteerRules,
+				ADOPTION_SPECIFIC: applyAdoptionRules,
+				ADOPTION_FLEXIBLE: applyAdoptionRules
+			};
+			const applyRules = RULES[existingForm.type] ?? (<T>(data: T) => data);
 			updateData.data = {
 				...((existingForm.data as Record<string, unknown>) ?? {}),
 				...applyRules(dataFields)

@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { createAdoptionSchema } from '#lib/schemas/adoption.ts';
-	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
+	import { getFieldError, flattenErrors, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
-	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { toast } from 'svelte-sonner';
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import DatePicker from '#lib/components/fields/DatePicker.svelte';
-	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
-	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 	import MediaUpload from '#lib/components/media/MediaUpload.svelte';
-	import { HOST_SECTION_CONFIG } from '#lib/constants/host.ts';
+	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
+	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
+	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
+	import {
+		emptyPersonForm,
+		personFormFrom,
+		toPersonInput,
+		type PersonForm
+	} from '#lib/person/personForm.ts';
 	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
 	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 	import type { AdoptionFormJson, BlacklistInfo } from '#lib/types/form.ts';
@@ -92,44 +96,12 @@
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
-	// ✅ Profil de l'adoptant
-	let firstName = $state('');
-	let lastName = $state('');
-	let birthDate = $state<Date | undefined>(undefined);
-	let email = $state('');
-	let phone = $state('');
-	let address = $state('');
-	let city = $state('Montpellier');
-	let postalCode = $state('34000');
-	let selectedDistrict = $state<string>('');
+	// ✅ Profil de l'adoptant : un seul objet (le même type que les autres formulaires « personne »)
+	let person = $state<PersonForm>(emptyPersonForm());
 
 	// ✅ Le contrat (obligatoire)
 	let files = $state<File[]>([]);
 	let progress = $state<Record<string, number>>({});
-
-	// Le serveur renvoie { champ: ['message', …] } (flatten de Zod) : on garde le 1er message
-	function firstMessages(errors: unknown): FlattenedErrors {
-		if (!errors || typeof errors !== 'object') return {};
-		const flat: FlattenedErrors = {};
-		for (const [key, messages] of Object.entries(errors as Record<string, string[] | undefined>)) {
-			if (messages?.[0]) flat[key] = messages[0];
-		}
-		return flat;
-	}
-
-	// Les coordonnées seulement : changer de demande liée ne doit pas retirer le contrat déjà ajouté
-	function resetAdopter() {
-		firstName = '';
-		lastName = '';
-		birthDate = undefined;
-		email = '';
-		phone = '';
-		address = '';
-		city = 'Montpellier';
-		postalCode = '34000';
-		selectedDistrict = '';
-		fieldErrors = {};
-	}
 
 	// À chaque ouverture : on repart des coordonnées de la demande
 	// untrack : seul `open` déclenche l'effet. Le parent recrée l'objet initialData à chaque
@@ -146,33 +118,16 @@
 		});
 	});
 
+	// Les coordonnées seulement : changer de demande liée ne doit pas retirer le contrat déjà ajouté
 	function fill(initialData: Props['initialData']) {
-		resetAdopter();
-		if (initialData) {
-			firstName = initialData.firstName ?? '';
-			lastName = initialData.lastName ?? '';
-			email = initialData.email ?? '';
-			phone = initialData.phone ?? '';
-			address = initialData.address ?? '';
-			city = initialData.city ?? 'Montpellier';
-			postalCode = initialData.postalCode ?? '34000';
-			birthDate = initialData.birthDate ? new Date(initialData.birthDate) : undefined;
-			selectedDistrict = initialData.district ?? '';
-		}
+		person = initialData ? personFormFrom(initialData) : emptyPersonForm();
+		fieldErrors = {};
 	}
 
 	// ✅ Validation côté navigateur : les MÊMES règles que le serveur (sauf le contrat, vérifié à part)
 	function validateForm(): boolean {
 		const result = createAdoptionSchema.safeParse({
-			firstName: firstName.trim(),
-			lastName: lastName.trim(),
-			birthDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined,
-			email: email.trim(),
-			phone: phone.trim(),
-			address: address.trim(),
-			city: city.trim(),
-			postalCode: postalCode.trim(),
-			district: selectedDistrict || undefined,
+			...toPersonInput(person),
 			// Avant, ces deux-là manquaient : la validation échouait toujours
 			formId: linkedFormId || undefined,
 			catId
@@ -243,7 +198,9 @@
 				open = false;
 				await update();
 			} else if (result.type === 'failure') {
-				fieldErrors = firstMessages(result.data?.errors);
+				// Pas d'`errors` quand le refus vient de la blacklist : on vide les messages
+				const errors = result.data?.errors as Record<string, string[] | undefined> | undefined;
+				fieldErrors = errors ? firstMessages(errors) : {};
 				// Email tapé à la main et blacklisté : le serveur renvoie la raison
 				if (result.data?.blacklist) {
 					serverBlacklist = result.data.blacklist as BlacklistInfo;
@@ -289,139 +246,30 @@
 				/>
 			{/if}
 
-			<!-- 📋 Identité & contact -->
+			<!-- 📋 Identité & contact : les mêmes cartes que les autres formulaires « personne » -->
 			<section class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.profile.icon}
-					title={HOST_SECTION_CONFIG.profile.label}
-					color={HOST_SECTION_CONFIG.profile.color}
-				>
-					<div class="grid grid-cols-2 gap-4">
-						<InputField
-							id="adoption-firstName"
-							name="firstName"
-							label="Prénom"
-							bind:value={firstName}
-							placeholder="Jean"
-							error={getFieldError(fieldErrors, 'firstName')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<InputField
-							id="adoption-lastName"
-							name="lastName"
-							label="Nom"
-							bind:value={lastName}
-							placeholder="Dupont"
-							error={getFieldError(fieldErrors, 'lastName')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<DatePicker
-							name="birthDate"
-							value={birthDate}
-							onSelect={(date) => (birthDate = date)}
-							label="Date de naissance"
-							error={getFieldError(fieldErrors, 'birthDate')}
-						/>
-					</div>
-				</SectionCard>
-
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.contact.icon}
-					title={HOST_SECTION_CONFIG.contact.label}
-					color={HOST_SECTION_CONFIG.contact.color}
-				>
-					<div class="grid gap-4">
-						<InputField
-							id="adoption-email"
-							name="email"
-							label="Email"
-							type="email"
-							bind:value={email}
-							placeholder="jean@example.com"
-							error={getFieldError(fieldErrors, 'email')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-
-						<InputField
-							id="adoption-phone"
-							name="phone"
-							label="Téléphone"
-							bind:value={phone}
-							placeholder="06 12 34 56 78"
-							error={getFieldError(fieldErrors, 'phone')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
-
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.address.icon}
-					title={HOST_SECTION_CONFIG.address.label}
-					color={HOST_SECTION_CONFIG.address.color}
+				<PersonProfileFields
+					bind:firstName={person.firstName}
+					bind:lastName={person.lastName}
+					bind:birthDate={person.birthDate}
+					errors={fieldErrors}
+					disabled={isSubmitting}
+				/>
+				<PersonContactFields
+					bind:phone={person.phone}
+					bind:email={person.email}
+					errors={fieldErrors}
+					disabled={isSubmitting}
+				/>
+				<PersonAddressFields
+					bind:address={person.address}
+					bind:city={person.city}
+					bind:postalCode={person.postalCode}
+					bind:district={person.district}
+					errors={fieldErrors}
+					disabled={isSubmitting}
 					class="sm:col-span-2"
-				>
-					<div class="space-y-4">
-						<InputField
-							id="adoption-address"
-							name="address"
-							label="Rue"
-							bind:value={address}
-							placeholder="123 rue de la Paix"
-							error={getFieldError(fieldErrors, 'address')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-							<InputField
-								id="adoption-city"
-								name="city"
-								label="Ville"
-								bind:value={city}
-								placeholder="Montpellier"
-								error={getFieldError(fieldErrors, 'city')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
-
-							<InputField
-								id="adoption-postalCode"
-								name="postalCode"
-								label="Code postal"
-								bind:value={postalCode}
-								placeholder="34000"
-								error={getFieldError(fieldErrors, 'postalCode')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
-
-							{#if city.toLowerCase() === 'montpellier'}
-								<SelectField
-									id="adoption-district"
-									name="district"
-									label="Quartier"
-									bind:value={selectedDistrict}
-									placeholder="Quartier"
-									options={DISTRICT_OPTIONS}
-									size="sm"
-									disabled={isSubmitting}
-								/>
-							{/if}
-						</div>
-					</div>
-				</SectionCard>
+				/>
 			</section>
 
 			<!-- ⛔ Blacklist : la raison, et la décision (admin seulement) -->
