@@ -1,3 +1,20 @@
+import type { Prisma } from '@prisma/client';
+
+/**
+ * À mettre dans un `include` de Profil : sa blacklist ACTIVE la plus récente (0 ou 1 ligne),
+ * avec juste ce qu'il faut pour un badge (la raison et la date).
+ */
+export const activeBlacklistArgs = {
+	where: { isBlacklisted: true },
+	orderBy: { createdAt: 'desc' as const },
+	take: 1,
+	select: { description: true, createdAt: true }
+} satisfies Prisma.Profil$blacklistsArgs;
+
+export type ActiveBlacklist = Prisma.BlacklistHistoricGetPayload<{
+	select: typeof activeBlacklistArgs.select;
+}>;
+
 /** Une ligne de BlacklistHistoric (jamais supprimée : lever = isBlacklisted passe à false) */
 export type BlacklistEntry = {
 	id: string;

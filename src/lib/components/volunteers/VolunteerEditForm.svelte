@@ -24,6 +24,8 @@
 		editData = $bindable<VolunteerEditData>(),
 		volunteerId,
 		profileId,
+		/** Déjà blacklisté : le bouton « Blacklister » est masqué */
+		isBlacklisted = false,
 		onSuccess,
 		onCancel
 	} = $props();
@@ -272,13 +274,15 @@
 	<!-- Étroit : Enregistrer en haut, actions dangereuses en dessous | Large : sur une ligne -->
 	<section class="flex flex-col-reverse gap-4 @xl:flex-row @xl:items-center @xl:justify-between">
 		<div class="flex flex-wrap gap-2">
-			<!-- Même module que la page Blacklist : le compte est retrouvé par son email -->
-			<BlacklistAddDialog
-				email={editData.email}
-				name={`${editData.firstName} ${editData.lastName}`}
-				trigger="button"
-				onSuccess={handleBlacklisted}
-			/>
+			{#if !isBlacklisted}
+				<!-- Même module que la page Blacklist : le compte est retrouvé par son email -->
+				<BlacklistAddDialog
+					email={editData.email}
+					name={`${editData.firstName} ${editData.lastName}`}
+					trigger="button"
+					onSuccess={handleBlacklisted}
+				/>
+			{/if}
 			<DeleteButton
 				entityId={profileId}
 				firstName={editData.firstName}

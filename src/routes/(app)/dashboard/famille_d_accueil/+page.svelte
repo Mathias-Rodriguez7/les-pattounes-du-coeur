@@ -4,6 +4,7 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
+	import { BLACKLIST_FILTER_OPTIONS, matchesBlacklistFilter } from '#lib/constants/blacklist.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import HostRow from '#lib/components/hosts/HostRow.svelte';
@@ -43,6 +44,7 @@
 	// Filtres
 	let typeFilter = $state('');
 	let actifFilter = $state('ACTIVE');
+	let blacklistFilter = $state('');
 	let healFilter = $state('');
 	let socializeFilter = $state('');
 	let babyFilter = $state('');
@@ -56,6 +58,7 @@
 	function clearFilters() {
 		typeFilter = '';
 		actifFilter = 'ACTIVE';
+		blacklistFilter = '';
 		healFilter = '';
 		socializeFilter = '';
 		babyFilter = '';
@@ -86,6 +89,10 @@
 
 		if (typeFilter) filtered = filtered.filter((h) => h.type === typeFilter);
 		if (actifFilter) filtered = filtered.filter((h) => h.actif === actifFilter);
+		if (blacklistFilter)
+			filtered = filtered.filter((h) =>
+				matchesBlacklistFilter(blacklistFilter, h.profil.blacklists)
+			);
 		if (healFilter) filtered = filtered.filter((h) => h.heal === healFilter);
 		if (socializeFilter) filtered = filtered.filter((h) => h.socialize === socializeFilter);
 		if (babyFilter) filtered = filtered.filter((h) => h.babyFeeding === babyFilter);
@@ -197,6 +204,14 @@
 									bind:value={babyFilter}
 									placeholder="Biberonnage"
 									class="w-full sm:w-36"
+								/>
+								<SelectField
+									id="host-blacklist-filter"
+									label=""
+									options={BLACKLIST_FILTER_OPTIONS}
+									bind:value={blacklistFilter}
+									placeholder="Blacklist"
+									class="w-40"
 								/>
 							{/snippet}
 						</TableToolbar>

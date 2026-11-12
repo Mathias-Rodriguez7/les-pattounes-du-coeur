@@ -5,6 +5,7 @@ import { District, VolunteerRole } from '@prisma/client';
 import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
+import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN
@@ -107,7 +108,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			include: {
 				profil: {
 					include: {
-						host: true
+						host: true,
+						// Sa blacklist active : badge dans la fiche + filtre « Blacklist »
+						blacklists: activeBlacklistArgs
 					}
 				},
 				cats: {

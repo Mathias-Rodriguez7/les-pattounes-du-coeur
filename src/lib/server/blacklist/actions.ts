@@ -38,6 +38,15 @@ export async function addToBlacklistAction({ request, locals }: ActionEvent) {
 		});
 	}
 
+	// Garde-fou : se blacklister désactiverait SON compte, et plus personne ne pourrait lever la
+	// blacklist (réservé à l'admin). On refuse avant même d'écrire en base.
+	if (parsed.data.email === locals.user?.profil.email.trim().toLowerCase()) {
+		return fail(400, {
+			error: 'Vous ne pouvez pas vous blacklister vous-même',
+			errors: { email: ['C’est votre propre email'] }
+		});
+	}
+
 	try {
 		await addToBlacklist(parsed.data);
 		return { success: true, message: `${parsed.data.email} est blacklisté` };
