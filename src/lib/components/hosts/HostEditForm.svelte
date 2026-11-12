@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { firstMessages } from '#lib/utils/zodErrors.ts';
+	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -331,49 +333,7 @@
 			</div>
 		</SectionCard>
 
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.animals.icon}
-			title={HOST_SECTION_CONFIG.animals.label}
-			color={HOST_SECTION_CONFIG.animals.color}
-		>
-			<div class="space-y-4">
-				<CheckboxField
-					id="hasAnimalsAtHome"
-					name="hasAnimalsAtHome"
-					label="Animaux au domicile"
-					checked={editData.hasAnimalsAtHome}
-					onChange={(value) => (editData.hasAnimalsAtHome = value)}
-				/>
-
-				{#if editData.hasAnimalsAtHome}
-					<InputField
-						id="numberOfCatsAtHome"
-						name="numberOfCatsAtHome"
-						label="Chats"
-						type="number"
-						bind:value={editData.numberOfCatsAtHome}
-						placeholder="0"
-						size="sm"
-					/>
-					<InputField
-						id="numberOfDogsAtHome"
-						name="numberOfDogsAtHome"
-						label="Chiens"
-						type="number"
-						bind:value={editData.numberOfDogsAtHome}
-						placeholder="0"
-						size="sm"
-					/>
-					<TextareaField
-						id="otherAnimalsAtHome"
-						name="otherAnimalsAtHome"
-						label="Autres"
-						bind:value={editData.otherAnimalsAtHome}
-						placeholder="Autres animaux..."
-					/>
-				{/if}
-			</div>
-		</SectionCard>
+		<HostAnimalsFields bind:data={editData} errors={firstMessages(serverErrors)} />
 
 		<SectionCard
 			icon={HOST_SECTION_CONFIG.capacity.icon}

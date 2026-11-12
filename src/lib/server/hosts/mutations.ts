@@ -9,6 +9,7 @@ import {
 import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { withoutAnimalCounts } from '#lib/hosts/animals.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -292,7 +293,8 @@ export async function updateHost({ request, locals }: { request: Request; locals
 			}
 		}
 
-		const hostData = buildHostData(validatedData);
+		// Décocher « Animaux au domicile » efface aussi les nombres (voir withoutAnimalCounts)
+		const hostData = buildHostData(withoutAnimalCounts(validatedData));
 		const profilData = buildProfilData(validatedData);
 
 		const updatedHost = await prisma.host.update({

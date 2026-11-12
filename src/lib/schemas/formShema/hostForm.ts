@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { District, HostType, Heal, Socialize, BabyFeeding } from '@prisma/client';
-import { emailField } from '#lib/schemas/fields.ts';
+import { booleanField, emailField } from '#lib/schemas/fields.ts';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z
@@ -22,8 +22,8 @@ const babyFeedingEnum = z
 // ✅ Convertir les strings en dates
 // Chaîne 'AAAA-MM-JJ' (navigateur) OU Date (superforms la convertit côté serveur)
 const stringToDate = z.union([z.string(), z.date()]).pipe(z.coerce.date()).nullable().optional();
-// ✅ Convertir les strings en booleans
-const stringToBoolean = z.union([z.boolean(), z.string()]).pipe(z.coerce.boolean()).optional();
+// ✅ Booléens de formulaire : voir booleanField (z.coerce.boolean transformait 'false' en true)
+const stringToBoolean = booleanField();
 
 //
 // STEP 1 — IDENTITÉ
@@ -79,7 +79,7 @@ export const hostStep3Schema = z.object({
 export const hostStep4Schema = z.object({
 	// 🐱 type de chats acceptés
 	catAdult: z.coerce.number().int().min(0).default(0),
-	kittyAndKitten: z.coerce.boolean().default(false),
+	kittyAndKitten: stringToBoolean.default(false),
 	kitten: z.coerce.number().int().min(0).default(0),
 
 	// 🏠 présence dans le foyer

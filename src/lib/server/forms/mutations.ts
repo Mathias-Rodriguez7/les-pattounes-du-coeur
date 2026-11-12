@@ -14,6 +14,7 @@ import { canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { withoutAnimalCounts } from '#lib/hosts/animals.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -164,11 +165,12 @@ export async function updateForm({
 			}
 		});
 
-		// Fusionner avec les données existantes
+		// Fusionner avec les données existantes. Demande FA : décocher « Animaux au domicile »
+		// efface aussi les nombres, sinon la fusion garderait les anciens (voir withoutAnimalCounts)
 		if (Object.keys(dataFields).length > 0) {
 			updateData.data = {
 				...((existingForm.data as Record<string, unknown>) ?? {}),
-				...dataFields
+				...withoutAnimalCounts(dataFields)
 			};
 		}
 

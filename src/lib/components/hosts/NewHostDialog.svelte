@@ -1,4 +1,5 @@
 <script lang="ts">
+	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
 	import { createHostSchema } from '#lib/schemas/host.ts';
 	import { getFieldError, flattenErrors, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
@@ -356,55 +357,7 @@
 				</SectionCard>
 
 				<!-- Animaux -->
-				<SectionCard
-					icon={HOST_SECTION_CONFIG.animals.icon}
-					title={HOST_SECTION_CONFIG.animals.label}
-					color={HOST_SECTION_CONFIG.animals.color}
-				>
-					<div class="space-y-4">
-						<CheckboxField
-							id="hasAnimalsAtHome"
-							name="hasAnimalsAtHome"
-							label="Animaux à la maison"
-							checked={form.hasAnimalsAtHome}
-							onChange={(value) => (form.hasAnimalsAtHome = value)}
-							disabled={isSubmitting}
-						/>
-
-						{#if form.hasAnimalsAtHome}
-							<InputField
-								id="numberOfCatsAtHome"
-								name="numberOfCatsAtHome"
-								label="Nombre de chats"
-								type="number"
-								bind:value={form.numberOfCatsAtHome}
-								placeholder="0"
-								size="sm"
-								disabled={isSubmitting}
-							/>
-
-							<InputField
-								id="numberOfDogsAtHome"
-								name="numberOfDogsAtHome"
-								label="Nombre de chiens"
-								type="number"
-								bind:value={form.numberOfDogsAtHome}
-								placeholder="0"
-								size="sm"
-								disabled={isSubmitting}
-							/>
-
-							<TextareaField
-								id="otherAnimalsAtHome"
-								name="otherAnimalsAtHome"
-								label="Autres animaux"
-								bind:value={form.otherAnimalsAtHome}
-								placeholder="Hamster, oiseau..."
-								disabled={isSubmitting}
-							/>
-						{/if}
-					</div>
-				</SectionCard>
+				<HostAnimalsFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 
 				<!-- Capacités -->
 				<SectionCard

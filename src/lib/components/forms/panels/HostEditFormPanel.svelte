@@ -1,4 +1,5 @@
 <script lang="ts">
+	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -283,58 +284,7 @@
 				</div>
 			</SectionCard>
 
-			<SectionCard
-				icon={HOST_SECTION_CONFIG.animals.icon}
-				title={HOST_SECTION_CONFIG.animals.label}
-				color={HOST_SECTION_CONFIG.animals.color}
-			>
-				<div class="space-y-4">
-					<CheckboxField
-						id="hasAnimalsAtHome"
-						name="hasAnimalsAtHome"
-						label="Animaux dans le foyer"
-						checked={editData.data.hasAnimalsAtHome}
-						onChange={(value) => {
-							editData.data.hasAnimalsAtHome = value;
-							if (!value) {
-								editData.data.numberOfCatsAtHome = undefined;
-								editData.data.numberOfDogsAtHome = undefined;
-								editData.data.otherAnimalsAtHome = undefined;
-							}
-						}}
-					/>
-
-					{#if editData.data.hasAnimalsAtHome}
-						<InputField
-							id="numberOfCatsAtHome"
-							name="numberOfCatsAtHome"
-							label="🐱 Chats"
-							type="number"
-							bind:value={editData.data.numberOfCatsAtHome}
-							placeholder="0"
-							size="sm"
-						/>
-
-						<InputField
-							id="numberOfDogsAtHome"
-							name="numberOfDogsAtHome"
-							label="🐕 Chiens"
-							type="number"
-							bind:value={editData.data.numberOfDogsAtHome}
-							placeholder="0"
-							size="sm"
-						/>
-
-						<TextareaField
-							id="otherAnimalsAtHome"
-							name="otherAnimalsAtHome"
-							label="🐾 Autres"
-							bind:value={editData.data.otherAnimalsAtHome}
-							placeholder="Lapin..."
-						/>
-					{/if}
-				</div>
-			</SectionCard>
+			<HostAnimalsFields bind:data={editData.data} errors={formErrors} />
 
 			<SectionCard
 				icon={HOST_SECTION_CONFIG.capacity.icon}
