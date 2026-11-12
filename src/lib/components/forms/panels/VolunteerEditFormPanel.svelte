@@ -1,11 +1,12 @@
 <script lang="ts">
+	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
+	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
+	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
-	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
-	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
 	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
@@ -19,7 +20,6 @@
 	} from '#lib/constants/volunteer.ts';
 	import type { FormEditData, VolunteerFormData } from '#lib/types/form.ts';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
-	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 
 	let {
 		editData = $bindable<FormEditData<VolunteerFormData> | null>(),
@@ -105,132 +105,26 @@
 
 		<!-- 📋 SECTION 1: Infos Personnelles -->
 		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-7">
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
-				title={VOLUNTEER_SECTION_CONFIG.profile.label}
-				color={VOLUNTEER_SECTION_CONFIG.profile.color}
-				class="@2xl:col-span-2"
-			>
-				<div class="space-y-4">
-					<div class="grid grid-cols-2 gap-4">
-						<InputField
-							id="firstName"
-							name="firstName"
-							label="Prénom"
-							bind:value={editData.data.firstName}
-							placeholder="Jean"
-							error={formErrors.firstName}
-							required
-							size="sm"
-						/>
+			<PersonProfileFields
+				bind:firstName={editData.data.firstName}
+				bind:lastName={editData.data.lastName}
+				bind:birthDate={editData.data.birthDate}
+				errors={formErrors}
+			/>
 
-						<InputField
-							id="lastName"
-							name="lastName"
-							label="Nom"
-							bind:value={editData.data.lastName}
-							placeholder="Dupont"
-							error={formErrors.lastName}
-							required
-							size="sm"
-						/>
-					</div>
+			<PersonContactFields
+				bind:phone={editData.data.phone}
+				bind:email={editData.email}
+				errors={formErrors}
+			/>
 
-					<DatePicker
-						name="birthDate"
-						value={editData.data.birthDate}
-						onSelect={(date) => {
-							editData.data.birthDate = date;
-						}}
-						label="Date de naissance"
-					/>
-				</div>
-			</SectionCard>
-
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
-				title={VOLUNTEER_SECTION_CONFIG.contact.label}
-				color={VOLUNTEER_SECTION_CONFIG.contact.color}
-				class="@2xl:col-span-2"
-			>
-				<div class="grid gap-2">
-					<InputField
-						id="phone"
-						name="phone"
-						label="Téléphone"
-						bind:value={editData.data.phone}
-						placeholder="06 12 34 56 78"
-						error={formErrors.phone}
-						required
-						size="sm"
-					/>
-
-					<InputField
-						id="email"
-						name="email"
-						label="Email"
-						type="email"
-						bind:value={editData.email}
-						placeholder="jean@example.com"
-						error={formErrors.email}
-						required
-						size="sm"
-					/>
-				</div>
-			</SectionCard>
-
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.address.icon}
-				title={VOLUNTEER_SECTION_CONFIG.address.label}
-				color={VOLUNTEER_SECTION_CONFIG.address.color}
-				class="@2xl:col-span-3"
-			>
-				<div class="space-y-4">
-					<InputField
-						id="address"
-						name="address"
-						label="Rue"
-						bind:value={editData.data.address}
-						placeholder="Adresse"
-						error={formErrors.address}
-						required
-						size="sm"
-					/>
-
-					<div class="flex gap-4">
-						<InputField
-							id="city"
-							name="city"
-							label="Ville"
-							bind:value={editData.data.city}
-							placeholder="Ville"
-							error={formErrors.city}
-							required
-							size="sm"
-						/>
-
-						<InputField
-							id="postalCode"
-							name="postalCode"
-							label="CP"
-							bind:value={editData.data.postalCode}
-							placeholder="75000"
-							error={formErrors.postalCode}
-							required
-							size="sm"
-						/>
-
-						<SelectField
-							id="district"
-							name="district"
-							label="Quartier"
-							bind:value={editData.data.district}
-							options={DISTRICT_OPTIONS}
-							size="sm"
-						/>
-					</div>
-				</div>
-			</SectionCard>
+			<PersonAddressFields
+				bind:address={editData.data.address}
+				bind:city={editData.data.city}
+				bind:postalCode={editData.data.postalCode}
+				bind:district={editData.data.district}
+				errors={formErrors}
+			/>
 		</section>
 
 		<Separator />

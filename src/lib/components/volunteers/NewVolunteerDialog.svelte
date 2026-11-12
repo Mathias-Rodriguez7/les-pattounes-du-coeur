@@ -1,15 +1,15 @@
 <script lang="ts">
+	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
+	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
+	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
 	import { createVolunteerSchema } from '#lib/schemas/volunteer.ts';
-	import { flattenErrors, getFieldError, firstMessages } from '#lib/utils/zodErrors.ts';
+	import { flattenErrors, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
-	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import DatePicker from '../fields/DatePicker.svelte';
-	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
@@ -126,138 +126,31 @@
 			<!-- Zone qui défile -->
 			<div class="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
 				<!-- PROFIL -->
-				<SectionCard
-					icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
-					title={VOLUNTEER_SECTION_CONFIG.profile.label}
-					color={VOLUNTEER_SECTION_CONFIG.profile.color}
-				>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<InputField
-							id="firstName"
-							name="firstName"
-							label="Prénom"
-							bind:value={form.firstName}
-							placeholder="Jean"
-							error={getFieldError(fieldErrors, 'firstName')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						<InputField
-							id="lastName"
-							name="lastName"
-							label="Nom"
-							bind:value={form.lastName}
-							placeholder="Dupont"
-							error={getFieldError(fieldErrors, 'lastName')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						<div class="sm:col-span-2">
-							<DatePicker
-								name="birthDate"
-								value={form.birthDate}
-								onSelect={(date) => (form.birthDate = date)}
-								label="Date de naissance"
-								error={getFieldError(fieldErrors, 'birthDate')}
-							/>
-						</div>
-					</div>
-				</SectionCard>
+				<PersonProfileFields
+					bind:firstName={form.firstName}
+					bind:lastName={form.lastName}
+					bind:birthDate={form.birthDate}
+					errors={fieldErrors}
+					disabled={isSubmitting}
+				/>
 
 				<!-- CONTACT -->
-				<SectionCard
-					icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
-					title={VOLUNTEER_SECTION_CONFIG.contact.label}
-					color={VOLUNTEER_SECTION_CONFIG.contact.color}
-				>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<InputField
-							id="email"
-							name="email"
-							label="Email"
-							type="email"
-							bind:value={form.email}
-							placeholder="jean@example.com"
-							error={getFieldError(fieldErrors, 'email')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						<InputField
-							id="phone"
-							name="phone"
-							label="Téléphone"
-							type="tel"
-							bind:value={form.phone}
-							placeholder="0612345678"
-							error={getFieldError(fieldErrors, 'phone')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-					</div>
-				</SectionCard>
+				<PersonContactFields
+					bind:phone={form.phone}
+					bind:email={form.email}
+					errors={fieldErrors}
+					disabled={isSubmitting}
+				/>
 
 				<!-- ADRESSE -->
-				<SectionCard
-					icon={VOLUNTEER_SECTION_CONFIG.address.icon}
-					title={VOLUNTEER_SECTION_CONFIG.address.label}
-					color={VOLUNTEER_SECTION_CONFIG.address.color}
-				>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<div class="sm:col-span-2">
-							<InputField
-								id="address"
-								name="address"
-								label="Rue"
-								bind:value={form.address}
-								placeholder="123 rue de la Paix"
-								error={getFieldError(fieldErrors, 'address')}
-								required
-								size="sm"
-								disabled={isSubmitting}
-							/>
-						</div>
-						<InputField
-							id="city"
-							name="city"
-							label="Ville"
-							bind:value={form.city}
-							placeholder="Montpellier"
-							error={getFieldError(fieldErrors, 'city')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						<InputField
-							id="postalCode"
-							name="postalCode"
-							label="Code postal"
-							bind:value={form.postalCode}
-							placeholder="34000"
-							error={getFieldError(fieldErrors, 'postalCode')}
-							required
-							size="sm"
-							disabled={isSubmitting}
-						/>
-						{#if form.city.trim().toLowerCase() === 'montpellier'}
-							<div class="sm:col-span-2">
-								<SelectField
-									id="district"
-									name="district"
-									label="Quartier"
-									bind:value={form.district}
-									options={DISTRICT_OPTIONS}
-									class="w-full"
-									size="sm"
-									disabled={isSubmitting}
-								/>
-							</div>
-						{/if}
-					</div>
-				</SectionCard>
+				<PersonAddressFields
+					bind:address={form.address}
+					bind:city={form.city}
+					bind:postalCode={form.postalCode}
+					bind:district={form.district}
+					errors={fieldErrors}
+					disabled={isSubmitting}
+				/>
 
 				<!-- RÔLE -->
 				<SectionCard

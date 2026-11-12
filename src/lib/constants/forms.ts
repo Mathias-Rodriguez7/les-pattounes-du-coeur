@@ -1,7 +1,7 @@
+import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
+
 export const FORM_SECTION_CONFIG = {
-	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
-	address: { icon: 'map', label: 'Adresse', color: 'gray' },
-	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
+	...PERSON_SECTION_CONFIG,
 	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
 	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
 	capacity: { icon: 'biceps', label: 'Capacités', color: 'indigo' },
@@ -16,9 +16,7 @@ export const FORM_SECTION_CONFIG = {
 } as const;
 
 export const ADOPTION_SECTION_CONFIG = {
-	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
-	address: { icon: 'map', label: 'Adresse', color: 'gray' },
-	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
+	...PERSON_SECTION_CONFIG,
 	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
 	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
 	catSpecific: { icon: 'cat', label: 'Profil du chat ', color: 'fuchsia' },

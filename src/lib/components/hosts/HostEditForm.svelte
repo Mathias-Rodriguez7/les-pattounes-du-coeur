@@ -1,4 +1,7 @@
 <script lang="ts">
+	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
+	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
+	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
 	import { firstMessages } from '#lib/utils/zodErrors.ts';
 	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
 	import HostHomeFields from '#lib/components/hosts/fields/HostHomeFields.svelte';
@@ -8,10 +11,8 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
-	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
-	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import SwitchField from '../fields/SwitchField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
@@ -25,7 +26,6 @@
 	} from '#lib/constants/host.ts';
 	import type { HostEditData } from '#lib/types/host.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
-	import DatePicker from '../fields/DatePicker.svelte';
 	import DateRangePicker from '../fields/DateRangePicker.svelte';
 
 	let {
@@ -43,10 +43,6 @@
 
 	// Erreurs renvoyées par le serveur (format Zod : { champ: ['message'] })
 	let serverErrors = $state<Record<string, string[] | undefined>>({});
-
-	function fieldError(field: string): string {
-		return serverErrors[field]?.[0] ?? '';
-	}
 
 	const handleUpdateEnhance: SubmitFunction = () => {
 		isSaving = true;
@@ -156,133 +152,31 @@
 			</div>
 		</SectionCard>
 
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.profile.icon}
-			title={HOST_SECTION_CONFIG.profile.label}
-			color={HOST_SECTION_CONFIG.profile.color}
-		>
-			<div class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-				<InputField
-					id="firstName"
-					name="firstName"
-					label="Prénom"
-					bind:value={editData.firstName}
-					placeholder="Jean"
-					error={fieldError('firstName')}
-					required
-					size="sm"
-				/>
-
-				<InputField
-					id="lastName"
-					name="lastName"
-					label="Nom"
-					bind:value={editData.lastName}
-					placeholder="Dupont"
-					error={fieldError('lastName')}
-					required
-					size="sm"
-				/>
-
-				<DatePicker
-					name="birthDate"
-					value={editData.birthDate}
-					onSelect={(date) => (editData.birthDate = date)}
-					label="Date d'anniversaire"
-					error={fieldError('birthDate')}
-				/>
-			</div>
-		</SectionCard>
+		<PersonProfileFields
+			bind:firstName={editData.firstName}
+			bind:lastName={editData.lastName}
+			bind:birthDate={editData.birthDate}
+			errors={firstMessages(serverErrors)}
+		/>
 	</section>
 
 	<Separator />
 
 	<!-- Adresse + Contact -->
 	<section class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.address.icon}
-			title={HOST_SECTION_CONFIG.address.label}
-			color={HOST_SECTION_CONFIG.address.color}
-		>
-			<div class="space-y-4">
-				<InputField
-					id="address"
-					name="address"
-					label="Rue"
-					bind:value={editData.address}
-					placeholder="Adresse"
-					error={fieldError('address')}
-					required
-					size="sm"
-				/>
+		<PersonAddressFields
+			bind:address={editData.address}
+			bind:city={editData.city}
+			bind:postalCode={editData.postalCode}
+			bind:district={editData.district}
+			errors={firstMessages(serverErrors)}
+		/>
 
-				<!-- PC : sur une ligne (comme avant) | Mobile : empilés -->
-				<div class="grid grid-cols-1 gap-4 sm:flex">
-					<InputField
-						id="city"
-						name="city"
-						label="Ville"
-						bind:value={editData.city}
-						placeholder="Ville"
-						error={fieldError('city')}
-						required
-						size="sm"
-					/>
-
-					<InputField
-						id="postalCode"
-						name="postalCode"
-						label="Code postal"
-						bind:value={editData.postalCode}
-						placeholder="34000"
-						error={fieldError('postalCode')}
-						required
-						size="sm"
-					/>
-
-					<SelectField
-						id="district"
-						name="district"
-						label="Quartier"
-						bind:value={editData.district}
-						options={DISTRICT_OPTIONS}
-						size="sm"
-					/>
-				</div>
-			</div>
-		</SectionCard>
-
-		<SectionCard
-			icon={HOST_SECTION_CONFIG.contact.icon}
-			title={HOST_SECTION_CONFIG.contact.label}
-			color={HOST_SECTION_CONFIG.contact.color}
-		>
-			<div class="grid gap-2">
-				<InputField
-					id="phone"
-					name="phone"
-					label="Téléphone"
-					type="tel"
-					bind:value={editData.phone}
-					placeholder="0612345678"
-					error={fieldError('phone')}
-					required
-					size="sm"
-				/>
-
-				<InputField
-					id="email"
-					name="email"
-					label="Email"
-					type="email"
-					bind:value={editData.email}
-					placeholder="jean@example.com"
-					error={fieldError('email')}
-					required
-					size="sm"
-				/>
-			</div>
-		</SectionCard>
+		<PersonContactFields
+			bind:phone={editData.phone}
+			bind:email={editData.email}
+			errors={firstMessages(serverErrors)}
+		/>
 	</section>
 
 	<Separator />

@@ -1,3 +1,5 @@
+import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
+
 export const VOLUNTEER_STATUS_OPTIONS = [
 	{ value: 'ACTIVE', label: 'En activité' },
 	{ value: 'BREAK', label: 'En pause' },
@@ -12,11 +14,9 @@ export const VOLUNTEER_ROLE_OPTIONS = [
 
 export const VOLUNTEER_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
-	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	...PERSON_SECTION_CONFIG,
 	pause: { icon: 'CirclePause', label: 'Pause', color: 'pink' },
 	experience: { icon: 'star', label: 'Expérience', color: 'amber' },
-	address: { icon: 'map', label: 'Adresse', color: 'gray' },
-	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
 	cats: { icon: 'cat', label: 'Chats en gestion', color: 'orange' },
 	forms: { icon: 'clipboard', label: 'Formulaires assignés', color: 'green' },
 	notes: { icon: 'note', label: 'Notes', color: 'gray' },
