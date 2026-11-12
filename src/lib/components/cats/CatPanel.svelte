@@ -15,19 +15,16 @@
 	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
 	import { truncate } from '#lib/utils/string.ts';
-	import { sicknessStatus } from '#lib/constants/sickness.ts';
-	import type { SicknessStatus } from '@prisma/client';
 	import { getPlacementTypeClass } from '#lib/constants/placement.ts';
 	import * as Accordion from '#lib/components/ui/accordion/index.ts';
 	import CatMediaGallery from './CatMediaGallery.svelte';
 	import PlacementCreateForm from '../placements/PlacementCreateForm.svelte';
 	import PlacementEditForm from '../placements/PlacementEditForm.svelte';
-	import CatVolunteerCreateForm from '../catVolunteer/CatVolunteerCreateForm.svelte';
-	import CatVolunteerRemoveButton from '../catVolunteer/CatVolunteerRemoveButton.svelte';
-	import SicknessEditForm from '../sickness/SicknessEditForm.svelte';
 	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
+	import CatSicknesses from './panel/CatSicknesses.svelte';
+	import CatVolunteers from './panel/CatVolunteers.svelte';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
 	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
@@ -160,10 +157,6 @@
 	const galleryVideos = $derived(cat?.media?.filter((m) => m.file.type === 'VIDEO').length ?? 0);
 
 	// ===== DÉRIVÉS =====
-	const activeSicknesses = $derived(cat?.sicknesses?.filter((s) => s.status !== 'RESOLVED') ?? []);
-
-	// On garde le lien complet (volunteerId + profil) pour pouvoir le retirer
-	const assignedVolunteers = $derived((cat?.volunteers ?? []).filter((cv) => cv.volunteer?.profil));
 
 	const activePlacements = $derived(
 		(cat?.placements ?? []).filter(
@@ -508,66 +501,7 @@
 					<!-- ============================================================ -->
 					<section class="grid gap-4">
 						<!-- Bénévoles référents (toujours affichés, même après adoption) -->
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.volunteer.icon}
-							title={CAT_SECTION_CONFIG.volunteer.label}
-							color={CAT_SECTION_CONFIG.volunteer.color}
-						>
-							{#snippet action()}
-								{#if isAdmin}
-									<CatVolunteerCreateForm
-										catId={cat.id}
-										volunteers={volunteers ?? []}
-										assignedVolunteerIds={assignedVolunteers.map((cv) => cv.volunteerId)}
-									/>
-								{/if}
-							{/snippet}
-
-							{#if assignedVolunteers.length > 0}
-								<div class="flex flex-wrap gap-4 text-sm">
-									{#each assignedVolunteers as cv (cv.volunteerId)}
-										{@const profil = cv.volunteer.profil}
-										<div class="grid min-w-0 gap-2 rounded-xl border border-sky-400 bg-sky-100 p-2">
-											<div class="flex items-center justify-between gap-2">
-												<p class="font-semibold">
-													{profil.firstName}
-													{truncate(profil.lastName, 1)}.
-												</p>
-												{#if isAdmin}
-													<CatVolunteerRemoveButton
-														catId={cat.id}
-														volunteerId={cv.volunteerId}
-														volunteerName={`${profil.firstName} ${profil.lastName}`}
-													/>
-												{/if}
-											</div>
-											<div class="flex gap-2">
-												<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-												<a
-													href={`tel:${profil.phone}`}
-													class="text-xs text-blue-500 underline hover:text-primary"
-												>
-													{profil.phone}
-												</a>
-											</div>
-											<div class="flex min-w-0 gap-2">
-												<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-												<a
-													href={`mailto:${profil.email}`}
-													class="block text-xs break-all text-blue-500 underline hover:text-primary"
-												>
-													{profil.email}
-												</a>
-											</div>
-										</div>
-									{/each}
-								</div>
-							{:else}
-								<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-									<p>Aucun bénévole associé à ce chat</p>
-								</div>
-							{/if}
-						</SectionCard>
+						<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 
 						<!-- Demandes d'adoption en attente pour ce chat (tant qu'il n'est pas adopté) -->
 						{#if !isAdopted && pendingRequests.length > 0}
@@ -744,68 +678,8 @@
 					<!-- ============================================================ -->
 					<!-- 4. MALADIES                                                   -->
 					<!-- ============================================================ -->
-					<SectionCard
-						icon={CAT_SECTION_CONFIG.sicknesses.icon}
-						title={CAT_SECTION_CONFIG.sicknesses.label}
-						color={CAT_SECTION_CONFIG.sicknesses.color}
-					>
-						{#snippet action()}
-							{#if canManageCat}
-								<SicknessEditForm catId={cat.id} />
-							{/if}
-						{/snippet}
-
-						{#if activeSicknesses.length > 0}
-							<div class="space-y-4">
-								{#each activeSicknesses as sickness (sickness.id)}
-									<!-- PC : 1 + 2 + 2 colonnes | Mobile : empilé -->
-									<div
-										class="relative grid grid-cols-1 gap-3 rounded-xl border border-lime-500 bg-lime-100 px-4 py-2 pr-12 text-sm sm:grid-cols-5 sm:gap-4"
-									>
-										<div class="sm:col-span-1">
-											<span class="block text-xs text-muted-foreground">
-												Maladie {sicknessStatus[sickness.status as SicknessStatus]}
-											</span>
-											<span class="font-medium">{sickness.name}</span>
-
-											<div class="flex gap-2 pt-2">
-												<div>
-													<span class="block text-xs text-muted-foreground">Début</span>
-													<span class="text-xs">{formatDateNum(sickness.startDate)}</span>
-												</div>
-												{#if sickness.endDate}
-													<div>
-														<span class="block text-xs text-muted-foreground">Fin</span>
-														<span class="text-xs">{formatDateNum(sickness.endDate)}</span>
-													</div>
-												{/if}
-											</div>
-										</div>
-										{#if sickness.description}
-											<div class="sm:col-span-2">
-												<span class="block text-xs text-muted-foreground">Description</span>
-												<p class="text-xs whitespace-pre-line">{sickness.description}</p>
-											</div>
-										{/if}
-										<div class="sm:col-span-2">
-											<span class="block text-xs text-muted-foreground">Traitement</span>
-											<span class="text-xs">{sickness.treatment ?? '—'}</span>
-										</div>
-
-										{#if canManageCat}
-											<div class="absolute top-1 right-1">
-												<SicknessEditForm catId={cat.id} {sickness} />
-											</div>
-										{/if}
-									</div>
-								{/each}
-							</div>
-						{:else}
-							<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-								<p>Aucune maladie active</p>
-							</div>
-						{/if}
-					</SectionCard>
+					<!-- Même règle que les documents et les soins : admin, ou bénévole associée au chat -->
+					<CatSicknesses {cat} canManage={canManageCat} />
 
 					<Separator />
 
