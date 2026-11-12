@@ -113,8 +113,8 @@ export async function createVolunteer({
 		if (await isEmailBlacklisted(validatedData.email)) {
 			return {
 				success: false,
-				error: 'Cette personne est sur la liste noire',
-				errors: { email: ['Email présent dans la liste noire'] }
+				error: 'Cette personne est blacklistée',
+				errors: { email: ['Email présent dans la blacklist'] }
 			};
 		}
 

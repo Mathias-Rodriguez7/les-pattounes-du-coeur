@@ -7,6 +7,7 @@ import type {
 	Host,
 	ColabActivity
 } from '@prisma/client';
+import type { ActiveBlacklist } from '#lib/types/blacklist.ts';
 
 /** Les champs secrets d'un bénévole : jamais renvoyés par Prisma (voir src/lib/server/prisma.ts) */
 export const volunteerSecretFields = {
@@ -97,8 +98,9 @@ export type CatVolunteerWithRelations = {
 
 export type VolunteerWithRelations = Omit<Volunteer, 'actif' | VolunteerSecretField> & {
 	actif: ColabActivity | null;
-	/** host : la bénévole est aussi famille d'accueil (chargé par la page Bénévoles) */
-	profil: Profil & { host?: Host | null };
+	/** host : la bénévole est aussi famille d'accueil (chargé par la page Bénévoles)
+	 *  blacklists : sa blacklist active, 0 ou 1 ligne (chargé par la page Bénévoles) */
+	profil: Profil & { host?: Host | null; blacklists?: ActiveBlacklist[] };
 	cats: CatVolunteerWithRelations[];
 	assignedForms: Form[];
 	breakStart?: Date | null;

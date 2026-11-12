@@ -9,6 +9,7 @@
 	import VolunteerRow from '#lib/components/volunteers/VolunteerRow.svelte';
 	import VolunteerPanel from '#lib/components/volunteers/VolunteerPanel.svelte';
 	import NewVolunteerDialog from '#lib/components/volunteers/NewVolunteerDialog.svelte';
+	import { BLACKLIST_FILTER_OPTIONS, matchesBlacklistFilter } from '#lib/constants/blacklist.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '#lib/constants/volunteer.js';
 	import { MediaQuery } from 'svelte/reactivity';
@@ -36,6 +37,7 @@
 
 	let searchQuery = $state('');
 	let actifFilter = $state('ACTIVE');
+	let blacklistFilter = $state('');
 	let roleFilter = $state('');
 	let newVolunteerOpen = $state(false);
 
@@ -46,6 +48,7 @@
 
 	function clearFilters() {
 		actifFilter = 'ACTIVE';
+		blacklistFilter = '';
 		roleFilter = '';
 		searchQuery = '';
 	}
@@ -72,6 +75,10 @@
 		let filtered = volunteers;
 
 		if (actifFilter) filtered = filtered.filter((v) => v.actif === actifFilter);
+		if (blacklistFilter)
+			filtered = filtered.filter((v) =>
+				matchesBlacklistFilter(blacklistFilter, v.profil.blacklists)
+			);
 		if (roleFilter) filtered = filtered.filter((v) => v.role === roleFilter);
 
 		const query = searchQuery.trim().toLowerCase();
@@ -165,6 +172,14 @@
 									bind:value={roleFilter}
 									placeholder="Rôle"
 									class="w-32"
+								/>
+								<SelectField
+									id="volunteer-blacklist-filter"
+									label=""
+									options={BLACKLIST_FILTER_OPTIONS}
+									bind:value={blacklistFilter}
+									placeholder="Blacklist"
+									class="w-40"
 								/>
 							{/snippet}
 						</TableToolbar>

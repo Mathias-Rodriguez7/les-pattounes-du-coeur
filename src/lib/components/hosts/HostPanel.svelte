@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
 	import { Pencil } from '@lucide/svelte';
@@ -21,6 +22,9 @@
 	import { PLACEMENT_TYPE_COLORS, PLACEMENT_TYPE_LABELS } from '#lib/constants/placement.ts';
 
 	const { host, isAdmin = false }: { host: HostFull | null; isAdmin?: boolean } = $props();
+
+	// Sa blacklist active (0 ou 1), chargée avec la FA (hostFullArgs)
+	const blacklist = $derived(host?.profil.blacklists[0] ?? null);
 
 	let isEditing = $state(false);
 
@@ -218,6 +222,9 @@
 								>
 									{host.isAvailable ? '✓ Disponible' : '✗ Non disponible'}
 								</Badge>
+								{#if blacklist}
+									<BlacklistBadge {blacklist} />
+								{/if}
 
 								{#if host.profil.volunteer}
 									<div title="Cette FA est aussi bénévole">
@@ -615,6 +622,7 @@
 					bind:editData
 					hostId={host.id}
 					profileId={host.profilId}
+					isBlacklisted={!!blacklist}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>

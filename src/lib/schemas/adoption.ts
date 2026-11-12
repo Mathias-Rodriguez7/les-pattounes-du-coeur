@@ -38,8 +38,8 @@ export const createAdoptionSchema = z.object({
 export const createAdoptionWithContractSchema = createAdoptionSchema.extend({
 	mediaStorageKey: z.string().min(1, 'Le contrat est obligatoire').max(500),
 	mediaOriginalName: z.string().max(255).nullish(),
-	// Adoptant sur liste noire : l'admin coche « J'ai pris connaissance… » pour passer outre
-	// (la case envoie 'true' ou 'false' ; absente quand l'adoptant n'est pas sur liste noire)
+	// Adoptant blacklisté : l'admin coche « J'ai pris connaissance… » pour passer outre
+	// (la case envoie 'true' ou 'false' ; absente quand l'adoptant n'est pas blacklisté)
 	blacklistOverride: z.enum(['true', 'false']).optional()
 });
 

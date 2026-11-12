@@ -11,7 +11,7 @@
 	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
-	import BlacklistButton from '#lib/components/buttons/BlacklistButton.svelte';
+	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import {
 		HOST_SECTION_CONFIG,
 		HOST_TYPE_OPTIONS,
@@ -26,6 +26,10 @@
 	let {
 		editData = $bindable<FormEditData<HostFormData> | null>(),
 		formId = '',
+		/** Le bouton « Blacklister » n'est proposé qu'à l'admin… */
+		isAdmin = false,
+		/** …et seulement si l'email n'y est pas déjà */
+		isBlacklisted = false,
 		onSuccess,
 		onCancel
 	} = $props();
@@ -33,7 +37,6 @@
 	// États
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
-	let isBlacklisting = $state(false);
 
 	let formErrors = $state({
 		firstName: '',
@@ -75,13 +78,6 @@
 
 	const handleDeleted = () => {
 		isDeleting = false;
-		if (onSuccess) {
-			onSuccess();
-		}
-	};
-
-	const handleBlacklisted = () => {
-		isBlacklisting = false;
 		if (onSuccess) {
 			onSuccess();
 		}
@@ -520,20 +516,14 @@
 		<!-- ✅ SECTION 6: Actions -->
 		<section class="flex justify-between">
 			<div class="flex gap-4">
-				<BlacklistButton
-					profileId=""
-					firstName={editData.data.firstName}
-					lastName={editData.data.lastName}
-					email=""
-					{isBlacklisting}
-					{isSaving}
-					{isDeleting}
-					showBlacklist={false}
-					actionName="?/blacklistHostForm"
-					buttonLabel="Ajouter à la liste noire"
-					onSuccess={handleBlacklisted}
-				/>
-
+				{#if isAdmin && !isBlacklisted}
+					<BlacklistAddDialog
+						email={editData.email}
+						name={`${editData.data.firstName ?? ''} ${editData.data.lastName ?? ''}`.trim() || null}
+						trigger="button"
+						onSuccess={() => onSuccess?.()}
+					/>
+				{/if}
 				<DeleteButton
 					entityId={formId}
 					firstName={editData.data.firstName}

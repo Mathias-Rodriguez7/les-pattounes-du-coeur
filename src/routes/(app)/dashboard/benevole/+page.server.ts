@@ -3,7 +3,9 @@ import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { District, VolunteerRole } from '@prisma/client';
 import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutations.ts';
-import { deleteProfile, blacklistProfile } from '#lib/server/mutations.ts';
+import { deleteProfile } from '#lib/server/mutations.ts';
+import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
+import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// ✅ Vérifier que l'user existe ET est ADMIN
@@ -106,7 +108,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			include: {
 				profil: {
 					include: {
-						host: true
+						host: true,
+						// Sa blacklist active : badge dans la fiche + filtre « Blacklist »
+						blacklists: activeBlacklistArgs
 					}
 				},
 				cats: {
@@ -212,25 +216,6 @@ export const actions: Actions = {
 		}
 	},
 
-	blacklistProfile: async ({ request, locals }) => {
-		try {
-			if (!locals.user || locals.user.role !== 'ADMIN') {
-				return fail(403, { success: false, error: 'Non autorisé' });
-			}
-
-			const data = await request.formData();
-			const profileId = data.get('profileId') as string;
-			const email = data.get('email') as string;
-			const description = data.get('description') as string;
-
-			if (!profileId || !email) {
-				return fail(400, { success: false, error: 'Données manquantes' });
-			}
-
-			return await blacklistProfile(profileId, email, description || '');
-		} catch (error) {
-			console.error('Erreur blacklist profil:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
-		}
-	}
+	// Même action que la page Blacklist (admin uniquement, compte retrouvé par l'email)
+	addToBlacklist: addToBlacklistAction
 };

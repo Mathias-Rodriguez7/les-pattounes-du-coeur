@@ -11,7 +11,7 @@
 	import { toast } from 'svelte-sonner';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '../buttons/DeleteButton.svelte';
-	import BlacklistButton from '../buttons/BlacklistButton.svelte';
+	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import InputField from '../fields/InputField.svelte';
 	import SelectField from '../fields/SelectField.svelte';
 	import SectionCard from '../cards/SectionCard.svelte';
@@ -24,13 +24,14 @@
 		editData = $bindable<VolunteerEditData>(),
 		volunteerId,
 		profileId,
+		/** Déjà blacklisté : le bouton « Blacklister » est masqué */
+		isBlacklisted = false,
 		onSuccess,
 		onCancel
 	} = $props();
 
 	let isSaving = $state(false);
 	let isDeleting = $state(false);
-	let isBlacklisting = $state(false);
 
 	// Erreurs renvoyées par le serveur (format Zod : { champ: ['message'] })
 	let serverErrors = $state<Record<string, string[] | undefined>>({});
@@ -72,10 +73,7 @@
 		onSuccess?.();
 	};
 
-	const handleBlacklisted = () => {
-		isBlacklisting = false;
-		onSuccess?.();
-	};
+	const handleBlacklisted = () => onSuccess?.();
 
 	const handleBreakDateRangeSelect = (dates: { start: Date; end: Date }) => {
 		editData.breakStartDate = dates.start;
@@ -276,19 +274,15 @@
 	<!-- Étroit : Enregistrer en haut, actions dangereuses en dessous | Large : sur une ligne -->
 	<section class="flex flex-col-reverse gap-4 @xl:flex-row @xl:items-center @xl:justify-between">
 		<div class="flex flex-wrap gap-2">
-			<BlacklistButton
-				{profileId}
-				firstName={editData.firstName}
-				lastName={editData.lastName}
-				email={editData.email}
-				{isBlacklisting}
-				{isSaving}
-				{isDeleting}
-				showBlacklist={true}
-				actionName="?/blacklistProfile"
-				buttonLabel="Liste noire"
-				onSuccess={handleBlacklisted}
-			/>
+			{#if !isBlacklisted}
+				<!-- Même module que la page Blacklist : le compte est retrouvé par son email -->
+				<BlacklistAddDialog
+					email={editData.email}
+					name={`${editData.firstName} ${editData.lastName}`}
+					trigger="button"
+					onSuccess={handleBlacklisted}
+				/>
+			{/if}
 			<DeleteButton
 				entityId={profileId}
 				firstName={editData.firstName}

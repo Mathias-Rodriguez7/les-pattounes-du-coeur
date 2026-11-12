@@ -9,6 +9,7 @@
 	import * as Pagination from '#lib/components/ui/pagination/index.js';
 	import { statusLabel } from '#lib/utils/catHelpers.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
 	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
 	import VolunteerEditForm from './VolunteerEditForm.svelte';
 	import { formatAge } from '#lib/utils/age.ts';
@@ -35,6 +36,9 @@
 		volunteer,
 		isAdmin = false
 	}: { volunteer: VolunteerWithRelations | null; isAdmin?: boolean } = $props();
+
+	// Sa blacklist active (0 ou 1), chargée par la page Bénévoles
+	const blacklist = $derived(volunteer?.profil.blacklists?.[0] ?? null);
 
 	let isEditing = $state(false);
 	let currentPage = $state(1);
@@ -191,6 +195,9 @@
 							<Card.Description class="text-base @md:text-lg">
 								{formatAge(volunteer.profil.birthDate)}
 							</Card.Description>
+							{#if blacklist}
+								<BlacklistBadge {blacklist} />
+							{/if}
 							{#if volunteer.profil.host}
 								<span title="Ce bénévole est aussi famille d'accueil">
 									<Icon name="star" iconClass="size-5 text-amber-500 fill-amber-500" />
@@ -456,6 +463,7 @@
 					bind:editData
 					volunteerId={volunteer.id}
 					profileId={volunteer.profilId}
+					isBlacklisted={!!blacklist}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>

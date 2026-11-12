@@ -1,11 +1,18 @@
 import type { Prisma, Heal, Socialize, BabyFeeding, HostType, ColabActivity } from '@prisma/client';
 import { volunteerSecretFields } from '#lib/types/volunteer.ts';
+import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 
 // ✅ Ce que charge une FA complète : la requête ET le type en découlent
 export const hostFullArgs = {
 	include: {
 		// volunteer : HostPanel indique si la FA est aussi bénévole
-		profil: { include: { volunteer: { omit: volunteerSecretFields } } },
+		// blacklists : sa blacklist active (badge dans HostPanel, filtre de la page FA)
+		profil: {
+			include: {
+				volunteer: { omit: volunteerSecretFields },
+				blacklists: activeBlacklistArgs
+			}
+		},
 		placements: { include: { cat: true } }
 	}
 } satisfies Prisma.HostDefaultArgs;

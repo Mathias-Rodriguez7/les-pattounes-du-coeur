@@ -16,7 +16,8 @@
 		ChevronRight,
 		Newspaper,
 		ClipboardList,
-		FileQuestionMark
+		FileQuestionMark,
+		Ban
 	} from '@lucide/svelte';
 
 	type Props = {
@@ -81,6 +82,12 @@
 			icon: ClipboardList,
 			href: 'dashboard/forms',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
+		},
+		{
+			label: 'Blacklist',
+			icon: Ban,
+			href: 'dashboard/blacklist',
+			roles: ['ADMIN']
 		},
 		{
 			label: 'Information',

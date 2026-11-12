@@ -15,6 +15,7 @@ import { myFormsWhere } from '#lib/server/permissions/form.ts';
 import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
 import { formInclude } from '#lib/types/form.ts';
 import { withBlacklist } from '#lib/server/accountStatus.ts';
+import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -83,7 +84,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 📋 Forms
 	// 🆕 Le chat et la bénévole assignée arrivent avec la demande, en une seule requête
 	// (avant : une requête de plus par demande pour retrouver son chat)
-	// Chaque demande arrive avec `blacklist` : la raison, si son email est sur liste noire
+	// Chaque demande arrive avec `blacklist` : la raison, si son email est blacklisté
 	const forms = await withBlacklist(
 		await prisma.form.findMany({
 			where: whereCondition,
@@ -225,5 +226,7 @@ export const actions: Actions = {
 	},
 
 	// Le code est partagé avec la page Chats (adopter depuis la fiche du chat)
-	createAdoption: createAdoptionAction
+	createAdoption: createAdoptionAction,
+	// Bouton « Blacklister » des panneaux d'édition (admin uniquement)
+	addToBlacklist: addToBlacklistAction
 };

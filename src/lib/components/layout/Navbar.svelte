@@ -143,17 +143,16 @@
 						Conseils
 					</a>
 
-					<!-- Boutique désactivée -->
-					<button
-						disabled
-						class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-50"
+					<a
+						href="https://www.creapourtoi.fr/boutique/"
+						onclick={() => (mobileMenuOpen = false)}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
 					>
 						<ShoppingBag class="h-4 w-4 shrink-0" />
 						Boutique
-						<span class="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-600">
-							Bientôt
-						</span>
-					</button>
+					</a>
 
 					<!-- Séparateur -->
 					<div class="my-2 border-t"></div>
@@ -265,8 +264,11 @@
 									>
 								</li>
 								<li>
-									<NavigationMenu.Link href="#" class="block w-full px-3 py-5 text-2xl"
-										>Boutique</NavigationMenu.Link
+									<NavigationMenu.Link
+										href="https://www.creapourtoi.fr/boutique/"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="block w-full px-3 py-5 text-2xl">Boutique</NavigationMenu.Link
 									>
 								</li>
 							</ul>

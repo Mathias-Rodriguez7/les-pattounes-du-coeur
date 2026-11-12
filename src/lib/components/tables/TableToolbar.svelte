@@ -14,10 +14,10 @@
 		searchLabel?: string;
 		/** false : pas de champ de recherche (page sans recherche) */
 		showSearch?: boolean;
-		/** Nombre de filtres actifs : affiché dans le bouton */
-		onReset: () => void;
-		/** Les champs de filtre (SelectField…) */
-		filters: Snippet;
+		/** Bouton « Réinitialiser » du panneau de filtres */
+		onReset?: () => void;
+		/** Les champs de filtre (SelectField…). Absent : pas de bouton « Filtres » (recherche seule) */
+		filters?: Snippet;
 		/** Boutons en plus, à droite de la recherche (facultatif) */
 		actions?: Snippet;
 	}
@@ -41,17 +41,19 @@
 <div class="flex flex-col gap-2">
 	<!-- ===== BARRE : Filtres + recherche + actions ===== -->
 	<div class="flex flex-wrap items-center gap-2">
-		<Button
-			variant={open ? 'default' : 'outline'}
-			size="sm"
-			class="h-9 shrink-0 rounded-2xl"
-			aria-expanded={open}
-			aria-controls={panelId}
-			onclick={() => (open = !open)}
-		>
-			<SlidersHorizontal class="size-4" />
-			Filtres
-		</Button>
+		{#if filters}
+			<Button
+				variant={open ? 'default' : 'outline'}
+				size="sm"
+				class="h-9 shrink-0 rounded-2xl"
+				aria-expanded={open}
+				aria-controls={panelId}
+				onclick={() => (open = !open)}
+			>
+				<SlidersHorizontal class="size-4" />
+				Filtres
+			</Button>
+		{/if}
 
 		{#if showSearch}
 			<div class="relative min-w-40 flex-1">
@@ -72,14 +74,16 @@
 	</div>
 
 	<!-- ===== FILTRES (repliés par défaut) ===== -->
-	{#if open}
+	{#if open && filters}
 		<div
 			id={panelId}
 			transition:slide={{ duration: 150 }}
 			class="flex flex-wrap items-center gap-2 rounded-xl bg-muted/40 p-3"
 		>
 			{@render filters()}
-			<Button size="sm" class="rounded-2xl" onclick={onReset}>Réinitialiser</Button>
+			{#if onReset}
+				<Button size="sm" class="rounded-2xl" onclick={onReset}>Réinitialiser</Button>
+			{/if}
 		</div>
 	{/if}
 </div>

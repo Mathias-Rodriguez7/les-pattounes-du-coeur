@@ -820,17 +820,73 @@ async function main() {
 	// ---------------------
 	// 🚫 BLACKLIST
 	// ---------------------
-	console.log('🚫 Création de blacklist...');
-	for (let i = 0; i < 5; i++) {
+	// Cas FIXES (pas de hasard) : la page Blacklist montre toujours les mêmes situations
+	console.log('🚫 Création de blacklist (6 cas fixes)...');
+	const lifted = (description: string, date: string, reason: string) =>
+		`${description}\n\nLevée le ${date} par Admin Pattounes : ${reason}`;
+
+	const blacklistCases = [
+		// 1. Adoptante blacklistée (sans compte)
+		{
+			profil: profils[140],
+			description: 'Chat rendu en mauvais état, refus de tout contact.',
+			isBlacklisted: true
+		},
+		// 2. Historique complet : blacklistée, levée, puis re-blacklistée
+		{
+			profil: profils[141],
+			description: lifted(
+				'Retards répétés pour les visites de suivi.',
+				'15/03/2026',
+				'Situation régularisée après un échange'
+			),
+			isBlacklisted: false,
+			createdAt: new Date('2026-01-10')
+		},
+		{
+			profil: profils[141],
+			description: 'Nouvel abandon de suivi après la levée.',
+			isBlacklisted: true,
+			createdAt: new Date('2026-06-02')
+		},
+		// 3. Levée seulement : n'apparaît PAS dans la table (seulement dans « Levées »)
+		{
+			profil: profils[142],
+			description: lifted(
+				'Doute sur le logement.',
+				'20/02/2026',
+				'Visite effectuée, tout est en ordre'
+			),
+			isBlacklisted: false
+		},
+		// 4. Bénévole blacklistée : son compte est désactivé (« Compte Bénévole désactivé »)
+		{
+			profil: profils[26],
+			description: 'Comportement inadapté envers une famille d’accueil.',
+			isBlacklisted: true
+		},
+		// 5. FA blacklistée : son compte est désactivé (« Compte Famille d'accueil désactivé »)
+		{
+			profil: profils[106],
+			description: 'Chats laissés sans soins pendant une absence.',
+			isBlacklisted: true
+		}
+	];
+
+	for (const { profil, ...entry } of blacklistCases) {
 		await prisma.blacklistHistoric.create({
-			data: {
-				profilId: profils[140 + i].id,
-				email: profils[140 + i].email,
-				description: faker.lorem.sentence(),
-				isBlacklisted: randomBool(0.7)
-			}
+			data: { profilId: profil.id, email: profil.email.toLowerCase(), ...entry }
 		});
 	}
+
+	// 6. Email seul (ni compte, ni demande) : « Nom inconnu » dans le panneau
+	await prisma.blacklistHistoric.create({
+		data: {
+			email: 'demandes.frauduleuses@exemple.fr',
+			description: 'Plusieurs demandes avec de fausses informations.',
+			isBlacklisted: true
+		}
+	});
 
 	// ---------------------
 	// 📄 FORMS

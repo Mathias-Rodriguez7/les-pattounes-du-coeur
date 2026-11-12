@@ -40,9 +40,9 @@
 		requests?: LinkableRequest[];
 		/** Le chat adopté : celui de la demande précise, ou celui choisi pour une demande libre */
 		catId: string;
-		/** Page Formulaires : la liste noire de la demande traitée (si son email y figure) */
+		/** Page Formulaires : la blacklist de la demande traitée (si son email y figure) */
 		blacklist?: BlacklistInfo | null;
-		/** Admin : peut autoriser l'adoption malgré la liste noire */
+		/** Admin : peut autoriser l'adoption malgré la blacklist */
 		canOverrideBlacklist?: boolean;
 	}
 
@@ -57,9 +57,9 @@
 		canOverrideBlacklist = false
 	}: Props = $props();
 
-	// ===== LISTE NOIRE =====
+	// ===== BLACKLIST =====
 	// Connue d'avance (demande traitée ou demande liée), ou renvoyée par le serveur
-	// quand l'email tapé à la main est sur liste noire (adoption « hors formulaire »)
+	// quand l'email tapé à la main est blacklisté (adoption « hors formulaire »)
 	let serverBlacklist = $state<BlacklistInfo | null>(null);
 	let blacklistOverride = $state(false);
 	const activeBlacklist = $derived(
@@ -199,17 +199,15 @@
 			return;
 		}
 
-		// Liste noire : bloquée pour une bénévole, case obligatoire pour l'admin
+		// Blacklist : bloquée pour une bénévole, case obligatoire pour l'admin
 		// (le serveur vérifie les deux : ici, c'est pour un message immédiat)
 		if (activeBlacklist && !canOverrideBlacklist) {
-			toast.error(
-				'Adoptant sur liste noire : seule une administratrice peut autoriser cette adoption'
-			);
+			toast.error('Adoptant blacklisté : seule une administratrice peut autoriser cette adoption');
 			cancel();
 			return;
 		}
 		if (activeBlacklist && !blacklistOverride) {
-			toast.error("Cochez la case pour autoriser l'adoption malgré la liste noire");
+			toast.error("Cochez la case pour autoriser l'adoption malgré la blacklist");
 			cancel();
 			return;
 		}
@@ -251,7 +249,7 @@
 				await update();
 			} else if (result.type === 'failure') {
 				fieldErrors = firstMessages(result.data?.errors);
-				// Email tapé à la main et sur liste noire : le serveur renvoie la raison
+				// Email tapé à la main et blacklisté : le serveur renvoie la raison
 				if (result.data?.blacklist) {
 					serverBlacklist = result.data.blacklist as BlacklistInfo;
 				}
@@ -431,7 +429,7 @@
 				</SectionCard>
 			</section>
 
-			<!-- ⛔ Liste noire : la raison, et la décision (admin seulement) -->
+			<!-- ⛔ Blacklist : la raison, et la décision (admin seulement) -->
 			{#if activeBlacklist}
 				<div
 					role="alert"
@@ -439,14 +437,14 @@
 				>
 					<p class="flex items-center gap-2 font-semibold">
 						<Ban class="size-5 shrink-0" />
-						Adoptant sur liste noire depuis le {formatDateNum(activeBlacklist.since)}
+						Adoptant blacklisté depuis le {formatDateNum(activeBlacklist.since)}
 					</p>
 					<p class="whitespace-pre-line">{activeBlacklist.reason}</p>
 					{#if canOverrideBlacklist}
 						<CheckboxField
 							id="adoption-blacklist-override"
 							name="blacklistOverride"
-							label="J'ai pris connaissance de la liste noire et j'autorise cette adoption"
+							label="J'ai pris connaissance de la blacklist et j'autorise cette adoption"
 							checked={blacklistOverride}
 							onChange={(value) => (blacklistOverride = value)}
 							disabled={isSubmitting}

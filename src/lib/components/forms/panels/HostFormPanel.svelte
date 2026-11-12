@@ -404,6 +404,8 @@
 				<HostEditFormPanel
 					bind:editData
 					formId={form.id}
+					{isAdmin}
+					isBlacklisted={!!form.blacklist}
 					onSuccess={handleSuccessfulSave}
 					onCancel={handleCancelEdit}
 				/>
