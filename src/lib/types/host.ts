@@ -22,6 +22,9 @@ export type HostFull = Prisma.HostGetPayload<typeof hostFullArgs> & {
 	placementStats?: { long: number; short: number; total: number };
 };
 
+/** Un placement tel que chargé dans la fiche d'une FA (avec le chat) */
+export type HostPlacement = HostFull['placements'][number];
+
 export type HostEditData = {
 	// Statut
 	type?: HostType;
