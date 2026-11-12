@@ -1,9 +1,10 @@
 <script lang="ts">
+	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
+	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
-	import * as Sheet from '#lib/components/ui/sheet/index.js';
-	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
 	import { BLACKLIST_FILTER_OPTIONS, matchesBlacklistFilter } from '#lib/constants/blacklist.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
@@ -18,8 +19,6 @@
 		HOST_SOCIALIZE_OPTIONS,
 		HOST_BABY_FEEDING_OPTIONS
 	} from '#lib/constants/host.js';
-	import { X } from '@lucide/svelte';
-	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 
@@ -27,9 +26,6 @@
 
 	const hosts = $derived(data.hosts);
 	const stats = $derived(data.stats);
-
-	// true à partir de 1024 px (valeur supposée côté serveur : ordinateur)
-	const isDesktop = new MediaQuery('min-width: 1024px', true);
 
 	let selectedHostId = $state<string | null>(null);
 	const selectedHost = $derived(hosts.find((h) => h.id === selectedHostId) ?? null);
@@ -53,7 +49,7 @@
 
 	function handleSelectHost(hostId: string) {
 		selectedHostId = hostId;
-		if (!isDesktop.current) mobilePanelOpen = true;
+		if (!desktop.current) mobilePanelOpen = true;
 	}
 
 	function clearFilters() {
@@ -120,171 +116,143 @@
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
-		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-			<!-- LISTE : sur PC, sa hauteur suit celle du panneau -->
-			<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
-				<Card.Root class="flex flex-col lg:absolute lg:inset-0">
-					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
-						<Card.Title class="text-xl font-bold sm:text-2xl">
-							Familles d'accueil
-							<span class="text-base font-normal text-muted-foreground">
-								({filteredHosts.length})
-							</span>
-						</Card.Title>
-						<Button class="rounded-2xl" size="sm" onclick={() => (newHostOpen = true)}>
-							<Icon name="plus" class="h-4 w-4" />
-							<span class="hidden sm:inline">Nouvelle FA</span>
-							<span class="sm:hidden">Ajouter</span>
-						</Button>
-					</Card.Header>
-
-					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
-						<TableToolbar
-							bind:search={searchQuery}
-							searchPlaceholder="Rechercher une FA…"
-							searchLabel="Chercher une famille d'accueil"
-							onReset={clearFilters}
+		<ListDetailLayout bind:open={mobilePanelOpen} title={selectedHostName}>
+			{#snippet list()}
+				<!-- LISTE : sur PC, sa hauteur suit celle du panneau -->
+				<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
+					<Card.Root class="flex flex-col lg:absolute lg:inset-0">
+						<Card.Header
+							class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2"
 						>
-							{#snippet filters()}
-								<SelectField
-									id="host-filter-type"
-									label=""
-									options={HOST_TYPE_OPTIONS}
-									bind:value={typeFilter}
-									placeholder="Type"
-									class="w-full sm:w-36"
-								/>
-								<SelectField
-									id="host-filter-status"
-									label=""
-									options={HOST_ACTIF_OPTIONS}
-									bind:value={actifFilter}
-									placeholder="Statut"
-									class="w-full sm:w-36"
-								/>
-								<SelectField
-									id="host-filter-heal"
-									label=""
-									options={HOST_HEAL_OPTIONS}
-									bind:value={healFilter}
-									placeholder="Soins"
-									class="w-full sm:w-36"
-								/>
-								<SelectField
-									id="host-filter-socialize"
-									label=""
-									options={HOST_SOCIALIZE_OPTIONS}
-									bind:value={socializeFilter}
-									placeholder="Sociabilisation"
-									class="w-full sm:w-36"
-								/>
-								<SelectField
-									id="host-filter-baby"
-									label=""
-									options={HOST_BABY_FEEDING_OPTIONS}
-									bind:value={babyFilter}
-									placeholder="Biberonnage"
-									class="w-full sm:w-36"
-								/>
-								<SelectField
-									id="host-blacklist-filter"
-									label=""
-									options={BLACKLIST_FILTER_OPTIONS}
-									bind:value={blacklistFilter}
-									placeholder="Blacklist"
-									class="w-40"
-								/>
-							{/snippet}
-						</TableToolbar>
+							<Card.Title class="text-xl font-bold sm:text-2xl">
+								Familles d'accueil
+								<span class="text-base font-normal text-muted-foreground">
+									({filteredHosts.length})
+								</span>
+							</Card.Title>
+							<Button class="rounded-2xl" size="sm" onclick={() => (newHostOpen = true)}>
+								<Icon name="plus" class="h-4 w-4" />
+								<span class="hidden sm:inline">Nouvelle FA</span>
+								<span class="sm:hidden">Ajouter</span>
+							</Button>
+						</Card.Header>
 
-						<!-- Tableau -->
-						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
-							<Table.Root containerClass="overflow-visible">
-								<Table.Header
-									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
-								>
-									<Table.Row>
-										<Table.Head>Nom</Table.Head>
-										<Table.Head>Type</Table.Head>
-										<Table.Head class="hidden text-center sm:table-cell">Animaux</Table.Head>
-										<Table.Head class="hidden sm:table-cell">Socia.</Table.Head>
-										{#each iconColumns as col (col.title)}
-											<Table.Head title={col.title} class="hidden text-center sm:table-cell">
-												<div class="flex justify-center text-white">
-													<Icon
-														name={col.icon}
-														withWrapper={true}
-														wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
-														style="background: {getGradientStyle(col.theme)}"
-														iconClass="h-5 w-5"
-													/>
-												</div>
-											</Table.Head>
-										{/each}
-										<Table.Head class="w-8 sm:hidden"
-											><span class="sr-only">Ouvrir</span></Table.Head
-										>
-									</Table.Row>
-								</Table.Header>
-								<Table.Body>
-									{#each filteredHosts as host (host.id)}
-										<HostRow
-											{host}
-											onclick={() => handleSelectHost(host.id)}
-											isSelected={selectedHostId === host.id}
-										/>
-									{:else}
+						<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
+							<TableToolbar
+								bind:search={searchQuery}
+								searchPlaceholder="Rechercher une FA…"
+								searchLabel="Chercher une famille d'accueil"
+								onReset={clearFilters}
+							>
+								{#snippet filters()}
+									<SelectField
+										id="host-filter-type"
+										label=""
+										options={HOST_TYPE_OPTIONS}
+										bind:value={typeFilter}
+										placeholder="Type"
+										class="w-full sm:w-36"
+									/>
+									<SelectField
+										id="host-filter-status"
+										label=""
+										options={HOST_ACTIF_OPTIONS}
+										bind:value={actifFilter}
+										placeholder="Statut"
+										class="w-full sm:w-36"
+									/>
+									<SelectField
+										id="host-filter-heal"
+										label=""
+										options={HOST_HEAL_OPTIONS}
+										bind:value={healFilter}
+										placeholder="Soins"
+										class="w-full sm:w-36"
+									/>
+									<SelectField
+										id="host-filter-socialize"
+										label=""
+										options={HOST_SOCIALIZE_OPTIONS}
+										bind:value={socializeFilter}
+										placeholder="Sociabilisation"
+										class="w-full sm:w-36"
+									/>
+									<SelectField
+										id="host-filter-baby"
+										label=""
+										options={HOST_BABY_FEEDING_OPTIONS}
+										bind:value={babyFilter}
+										placeholder="Biberonnage"
+										class="w-full sm:w-36"
+									/>
+									<SelectField
+										id="host-blacklist-filter"
+										label=""
+										options={BLACKLIST_FILTER_OPTIONS}
+										bind:value={blacklistFilter}
+										placeholder="Blacklist"
+										class="w-40"
+									/>
+								{/snippet}
+							</TableToolbar>
+
+							<!-- Tableau -->
+							<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
+								<Table.Root containerClass="overflow-visible">
+									<Table.Header
+										class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
+									>
 										<Table.Row>
-											<Table.Cell colspan={8} class="text-muted-foreground py-10 text-center">
-												Aucune famille d'accueil ne correspond à ces filtres.
-											</Table.Cell>
+											<Table.Head>Nom</Table.Head>
+											<Table.Head>Type</Table.Head>
+											<Table.Head class="hidden text-center sm:table-cell">Animaux</Table.Head>
+											<Table.Head class="hidden sm:table-cell">Socia.</Table.Head>
+											{#each iconColumns as col (col.title)}
+												<Table.Head title={col.title} class="hidden text-center sm:table-cell">
+													<div class="flex justify-center text-white">
+														<Icon
+															name={col.icon}
+															withWrapper={true}
+															wrapperClass="flex h-8 w-8 items-center justify-center rounded-lg"
+															style="background: {getGradientStyle(col.theme)}"
+															iconClass="h-5 w-5"
+														/>
+													</div>
+												</Table.Head>
+											{/each}
+											<Table.Head class="w-8 sm:hidden"
+												><span class="sr-only">Ouvrir</span></Table.Head
+											>
 										</Table.Row>
-									{/each}
-								</Table.Body>
-							</Table.Root>
-						</div>
-					</Card.Content>
-				</Card.Root>
-			</div>
-
-			<!-- DÉTAIL : ordinateur -->
-			{#if isDesktop.current}
-				<div class="min-w-0 lg:col-span-3">
-					<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
+									</Table.Header>
+									<Table.Body>
+										{#each filteredHosts as host (host.id)}
+											<HostRow
+												{host}
+												onclick={() => handleSelectHost(host.id)}
+												isSelected={selectedHostId === host.id}
+											/>
+										{:else}
+											<Table.Row>
+												<Table.Cell colspan={8} class="text-muted-foreground py-10 text-center">
+													Aucune famille d'accueil ne correspond à ces filtres.
+												</Table.Cell>
+											</Table.Row>
+										{/each}
+									</Table.Body>
+								</Table.Root>
+							</div>
+						</Card.Content>
+					</Card.Root>
 				</div>
-			{/if}
-		</section>
+			{/snippet}
+
+			{#snippet detail()}
+				<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
+			{/snippet}
+		</ListDetailLayout>
 	</div>
 </main>
-
-<!-- DÉTAIL : plein écran sur mobile -->
-{#if !isDesktop.current}
-	<Sheet.Root bind:open={mobilePanelOpen}>
-		<Sheet.Content
-			side="right"
-			showCloseButton={false}
-			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
-		>
-			<header
-				class="sticky top-0 z-10 flex items-center gap-2 border-b bg-card/95 px-4 py-2 backdrop-blur"
-			>
-				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
-					{selectedHostName}
-				</Sheet.Title>
-				<Sheet.Close
-					class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-					aria-label="Fermer et revenir à la liste"
-				>
-					<X class="size-5" />
-				</Sheet.Close>
-			</header>
-
-			<div class="p-3">
-				<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
-			</div>
-		</Sheet.Content>
-	</Sheet.Root>
-{/if}
 
 <NewHostDialog
 	bind:open={newHostOpen}

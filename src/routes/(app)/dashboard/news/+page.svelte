@@ -1,10 +1,11 @@
 <!-- app/dashboard/news/+page.svelte -->
 <script lang="ts">
+	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
+	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
-	import * as Sheet from '#lib/components/ui/sheet/index.js';
-	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
@@ -12,8 +13,7 @@
 	import NewsPanel from '#lib/components/news/NewsPanel.svelte';
 	import NewCreateDialog from '#lib/components/news/NewCreateDialog.svelte';
 	import { NEWS_TYPE_OPTIONS } from '#lib/constants/news.js';
-	import { X, Sparkles } from '@lucide/svelte';
-	import { MediaQuery } from 'svelte/reactivity';
+	import { Sparkles } from '@lucide/svelte';
 	import { fade, fly } from 'svelte/transition';
 	import NewsCatGenerateDialog from '#lib/components/news/NewsCatGenerateDialog.svelte';
 
@@ -21,9 +21,6 @@
 
 	const news = $derived(data.news);
 	const stats = $derived(data.stats);
-
-	// true à partir de 1024 px (valeur supposée côté serveur : ordinateur)
-	const isDesktop = new MediaQuery('min-width: 1024px', true);
 
 	let selectedNewsId = $state<string | null>(null);
 	const selectedNews = $derived(news.find((n) => n.id === selectedNewsId) ?? null);
@@ -38,7 +35,7 @@
 
 	function handleSelectNews(newsId: string) {
 		selectedNewsId = newsId;
-		if (!isDesktop.current) mobilePanelOpen = true;
+		if (!desktop.current) mobilePanelOpen = true;
 	}
 
 	const statCards = $derived([
@@ -97,135 +94,112 @@
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" />
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
-		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-			<!-- LISTE : sur PC, sa hauteur suit celle du panneau -->
-			<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
-				<Card.Root class="flex flex-col lg:absolute lg:inset-0">
-					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
-						<Card.Title class="text-xl font-bold sm:text-2xl">
-							News
-							<span class="text-base font-normal text-muted-foreground">
-								({filteredNews.length})
-							</span>
-						</Card.Title>
-
-						{#if data.canManageNews}
-							<div class="flex items-center gap-2">
-								<!-- Action secondaire : tonale (rose pâle), avant l'action principale -->
-								<Button
-									size="sm"
-									class="rounded-2xl bg-accent text-accent-foreground shadow-none hover:bg-accent/80"
-									onclick={() => (newsCatsOpen = true)}
-								>
-									<Sparkles class="size-4" />
-									News chats
-								</Button>
-
-								<!-- Action principale : pleine, à droite -->
-								<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
-									<Icon name="plus" class="h-4 w-4" />
-									<span class="hidden sm:inline">News</span>
-									<span class="sm:hidden">Ajouter</span>
-								</Button>
-							</div>
-						{/if}
-					</Card.Header>
-
-					<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
-						<!-- Un seul filtre : pas besoin de le replier sur mobile -->
-						<TableToolbar
-							bind:search={searchQuery}
-							searchPlaceholder="Chercher un titre ou un chat…"
-							searchLabel="Chercher une news par titre ou par chat"
-							onReset={clearFilters}
+		<ListDetailLayout
+			bind:open={mobilePanelOpen}
+			title={selectedNews?.title ?? 'Détail de la news'}
+		>
+			{#snippet list()}
+				<!-- LISTE : sur PC, sa hauteur suit celle du panneau -->
+				<div class="relative min-w-0 lg:col-span-2 lg:min-h-[calc(100dvh-14rem)]">
+					<Card.Root class="flex flex-col lg:absolute lg:inset-0">
+						<Card.Header
+							class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2"
 						>
-							{#snippet filters()}
-								<SelectField
-									id="news-type-filter"
-									label=""
-									options={NEWS_TYPE_OPTIONS}
-									bind:value={typeFilter}
-									placeholder="Type"
-									class="w-36 sm:w-40"
-								/>
-							{/snippet}
-						</TableToolbar>
+							<Card.Title class="text-xl font-bold sm:text-2xl">
+								News
+								<span class="text-base font-normal text-muted-foreground">
+									({filteredNews.length})
+								</span>
+							</Card.Title>
 
-						<!-- Tableau -->
-						<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
-							<Table.Root containerClass="overflow-visible">
-								<Table.Header
-									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
-								>
-									<Table.Row>
-										<Table.Head>Titre</Table.Head>
-										<Table.Head>Type</Table.Head>
-										<Table.Head>Date</Table.Head>
-									</Table.Row>
-								</Table.Header>
-								<Table.Body>
-									{#each filteredNews as item (item.id)}
-										<NewsRow
-											news={item}
-											onclick={() => handleSelectNews(item.id)}
-											isSelected={selectedNewsId === item.id}
-										/>
-									{:else}
+							{#if data.canManageNews}
+								<div class="flex items-center gap-2">
+									<!-- Action secondaire : tonale (rose pâle), avant l'action principale -->
+									<Button
+										size="sm"
+										class="rounded-2xl bg-accent text-accent-foreground shadow-none hover:bg-accent/80"
+										onclick={() => (newsCatsOpen = true)}
+									>
+										<Sparkles class="size-4" />
+										News chats
+									</Button>
+
+									<!-- Action principale : pleine, à droite -->
+									<Button class="rounded-2xl" size="sm" onclick={() => (newsCreateOpen = true)}>
+										<Icon name="plus" class="h-4 w-4" />
+										<span class="hidden sm:inline">News</span>
+										<span class="sm:hidden">Ajouter</span>
+									</Button>
+								</div>
+							{/if}
+						</Card.Header>
+
+						<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
+							<!-- Un seul filtre : pas besoin de le replier sur mobile -->
+							<TableToolbar
+								bind:search={searchQuery}
+								searchPlaceholder="Chercher un titre ou un chat…"
+								searchLabel="Chercher une news par titre ou par chat"
+								onReset={clearFilters}
+							>
+								{#snippet filters()}
+									<SelectField
+										id="news-type-filter"
+										label=""
+										options={NEWS_TYPE_OPTIONS}
+										bind:value={typeFilter}
+										placeholder="Type"
+										class="w-36 sm:w-40"
+									/>
+								{/snippet}
+							</TableToolbar>
+
+							<!-- Tableau -->
+							<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
+								<Table.Root containerClass="overflow-visible">
+									<Table.Header
+										class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
+									>
 										<Table.Row>
-											<Table.Cell colspan={3} class="text-muted-foreground py-10 text-center">
-												{#if searchQuery.trim()}
-													Aucune news trouvée pour « {searchQuery.trim()} »
-												{:else if hasActiveFilters}
-													Aucune news ne correspond à ce filtre.
-												{:else}
-													Aucune news pour le moment.
-												{/if}
-											</Table.Cell>
+											<Table.Head>Titre</Table.Head>
+											<Table.Head>Type</Table.Head>
+											<Table.Head>Date</Table.Head>
 										</Table.Row>
-									{/each}
-								</Table.Body>
-							</Table.Root>
-						</div>
-					</Card.Content>
-				</Card.Root>
-			</div>
-
-			<!-- DÉTAIL : ordinateur -->
-			{#if isDesktop.current}
-				<div class="min-w-0 lg:col-span-3">
-					{@render panel()}
+									</Table.Header>
+									<Table.Body>
+										{#each filteredNews as item (item.id)}
+											<NewsRow
+												news={item}
+												onclick={() => handleSelectNews(item.id)}
+												isSelected={selectedNewsId === item.id}
+											/>
+										{:else}
+											<Table.Row>
+												<Table.Cell colspan={3} class="text-muted-foreground py-10 text-center">
+													{#if searchQuery.trim()}
+														Aucune news trouvée pour « {searchQuery.trim()} »
+													{:else if hasActiveFilters}
+														Aucune news ne correspond à ce filtre.
+													{:else}
+														Aucune news pour le moment.
+													{/if}
+												</Table.Cell>
+											</Table.Row>
+										{/each}
+									</Table.Body>
+								</Table.Root>
+							</div>
+						</Card.Content>
+					</Card.Root>
 				</div>
-			{/if}
-		</section>
+			{/snippet}
+
+			{#snippet detail()}
+				{@render panel()}
+			{/snippet}
+		</ListDetailLayout>
 	</div>
 </main>
-
-<!-- DÉTAIL : plein écran sur mobile -->
-{#if !isDesktop.current}
-	<Sheet.Root bind:open={mobilePanelOpen}>
-		<Sheet.Content
-			side="right"
-			showCloseButton={false}
-			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
-		>
-			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
-				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
-					{selectedNews?.title ?? 'Détail de la news'}
-				</Sheet.Title>
-				<Sheet.Close
-					class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-					aria-label="Fermer et revenir à la liste"
-				>
-					<X class="size-5" />
-				</Sheet.Close>
-			</header>
-
-			<div class="p-3">
-				{@render panel()}
-			</div>
-		</Sheet.Content>
-	</Sheet.Root>
-{/if}
 
 {#if data.canManageNews}
 	<NewCreateDialog bind:open={newsCreateOpen} onCancel={() => (newsCreateOpen = false)} />

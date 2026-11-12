@@ -1,17 +1,15 @@
 <script lang="ts">
+	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
+	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
-	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import CardAction from '#lib/components/ui/card/card-action.svelte';
-	import { buttonVariants } from '#lib/components/ui/button/index.ts';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import BlacklistRow from '#lib/components/blacklist/BlacklistRow.svelte';
 	import BlacklistPanel from '#lib/components/blacklist/BlacklistPanel.svelte';
 	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import { personName } from '#lib/components/blacklist/blacklistDisplay.ts';
-	import { X } from '@lucide/svelte';
-	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data } = $props();
@@ -22,8 +20,6 @@
 	let selectedEmail = $state<string | null>(null);
 	const selectedPerson = $derived(people.find((p) => p.email === selectedEmail) ?? null);
 
-	// Détail à droite sur PC, en plein écran sur téléphone et tablette
-	const isDesktop = new MediaQuery('min-width: 1024px', true);
 	let mobilePanelOpen = $state(false);
 
 	// La personne a disparu de la liste (blacklist levée) : on ferme le détail
@@ -36,7 +32,7 @@
 
 	function selectPerson(email: string) {
 		selectedEmail = email;
-		if (!isDesktop.current) mobilePanelOpen = true;
+		if (!desktop.current) mobilePanelOpen = true;
 	}
 
 	// ===== Stats =====
@@ -73,90 +69,65 @@
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3" />
 
 		<!-- Tableau + Panel détail -->
-		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-			<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
-				<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
-					<Card.Title class="text-xl font-bold sm:text-2xl">Blacklist</Card.Title>
-					<CardAction>
-						<BlacklistAddDialog />
-					</CardAction>
-				</Card.Header>
+		<ListDetailLayout
+			bind:open={mobilePanelOpen}
+			title={selectedPerson ? (personName(selectedPerson) ?? selectedPerson.email) : 'Détail'}
+		>
+			{#snippet list()}
+				<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
+					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
+						<Card.Title class="text-xl font-bold sm:text-2xl">Blacklist</Card.Title>
+						<CardAction>
+							<BlacklistAddDialog />
+						</CardAction>
+					</Card.Header>
 
-				<Card.Content>
-					<TableToolbar
-						bind:search={searchQuery}
-						searchPlaceholder="Chercher un nom, un email…"
-						searchLabel="Chercher dans la blacklist"
-					/>
+					<Card.Content>
+						<TableToolbar
+							bind:search={searchQuery}
+							searchPlaceholder="Chercher un nom, un email…"
+							searchLabel="Chercher dans la blacklist"
+						/>
 
-					<div
-						class="mt-2 overflow-x-auto rounded-md lg:h-[calc(120vh-24rem)] lg:min-h-80 lg:overflow-y-auto"
-					>
-						<Table.Root containerClass="overflow-visible">
-							<Table.Header
-								class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
-							>
-								<Table.Row>
-									<Table.Head>Personne</Table.Head>
-									<Table.Head class="hidden sm:table-cell">Compte</Table.Head>
-									<Table.Head>Depuis</Table.Head>
-								</Table.Row>
-							</Table.Header>
-							<Table.Body>
-								{#each filteredPeople as person (person.email)}
-									<BlacklistRow
-										{person}
-										isSelected={selectedEmail === person.email}
-										onclick={() => selectPerson(person.email)}
-									/>
-								{:else}
+						<div
+							class="mt-2 overflow-x-auto rounded-md lg:h-[calc(120vh-24rem)] lg:min-h-80 lg:overflow-y-auto"
+						>
+							<Table.Root containerClass="overflow-visible">
+								<Table.Header
+									class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]"
+								>
 									<Table.Row>
-										<Table.Cell colspan={3} class="py-8 text-center text-gray-500">
-											{searchQuery
-												? `Aucun résultat pour "${searchQuery}"`
-												: 'Aucune personne blacklistée'}
-										</Table.Cell>
+										<Table.Head>Personne</Table.Head>
+										<Table.Head class="hidden sm:table-cell">Compte</Table.Head>
+										<Table.Head>Depuis</Table.Head>
 									</Table.Row>
-								{/each}
-							</Table.Body>
-						</Table.Root>
-					</div>
-				</Card.Content>
-			</Card.Root>
+								</Table.Header>
+								<Table.Body>
+									{#each filteredPeople as person (person.email)}
+										<BlacklistRow
+											{person}
+											isSelected={selectedEmail === person.email}
+											onclick={() => selectPerson(person.email)}
+										/>
+									{:else}
+										<Table.Row>
+											<Table.Cell colspan={3} class="py-8 text-center text-gray-500">
+												{searchQuery
+													? `Aucun résultat pour "${searchQuery}"`
+													: 'Aucune personne blacklistée'}
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{/snippet}
 
-			<!-- DÉTAIL : ordinateur -->
-			{#if isDesktop.current}
-				<div class="min-w-0 lg:col-span-3">
-					<BlacklistPanel person={selectedPerson} />
-				</div>
-			{/if}
-		</section>
+			{#snippet detail()}
+				<BlacklistPanel person={selectedPerson} />
+			{/snippet}
+		</ListDetailLayout>
 	</div>
 </main>
-
-<!-- DÉTAIL : plein écran sur téléphone et tablette -->
-{#if !isDesktop.current}
-	<Sheet.Root bind:open={mobilePanelOpen}>
-		<Sheet.Content
-			side="right"
-			showCloseButton={false}
-			class="gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-none"
-		>
-			<header class="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-4 py-2 backdrop-blur">
-				<Sheet.Title class="min-w-0 flex-1 truncate text-base font-semibold">
-					{selectedPerson ? (personName(selectedPerson) ?? selectedPerson.email) : 'Détail'}
-				</Sheet.Title>
-				<Sheet.Close
-					class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-					aria-label="Fermer et revenir à la liste"
-				>
-					<X class="size-5" />
-				</Sheet.Close>
-			</header>
-
-			<div class="p-3">
-				<BlacklistPanel person={selectedPerson} />
-			</div>
-		</Sheet.Content>
-	</Sheet.Root>
-{/if}
