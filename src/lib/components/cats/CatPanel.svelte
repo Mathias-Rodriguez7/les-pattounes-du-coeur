@@ -14,18 +14,15 @@
 	import SectionCard from '../cards/SectionCard.svelte';
 	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
-	import { truncate } from '#lib/utils/string.ts';
-	import { getPlacementTypeClass } from '#lib/constants/placement.ts';
-	import * as Accordion from '#lib/components/ui/accordion/index.ts';
 	import CatMediaGallery from './CatMediaGallery.svelte';
-	import PlacementCreateForm from '../placements/PlacementCreateForm.svelte';
-	import PlacementEditForm from '../placements/PlacementEditForm.svelte';
 	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
 	import CatSicknesses from './panel/CatSicknesses.svelte';
 	import CatVolunteers from './panel/CatVolunteers.svelte';
 	import CatAdoptionRequests from './panel/CatAdoptionRequests.svelte';
+	import CatPlacements from './panel/CatPlacements.svelte';
+	import CatPlacementHistory from './panel/CatPlacementHistory.svelte';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
 	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
@@ -158,115 +155,10 @@
 
 	// ===== DÉRIVÉS =====
 
-	const activePlacements = $derived(
-		(cat?.placements ?? []).filter(
-			(p) =>
-				(p.type === 'LONG' && (p.status === 'ACTIVE' || p.status === 'BREAK')) ||
-				(p.type === 'SHORT' && p.status === 'ACTIVE') ||
-				(p.type === 'PROPOSAL' && p.status === 'ACTIVE') ||
-				(p.type === 'TRANSFER' && p.status === 'ACTIVE')
-		)
-	);
-
-	const activeProposalPlacements = $derived(activePlacements.filter((p) => p.type === 'PROPOSAL'));
-	const activeTransferPlacements = $derived(activePlacements.filter((p) => p.type === 'TRANSFER'));
-	const activeLongPlacement = $derived(activePlacements.find((p) => p.type === 'LONG') ?? null);
-	const activeShortPlacement = $derived(activePlacements.find((p) => p.type === 'SHORT') ?? null);
-
-	const stoppedPlacements = $derived(
-		(cat?.placements ?? [])
-			.filter((p) => p.status === 'STOP')
-			.sort((a, b) => {
-				const dateA = new Date(a.endDate ?? a.startDate ?? 0).getTime();
-				const dateB = new Date(b.endDate ?? b.startDate ?? 0).getTime();
-				return dateB - dateA;
-			})
-	);
-
 	const sexIcon = $derived(cat ? getSexIcon(cat.sex) : null);
-
-	type Placement = NonNullable<CatFull['placements']>[number];
-
-	const PLACEMENT_LABEL: Record<string, string> = {
-		LONG: 'Classic',
-		SHORT: 'Relais',
-		PROPOSAL: 'Proposition',
-		TRANSFER: 'Transfert'
-	};
 </script>
 
 {#if cat}
-	<!-- ===== SNIPPET : une carte de placement ===== -->
-	{#snippet placementCard(placement: Placement, isHistory: boolean = false)}
-		<div
-			class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-				placement.type
-			)} {isHistory ? 'opacity-70' : ''}"
-		>
-			<div class="flex items-center justify-between gap-2">
-				<p class="text-sm font-semibold">
-					{placement.host.profil.firstName}
-					{truncate(placement.host.profil.lastName, 1)}.
-				</p>
-				{#if !isHistory && placement.status === 'BREAK'}
-					<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
-				{/if}
-				<div class="flex items-center gap-1">
-					<Badge variant="outline" class="text-xs">
-						{PLACEMENT_LABEL[placement.type] ?? placement.type}
-					</Badge>
-					{#if isAdmin && !isHistory}
-						<PlacementEditForm {cat} {placement} />
-					{/if}
-				</div>
-			</div>
-
-			<div class="ml-6 flex min-w-0 flex-wrap gap-2">
-				<div class="flex gap-2">
-					<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-					<a
-						href={`tel:${placement.host.profil.phone}`}
-						class="text-xs text-blue-500 underline hover:text-primary"
-					>
-						{placement.host.profil.phone}
-					</a>
-				</div>
-				<div class="flex min-w-0 gap-2">
-					<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-					<a
-						href={`mailto:${placement.host.profil.email}`}
-						class="block text-xs break-all text-blue-500 underline hover:text-primary"
-					>
-						{placement.host.profil.email}
-					</a>
-				</div>
-				<p class="block text-xs">
-					{placement.host.profil.address}
-					{placement.host.profil.city}
-				</p>
-			</div>
-
-			{#if placement.startDate}
-				<div class="flex flex-wrap justify-between gap-x-4">
-					<p>Début {formatDateNum(placement.startDate)}</p>
-					<p>Fin {placement.endDate ? formatDateNum(placement.endDate) : '—'}</p>
-				</div>
-			{/if}
-		</div>
-	{/snippet}
-
-	<!-- ===== SNIPPET : un groupe de placements avec son titre ===== -->
-	{#snippet placementGroup(label: string, list: Placement[])}
-		{#if list.length > 0}
-			<div class="grid gap-2">
-				<span class="block text-xs text-muted-foreground">{label}</span>
-				{#each list as placement (placement.id)}
-					{@render placementCard(placement)}
-				{/each}
-			</div>
-		{/if}
-	{/snippet}
-
 	{#if openRequest}
 		<!-- Traiter une demande : le même panneau que la page Formulaires (modifier, refuser, adopter) -->
 		<AdoptionFormPanel
@@ -512,36 +404,7 @@
 						{/if}
 
 						<!-- Familles d'accueil -->
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.host.icon}
-							title={CAT_SECTION_CONFIG.host.label}
-							color={CAT_SECTION_CONFIG.host.color}
-						>
-							{#snippet action()}
-								{#if isAdmin}
-									<PlacementCreateForm catId={cat.id} {cat} hosts={hosts ?? []} />
-								{/if}
-							{/snippet}
-
-							{#if activePlacements.length > 0}
-								<div class="ml-0 grid gap-4 sm:ml-6">
-									{@render placementGroup('FA (Proposition)', activeProposalPlacements)}
-									{@render placementGroup('FA (Transfert)', activeTransferPlacements)}
-									{@render placementGroup(
-										'FA (Classic)',
-										activeLongPlacement ? [activeLongPlacement] : []
-									)}
-									{@render placementGroup(
-										'FA (Relais)',
-										activeShortPlacement ? [activeShortPlacement] : []
-									)}
-								</div>
-							{:else}
-								<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-									<p>Aucune FA associée à ce chat</p>
-								</div>
-							{/if}
-						</SectionCard>
+						<CatPlacements {cat} hosts={hosts ?? []} {isAdmin} />
 					</section>
 
 					<Separator />
@@ -637,28 +500,7 @@
 					<!-- ============================================================ -->
 					<!-- 7. HISTORIQUE                                                 -->
 					<!-- ============================================================ -->
-					<Accordion.Root type="single">
-						<Accordion.Item value="history" class="border-0">
-							<Accordion.Trigger class="py-2 text-base font-semibold hover:no-underline sm:text-lg">
-								<div class="flex items-center gap-2">
-									<Icon name="history" class="h-5 w-5 text-slate-600" />
-									<span>Historique des placements</span>
-									<Badge variant="secondary" class="ml-2">{stoppedPlacements.length}</Badge>
-								</div>
-							</Accordion.Trigger>
-							<Accordion.Content>
-								{#if stoppedPlacements.length > 0}
-									<div class="grid gap-2">
-										{#each stoppedPlacements as placement (placement.id)}
-											{@render placementCard(placement, true)}
-										{/each}
-									</div>
-								{:else}
-									<p class="py-2 text-sm text-muted-foreground">Aucun placement terminé.</p>
-								{/if}
-							</Accordion.Content>
-						</Accordion.Item>
-					</Accordion.Root>
+					<CatPlacementHistory {cat} />
 				</Card.Content>
 			{:else if editingImage}
 				<Card.Content>

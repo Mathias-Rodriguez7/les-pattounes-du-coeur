@@ -216,3 +216,6 @@ export type CatPickerItem = Prisma.CatGetPayload<{ select: typeof catPickerSelec
 
 // ✅ Type pour mettre à jour un chat
 export type CatUpdateInput = Partial<CatEditData>;
+
+/** Un placement tel que chargé dans la fiche d'un chat (avec la FA et son profil) */
+export type CatPlacement = CatFull['placements'][number];
