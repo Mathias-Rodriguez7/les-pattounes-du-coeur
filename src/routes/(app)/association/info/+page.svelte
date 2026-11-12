@@ -3,6 +3,16 @@
 	import { fade, fly } from 'svelte/transition';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { resolve } from '$app/paths';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+
+	// Safti : pas de lien vers leur site, mais un dialogue avec les images du partenariat
+	let saftiOpen = $state(false);
+	const SAFTI_IMAGES = [
+		{ src: '/img/partners/safti/safti-1.jpg', alt: 'Partenariat Safti, image 1' },
+		{ src: '/img/partners/safti/safti-2.jpg', alt: 'Partenariat Safti, image 2' },
+		{ src: '/img/partners/safti/safti-3.jpg', alt: 'Partenariat Safti, image 3' },
+		{ src: '/img/partners/safti/safti-4.jpg', alt: 'Partenariat Safti, image 4' }
+	];
 </script>
 
 <main in:fade={{ duration: 200 }}>
@@ -270,13 +280,15 @@
 						</div>
 
 						<div>
-							<a href="https://www.safti.fr/" target="_blank" rel="noopener noreferrer">
-								<img
-									src="/img/partners/safti.png"
-									alt="Safti"
-									class="mx-auto h-20 object-contain"
-								/>
-							</a>
+							<!-- Un bouton (et plus un lien) : il ouvre le dialogue au lieu de quitter la page -->
+							<button
+								type="button"
+								class="mx-auto block cursor-pointer rounded-md transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+								onclick={() => (saftiOpen = true)}
+								aria-label="Voir les images du partenariat avec Safti"
+							>
+								<img src="/img/partners/safti.png" alt="Safti" class="h-20 object-contain" />
+							</button>
 						</div>
 
 						<div>
@@ -307,4 +319,23 @@
 			</Card.Root>
 		</section>
 	</div>
+
+	<Dialog.Root bind:open={saftiOpen}>
+		<Dialog.Content size="lg" class="max-h-[90dvh] overflow-y-auto">
+			<Dialog.Header>
+				<Dialog.Title>Safti, partenaire de l’association</Dialog.Title>
+			</Dialog.Header>
+			<!-- 1 colonne sur mobile, 2×2 à partir de sm -->
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				{#each SAFTI_IMAGES as image (image.src)}
+					<img
+						src={image.src}
+						alt={image.alt}
+						loading="lazy"
+						class="w-full rounded-lg object-cover"
+					/>
+				{/each}
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
 </main>
