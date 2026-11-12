@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createVolunteerSchema } from '#lib/schemas/volunteer.ts';
-	import { flattenErrors, getFieldError } from '#lib/utils/zodErrors.ts';
+	import { flattenErrors, getFieldError, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
 	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
@@ -13,52 +13,39 @@
 	import SelectField from '../fields/SelectField.svelte';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { VOLUNTEER_SECTION_CONFIG, VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
-	import { format } from 'date-fns';
+	import type { PersonInitialData } from '#lib/person/personForm.ts';
+	import {
+		emptyNewVolunteerForm,
+		newVolunteerFormFrom,
+		toCreateVolunteerInput,
+		type NewVolunteerForm
+	} from './newVolunteerForm.ts';
 
-	let { open = $bindable(false), onCancel, initialData = null, formId = '' } = $props();
+	interface Props {
+		open?: boolean;
+		onCancel?: () => void;
+		/** Une demande bénévole : le formulaire est pré-rempli avec ses réponses */
+		initialData?: PersonInitialData | null;
+		/** L'identifiant de cette demande, envoyé avec la création */
+		formId?: string;
+	}
 
+	let { open = $bindable(false), onCancel, initialData = null, formId = '' }: Props = $props();
+
+	// Tous les champs dans UN objet (voir newVolunteerForm.ts)
+	let form = $state<NewVolunteerForm>(emptyNewVolunteerForm());
+
+	// Pré-remplissage avec la demande, à chaque ouverture
 	$effect(() => {
-		if (open && initialData) {
-			firstName = initialData.firstName ?? '';
-			lastName = initialData.lastName ?? '';
-			email = initialData.email ?? '';
-			phone = initialData.phone ?? '';
-			address = initialData.address ?? '';
-			city = initialData.city ?? '';
-			postalCode = initialData.postalCode ?? '';
-			birthDate = initialData.birthDate ? new Date(initialData.birthDate) : undefined;
-			selectedDistrict = initialData.district ?? '';
-		}
+		if (open && initialData) form = newVolunteerFormFrom(initialData);
 	});
 
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
-	let firstName = $state('');
-	let lastName = $state('');
-	let birthDate = $state<Date | undefined>(undefined);
-	let email = $state('');
-	let phone = $state('');
-	let address = $state('');
-	let city = $state('');
-	let postalCode = $state('');
-	let selectedDistrict = $state<string>('');
-	let selectedRole = $state<string>('MANAGER');
-
 	// ✅ VALIDATION CÔTÉ CLIENT
 	function validateForm(): boolean {
-		const result = createVolunteerSchema.safeParse({
-			firstName: firstName.trim(),
-			lastName: lastName.trim(),
-			birthDate: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
-			email: email.trim(),
-			phone: phone.trim(),
-			address: address.trim(),
-			city: city.trim(),
-			postalCode: postalCode.trim(),
-			district: selectedDistrict || undefined,
-			role: selectedRole
-		});
+		const result = createVolunteerSchema.safeParse(toCreateVolunteerInput(form));
 
 		if (!result.success) {
 			fieldErrors = flattenErrors(result.error);
@@ -71,16 +58,7 @@
 	}
 
 	function resetForm() {
-		firstName = '';
-		lastName = '';
-		birthDate = undefined;
-		email = '';
-		phone = '';
-		address = '';
-		city = '';
-		postalCode = '';
-		selectedDistrict = '';
-		selectedRole = 'MANAGER';
+		form = emptyNewVolunteerForm();
 		fieldErrors = {};
 	}
 
@@ -94,7 +72,6 @@
 		isSubmitting = true;
 
 		return async ({ result, update }) => {
-			console.log('📦 Résultat serveur:', result);
 			if (result.type === 'success') {
 				toast.success('Bénévole créé avec succès');
 				resetForm();
@@ -103,7 +80,8 @@
 			} else if (result.type === 'failure') {
 				// ✅ Erreurs serveur (double validation)
 				if (result.data?.errors) {
-					fieldErrors = result.data.errors;
+					// Le serveur renvoie { champ: ['message'] } : on garde le 1er message
+					fieldErrors = firstMessages(result.data.errors);
 					toast.error('Erreurs de validation du serveur');
 				} else {
 					toast.error('Erreur lors de la création');
@@ -119,7 +97,6 @@
 	};
 
 	const handleCancelClick = () => {
-		console.log('❌ Création annulée');
 		if (onCancel) {
 			onCancel();
 		}
@@ -159,7 +136,7 @@
 							id="firstName"
 							name="firstName"
 							label="Prénom"
-							bind:value={firstName}
+							bind:value={form.firstName}
 							placeholder="Jean"
 							error={getFieldError(fieldErrors, 'firstName')}
 							required
@@ -170,7 +147,7 @@
 							id="lastName"
 							name="lastName"
 							label="Nom"
-							bind:value={lastName}
+							bind:value={form.lastName}
 							placeholder="Dupont"
 							error={getFieldError(fieldErrors, 'lastName')}
 							required
@@ -180,8 +157,8 @@
 						<div class="sm:col-span-2">
 							<DatePicker
 								name="birthDate"
-								value={birthDate}
-								onSelect={(date) => (birthDate = date)}
+								value={form.birthDate}
+								onSelect={(date) => (form.birthDate = date)}
 								label="Date de naissance"
 								error={getFieldError(fieldErrors, 'birthDate')}
 							/>
@@ -201,7 +178,7 @@
 							name="email"
 							label="Email"
 							type="email"
-							bind:value={email}
+							bind:value={form.email}
 							placeholder="jean@example.com"
 							error={getFieldError(fieldErrors, 'email')}
 							required
@@ -213,7 +190,7 @@
 							name="phone"
 							label="Téléphone"
 							type="tel"
-							bind:value={phone}
+							bind:value={form.phone}
 							placeholder="0612345678"
 							error={getFieldError(fieldErrors, 'phone')}
 							required
@@ -235,7 +212,7 @@
 								id="address"
 								name="address"
 								label="Rue"
-								bind:value={address}
+								bind:value={form.address}
 								placeholder="123 rue de la Paix"
 								error={getFieldError(fieldErrors, 'address')}
 								required
@@ -247,7 +224,7 @@
 							id="city"
 							name="city"
 							label="Ville"
-							bind:value={city}
+							bind:value={form.city}
 							placeholder="Montpellier"
 							error={getFieldError(fieldErrors, 'city')}
 							required
@@ -258,20 +235,20 @@
 							id="postalCode"
 							name="postalCode"
 							label="Code postal"
-							bind:value={postalCode}
+							bind:value={form.postalCode}
 							placeholder="34000"
 							error={getFieldError(fieldErrors, 'postalCode')}
 							required
 							size="sm"
 							disabled={isSubmitting}
 						/>
-						{#if city.trim().toLowerCase() === 'montpellier'}
+						{#if form.city.trim().toLowerCase() === 'montpellier'}
 							<div class="sm:col-span-2">
 								<SelectField
 									id="district"
 									name="district"
 									label="Quartier"
-									bind:value={selectedDistrict}
+									bind:value={form.district}
 									options={DISTRICT_OPTIONS}
 									class="w-full"
 									size="sm"
@@ -292,7 +269,7 @@
 						id="role"
 						name="role"
 						label="Rôle"
-						bind:value={selectedRole}
+						bind:value={form.role}
 						options={VOLUNTEER_ROLE_OPTIONS}
 						class="w-full sm:w-64"
 						size="sm"

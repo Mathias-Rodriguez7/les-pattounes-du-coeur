@@ -1,4 +1,9 @@
-import { format } from 'date-fns';
+import {
+	emptyPersonForm,
+	personFormFrom,
+	toPersonInput,
+	type PersonForm
+} from '#lib/person/personForm.ts';
 
 // =====================================================================
 // Le formulaire « Nouvelle FA » (NewHostDialog) : UN objet pour tous les champs.
@@ -7,17 +12,7 @@ import { format } from 'date-fns';
 // Les nombres restent du texte ici : c'est ce que contient un <input type="number">.
 // =====================================================================
 
-export type NewHostForm = {
-	// Profil
-	firstName: string;
-	lastName: string;
-	birthDate: Date | undefined;
-	email: string;
-	phone: string;
-	address: string;
-	city: string;
-	postalCode: string;
-	district: string;
+export type NewHostForm = PersonForm & {
 	// Statut
 	actif: string;
 	type: string;
@@ -50,15 +45,7 @@ export type NewHostForm = {
 /** Un formulaire vide (création depuis la page FA) */
 export function emptyNewHostForm(): NewHostForm {
 	return {
-		firstName: '',
-		lastName: '',
-		birthDate: undefined,
-		email: '',
-		phone: '',
-		address: '',
-		city: 'Montpellier',
-		postalCode: '34000',
-		district: '',
+		...emptyPersonForm(),
 		actif: 'ACTIVE',
 		type: 'CLASSIC',
 		isAvailable: true,
@@ -100,15 +87,7 @@ export function newHostFormFrom(data: NewHostInitialData): NewHostForm {
 		typeof data[key] === 'boolean' ? (data[key] as boolean) : (empty[key] as boolean);
 
 	return {
-		firstName: text('firstName'),
-		lastName: text('lastName'),
-		birthDate: data.birthDate ? new Date(data.birthDate as string | Date) : undefined,
-		email: text('email'),
-		phone: text('phone'),
-		address: text('address'),
-		city: text('city'),
-		postalCode: text('postalCode'),
-		district: text('district'),
+		...personFormFrom(data),
 		actif: text('actif'),
 		type: text('type'),
 		isAvailable: flag('isAvailable'),
@@ -137,15 +116,7 @@ export function newHostFormFrom(data: NewHostInitialData): NewHostForm {
 export function toCreateHostInput(form: NewHostForm) {
 	const int = (value: string) => (value ? parseInt(value) : undefined);
 	return {
-		firstName: form.firstName.trim(),
-		lastName: form.lastName.trim(),
-		birthDate: form.birthDate ? format(form.birthDate, 'yyyy-MM-dd') : undefined,
-		email: form.email.trim(),
-		phone: form.phone.trim(),
-		address: form.address.trim(),
-		city: form.city.trim(),
-		postalCode: form.postalCode.trim(),
-		district: form.district || undefined,
+		...toPersonInput(form),
 		type: form.type,
 		actif: form.actif,
 		isAvailable: form.isAvailable,
