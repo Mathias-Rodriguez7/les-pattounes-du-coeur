@@ -13,6 +13,7 @@ import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema
 import { canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -98,7 +99,7 @@ export async function updateForm({
 		}
 
 		// ✅ VÉRIFICATION D'AUTORISATION : admin, bénévole assignée, ou bénévole du chat
-		const isAdmin = locals.user.role === 'ADMIN';
+		const isAdmin = hasAdminRole(locals.user);
 		if (!(await canManageForm(locals.user, existingForm))) {
 			return {
 				success: false,
@@ -243,7 +244,7 @@ export async function assignVolunteer({
 		return { success: false, error: 'Formulaire introuvable' };
 	}
 
-	const isAdmin = currentVolunteer?.role === 'ADMIN';
+	const isAdmin = hasAdminRole(currentVolunteer);
 	const isDispatcherOfThisForm =
 		currentVolunteer?.isFlexibleDispatcher === true && form.type === 'ADOPTION_FLEXIBLE';
 
@@ -284,17 +285,8 @@ export async function setFlexibleDispatcher({
 	request: Request;
 	locals: App.Locals;
 }) {
-	if (!locals.user) {
-		return { success: false, error: 'Non autorisé' };
-	}
-
 	// Seuls les ADMIN peuvent désigner le dispatcher
-	const currentVolunteer = await prisma.volunteer.findUnique({
-		where: { id: locals.user.id },
-		select: { role: true }
-	});
-
-	if (currentVolunteer?.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return { success: false, error: 'Action réservée aux administrateurs' };
 	}
 

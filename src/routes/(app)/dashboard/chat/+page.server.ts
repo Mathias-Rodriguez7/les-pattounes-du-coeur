@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { createCat, updateCat, deleteCat } from '#lib/server/cats/mutations.ts';
@@ -29,25 +29,15 @@ import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus.ts';
 import { updateForm, rejectForm } from '#lib/server/forms/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole, requireUser } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	if (!locals.user) {
-		redirect(302, '/');
-	}
+	// Tous les rôles ont accès à la page : il suffit d'être connectée
+	const user = requireUser(locals);
 
 	try {
-		const volunteerId = locals.user.id;
-
-		const volunteer = await prisma.volunteer.findUnique({
-			where: { id: volunteerId },
-			select: { role: true }
-		});
-
-		if (!volunteer || !['ADMIN', 'MANAGER', 'COMMUNICATION'].includes(volunteer.role)) {
-			redirect(302, '/');
-		}
-
-		const isAdmin = volunteer.role === 'ADMIN';
+		const volunteerId = user.id;
+		const isAdmin = hasAdminRole(user);
 
 		// ✅ ADMIN voit tout, MANAGER/COMMUNICATION voient seulement leurs chats assignés
 		const catsWhere = isAdmin ? {} : { volunteers: { some: { volunteerId } } };

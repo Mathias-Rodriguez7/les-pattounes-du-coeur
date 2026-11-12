@@ -8,6 +8,7 @@ import {
 } from '../../schemas/host';
 import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -94,7 +95,7 @@ function buildProfilData(data: CreateHostInput | UpdateHostInput) {
 }
 
 export async function createHost({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -213,7 +214,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 }
 
 export async function updateHost({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return {
 			success: false,
 			error: 'Non autorisé',

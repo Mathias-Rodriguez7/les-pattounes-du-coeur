@@ -8,6 +8,7 @@ import {
 import { z } from 'zod';
 import { deleteFiles } from '#lib/server/storage.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 const CAT_FIELDS = [
 	'name',
@@ -238,7 +239,7 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 // (adoption, documents légaux) change de statut au lieu d'être supprimé.
 // ==========================================
 export async function deleteCat({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return { success: false, error: 'Non autorisé' };
 	}
 

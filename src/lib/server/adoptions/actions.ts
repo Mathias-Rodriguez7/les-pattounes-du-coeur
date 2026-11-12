@@ -8,6 +8,7 @@ import { canManageForm } from '#lib/server/permissions/form.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { prepareMedia, discardUpload } from '#lib/server/media/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 type Args = { request: Request; locals: App.Locals };
 
@@ -35,7 +36,7 @@ export async function createAdoptionAction({ request, locals }: Args) {
 	}
 	const { formId, catId, mediaStorageKey, mediaOriginalName, blacklistOverride } = parsed.data;
 	// Passer outre la blacklist : réservé à l'admin. Pour une bénévole, la case est ignorée
-	const allowBlacklisted = blacklistOverride === 'true' && user.role === 'ADMIN';
+	const allowBlacklisted = blacklistOverride === 'true' && hasAdminRole(user);
 
 	// À partir d'ici, le contrat est déjà sur S3. Quelle que soit la sortie
 	// (refus, erreur, exception), le `finally` le supprime s'il n'a pas été rattaché.
@@ -117,12 +118,11 @@ export async function createAdoptionAction({ request, locals }: Args) {
 			if (err instanceof BlacklistedAdopterError) {
 				const entry = (await findActiveBlacklists([parsed.data.email])).values().next().value;
 				return fail(409, {
-					error:
-						user.role === 'ADMIN'
-							? "Adoptant blacklisté : cochez la case pour autoriser l'adoption"
-							: 'Adoptant blacklisté : seule une administratrice peut autoriser cette adoption',
+					error: hasAdminRole(user)
+						? "Adoptant blacklisté : cochez la case pour autoriser l'adoption"
+						: 'Adoptant blacklisté : seule une administratrice peut autoriser cette adoption',
 					blacklist: entry ?? null,
-					canOverride: user.role === 'ADMIN'
+					canOverride: hasAdminRole(user)
 				});
 			}
 			// Les messages de createAdoption sont écrits pour l'utilisatrice (« Le chat … n'est pas adoptable »)

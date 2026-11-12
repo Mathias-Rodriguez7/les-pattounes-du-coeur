@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { addToBlacklistSchema, liftBlacklistSchema } from '#lib/schemas/blacklist.ts';
 import { addToBlacklist, liftBlacklist, BlacklistError } from './mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 // =====================================================================
 // Actions PARTAGÉES : chaque page qui affiche un bouton « blacklist » les déclare
@@ -17,7 +18,9 @@ type ActionEvent = Pick<RequestEvent, 'request' | 'locals'>;
 /** Réservé à l'admin : la décision vient TOUJOURS du serveur, jamais du navigateur */
 function adminName(locals: App.Locals): string | null {
 	const user = locals.user;
-	if (!user || user.role !== 'ADMIN') return null;
+	// `!user ||` : hasAdminRole renvoie un simple booléen, TypeScript ne sait pas qu'après
+	// lui, `user` n'est plus null. Le test explicite le lui dit.
+	if (!user || !hasAdminRole(user)) return null;
 	return `${user.profil.firstName} ${user.profil.lastName}`;
 }
 

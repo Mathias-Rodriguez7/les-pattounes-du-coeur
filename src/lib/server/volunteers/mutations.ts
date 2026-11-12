@@ -10,6 +10,7 @@ import { randomBytes } from 'node:crypto';
 import { sendVolunteerWelcomeEmail } from '../mailer';
 import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 const PROFIL_FIELDS = [
 	'firstName',
@@ -86,7 +87,7 @@ export async function createVolunteer({
 	request: Request;
 	locals: App.Locals;
 }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -240,7 +241,7 @@ export async function updateVolunteer({
 		}
 
 		// ✅ Vérifier que c'est un ADMIN ou le bénévole lui-même
-		const isAdmin = locals.user.role === 'ADMIN';
+		const isAdmin = hasAdminRole(locals.user);
 		const isOwnProfile = locals.user.id === volunteerId;
 
 		if (!isAdmin && !isOwnProfile) {

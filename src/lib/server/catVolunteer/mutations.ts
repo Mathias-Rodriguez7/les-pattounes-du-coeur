@@ -1,4 +1,5 @@
 import prisma from '#lib/server/prisma.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 function convertFormData(formData: FormData): Record<string, string | null> {
 	const data: Record<string, string | null> = {};
@@ -17,7 +18,7 @@ function canManageCatVolunteer(locals: App.Locals): { authorized: boolean; error
 		return { authorized: false, error: 'Non autorisé' };
 	}
 
-	if (locals.user.role === 'ADMIN') {
+	if (hasAdminRole(locals.user)) {
 		return { authorized: true };
 	}
 
