@@ -33,6 +33,18 @@ export function flattenErrors(error: z.ZodError): FlattenedErrors {
 	return errors;
 }
 
+/**
+ * Erreurs renvoyées par le SERVEUR ({ email: ['Email invalide'] }) → un message par champ,
+ * la forme qu'attend getFieldError. (Sans conversion, on affichait un tableau.)
+ */
+export function firstMessages(errors: Record<string, string[] | undefined>): FlattenedErrors {
+	const result: FlattenedErrors = {};
+	for (const [field, messages] of Object.entries(errors)) {
+		if (messages?.[0]) result[field] = messages[0];
+	}
+	return result;
+}
+
 /** Le message d'erreur d'un champ */
 export function getFieldError(errors: FlattenedErrors, fieldName: string): string | undefined {
 	return errors[fieldName];
