@@ -528,7 +528,7 @@
 	<!-- PC : une ligne, comme avant | Mobile : Enregistrer en haut, actions dangereuses en dessous -->
 	<section class="flex flex-col-reverse gap-4 lg:flex-row lg:justify-between">
 		<div class="flex flex-wrap gap-2 lg:gap-4">
-			<!-- Même module que la page Liste noire : le compte est retrouvé par son email -->
+			<!-- Même module que la page Blacklist : le compte est retrouvé par son email -->
 			<BlacklistAddDialog
 				email={editData.email}
 				name={`${editData.firstName} ${editData.lastName}`}

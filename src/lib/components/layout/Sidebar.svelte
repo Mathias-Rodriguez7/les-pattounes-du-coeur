@@ -84,9 +84,9 @@
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{
-			label: 'Liste noire',
+			label: 'Blacklist',
 			icon: Ban,
-			href: 'dashboard/liste-noire',
+			href: 'dashboard/blacklist',
 			roles: ['ADMIN']
 		},
 		{

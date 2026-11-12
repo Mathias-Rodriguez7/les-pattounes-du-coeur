@@ -13,8 +13,8 @@
 		/** Nom affiché dans le titre */
 		name?: string | null;
 		/**
-		 * 'add' : bouton « Ajouter » de la page Liste noire
-		 * 'button' : bouton rouge « Liste noire » (fiches bénévole et FA)
+		 * 'add' : bouton « Ajouter » de la page Blacklist
+		 * 'button' : bouton rouge « Blacklister » (fiches bénévole et FA)
 		 * 'icon' : petite icône rouge, pour une ligne de titre déjà chargée (carte Adoptant)
 		 */
 		trigger?: 'add' | 'button' | 'icon';
@@ -38,7 +38,7 @@
 		}
 	});
 
-	const title = $derived(name ? `Mettre ${name} sur liste noire` : 'Ajouter à la liste noire');
+	const title = $derived(name ? `Blacklister ${name}` : 'Ajouter à la blacklist');
 
 	const handleEnhance: SubmitFunction = ({ cancel }) => {
 		errors = {};
@@ -53,14 +53,14 @@
 		return async ({ result, update }) => {
 			submitting = false;
 			if (result.type === 'success') {
-				toast.success((result.data?.message as string) ?? 'Ajouté à la liste noire');
+				toast.success((result.data?.message as string) ?? 'Ajouté à la blacklist');
 				open = false;
 				onSuccess?.();
 				await update();
 			} else if (result.type === 'failure') {
 				const fieldErrors = (result.data?.errors ?? {}) as Record<string, string[]>;
 				errors = { email: fieldErrors.email?.[0], reason: fieldErrors.reason?.[0] };
-				toast.error((result.data?.error as string) ?? 'Erreur lors de la mise en liste noire');
+				toast.error((result.data?.error as string) ?? 'Erreur lors de la blacklistage');
 				await update({ reset: false });
 			} else {
 				toast.error('Erreur serveur');
@@ -81,7 +81,7 @@
 	{:else if trigger === 'button'}
 		<Dialog.Trigger type="button" class={buttonVariants({ variant: 'destructive' })}>
 			<Ban class="size-4" />
-			Liste noire
+			Blacklister
 		</Dialog.Trigger>
 	{:else}
 		<Dialog.Trigger
@@ -99,7 +99,7 @@
 		<Dialog.Header>
 			<Dialog.Title>{title}</Dialog.Title>
 			<Dialog.Description>
-				Ses prochaines demandes afficheront le badge « Liste noire ». Si cet email correspond à un
+				Ses prochaines demandes afficheront le badge « Blacklisté ». Si cet email correspond à un
 				compte bénévole ou famille d'accueil, ce compte est désactivé jusqu'à la levée.
 			</Dialog.Description>
 		</Dialog.Header>
@@ -150,7 +150,7 @@
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />
 					{/if}
-					Mettre sur liste noire
+					Blacklister
 				</Button>
 			</div>
 		</form>

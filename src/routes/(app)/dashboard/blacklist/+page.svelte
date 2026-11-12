@@ -27,7 +27,7 @@
 	const isDesktop = new MediaQuery('min-width: 1024px', true);
 	let mobilePanelOpen = $state(false);
 
-	// La personne a disparu de la liste (liste noire levée) : on ferme le détail
+	// La personne a disparu de la liste (blacklist levée) : on ferme le détail
 	$effect(() => {
 		if (selectedEmail && !selectedPerson) {
 			selectedEmail = null;
@@ -42,7 +42,7 @@
 
 	// ===== Stats =====
 	const statCards = $derived([
-		{ label: 'Sur liste noire', value: people.length, icon: 'Ban', theme: 'stop' },
+		{ label: 'Blacklistés', value: people.length, icon: 'Ban', theme: 'stop' },
 		{
 			label: 'Comptes désactivés',
 			value: people.filter((p) => p.account).length,
@@ -65,7 +65,7 @@
 </script>
 
 <svelte:head>
-	<title>Liste noire – Les Pattounes du Cœur</title>
+	<title>Blacklist – Les Pattounes du Cœur</title>
 </svelte:head>
 
 <main in:fade={{ duration: 200 }}>
@@ -97,7 +97,7 @@
 		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
 			<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
 				<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
-					<Card.Title class="text-xl font-bold sm:text-2xl">Liste noire</Card.Title>
+					<Card.Title class="text-xl font-bold sm:text-2xl">Blacklist</Card.Title>
 					<CardAction>
 						<BlacklistAddDialog />
 					</CardAction>
@@ -107,7 +107,7 @@
 					<TableToolbar
 						bind:search={searchQuery}
 						searchPlaceholder="Chercher un nom, un email…"
-						searchLabel="Chercher dans la liste noire"
+						searchLabel="Chercher dans la blacklist"
 					/>
 
 					<div
@@ -135,7 +135,7 @@
 										<Table.Cell colspan={3} class="py-8 text-center text-gray-500">
 											{searchQuery
 												? `Aucun résultat pour "${searchQuery}"`
-												: 'Personne sur liste noire'}
+												: 'Aucune personne blacklistée'}
 										</Table.Cell>
 									</Table.Row>
 								{/each}

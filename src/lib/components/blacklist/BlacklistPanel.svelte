@@ -29,7 +29,7 @@
 					{name ?? person.email}
 				</Card.Title>
 				<div class="mt-1 flex flex-wrap items-center gap-2">
-					<Badge class="bg-red-100 text-red-700">Liste noire</Badge>
+					<Badge class="bg-red-100 text-red-700">Blacklisté</Badge>
 					{#if person.account}
 						<Badge variant="secondary">Compte {ACCOUNT_LABELS[person.account]} désactivé</Badge>
 					{/if}
@@ -47,7 +47,7 @@
 			<SectionCard icon="Ban" title="Raison" color="red">
 				<p class="text-sm whitespace-pre-line">{person.reason}</p>
 				<p class="mt-2 text-xs text-muted-foreground">
-					Sur liste noire depuis le {formatDate(person.since)}
+					Blacklisté depuis le {formatDate(person.since)}
 				</p>
 			</SectionCard>
 
@@ -78,7 +78,7 @@
 				{/if}
 			</SectionCard>
 
-			<!-- Historique : les listes noires précédentes, déjà levées -->
+			<!-- Historique : les blacklists précédentes, déjà levées -->
 			{#if pastEntries.length > 0}
 				<SectionCard icon="clock" title="Historique ({pastEntries.length})" color="slate">
 					<ol class="grid gap-3">

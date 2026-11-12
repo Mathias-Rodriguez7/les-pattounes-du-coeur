@@ -34,7 +34,7 @@
 	import CatProfileSummary from '#lib/components/cats/profile/CatProfileSummary.svelte';
 
 	interface Props {
-		/** blacklist : la raison si l'email est sur liste noire (ajoutée par le load) */
+		/** blacklist : la raison si l'email est blacklisté (ajoutée par le load) */
 		form: FormWithRelations & { blacklist?: BlacklistInfo | null };
 		/** Le chat de la demande (demande précise) : form.cat */
 		catData?: FormWithRelations['cat'];
@@ -43,7 +43,7 @@
 		/** Les chats proposables pour une demande libre (CatPicker) */
 		cats?: CatPickerItem[];
 		canAssign?: boolean;
-		/** Seule l'admin peut autoriser une adoption malgré la liste noire */
+		/** Seule l'admin peut autoriser une adoption malgré la blacklist */
 		isAdmin?: boolean;
 		/** Présent quand le panneau est ouvert depuis la fiche du chat (bouton « Retour ») */
 		onClose?: () => void;
@@ -59,7 +59,7 @@
 		onClose
 	}: Props = $props();
 
-	// Liste noire : la bénévole voit la raison ; seule l'admin peut quand même créer l'adoption
+	// Blacklist : la bénévole voit la raison ; seule l'admin peut quand même créer l'adoption
 	const blacklist = $derived(form.blacklist ?? null);
 	const isBlockedByBlacklist = $derived(!!blacklist && !isAdmin);
 
@@ -208,7 +208,7 @@
 			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
 
-				<!-- Liste noire : tout en haut, impossible à manquer -->
+				<!-- Blacklist : tout en haut, impossible à manquer -->
 				{#if blacklist}
 					<div
 						role="alert"
@@ -217,7 +217,7 @@
 						<Ban class="mt-0.5 size-5 shrink-0" />
 						<div class="grid gap-1">
 							<p class="font-semibold">
-								Adoptant sur liste noire depuis le {formatDateNum(blacklist.since)}
+								Adoptant blacklisté depuis le {formatDateNum(blacklist.since)}
 							</p>
 							<p class="whitespace-pre-line">{blacklist.reason}</p>
 							<p class="text-xs text-red-700">
@@ -487,9 +487,7 @@
 							<Button
 								type="button"
 								disabled={!adoptionCatId || isBlockedByBlacklist}
-								title={isBlockedByBlacklist
-									? 'Liste noire : décision réservée à l’admin'
-									: undefined}
+								title={isBlockedByBlacklist ? 'Blacklist : décision réservée à l’admin' : undefined}
 								onclick={() => (showCreateDialog = true)}
 							>
 								Créer l'adoption

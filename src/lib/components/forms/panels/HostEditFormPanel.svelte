@@ -26,7 +26,7 @@
 	let {
 		editData = $bindable<FormEditData<HostFormData> | null>(),
 		formId = '',
-		/** Le bouton « Liste noire » n'est proposé qu'à l'admin… */
+		/** Le bouton « Blacklister » n'est proposé qu'à l'admin… */
 		isAdmin = false,
 		/** …et seulement si l'email n'y est pas déjà */
 		isBlacklisted = false,

@@ -272,7 +272,7 @@
 	<!-- Étroit : Enregistrer en haut, actions dangereuses en dessous | Large : sur une ligne -->
 	<section class="flex flex-col-reverse gap-4 @xl:flex-row @xl:items-center @xl:justify-between">
 		<div class="flex flex-wrap gap-2">
-			<!-- Même module que la page Liste noire : le compte est retrouvé par son email -->
+			<!-- Même module que la page Blacklist : le compte est retrouvé par son email -->
 			<BlacklistAddDialog
 				email={editData.email}
 				name={`${editData.firstName} ${editData.lastName}`}

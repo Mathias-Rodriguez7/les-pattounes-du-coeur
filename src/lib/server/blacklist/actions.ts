@@ -4,9 +4,9 @@ import { addToBlacklistSchema, liftBlacklistSchema } from '#lib/schemas/blacklis
 import { addToBlacklist, liftBlacklist, BlacklistError } from './mutations.ts';
 
 // =====================================================================
-// Actions PARTAGÉES : chaque page qui affiche un bouton « liste noire » les déclare
+// Actions PARTAGÉES : chaque page qui affiche un bouton « blacklist » les déclare
 // dans son `actions` (comme createAdoptionAction).
-// Pourquoi pas une seule action sur /dashboard/liste-noire ? Depuis SvelteKit 3,
+// Pourquoi pas une seule action sur /dashboard/blacklist ? Depuis SvelteKit 3,
 // un formulaire `use:enhance` qui envoie vers une AUTRE page navigue vers elle :
 // l'admin quitterait la fiche du chat ou de la demande.
 // =====================================================================
@@ -27,7 +27,7 @@ async function parse<T extends z.ZodType>(request: Request, schema: T) {
 
 export async function addToBlacklistAction({ request, locals }: ActionEvent) {
 	if (!adminName(locals)) {
-		return fail(403, { error: "Seule l'administratrice peut mettre sur liste noire" });
+		return fail(403, { error: "Seule l'administratrice peut blacklister" });
 	}
 
 	const parsed = await parse(request, addToBlacklistSchema);
@@ -40,18 +40,18 @@ export async function addToBlacklistAction({ request, locals }: ActionEvent) {
 
 	try {
 		await addToBlacklist(parsed.data);
-		return { success: true, message: `${parsed.data.email} est sur liste noire` };
+		return { success: true, message: `${parsed.data.email} est blacklisté` };
 	} catch (e) {
 		if (e instanceof BlacklistError) return fail(409, { error: e.message });
-		console.error('Erreur mise en liste noire :', e);
-		return fail(500, { error: 'Erreur lors de la mise en liste noire' });
+		console.error('Erreur blacklistage :', e);
+		return fail(500, { error: 'Erreur lors de la blacklistage' });
 	}
 }
 
 export async function liftBlacklistAction({ request, locals }: ActionEvent) {
 	const liftedBy = adminName(locals);
 	if (!liftedBy) {
-		return fail(403, { error: "Seule l'administratrice peut lever une liste noire" });
+		return fail(403, { error: "Seule l'administratrice peut lever une blacklist" });
 	}
 
 	const parsed = await parse(request, liftBlacklistSchema);
@@ -64,10 +64,10 @@ export async function liftBlacklistAction({ request, locals }: ActionEvent) {
 
 	try {
 		await liftBlacklist(parsed.data, liftedBy);
-		return { success: true, message: 'Liste noire levée' };
+		return { success: true, message: 'Blacklist levée' };
 	} catch (e) {
 		if (e instanceof BlacklistError) return fail(409, { error: e.message });
-		console.error('Erreur levée de liste noire :', e);
+		console.error('Erreur levée de blacklist :', e);
 		return fail(500, { error: 'Erreur lors de la levée' });
 	}
 }

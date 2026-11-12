@@ -7,10 +7,10 @@ import type { MediaData } from '#lib/server/media/mutations.ts';
 import { deleteFiles } from '#lib/server/storage.ts';
 import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '#lib/constants/adoption.ts';
 
-/** L'adoptant est sur liste noire et personne n'a autorisé l'adoption : l'action affiche la raison */
+/** L'adoptant est blacklisté et personne n'a autorisé l'adoption : l'action affiche la raison */
 export class BlacklistedAdopterError extends Error {
 	constructor() {
-		super('Cet adoptant est sur la liste noire');
+		super('Cet adoptant est blacklisté');
 	}
 }
 
@@ -27,7 +27,7 @@ export async function createAdoption(
 	{ allowBlacklisted = false }: { allowBlacklisted?: boolean } = {}
 ) {
 	return prisma.$transaction(async (tx) => {
-		// 0. Adoptant sur liste noire : bloqué, sauf autorisation explicite d'une admin
+		// 0. Adoptant blacklisté : bloqué, sauf autorisation explicite d'une admin
 		const isBlacklisted = await isEmailBlacklisted(input.email, tx);
 		if (isBlacklisted && !allowBlacklisted) {
 			throw new BlacklistedAdopterError();
@@ -112,7 +112,7 @@ export async function createAdoption(
 		});
 
 		// 8. La demande liée (s'il y en a une) est acceptée, et garde le chat adopté.
-		//    Liste noire passée outre : on le note dans la demande (trace de la décision)
+		//    Blacklist passée outre : on le note dans la demande (trace de la décision)
 		if (input.formId) {
 			const request = await tx.form.findUnique({
 				where: { id: input.formId },
@@ -120,7 +120,7 @@ export async function createAdoption(
 			});
 			const today = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
 			const overrideNote = isBlacklisted
-				? `Adoption autorisée le ${today} malgré la liste noire (décision admin).`
+				? `Adoption autorisée le ${today} malgré la blacklist (décision admin).`
 				: null;
 			await tx.form.update({
 				where: { id: input.formId },

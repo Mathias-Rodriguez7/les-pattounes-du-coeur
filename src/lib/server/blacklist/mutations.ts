@@ -18,15 +18,15 @@ const todayInParis = () =>
 	);
 
 /**
- * Met un email sur liste noire.
+ * Blackliste un email.
  * Le compte (bénévole ou FA) est retrouvé par le SERVEUR à partir de l'email :
  * on ne fait pas confiance à un identifiant envoyé par le navigateur.
  * Effet : ce compte est désactivé (voir isAccountDisabled) et les demandes de cet email
- * affichent le badge « Liste noire ».
+ * affichent le badge « Blacklisté ».
  */
 export async function addToBlacklist({ email, reason }: AddToBlacklistInput) {
 	if (await isEmailBlacklisted(email)) {
-		throw new BlacklistError('Cet email est déjà sur liste noire');
+		throw new BlacklistError('Cet email est déjà blacklisté');
 	}
 
 	const profil = await prisma.profil.findFirst({
@@ -45,7 +45,7 @@ export async function addToBlacklist({ email, reason }: AddToBlacklistInput) {
 }
 
 /**
- * Lève la liste noire d'un email. Rien n'est supprimé : la ligne passe à
+ * Lève la blacklist d'un email. Rien n'est supprimé : la ligne passe à
  * isBlacklisted = false et la raison de la levée est AJOUTÉE à sa description,
  * pour garder l'historique complet. Le compte éventuel se réactive tout seul.
  */
@@ -55,7 +55,7 @@ export async function liftBlacklist({ email, reason }: LiftBlacklistInput, lifte
 		select: { id: true, description: true }
 	});
 	if (active.length === 0) {
-		throw new BlacklistError("Cet email n'est pas sur liste noire");
+		throw new BlacklistError("Cet email n'est pas blacklisté");
 	}
 
 	const note = `Levée le ${todayInParis()} par ${liftedBy} : ${reason}`;

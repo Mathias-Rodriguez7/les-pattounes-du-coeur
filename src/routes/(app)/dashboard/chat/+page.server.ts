@@ -97,7 +97,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 		});
 
-		// Les demandes en attente ET l'adoptant de chaque chat, avec leur éventuelle liste noire :
+		// Les demandes en attente ET l'adoptant de chaque chat, avec leur éventuelle blacklist :
 		// UNE requête pour tous les emails (pas une par chat)
 		const adopterEmail = (cat: (typeof cats)[number]) => cat.adoptions[0]?.profil?.email;
 		const blacklists = await findActiveBlacklists(

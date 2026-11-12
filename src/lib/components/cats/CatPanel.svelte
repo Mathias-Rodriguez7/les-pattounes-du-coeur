@@ -399,7 +399,7 @@
 								<!-- Les actions sur la ligne du titre : la carte reste aussi haute que la photo.
 								     Annuler (discret) puis Finaliser (principale) -->
 								{#snippet action()}
-									<!-- Liste noire : admin seulement, petite icône pour ne pas charger la ligne -->
+									<!-- Blacklist : admin seulement, petite icône pour ne pas charger la ligne -->
 									{#if isAdmin && adoption.profil && !cat.adopterBlacklist}
 										<BlacklistAddDialog
 											email={adoption.profil.email}
@@ -445,7 +445,7 @@
 													class="shrink-0 bg-red-100 text-red-700"
 													title={cat.adopterBlacklist.reason}
 												>
-													Liste noire
+													Blacklisté
 													<span class="sr-only">: {cat.adopterBlacklist.reason}</span>
 												</Badge>
 											{/if}
@@ -596,7 +596,7 @@
 														class="shrink-0 bg-red-100 text-xs text-red-700"
 														title={request.blacklist.reason}
 													>
-														Liste noire
+														Blacklisté
 													</Badge>
 												{/if}
 											</p>

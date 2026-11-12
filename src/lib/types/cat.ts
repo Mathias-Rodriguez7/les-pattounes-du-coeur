@@ -81,9 +81,9 @@ export const catFullArgs = {
 export type CatFull = Omit<Prisma.CatGetPayload<typeof catFullArgs>, 'forms'> & {
 	/** Calculé par le load de la page Chats : la bénévole connectée est-elle associée au chat ? */
 	isMine?: boolean;
-	/** Les demandes en attente, avec leur éventuelle liste noire (ajoutée par le load) */
+	/** Les demandes en attente, avec leur éventuelle blacklist (ajoutée par le load) */
 	forms?: FormWithBlacklist[];
-	/** Liste noire active de l'adoptant de la dernière adoption (ajoutée par le load) */
+	/** Blacklist active de l'adoptant de la dernière adoption (ajoutée par le load) */
 	adopterBlacklist?: BlacklistInfo | null;
 };
 

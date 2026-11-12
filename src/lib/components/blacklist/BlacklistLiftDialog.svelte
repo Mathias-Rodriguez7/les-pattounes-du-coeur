@@ -30,7 +30,7 @@
 
 	const handleEnhance: SubmitFunction = ({ cancel }) => {
 		if (reason.trim().length < 3) {
-			error = 'Indiquez pourquoi la liste noire est levée';
+			error = 'Indiquez pourquoi la blacklist est levée';
 			cancel();
 			return;
 		}
@@ -39,7 +39,7 @@
 		return async ({ result, update }) => {
 			submitting = false;
 			if (result.type === 'success') {
-				toast.success((result.data?.message as string) ?? 'Liste noire levée');
+				toast.success((result.data?.message as string) ?? 'Blacklist levée');
 				open = false;
 				await update();
 			} else if (result.type === 'failure') {
@@ -62,7 +62,7 @@
 
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Lever la liste noire de {name}</Dialog.Title>
+			<Dialog.Title>Lever la blacklist de {name}</Dialog.Title>
 			<Dialog.Description>
 				Rien n'est effacé : la raison de la levée est ajoutée à l'historique.
 				{#if hasAccount}
@@ -77,7 +77,7 @@
 			<TextareaField
 				id="lift-reason"
 				name="reason"
-				label="Pourquoi lever la liste noire ?"
+				label="Pourquoi lever la blacklist ?"
 				bind:value={reason}
 				placeholder="Ex : situation régularisée après échange avec la personne"
 				{error}
@@ -98,7 +98,7 @@
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />
 					{/if}
-					Lever la liste noire
+					Lever la blacklist
 				</Button>
 			</div>
 		</form>

@@ -33,7 +33,7 @@ export async function createAdoptionAction({ request, locals }: Args) {
 		});
 	}
 	const { formId, catId, mediaStorageKey, mediaOriginalName, blacklistOverride } = parsed.data;
-	// Passer outre la liste noire : réservé à l'admin. Pour une bénévole, la case est ignorée
+	// Passer outre la blacklist : réservé à l'admin. Pour une bénévole, la case est ignorée
 	const allowBlacklisted = blacklistOverride === 'true' && user.role === 'ADMIN';
 
 	// À partir d'ici, le contrat est déjà sur S3. Quelle que soit la sortie
@@ -111,15 +111,15 @@ export async function createAdoptionAction({ request, locals }: Args) {
 				message: `Adoption créée (période d'essai de 6 mois).${rejectedMessage}`
 			};
 		} catch (err) {
-			// Liste noire : on renvoie la raison, pour que le dialogue l'affiche
+			// Blacklist : on renvoie la raison, pour que le dialogue l'affiche
 			// (et propose la case d'autorisation… à l'admin seulement)
 			if (err instanceof BlacklistedAdopterError) {
 				const entry = (await findActiveBlacklists([parsed.data.email])).values().next().value;
 				return fail(409, {
 					error:
 						user.role === 'ADMIN'
-							? "Adoptant sur liste noire : cochez la case pour autoriser l'adoption"
-							: 'Adoptant sur liste noire : seule une administratrice peut autoriser cette adoption',
+							? "Adoptant blacklisté : cochez la case pour autoriser l'adoption"
+							: 'Adoptant blacklisté : seule une administratrice peut autoriser cette adoption',
 					blacklist: entry ?? null,
 					canOverride: user.role === 'ADMIN'
 				});

@@ -178,6 +178,6 @@ export const actions: Actions = {
 		}
 	},
 
-	// Même action que la page Liste noire (admin uniquement, compte retrouvé par l'email)
+	// Même action que la page Blacklist (admin uniquement, compte retrouvé par l'email)
 	addToBlacklist: addToBlacklistAction
 };

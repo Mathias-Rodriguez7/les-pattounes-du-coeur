@@ -10,7 +10,7 @@ function textFrom(data: unknown, key: string): string | null {
 }
 
 /**
- * Les personnes ACTUELLEMENT sur liste noire, avec leur historique complet.
+ * Les personnes ACTUELLEMENT blacklistées, avec leur historique complet.
  * 3 requêtes au total, quel que soit le nombre de personnes (pas de requête par ligne).
  */
 export async function getBlacklistOverview(): Promise<{

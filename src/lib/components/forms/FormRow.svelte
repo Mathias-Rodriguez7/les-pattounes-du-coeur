@@ -29,7 +29,7 @@
 			{statusColors[form.status]?.label || form.status}
 		</Badge>
 		{#if form.blacklist}
-			<Badge class="mt-1 bg-red-100 text-red-700" title={form.blacklist.reason}>Liste noire</Badge>
+			<Badge class="mt-1 bg-red-100 text-red-700" title={form.blacklist.reason}>Blacklisté</Badge>
 		{/if}
 	</Table.Cell>
 	<!-- Téléphone : colonne masquée, pour garder Type, Statut et Date lisibles -->

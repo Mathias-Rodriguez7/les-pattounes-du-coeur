@@ -39,7 +39,7 @@ export async function isEmailBlacklisted(
 }
 
 /**
- * Les entrées actives de la liste noire pour plusieurs emails, en UNE requête.
+ * Les entrées actives de la blacklist pour plusieurs emails, en UNE requête.
  * Renvoie une Map indexée par email en minuscules (la comparaison ignore la casse).
  * Sert aux listes de demandes : afficher la raison à côté de chaque demande concernée.
  */
