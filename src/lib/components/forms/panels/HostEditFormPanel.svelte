@@ -107,6 +107,7 @@
 		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-7">
 			<!-- Profil -->
 			<PersonProfileFields
+				class="@2xl:col-span-2"
 				bind:firstName={editData.data.firstName}
 				bind:lastName={editData.data.lastName}
 				bind:birthDate={editData.data.birthDate}
@@ -115,6 +116,7 @@
 
 			<!-- Contact -->
 			<PersonContactFields
+				class="@2xl:col-span-2"
 				bind:phone={editData.data.phone}
 				bind:email={editData.email}
 				errors={formErrors}
@@ -122,6 +124,7 @@
 
 			<!-- Adresse -->
 			<PersonAddressFields
+				class="@2xl:col-span-3"
 				bind:address={editData.data.address}
 				bind:city={editData.data.city}
 				bind:postalCode={editData.data.postalCode}

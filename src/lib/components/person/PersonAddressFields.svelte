@@ -14,6 +14,8 @@
 		/** Un message par champ */
 		errors?: Record<string, string | undefined>;
 		disabled?: boolean;
+		/** Largeur de la carte dans la grille du formulaire (ex : « @2xl:col-span-2 ») */
+		class?: string;
 	}
 
 	let {
@@ -22,7 +24,8 @@
 		postalCode = $bindable(),
 		district = $bindable(),
 		errors = {},
-		disabled = false
+		disabled = false,
+		class: className = ''
 	}: Props = $props();
 
 	// Les quartiers sont ceux de Montpellier : la liste n'a de sens que pour cette ville
@@ -33,6 +36,7 @@
 	icon={PERSON_SECTION_CONFIG.address.icon}
 	title={PERSON_SECTION_CONFIG.address.label}
 	color={PERSON_SECTION_CONFIG.address.color}
+	class={className}
 >
 	<div class="@container">
 		<div class="grid grid-cols-1 gap-4 @sm:grid-cols-2">

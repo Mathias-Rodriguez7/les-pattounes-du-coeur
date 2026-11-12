@@ -13,6 +13,8 @@
 		/** Un message par champ */
 		errors?: Record<string, string | undefined>;
 		disabled?: boolean;
+		/** Largeur de la carte dans la grille du formulaire (ex : « @2xl:col-span-2 ») */
+		class?: string;
 	}
 
 	let {
@@ -20,7 +22,8 @@
 		lastName = $bindable(),
 		birthDate = $bindable(),
 		errors = {},
-		disabled = false
+		disabled = false,
+		class: className = ''
 	}: Props = $props();
 </script>
 
@@ -28,6 +31,7 @@
 	icon={PERSON_SECTION_CONFIG.profile.icon}
 	title={PERSON_SECTION_CONFIG.profile.label}
 	color={PERSON_SECTION_CONFIG.profile.color}
+	class={className}
 >
 	<!-- @container : 2 colonnes si la carte est assez large, 1 sinon (grilles de 4 cartes) -->
 	<div class="@container">

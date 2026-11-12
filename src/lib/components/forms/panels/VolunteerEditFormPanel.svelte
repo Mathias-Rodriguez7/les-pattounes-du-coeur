@@ -1,4 +1,8 @@
 <script lang="ts">
+	import VolunteerExperienceFields from '#lib/components/volunteers/fields/VolunteerExperienceFields.svelte';
+	import VolunteerAvailabilityFields from '#lib/components/volunteers/fields/VolunteerAvailabilityFields.svelte';
+	import VolunteerExperienceDescriptions from '#lib/components/volunteers/fields/VolunteerExperienceDescriptions.svelte';
+	import VolunteerMotivationFields from '#lib/components/volunteers/fields/VolunteerMotivationFields.svelte';
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
 	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
@@ -7,17 +11,11 @@
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import { X } from '@lucide/svelte';
-	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
-	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import SaveCancelButtons from '#lib/components/buttons/SaveCancelButtons.svelte';
 	import DeleteButton from '#lib/components/buttons/DeleteButton.svelte';
 	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
-	import {
-		VOLUNTEER_SECTION_CONFIG,
-		VOLUNTEER_AVAILABILITY_OPTIONS,
-		VOLUNTEER_AVAILABILITY_DURATION_OPTIONS
-	} from '#lib/constants/volunteer.ts';
+	import { VOLUNTEER_SECTION_CONFIG } from '#lib/constants/volunteer.ts';
 	import type { FormEditData, VolunteerFormData } from '#lib/types/form.ts';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 
@@ -106,6 +104,7 @@
 		<!-- 📋 SECTION 1: Infos Personnelles -->
 		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-7">
 			<PersonProfileFields
+				class="@2xl:col-span-2"
 				bind:firstName={editData.data.firstName}
 				bind:lastName={editData.data.lastName}
 				bind:birthDate={editData.data.birthDate}
@@ -113,12 +112,14 @@
 			/>
 
 			<PersonContactFields
+				class="@2xl:col-span-2"
 				bind:phone={editData.data.phone}
 				bind:email={editData.email}
 				errors={formErrors}
 			/>
 
 			<PersonAddressFields
+				class="@2xl:col-span-3"
 				bind:address={editData.data.address}
 				bind:city={editData.data.city}
 				bind:postalCode={editData.data.postalCode}
@@ -131,206 +132,17 @@
 
 		<!-- 🏆 SECTION 2: Expérience & Disponibilités -->
 		<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-3">
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.experience.icon}
-				title={VOLUNTEER_SECTION_CONFIG.experience.label}
-				color={VOLUNTEER_SECTION_CONFIG.experience.color}
-			>
-				<div class="space-y-4">
-					<CheckboxField
-						id="hasCatExperience"
-						name="hasCatExperience"
-						label="Expérience avec des chats"
-						checked={editData.data.hasCatExperience}
-						onChange={(value) => {
-							editData.data.hasCatExperience = value;
-							if (!value) editData.data.catExperienceDescription = undefined;
-						}}
-					/>
+			<VolunteerExperienceFields bind:data={editData.data} />
 
-					<CheckboxField
-						id="hasAssociationExperience"
-						name="hasAssociationExperience"
-						label="Expérience avec des associations"
-						checked={editData.data.hasAssociationExperience}
-						onChange={(value) => {
-							editData.data.hasAssociationExperience = value;
-							if (!value) editData.data.associationExperienceDescription = undefined;
-						}}
-					/>
-
-					<CheckboxField
-						id="hasMedicalCareExperience"
-						name="hasMedicalCareExperience"
-						label="Expérience de soins"
-						checked={editData.data.hasMedicalCareExperience}
-						onChange={(value) => {
-							editData.data.hasMedicalCareExperience = value;
-							if (!value) editData.data.medicalCareDescription = undefined;
-						}}
-					/>
-
-					<CheckboxField
-						id="hasTransportExperience"
-						name="hasTransportExperience"
-						label="Expérience transport animaux"
-						checked={editData.data.hasTransportExperience}
-						onChange={(value) => (editData.data.hasTransportExperience = value)}
-					/>
-				</div>
-			</SectionCard>
-
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.infos.icon}
-				title={VOLUNTEER_SECTION_CONFIG.infos.label}
-				color={VOLUNTEER_SECTION_CONFIG.infos.color}
-			>
-				<div class="space-y-4">
-					<CheckboxField
-						id="car"
-						name="car"
-						label="Voiture"
-						checked={editData.data.car}
-						onChange={(value) => (editData.data.car = value)}
-					/>
-
-					<CheckboxField
-						id="canHelpWeekdays"
-						name="canHelpWeekdays"
-						label="Disponible en semaine"
-						checked={editData.data.canHelpWeekdays}
-						onChange={(value) => (editData.data.canHelpWeekdays = value)}
-					/>
-
-					<CheckboxField
-						id="canHelpWeekends"
-						name="canHelpWeekends"
-						label="Disponible le weekend"
-						checked={editData.data.canHelpWeekends}
-						onChange={(value) => (editData.data.canHelpWeekends = value)}
-					/>
-
-					<CheckboxField
-						id="canHelpEmergencies"
-						name="canHelpEmergencies"
-						label="Peut aider en cas d'urgence"
-						checked={editData.data.canHelpEmergencies}
-						onChange={(value) => (editData.data.canHelpEmergencies = value)}
-					/>
-				</div>
-			</SectionCard>
-
-			<SectionCard
-				icon={VOLUNTEER_SECTION_CONFIG.availability.icon}
-				title={VOLUNTEER_SECTION_CONFIG.availability.label}
-				color={VOLUNTEER_SECTION_CONFIG.availability.color}
-			>
-				<div class="grid gap-4">
-					<SelectField
-						id="availability"
-						name="availability"
-						label="Implication dans l'association"
-						bind:value={editData.data.availability}
-						options={VOLUNTEER_AVAILABILITY_OPTIONS}
-						size="sm"
-					/>
-
-					<SelectField
-						id="availabilityDuration"
-						name="availabilityDuration"
-						label="Temps de collaboration"
-						bind:value={editData.data.availabilityDuration}
-						options={VOLUNTEER_AVAILABILITY_DURATION_OPTIONS}
-						size="sm"
-					/>
-				</div>
-			</SectionCard>
+			<VolunteerAvailabilityFields bind:data={editData.data} />
 		</section>
 
 		<Separator />
 
 		<!-- 💬 SECTION 3: Textes -->
+		<VolunteerExperienceDescriptions bind:data={editData.data} />
 
-		<SectionCard
-			icon={VOLUNTEER_SECTION_CONFIG.experience.icon}
-			title={VOLUNTEER_SECTION_CONFIG.experience.label}
-			color={VOLUNTEER_SECTION_CONFIG.experience.color}
-		>
-			<div class="space-y-2">
-				{#if editData.data.hasCatExperience}
-					<TextareaField
-						id="catExperienceDescription"
-						name="catExperienceDescription"
-						label="Décrivez votre expérience"
-						bind:value={editData.data.catExperienceDescription}
-						placeholder="Nombre de chats, durée, type de soins..."
-					/>
-				{/if}
-			</div>
-
-			<div class="space-y-2">
-				{#if editData.data.hasAssociationExperience}
-					<TextareaField
-						id="associationExperienceDescription"
-						name="associationExperienceDescription"
-						label="Décrivez votre expérience"
-						bind:value={editData.data.associationExperienceDescription}
-						placeholder="Nom de l'association, rôle, durée..."
-					/>
-				{/if}
-			</div>
-
-			<div class="space-y-2">
-				{#if editData.data.hasMedicalCareExperience}
-					<TextareaField
-						id="medicalCareDescription"
-						name="medicalCareDescription"
-						label="Décrivez votre expérience"
-						bind:value={editData.data.medicalCareDescription}
-						placeholder="Type de soins, formation..."
-					/>
-				{/if}
-			</div>
-		</SectionCard>
-
-		<SectionCard
-			icon={VOLUNTEER_SECTION_CONFIG.capacity.icon}
-			title={VOLUNTEER_SECTION_CONFIG.capacity.label}
-			color={VOLUNTEER_SECTION_CONFIG.capacity.color}
-		>
-			<TextareaField
-				id="skills"
-				name="skills"
-				bind:value={editData.data.skills}
-				placeholder="Compétences, savoir-faire..."
-			/>
-		</SectionCard>
-
-		<SectionCard
-			icon={VOLUNTEER_SECTION_CONFIG.motivation.icon}
-			title={VOLUNTEER_SECTION_CONFIG.motivation.label}
-			color={VOLUNTEER_SECTION_CONFIG.motivation.color}
-		>
-			<TextareaField
-				id="motivation"
-				name="motivation"
-				bind:value={editData.data.motivation}
-				placeholder="Pourquoi souhaitez-vous devenir bénévole ?"
-			/>
-		</SectionCard>
-
-		<SectionCard
-			icon={VOLUNTEER_SECTION_CONFIG.additionalInformation.icon}
-			title={VOLUNTEER_SECTION_CONFIG.additionalInformation.label}
-			color={VOLUNTEER_SECTION_CONFIG.additionalInformation.color}
-		>
-			<TextareaField
-				id="additionalInformation"
-				name="additionalInformation"
-				bind:value={editData.data.additionalInformation}
-				placeholder="Autres informations utiles..."
-			/>
-		</SectionCard>
+		<VolunteerMotivationFields bind:data={editData.data} />
 
 		<Separator />
 

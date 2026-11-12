@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { applyHostRules } from '#lib/hosts/rules.ts';
+import { applyVolunteerRules } from '#lib/volunteers/rules.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -165,13 +166,18 @@ export async function updateForm({
 			}
 		});
 
-		// Fusionner avec les données existantes. Demande FA : décocher « Animaux au domicile » ou
-		// « Extérieur » efface aussi ce qui en dépend, sinon la fusion garderait les anciennes valeurs
-		// (voir hosts/rules.ts)
+		// Fusionner avec les données existantes (voir hosts/rules.ts et volunteers/rules.ts)
 		if (Object.keys(dataFields).length > 0) {
+			// Les règles du bon type de demande (une case décochée efface ce qui en dépend)
+			const applyRules =
+				existingForm.type === 'HOST'
+					? applyHostRules
+					: existingForm.type === 'VOLUNTEER'
+						? applyVolunteerRules
+						: <T>(data: T) => data;
 			updateData.data = {
 				...((existingForm.data as Record<string, unknown>) ?? {}),
-				...applyHostRules(dataFields)
+				...applyRules(dataFields)
 			};
 		}
 
