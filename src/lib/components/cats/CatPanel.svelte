@@ -25,6 +25,7 @@
 	import CatCares from './CatCares.svelte';
 	import CatSicknesses from './panel/CatSicknesses.svelte';
 	import CatVolunteers from './panel/CatVolunteers.svelte';
+	import CatAdoptionRequests from './panel/CatAdoptionRequests.svelte';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
 	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
@@ -35,7 +36,6 @@
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
 	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
 	import CatHealthCard from './profile/CatHealthCard.svelte';
-	import type { AdoptionFormJson } from '#lib/types/form.ts';
 
 	interface Props {
 		cat: CatFull | null;
@@ -504,76 +504,11 @@
 						<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 
 						<!-- Demandes d'adoption en attente pour ce chat (tant qu'il n'est pas adopté) -->
-						{#if !isAdopted && pendingRequests.length > 0}
-							<SectionCard
-								icon={CAT_SECTION_CONFIG.adoptions.icon}
-								title="Demandes d'adoption ({pendingRequests.length})"
-								color="amber"
-							>
-								<!-- Une ligne par demande : juste de quoi appeler l'adoptant (détail dans « Traiter ») -->
-								<!-- @container : sur une fiche étroite, le contact passe sous le nom -->
-								<ul
-									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-100"
-								>
-									{#each pendingRequests as request (request.id)}
-										{@const answers = request.data as AdoptionFormJson}
-										<li
-											class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-3 py-2 @lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.5fr)_auto]"
-										>
-											<p class="flex min-w-0 items-center gap-2 font-semibold">
-												<span class="truncate">
-													{answers.firstName ?? ''}
-													{answers.lastName ?? ''}
-												</span>
-												{#if request.blacklist}
-													<Badge
-														class="shrink-0 bg-red-100 text-xs text-red-700"
-														title={request.blacklist.reason}
-													>
-														Blacklisté
-													</Badge>
-												{/if}
-											</p>
-
-											{#if answers.phone}
-												<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
-													<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-													<a
-														href={`tel:${answers.phone}`}
-														class="text-xs text-blue-500 underline hover:text-primary"
-													>
-														{answers.phone}
-													</a>
-												</div>
-											{:else}
-												<span class="col-start-1 text-xs text-muted-foreground @lg:col-start-auto"
-													>—</span
-												>
-											{/if}
-
-											<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
-												<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-												<a
-													href={`mailto:${request.email}`}
-													title={request.email}
-													class="truncate text-xs text-blue-500 underline hover:text-primary"
-												>
-													{request.email}
-												</a>
-											</div>
-
-											<Button
-												size="sm"
-												variant="outline"
-												class="col-start-2 row-span-3 row-start-1 @lg:col-start-auto @lg:row-span-1 @lg:row-start-auto"
-												onclick={() => (openRequestId = request.id)}
-											>
-												Traiter
-											</Button>
-										</li>
-									{/each}
-								</ul>
-							</SectionCard>
+						{#if !isAdopted}
+							<CatAdoptionRequests
+								requests={pendingRequests}
+								onOpen={(formId) => (openRequestId = formId)}
+							/>
 						{/if}
 
 						<!-- Familles d'accueil -->
