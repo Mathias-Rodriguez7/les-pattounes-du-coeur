@@ -219,3 +219,6 @@ export type CatUpdateInput = Partial<CatEditData>;
 
 /** Un placement tel que chargé dans la fiche d'un chat (avec la FA et son profil) */
 export type CatPlacement = CatFull['placements'][number];
+
+/** Une adoption telle que chargée dans la fiche d'un chat (avec le profil de l'adoptant) */
+export type CatAdoption = CatFull['adoptions'][number];
