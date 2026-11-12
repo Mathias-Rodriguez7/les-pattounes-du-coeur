@@ -12,6 +12,7 @@ import {
 	discardUploads,
 	type MediaData
 } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 const NEWS_FIELDS = ['title', 'type', 'content'] as const;
 
 function convertFormData(formData: FormData): Record<string, string | string[] | null> {
@@ -65,7 +66,7 @@ export async function createNews({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -159,7 +160,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 

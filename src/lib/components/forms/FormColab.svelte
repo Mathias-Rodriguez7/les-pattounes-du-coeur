@@ -11,6 +11,7 @@
 	} from '#lib/schemas/formShema/colabForm.ts';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 	let { data }: { data: SuperValidated<Infer<typeof colabForm>> } = $props();
 
@@ -46,7 +47,7 @@
 		const result = schema.safeParse(get(formData));
 
 		if (!result.success) {
-			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			const fieldErrors = zodFieldErrors(result.error) as Record<string, string[]>;
 			errors.update((current) => {
 				const next = { ...current } as Record<string, string[] | undefined>;
 				for (const [key, messages] of Object.entries(fieldErrors)) {

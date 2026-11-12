@@ -12,6 +12,7 @@ import { updateHostSchema, type UpdateHostInput } from '#lib/schemas/formShema/h
 import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema/colabForm.ts';
 import { canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -121,11 +122,11 @@ export async function updateForm({
 		const result = schema.safeParse(data);
 
 		if (!result.success) {
-			console.error('❌ ERREUR VALIDATION:', result.error.flatten());
+			console.error('❌ ERREUR VALIDATION:', zodFieldErrors(result.error));
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors as Record<string, string[]>
+				errors: zodFieldErrors(result.error) as Record<string, string[]>
 			};
 		}
 
@@ -346,7 +347,7 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { formId, reason } = parsed.data;

@@ -61,7 +61,6 @@
 		});
 
 		if (!result.success) {
-			console.log('❌ Erreurs client:', result.error.flatten().fieldErrors);
 			fieldErrors = flattenErrors(result.error);
 			toast.error('Veuillez corriger les erreurs du formulaire');
 			return false;

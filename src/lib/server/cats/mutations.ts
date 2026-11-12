@@ -7,6 +7,7 @@ import {
 } from '../../schemas/cat';
 import { z } from 'zod';
 import { deleteFiles } from '#lib/server/storage.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 const CAT_FIELDS = [
 	'name',
@@ -76,7 +77,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -163,7 +164,7 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 

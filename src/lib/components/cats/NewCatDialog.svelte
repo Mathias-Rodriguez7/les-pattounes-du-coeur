@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createCatSchema } from '#lib/schemas/cat.ts';
-	import { getFieldError } from '#lib/utils/zodErrors.ts';
+	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -89,7 +89,8 @@
 		});
 
 		if (!result.success) {
-			fieldErrors = result.error.flatten().fieldErrors as FlattenedErrors;
+			// Un message par champ : la forme qu'attend getFieldError
+			fieldErrors = flattenErrors(result.error);
 			toast.error('Veuillez corriger les erreurs du formulaire');
 			return false;
 		}

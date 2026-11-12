@@ -28,6 +28,7 @@ import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus.ts';
 import { updateForm, rejectForm } from '#lib/server/forms/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -401,7 +402,7 @@ export const actions: Actions = {
 			return fail(400, {
 				success: false,
 				error: 'Erreur de validation',
-				errors: parsed.error.flatten().fieldErrors
+				errors: zodFieldErrors(parsed.error)
 			});
 		}
 		const { adoptionId, mediaStorageKey, mediaOriginalName } = parsed.data;
@@ -574,7 +575,7 @@ export const actions: Actions = {
 			return fail(400, {
 				success: false,
 				error: 'Erreur de validation',
-				errors: parsed.error.flatten().fieldErrors
+				errors: zodFieldErrors(parsed.error)
 			});
 		}
 		const { adoptionId } = parsed.data;

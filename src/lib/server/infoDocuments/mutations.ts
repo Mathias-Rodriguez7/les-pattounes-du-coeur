@@ -7,6 +7,7 @@ import {
 	discardUploads,
 	type MediaData
 } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 type Result = {
 	success: boolean;
@@ -30,7 +31,7 @@ export async function createInfoDocument({ request, locals }: Args): Promise<Res
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { title, description, category, mediaStorageKey, mediaOriginalName } = parsed.data;
@@ -72,7 +73,7 @@ export async function updateInfoDocument({ request, locals }: Args): Promise<Res
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { id, title, description, category, mediaStorageKey, mediaOriginalName } = parsed.data;

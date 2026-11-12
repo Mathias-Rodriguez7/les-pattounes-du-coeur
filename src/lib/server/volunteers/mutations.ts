@@ -9,6 +9,7 @@ import { hashPassword } from '#lib/server/hashing.ts';
 import { randomBytes } from 'node:crypto';
 import { sendVolunteerWelcomeEmail } from '../mailer';
 import { isEmailBlacklisted } from '../accountStatus';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 const PROFIL_FIELDS = [
 	'firstName',
@@ -104,7 +105,7 @@ export async function createVolunteer({
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -257,7 +258,7 @@ export async function updateVolunteer({
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 

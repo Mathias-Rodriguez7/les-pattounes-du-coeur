@@ -2,6 +2,7 @@ import { fail, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 import { addToBlacklistSchema, liftBlacklistSchema } from '#lib/schemas/blacklist.ts';
 import { addToBlacklist, liftBlacklist, BlacklistError } from './mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 // =====================================================================
 // Actions PARTAGÉES : chaque page qui affiche un bouton « blacklist » les déclare
@@ -34,7 +35,7 @@ export async function addToBlacklistAction({ request, locals }: ActionEvent) {
 	if (!parsed.success) {
 		return fail(400, {
 			error: 'Vérifiez les champs',
-			errors: z.flattenError(parsed.error).fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		});
 	}
 
@@ -67,7 +68,7 @@ export async function liftBlacklistAction({ request, locals }: ActionEvent) {
 	if (!parsed.success) {
 		return fail(400, {
 			error: 'Vérifiez les champs',
-			errors: z.flattenError(parsed.error).fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		});
 	}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createHostSchema } from '#lib/schemas/host.ts';
-	import { getFieldError } from '#lib/utils/zodErrors.ts';
+	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
 	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
@@ -160,9 +160,8 @@
 		const result = createHostSchema.safeParse(formData);
 
 		if (!result.success) {
-			const flattened = result.error.flatten();
-			console.error('❌ Erreurs de validation:', flattened.fieldErrors);
-			fieldErrors = flattened.fieldErrors as FlattenedErrors;
+			// Un message par champ : la forme qu'attend getFieldError
+			fieldErrors = flattenErrors(result.error);
 			toast.error('Veuillez corriger les erreurs du formulaire');
 			return false;
 		}

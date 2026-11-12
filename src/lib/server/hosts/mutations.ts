@@ -7,6 +7,7 @@ import {
 	type UpdateHostInput
 } from '../../schemas/host';
 import { isEmailBlacklisted } from '../accountStatus';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -112,7 +113,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -240,7 +241,7 @@ export async function updateHost({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 

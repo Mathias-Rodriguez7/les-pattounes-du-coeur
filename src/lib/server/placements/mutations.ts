@@ -6,6 +6,7 @@ import {
 	type UpdatePlacementInput
 } from '../../schemas/placement';
 import { placementHasDates } from '#lib/constants/placement.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 // ==========================================
 // CREATE - Créer un placement
@@ -18,7 +19,7 @@ export async function createPlacement(input: CreatePlacementInput) {
 		return {
 			success: false,
 			error: 'Données invalides',
-			errors: parsed.error.flatten().fieldErrors,
+			errors: zodFieldErrors(parsed.error),
 			data: null
 		};
 	}
@@ -142,7 +143,7 @@ export async function updatePlacement(placementId: string, input: UpdatePlacemen
 		return {
 			success: false,
 			error: 'Données invalides',
-			errors: parsed.error.flatten().fieldErrors,
+			errors: zodFieldErrors(parsed.error),
 			data: null
 		};
 	}

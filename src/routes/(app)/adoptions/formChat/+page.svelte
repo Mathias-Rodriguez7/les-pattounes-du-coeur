@@ -27,6 +27,7 @@
 		ADOPTION_SEX_OPTIONS,
 		FORM_SECTION_CONFIG
 	} from '#lib/constants/forms.ts';
+	import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 
@@ -73,7 +74,7 @@
 		const result = schema.safeParse(get(formData));
 		if (result.success) return true;
 
-		const flat = result.error.flatten().fieldErrors as Record<string, string[]>;
+		const flat = zodFieldErrors(result.error) as Record<string, string[]>;
 		errors.update(($e) => ({ ...$e, ...flat }));
 		toast.error('Veuillez corriger les erreurs du formulaire');
 		return false;

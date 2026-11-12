@@ -1,8 +1,19 @@
-import { ZodError } from 'zod';
+import { z } from 'zod';
 
-export interface FieldError {
-	path: string;
-	message: string;
+/**
+ * Les erreurs zod existent sous DEUX formes dans l'app, pour deux usages :
+ *
+ * 1. zodFieldErrors → { email: ['Email invalide', …] }
+ *    Côté SERVEUR : renvoyé dans fail(400, { errors }). Le navigateur lit errors.email?.[0].
+ *
+ * 2. flattenErrors  → { email: 'Email invalide' }
+ *    Côté NAVIGATEUR : un message par champ, prêt à afficher sous l'input (getFieldError).
+ */
+
+/** Chaque champ → la liste de ses messages (remplace `error.flatten().fieldErrors`, déprécié en zod 4) */
+export function zodFieldErrors(error: z.ZodError): Record<string, string[] | undefined> {
+	// Type simple (nom du champ → messages) : accepte aussi les schémas choisis selon l'étape
+	return z.flattenError(error).fieldErrors as Record<string, string[] | undefined>;
 }
 
 export interface FlattenedErrors {
@@ -10,42 +21,19 @@ export interface FlattenedErrors {
 }
 
 /**
- * Convertit les erreurs Zod en objet plat pour les formulaires
- * @example
- * {
- *   firstName: "Le prénom doit contenir au moins 2 caractères",
- *   email: "Email invalide"
- * }
+ * Chaque champ → son PREMIER message
+ * @example { firstName: 'Le prénom doit contenir au moins 2 caractères', email: 'Email invalide' }
  */
-export function flattenErrors(error: ZodError): FlattenedErrors {
+export function flattenErrors(error: z.ZodError): FlattenedErrors {
 	const errors: FlattenedErrors = {};
-
-	error.issues.forEach((issue) => {
-		// Construire le chemin (ex: "address.city" si nested)
-		const path = issue.path.join('.');
-
-		// Récupérer le premier message (Zod peut avoir plusieurs)
-		const message = Array.isArray(issue.message) ? issue.message[0] : issue.message;
-
-		errors[path] = message;
-	});
-
+	for (const issue of error.issues) {
+		// Chemin du champ ("address.city" si imbriqué). ??= : on garde le premier message
+		errors[issue.path.join('.')] ??= issue.message;
+	}
 	return errors;
 }
 
-/**
- * Version alternative qui retourne un array d'objets
- */
-export function flattenErrorsToArray(error: ZodError): FieldError[] {
-	return error.issues.map((issue) => ({
-		path: issue.path.join('.'),
-		message: Array.isArray(issue.message) ? issue.message[0] : issue.message
-	}));
-}
-
-/**
- * Récupérer le premier message d'erreur pour un champ
- */
+/** Le message d'erreur d'un champ */
 export function getFieldError(errors: FlattenedErrors, fieldName: string): string | undefined {
 	return errors[fieldName];
 }

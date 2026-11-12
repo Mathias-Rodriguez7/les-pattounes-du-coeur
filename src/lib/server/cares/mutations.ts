@@ -5,6 +5,7 @@ import prisma from '#lib/server/prisma.ts';
 import { createCareSchema } from '#lib/schemas/care.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { prepareMedia, deleteMedia, discardUploads } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 const MAX_DOCUMENTS = 5;
 
@@ -59,7 +60,7 @@ export async function createCare({
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 

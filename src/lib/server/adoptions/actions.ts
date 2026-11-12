@@ -7,6 +7,7 @@ import { findActiveBlacklists } from '#lib/server/accountStatus.ts';
 import { canManageForm } from '#lib/server/permissions/form.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { prepareMedia, discardUpload } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 type Args = { request: Request; locals: App.Locals };
 
@@ -29,7 +30,7 @@ export async function createAdoptionAction({ request, locals }: Args) {
 	if (!parsed.success) {
 		return fail(400, {
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		});
 	}
 	const { formId, catId, mediaStorageKey, mediaOriginalName, blacklistOverride } = parsed.data;
