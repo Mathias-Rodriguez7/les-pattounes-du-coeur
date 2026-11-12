@@ -1,4 +1,5 @@
 <script lang="ts">
+	import StatCards from '#lib/components/cards/StatCards.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
@@ -116,27 +117,7 @@
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- ================= STATS ================= -->
-		<section class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
-			{#each statCards as card, i (card.label)}
-				<Card.Root class="gap-2 py-4 {i === 0 ? 'col-span-2 sm:col-span-1' : ''}">
-					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
-							{card.label}
-						</Card.Title>
-						<Icon
-							name={card.icon}
-							withWrapper={true}
-							wrapperClass="flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg sm:size-10 sm:rounded-2xl"
-							style="background: {getGradientStyle(card.theme)}"
-							iconClass="size-4 sm:size-5"
-						/>
-					</Card.Header>
-					<Card.Content class="px-4">
-						<p class="text-xl font-bold sm:text-2xl">{card.value}</p>
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</section>
+		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">

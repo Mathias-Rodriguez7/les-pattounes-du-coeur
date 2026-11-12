@@ -1,16 +1,15 @@
 <script lang="ts">
+	import StatCards from '#lib/components/cards/StatCards.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import CardAction from '#lib/components/ui/card/card-action.svelte';
 	import { buttonVariants } from '#lib/components/ui/button/index.ts';
-	import Icon from '#lib/components/Icon.svelte';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import BlacklistRow from '#lib/components/blacklist/BlacklistRow.svelte';
 	import BlacklistPanel from '#lib/components/blacklist/BlacklistPanel.svelte';
 	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
 	import { personName } from '#lib/components/blacklist/blacklistDisplay.ts';
-	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import { X } from '@lucide/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
@@ -71,27 +70,7 @@
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- Bandeau stats : 3 cartes (2 + 1 sur téléphone) -->
-		<section class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-			{#each statCards as card (card.label)}
-				<Card.Root class="gap-2 py-4">
-					<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-						<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
-							{card.label}
-						</Card.Title>
-						<Icon
-							name={card.icon}
-							withWrapper={true}
-							wrapperClass="flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg sm:size-10 sm:rounded-2xl"
-							style="background: {getGradientStyle(card.theme)}"
-							iconClass="size-4 sm:size-5"
-						/>
-					</Card.Header>
-					<Card.Content class="px-4">
-						<p class="text-xl font-bold sm:text-2xl">{card.value}</p>
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</section>
+		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3" />
 
 		<!-- Tableau + Panel détail -->
 		<section class="grid grid-cols-1 gap-4 lg:grid-cols-5">
