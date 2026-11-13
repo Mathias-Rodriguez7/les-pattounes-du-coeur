@@ -1,4 +1,21 @@
+import type { HostType } from '@prisma/client';
 import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
+
+/**
+ * LES types de FA, écrits UNE fois : libellé, abréviation (tableau), couleur du badge.
+ * `Record<HostType, …>` : si on ajoute une valeur à l'enum Prisma et qu'on l'oublie ici,
+ * TypeScript refuse de compiler. Les listes ci-dessous en sont toutes dérivées.
+ */
+export const HOST_TYPES: Record<HostType, { label: string; short: string; color: string }> = {
+	CLASSIC: { label: 'Classic', short: 'Cla', color: 'bg-purple-100 text-purple-800' },
+	LONG: { label: 'Long', short: 'Lon', color: 'bg-indigo-100 text-indigo-800' },
+	SOS: { label: 'SOS', short: 'SOS', color: 'bg-orange-100 text-orange-800' },
+	ADOPT: { label: 'Adoption', short: 'Ado', color: 'bg-green-100 text-green-800' },
+	PROPRIO: { label: 'Propriétaire', short: 'Pro', color: 'bg-cyan-100 text-cyan-800' },
+	RELAY: { label: 'Relais', short: 'Rel', color: 'bg-pink-100 text-pink-800' }
+};
+
+const hostTypeEntries = Object.entries(HOST_TYPES) as [HostType, (typeof HOST_TYPES)[HostType]][];
 
 export const HOST_ACTIF_OPTIONS = [
 	{ value: 'ACTIVE', label: 'Actif' },
@@ -6,13 +23,8 @@ export const HOST_ACTIF_OPTIONS = [
 	{ value: 'STOP', label: 'Arrêté' }
 ] satisfies Array<{ value: string; label: string }>;
 
-export const HOST_TYPE_OPTIONS = [
-	{ value: 'CLASSIC', label: 'Accueil Long' },
-	{ value: 'SOS', label: 'SOS' },
-	{ value: 'ADOPT', label: 'Adoption' },
-	{ value: 'PROPRIO', label: 'Propriétaire' },
-	{ value: 'RELAY', label: 'Relais' }
-] satisfies Array<{ value: string; label: string }>;
+/** Pour les SelectField (filtres, formulaires) */
+export const HOST_TYPE_OPTIONS = hostTypeEntries.map(([value, { label }]) => ({ value, label }));
 
 export const HOST_HEAL_OPTIONS = [
 	{ value: 'NO', label: 'Non' },
@@ -56,13 +68,10 @@ export const HOST_SECTION_CONFIG = {
 } as const;
 
 // Couleurs pour les types
-export const typesColors: Record<string, { label: string; color: string }> = {
-	CLASSIC: { label: 'Lon', color: 'bg-purple-100 text-purple-800' },
-	SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
-	ADOPT: { label: 'Ado', color: 'bg-green-100 text-green-800' },
-	PROPRIO: { label: 'Pro', color: 'bg-cyan-100 text-cyan-800' },
-	RELAY: { label: 'Rel', color: 'bg-pink-100 text-pink-800' }
-};
+// (abréviation : les colonnes du tableau sont étroites)
+export const typesColors: Record<string, { label: string; color: string }> = Object.fromEntries(
+	hostTypeEntries.map(([value, { short, color }]) => [value, { label: short, color }])
+);
 
 // Couleur pour les soins
 export const healColors: Record<string, { label: string; color: string }> = {
@@ -99,10 +108,7 @@ export const STATUS_CONFIG: Record<string, { label: string; icon: string; theme:
 	STOP: { label: 'Arrêté', icon: 'CircleX', theme: 'stop' }
 };
 
-export const TYPE_COLORS: Record<string, { label: string; color: string }> = {
-	CLASSIC: { label: 'Accueil Long', color: 'bg-purple-100 text-purple-800' },
-	SOS: { label: 'Sos', color: 'bg-orange-100 text-orange-800' },
-	ADOPT: { label: 'Adoption', color: 'bg-green-100 text-green-800' },
-	PROPRIO: { label: 'Propriétaire', color: 'bg-cyan-100 text-cyan-800' },
-	RELAY: { label: 'Relais', color: 'bg-pink-100 text-pink-800' }
-};
+// Badges en toutes lettres (panneaux)
+export const TYPE_COLORS: Record<string, { label: string; color: string }> = Object.fromEntries(
+	hostTypeEntries.map(([value, { label, color }]) => [value, { label, color }])
+);

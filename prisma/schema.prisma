@@ -442,6 +442,7 @@ enum VolunteerRole {
 
 enum HostType {
   CLASSIC
+  LONG
   SOS
   ADOPT
   PROPRIO

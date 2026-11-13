@@ -43,7 +43,7 @@ const DISTRICTS = [
 	'MOSSON'
 ] as const;
 
-const HOST_TYPE = ['CLASSIC', 'SOS', 'ADOPT', 'PROPRIO', 'RELAY'] as const;
+const HOST_TYPE = ['CLASSIC', 'LONG', 'SOS', 'ADOPT', 'PROPRIO', 'RELAY'] as const;
 const HEAL = ['NO', 'LIGHT', 'HEAVY', 'HEAVY_STING'] as const;
 const SOCIALIZE = ['NO', 'FEARFUL', 'WITHOUT_EX', 'EXPERIENCED'] as const;
 const BABY = ['NO', 'WITHOUT_EX', 'EXPERIENCED', 'RELAY'] as const;
@@ -641,11 +641,12 @@ function hostAnswers() {
 
 	return {
 		type: faker.helpers.weightedArrayElement([
-			{ weight: 6, value: HOST_TYPE[0] },
-			{ weight: 1, value: HOST_TYPE[1] },
+			{ weight: 6, value: HOST_TYPE[0] }, // Classic : le cas le plus fréquent
+			{ weight: 2, value: HOST_TYPE[1] },
 			{ weight: 1, value: HOST_TYPE[2] },
 			{ weight: 1, value: HOST_TYPE[3] },
-			{ weight: 1, value: HOST_TYPE[4] }
+			{ weight: 1, value: HOST_TYPE[4] },
+			{ weight: 1, value: HOST_TYPE[5] }
 		]),
 		catAdult,
 		kittyAndKitten,

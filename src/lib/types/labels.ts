@@ -6,14 +6,12 @@ import type {
 	Socialize,
 	BabyFeeding
 } from '@prisma/client';
+import { HOST_TYPES } from '#lib/constants/host.ts';
 
-export const hostTypeLabel: Record<HostType, string> = {
-	CLASSIC: 'Accueil Long',
-	SOS: 'SOS',
-	ADOPT: 'Adoption',
-	PROPRIO: 'Proprio',
-	RELAY: 'Relais'
-};
+// Dérivé de HOST_TYPES (constants/host.ts) : un seul endroit pour les libellés
+export const hostTypeLabel = Object.fromEntries(
+	Object.entries(HOST_TYPES).map(([type, { label }]) => [type, label])
+) as Record<HostType, string>;
 
 export const colabActivityLabel: Record<ColabActivity, string> = {
 	ACTIVE: 'Actif',
