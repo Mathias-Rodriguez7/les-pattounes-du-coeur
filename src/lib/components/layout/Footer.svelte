@@ -131,7 +131,7 @@
 						>
 					</li>
 					<li>
-						<a href={resolve('agir')} class="transition-opacity hover:opacity-100">Collaborer</a>
+						<a href={resolve('agir')} class="transition-opacity hover:opacity-100">Partenaria</a>
 					</li>
 				</ul>
 			</nav>
