@@ -214,10 +214,16 @@ export async function createVolunteer({
 
 export async function updateVolunteer({
 	formData,
-	locals
+	locals,
+	contactEditable = false
 }: {
 	formData: FormData;
 	locals: App.Locals;
+	/**
+	 * Téléphone et email : modifiables seulement depuis la page Profil (par la bénévole
+	 * elle-même). Depuis la page Bénévoles, ils sont ignorés même s'ils sont envoyés.
+	 */
+	contactEditable?: boolean;
 }) {
 	if (!locals.user) {
 		return {
@@ -229,6 +235,10 @@ export async function updateVolunteer({
 
 	try {
 		const data = convertFormData(formData);
+		if (!contactEditable) {
+			delete data.email;
+			delete data.phone;
+		}
 
 		const volunteerId = data.volunteerId as string;
 

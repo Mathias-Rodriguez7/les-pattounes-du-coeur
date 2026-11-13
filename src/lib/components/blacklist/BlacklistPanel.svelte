@@ -11,9 +11,11 @@
 
 	interface Props {
 		person: BlacklistPerson | null;
+		/** Admin : peut lever la blacklist. Les autres rôles consultent seulement */
+		canLift?: boolean;
 	}
 
-	let { person }: Props = $props();
+	let { person, canLift = false }: Props = $props();
 
 	const name = $derived(person ? personName(person) : null);
 	// Lignes déjà levées : l'historique sous la raison actuelle
@@ -35,11 +37,13 @@
 					{/if}
 				</div>
 			</div>
-			<BlacklistLiftDialog
-				email={person.email}
-				name={name ?? person.email}
-				hasAccount={person.account !== null}
-			/>
+			{#if canLift}
+				<BlacklistLiftDialog
+					email={person.email}
+					name={name ?? person.email}
+					hasAccount={person.account !== null}
+				/>
+			{/if}
 		</Card.Header>
 
 		<Card.Content class="@container grid gap-4">

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { firstMessages } from '#lib/utils/zodErrors.ts';
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
-	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
+	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import type { VolunteerEditData } from '#lib/types/volunteer.ts';
@@ -155,11 +155,13 @@
 			errors={firstMessages(serverErrors)}
 		/>
 
-		<PersonContactFields
-			bind:phone={editData.phone}
-			bind:email={editData.email}
-			errors={firstMessages(serverErrors)}
-		/>
+		<!-- Lecture seule : seule la bénévole modifie ses coordonnées, dans son Profil -->
+		<div class="grid content-start gap-2">
+			<PersonContactView phone={editData.phone} email={editData.email} />
+			<p class="text-xs text-muted-foreground">
+				Le téléphone et l’email se modifient par la bénévole, depuis sa page Profil.
+			</p>
+		</div>
 	</section>
 
 	<Separator />

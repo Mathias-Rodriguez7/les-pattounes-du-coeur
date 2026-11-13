@@ -77,9 +77,12 @@
 				<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
 					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
 						<Card.Title class="text-xl font-bold sm:text-2xl">Blacklist</Card.Title>
-						<CardAction>
-							<BlacklistAddDialog />
-						</CardAction>
+						<!-- Ajouter : réservé à l'admin (le serveur refuse de toute façon les autres) -->
+						{#if data.isAdmin}
+							<CardAction>
+								<BlacklistAddDialog />
+							</CardAction>
+						{/if}
 					</Card.Header>
 
 					<Card.Content>
@@ -126,7 +129,7 @@
 			{/snippet}
 
 			{#snippet detail()}
-				<BlacklistPanel person={selectedPerson} />
+				<BlacklistPanel person={selectedPerson} canLift={data.isAdmin} />
 			{/snippet}
 		</ListDetailLayout>
 	</div>

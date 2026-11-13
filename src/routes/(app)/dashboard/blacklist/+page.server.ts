@@ -1,13 +1,13 @@
 import type { Actions, PageServerLoad } from './$types';
 import { getBlacklistOverview } from '#lib/server/blacklist/queries.ts';
 import { addToBlacklistAction, liftBlacklistAction } from '#lib/server/blacklist/actions.ts';
-import { requireAdmin } from '#lib/server/permissions/roles.ts';
+import { hasAdminRole, requireUser } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	// Page réservée à l'admin (la Sidebar cache le lien, mais c'est ICI que ça se décide)
-	requireAdmin(locals, '/dashboard');
+	// Toute l'équipe consulte la blacklist ; seule l'admin agit (les actions le vérifient)
+	const user = requireUser(locals);
 
-	return await getBlacklistOverview();
+	return { ...(await getBlacklistOverview()), isAdmin: hasAdminRole(user) };
 };
 
 export const actions: Actions = {

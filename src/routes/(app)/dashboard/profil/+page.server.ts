@@ -245,7 +245,7 @@ export const actions: Actions = {
 		// L'id vient de la session, JAMAIS du navigateur
 		formData.set('volunteerId', locals.user.id);
 
-		const result = await updateVolunteer({ formData, locals });
+		const result = await updateVolunteer({ formData, locals, contactEditable: true });
 
 		if (!result.success) {
 			return fail(400, { ...result, action: 'updateProfile' });
