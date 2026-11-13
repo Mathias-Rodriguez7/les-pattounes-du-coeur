@@ -3,6 +3,7 @@ import prisma from '#lib/server/prisma.ts';
 import { createCatDocumentSchema } from '#lib/schemas/catDocument.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { prepareMedia, deleteMedia, discardUploads } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 type Result = {
 	success: boolean;
@@ -26,7 +27,7 @@ export async function createCatDocument({
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 

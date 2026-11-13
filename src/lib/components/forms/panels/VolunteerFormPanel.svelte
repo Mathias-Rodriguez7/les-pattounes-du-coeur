@@ -1,4 +1,7 @@
 <script lang="ts">
+	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
+	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
+	import PersonAddressView from '#lib/components/person/PersonAddressView.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import Icon from '#lib/components/Icon.svelte';
@@ -110,99 +113,24 @@
 				<Separator />
 
 				<section class="grid grid-cols-1 gap-4 @lg:grid-cols-2 @2xl:grid-cols-10">
-					<!-- 👤 SECTION CANDIDAT -->
-					<SectionCard
-						icon={VOLUNTEER_SECTION_CONFIG.profile.icon}
-						title={VOLUNTEER_SECTION_CONFIG.profile.label}
-						color={VOLUNTEER_SECTION_CONFIG.profile.color}
+					<PersonProfileView
+						firstName={VolunteerData.firstName}
+						lastName={VolunteerData.lastName}
+						birthDate={VolunteerData.birthDate}
 						class="@2xl:col-span-3"
-					>
-						<div class="ml-6 space-y-3">
-							<!-- Identité -->
-							<div class="grid grid-cols-2 gap-4">
-								<div>
-									<p class="text-muted-foreground">Prénom</p>
-									<p class="font-medium">{VolunteerData.firstName || '—'}</p>
-								</div>
-								<div>
-									<p class="text-muted-foreground">Nom</p>
-									<p class="font-medium">{VolunteerData.lastName || '—'}</p>
-								</div>
-							</div>
-
-							<!-- Date de naissance -->
-							<div>
-								<p class="text-muted-foreground">Date de naissance</p>
-								<p class="font-medium">{formatDate(VolunteerData.birthDate)}</p>
-							</div>
-						</div>
-					</SectionCard>
-
-					<!-- 📧 SECTION CONTACT -->
-					<SectionCard
-						icon={VOLUNTEER_SECTION_CONFIG.contact.icon}
-						title={VOLUNTEER_SECTION_CONFIG.contact.label}
-						color={VOLUNTEER_SECTION_CONFIG.contact.color}
+					/>
+					<PersonContactView
+						phone={VolunteerData.phone}
+						email={form.email}
 						class="@2xl:col-span-3"
-					>
-						<div class="ml-6 grid gap-4">
-							<div>
-								<p class="font-medium text-muted-foreground">Tel</p>
-								<div class="flex items-center gap-2">
-									<Icon name="phone" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`tel:${VolunteerData.phone}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{VolunteerData.phone}
-									</a>
-								</div>
-							</div>
-
-							<div>
-								<p class="font-medium text-muted-foreground">Mail</p>
-								<div class="flex items-center gap-2">
-									<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
-									<a
-										href={`mailto:${form.email}`}
-										class="text-xs text-blue-500 underline hover:text-primary"
-									>
-										{form.email}
-									</a>
-								</div>
-							</div>
-						</div>
-					</SectionCard>
-
-					<!-- 🏠 SECTION ADRESSE -->
-					<SectionCard
-						icon={VOLUNTEER_SECTION_CONFIG.address.icon}
-						title={VOLUNTEER_SECTION_CONFIG.address.label}
-						color={VOLUNTEER_SECTION_CONFIG.address.color}
+					/>
+					<PersonAddressView
+						address={VolunteerData.address}
+						city={VolunteerData.city}
+						postalCode={VolunteerData.postalCode}
+						district={VolunteerData.district}
 						class="@2xl:col-span-4"
-					>
-						<div class="ml-6 grid gap-4">
-							<div>
-								<p class="font-medium text-muted-foreground">Rue</p>
-								<p class="font-medium text-gray-900">{VolunteerData.address || '—'}</p>
-							</div>
-
-							<div class="flex gap-4">
-								<div>
-									<p class="font-medium text-muted-foreground">Ville</p>
-									<p class="font-medium text-gray-900">{VolunteerData.city || '—'}</p>
-								</div>
-								<div>
-									<p class="font-medium text-muted-foreground">CP</p>
-									<p class="font-medium text-gray-900">{VolunteerData.postalCode || '—'}</p>
-								</div>
-								<div>
-									<p class="font-medium text-muted-foreground">Quartier</p>
-									<p class="font-medium">{VolunteerData.district}</p>
-								</div>
-							</div>
-						</div>
-					</SectionCard>
+					/>
 				</section>
 
 				<Separator />

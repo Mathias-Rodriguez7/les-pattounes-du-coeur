@@ -7,6 +7,8 @@ import {
 	discardUploads,
 	type MediaData
 } from '#lib/server/media/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 type Result = {
 	success: boolean;
@@ -17,20 +19,18 @@ type Result = {
 
 type Args = { request: Request; locals: App.Locals };
 
-const isAdmin = (locals: App.Locals) => locals.user?.role === 'ADMIN';
-
 // ==========================================
 // CREATE
 // ==========================================
 export async function createInfoDocument({ request, locals }: Args): Promise<Result> {
-	if (!isAdmin(locals)) return { success: false, error: 'Non autorisé' };
+	if (!hasAdminRole(locals.user)) return { success: false, error: 'Non autorisé' };
 
 	const parsed = createInfoDocumentSchema.safeParse(Object.fromEntries(await request.formData()));
 	if (!parsed.success) {
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { title, description, category, mediaStorageKey, mediaOriginalName } = parsed.data;
@@ -65,14 +65,14 @@ export async function createInfoDocument({ request, locals }: Args): Promise<Res
 // UPDATE (le fichier peut être remplacé)
 // ==========================================
 export async function updateInfoDocument({ request, locals }: Args): Promise<Result> {
-	if (!isAdmin(locals)) return { success: false, error: 'Non autorisé' };
+	if (!hasAdminRole(locals.user)) return { success: false, error: 'Non autorisé' };
 
 	const parsed = updateInfoDocumentSchema.safeParse(Object.fromEntries(await request.formData()));
 	if (!parsed.success) {
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { id, title, description, category, mediaStorageKey, mediaOriginalName } = parsed.data;
@@ -120,7 +120,7 @@ export async function updateInfoDocument({ request, locals }: Args): Promise<Res
 // DELETE
 // ==========================================
 export async function deleteInfoDocument({ request, locals }: Args): Promise<Result> {
-	if (!isAdmin(locals)) return { success: false, error: 'Non autorisé' };
+	if (!hasAdminRole(locals.user)) return { success: false, error: 'Non autorisé' };
 
 	const id = z
 		.string()

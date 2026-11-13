@@ -87,10 +87,10 @@
 			label: 'Blacklist',
 			icon: Ban,
 			href: 'dashboard/blacklist',
-			roles: ['ADMIN']
+			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{
-			label: 'Information',
+			label: 'Documents',
 			icon: FileQuestionMark,
 			href: 'dashboard/information',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']

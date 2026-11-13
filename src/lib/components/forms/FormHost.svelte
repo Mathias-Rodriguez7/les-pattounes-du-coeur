@@ -17,7 +17,8 @@
 	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
+	import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 	// Annoter les props (et non `$props<…>()`) : sinon `data` est `any`, et tout le formulaire perd ses types
 	let { data }: { data: SuperValidated<Infer<typeof hostFormSchema>> } = $props();
@@ -65,7 +66,7 @@
 		const result = schema.safeParse(get(formData));
 
 		if (!result.success) {
-			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			const fieldErrors = zodFieldErrors(result.error) as Record<string, string[]>;
 			errors.update((current) => {
 				const next = { ...current } as Record<string, string[] | undefined>;
 				for (const [key, messages] of Object.entries(fieldErrors)) {
@@ -111,10 +112,6 @@
 		v === '' || v === undefined ? null : Number(v);
 
 	// OPTIONS (constantes : elles ne changent jamais)
-	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
-		value,
-		label
-	}));
 
 	const hostTypes = [
 		{ value: 'CLASSIC', label: "Famille d'accueil classique" },
@@ -253,7 +250,7 @@
 						label="Quartier"
 						placeholder="Quartier"
 						size="sm"
-						options={districtOptions}
+						options={DISTRICT_OPTIONS}
 						bind:value={() => $formData.district ?? '', (v) => ($formData.district = v || null)}
 					/>
 				{/if}

@@ -58,7 +58,7 @@
 					<h3 class="text-xl font-semibold">Signaler</h3>
 					<p class="text-sm text-muted-foreground">
 						Vous avez repéré un chat errant ou en détresse ? Signalez-le nous, nos bénévoles
-						interviennent rapidement sur Montpellier et ses alentours.
+						interviennent sur Montpellier et ses alentours.
 					</p>
 
 					<a href={resolve('agir')}><Button>Signaler un chat</Button></a>

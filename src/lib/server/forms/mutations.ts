@@ -12,6 +12,11 @@ import { updateHostSchema, type UpdateHostInput } from '#lib/schemas/formShema/h
 import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema/colabForm.ts';
 import { canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { applyHostRules } from '#lib/hosts/rules.ts';
+import { applyVolunteerRules } from '#lib/volunteers/rules.ts';
+import { applyAdoptionRules } from '#lib/adoptions/rules.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -97,7 +102,7 @@ export async function updateForm({
 		}
 
 		// ✅ VÉRIFICATION D'AUTORISATION : admin, bénévole assignée, ou bénévole du chat
-		const isAdmin = locals.user.role === 'ADMIN';
+		const isAdmin = hasAdminRole(locals.user);
 		if (!(await canManageForm(locals.user, existingForm))) {
 			return {
 				success: false,
@@ -121,11 +126,11 @@ export async function updateForm({
 		const result = schema.safeParse(data);
 
 		if (!result.success) {
-			console.error('❌ ERREUR VALIDATION:', result.error.flatten());
+			console.error('❌ ERREUR VALIDATION:', zodFieldErrors(result.error));
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors as Record<string, string[]>
+				errors: zodFieldErrors(result.error) as Record<string, string[]>
 			};
 		}
 
@@ -162,11 +167,19 @@ export async function updateForm({
 			}
 		});
 
-		// Fusionner avec les données existantes
+		// Fusionner avec les données existantes (voir les rules.ts de hosts, volunteers et adoptions)
 		if (Object.keys(dataFields).length > 0) {
+			// Les règles du bon type de demande (une case décochée efface ce qui en dépend)
+			const RULES: Partial<Record<FormType, <T extends Record<string, unknown>>(data: T) => T>> = {
+				HOST: applyHostRules,
+				VOLUNTEER: applyVolunteerRules,
+				ADOPTION_SPECIFIC: applyAdoptionRules,
+				ADOPTION_FLEXIBLE: applyAdoptionRules
+			};
+			const applyRules = RULES[existingForm.type] ?? (<T>(data: T) => data);
 			updateData.data = {
 				...((existingForm.data as Record<string, unknown>) ?? {}),
-				...dataFields
+				...applyRules(dataFields)
 			};
 		}
 
@@ -242,7 +255,7 @@ export async function assignVolunteer({
 		return { success: false, error: 'Formulaire introuvable' };
 	}
 
-	const isAdmin = currentVolunteer?.role === 'ADMIN';
+	const isAdmin = hasAdminRole(currentVolunteer);
 	const isDispatcherOfThisForm =
 		currentVolunteer?.isFlexibleDispatcher === true && form.type === 'ADOPTION_FLEXIBLE';
 
@@ -283,17 +296,8 @@ export async function setFlexibleDispatcher({
 	request: Request;
 	locals: App.Locals;
 }) {
-	if (!locals.user) {
-		return { success: false, error: 'Non autorisé' };
-	}
-
 	// Seuls les ADMIN peuvent désigner le dispatcher
-	const currentVolunteer = await prisma.volunteer.findUnique({
-		where: { id: locals.user.id },
-		select: { role: true }
-	});
-
-	if (currentVolunteer?.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return { success: false, error: 'Action réservée aux administrateurs' };
 	}
 
@@ -346,7 +350,7 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 		return {
 			success: false,
 			error: 'Erreur de validation',
-			errors: parsed.error.flatten().fieldErrors
+			errors: zodFieldErrors(parsed.error)
 		};
 	}
 	const { formId, reason } = parsed.data;

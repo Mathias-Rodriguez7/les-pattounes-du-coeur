@@ -6,6 +6,7 @@ import {
 	updateInfoDocument,
 	deleteInfoDocument
 } from '#lib/server/infoDocuments/mutations.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/');
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			url: `/api/media/${doc.file.id}`,
 			downloadUrl: `/api/media/${doc.file.id}?download=1`
 		})),
-		isAdmin: locals.user.role === 'ADMIN'
+		isAdmin: hasAdminRole(locals.user)
 	};
 };
 

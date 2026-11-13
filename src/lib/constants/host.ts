@@ -1,3 +1,5 @@
+import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
+
 export const HOST_ACTIF_OPTIONS = [
 	{ value: 'ACTIVE', label: 'Actif' },
 	{ value: 'BREAK', label: 'Pause' },
@@ -35,11 +37,9 @@ export const HOST_BABY_FEEDING_OPTIONS = [
 
 export const HOST_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
-	profile: { icon: 'user', label: 'Profil', color: 'emerald' },
+	...PERSON_SECTION_CONFIG,
 	pause: { icon: 'CirclePause', label: 'Pause', color: 'pink' },
 	Experience: { icon: 'star', label: 'Expérience', color: 'amber' },
-	address: { icon: 'map', label: 'Adresse', color: 'gray' },
-	contact: { icon: 'phone', label: 'Contact', color: 'sky' },
 	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
 	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
 	capacity: { icon: 'biceps', label: 'Capacités', color: 'indigo' },

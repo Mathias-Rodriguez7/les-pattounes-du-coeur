@@ -121,6 +121,9 @@
 				>
 					<div class="grid gap-3 text-sm">
 						<div class="flex justify-between">
+							<span class="text-muted-foreground">Nom</span><span>{selectedCat.name ?? '—'}</span>
+						</div>
+						<div class="flex justify-between">
 							<span class="text-muted-foreground">Âge</span><span
 								>{formatAge(selectedCat.birthDate)}</span
 							>
@@ -133,11 +136,6 @@
 						<div class="flex justify-between">
 							<span class="text-muted-foreground">Poil</span><span
 								>{getLabel(hairLabel, selectedCat.hairLength)}</span
-							>
-						</div>
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Origine</span><span
-								>{selectedCat.origin ?? '—'}</span
 							>
 						</div>
 					</div>

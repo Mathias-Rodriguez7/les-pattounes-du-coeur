@@ -15,7 +15,7 @@
 	import { get } from 'svelte/store';
 	import type { PageData } from './$types';
 	import { fade, fly } from 'svelte/transition';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
@@ -59,11 +59,6 @@
 		birthDate = date;
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
-
-	const districtOptions = Object.entries(DISTRICT_LABELS).map(([value, label]) => ({
-		value,
-		label
-	}));
 
 	// ✅ STATE
 	let step = $state(1);
@@ -248,7 +243,7 @@
 											label="Quartier"
 											placeholder="Quartier"
 											size="sm"
-											options={districtOptions}
+											options={DISTRICT_OPTIONS}
 											bind:value={
 												() => $formData.district ?? '', (v) => ($formData.district = v || null)
 											}

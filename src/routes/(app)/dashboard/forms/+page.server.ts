@@ -16,6 +16,7 @@ import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
 import { formInclude } from '#lib/types/form.ts';
 import { withBlacklist } from '#lib/server/accountStatus.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
@@ -32,7 +33,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		redirect(302, '/');
 	}
 
-	const isAdmin = volunteer.role === 'ADMIN';
+	const isAdmin = hasAdminRole(volunteer);
 	const isFlexibleDispatcher = volunteer.isFlexibleDispatcher;
 	// Vue « Tous » : l'admin voit toutes les demandes, la répartitrice toutes les demandes libres
 	const canSeeAll = isAdmin || isFlexibleDispatcher;

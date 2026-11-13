@@ -2,6 +2,7 @@
 import type { Prisma } from '@prisma/client';
 import type { AppUser } from '#lib/types/user.ts';
 import { canManageCat } from './cat';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 /**
  * Peut voir et traiter une demande : admin, bénévole assignée,
@@ -11,7 +12,7 @@ export async function canManageForm(
 	user: AppUser,
 	form: { assignedToId: string | null; catId: string | null }
 ): Promise<boolean> {
-	if (user.role === 'ADMIN') return true;
+	if (hasAdminRole(user)) return true;
 	if (form.assignedToId === user.id) return true;
 	return form.catId !== null && (await canManageCat(user, form.catId));
 }

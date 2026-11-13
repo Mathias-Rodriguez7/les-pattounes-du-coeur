@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { District } from '@prisma/client';
@@ -6,11 +6,11 @@ import { createHost, updateHost } from '#lib/server/hosts/mutations.ts';
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { hostFullArgs } from '#lib/types/host.ts';
+import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Accès : avant le try, pour que le catch n'attrape pas la redirection
-	if (!locals.user) redirect(302, '/');
-	if (locals.user.role !== 'ADMIN') redirect(302, '/');
+	requireAdmin(locals);
 
 	try {
 		// 🔍 Récupérer les filtres depuis les query params
@@ -157,7 +157,7 @@ export const actions: Actions = {
 
 	deleteProfile: async ({ request, locals }) => {
 		try {
-			if (!locals.user || locals.user.role !== 'ADMIN') {
+			if (!hasAdminRole(locals.user)) {
 				return fail(403, { success: false, error: 'Non autorisé' });
 			}
 

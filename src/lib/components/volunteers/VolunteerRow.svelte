@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { districtLabel } from '#lib/utils/districts.ts';
 	import { truncate } from '#lib/utils/string.ts';
 	import { roleColors } from '#lib/constants/volunteer.ts';
 	import { ChevronRight } from '@lucide/svelte';
@@ -14,7 +14,7 @@
 	const isDistrict = $derived(volunteer.profil.city === 'Montpellier' && volunteer.profil.district);
 	const location = $derived(
 		volunteer.profil.city === 'Montpellier' && volunteer.profil.district
-			? DISTRICT_LABELS[volunteer.profil.district as keyof typeof DISTRICT_LABELS]
+			? districtLabel(volunteer.profil.district)
 			: volunteer.profil.city !== 'Montpellier'
 				? volunteer.profil.city
 				: '—'

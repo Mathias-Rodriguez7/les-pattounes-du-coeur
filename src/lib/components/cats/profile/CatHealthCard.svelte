@@ -29,9 +29,10 @@
 	class={className}
 >
 	<!-- @container : la carte s'adapte à SA largeur, pas à celle de l'écran.
-	     Étroite (panneau d'une demande) : 1 colonne | Large (fiche du chat) : 2 colonnes -->
+	     2 colonnes dès 20rem (320 px) de place : chaque colonne ne contient qu'un libellé
+	     court et une icône. (Avec @sm = 24rem, la fiche d'un Mac restait sur 1 colonne) -->
 	<div class="@container ml-6">
-		<div class="grid grid-cols-1 gap-2 @sm:grid-cols-2 @sm:gap-6">
+		<div class="grid grid-cols-1 gap-2 @xs:grid-cols-2 @xs:gap-6">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-sm">
 				<span class="text-muted-foreground">Vaccin</span>
 				<span>{getLabel(vaccinateLabel, cat.vaccinate)}</span>

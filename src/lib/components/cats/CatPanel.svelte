@@ -1,44 +1,31 @@
 <script lang="ts">
 	import * as Card from '#lib/components/ui/card/index.js';
 	import Icon from '#lib/components/Icon.svelte';
-	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Pencil, Camera, HeartHandshake } from '@lucide/svelte';
+	import { Pencil } from '@lucide/svelte';
 	import type { CatFull, CatEditData } from '#lib/types/cat.ts';
 	import type { HostFull } from '#lib/types/host.ts';
 	import type { VolunteerBasic } from '#lib/types/volunteer.ts';
 	import { Separator } from '#lib/components/ui/separator/index.js';
-	import { statusLabel, hairLabel, getLabel, getSexIcon } from '#lib/utils/catHelpers.ts';
+	import { hairLabel, getLabel } from '#lib/utils/catHelpers.ts';
 	import CatEditForm from './CatEditForm.svelte';
-	import { getAgeBadge, formatAge } from '#lib/utils/age.ts';
+	import { formatAge } from '#lib/utils/age.ts';
 	import SectionCard from '../cards/SectionCard.svelte';
 	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
-	import { formatDateNum } from '#lib/utils/date.ts';
-	import { truncate } from '#lib/utils/string.ts';
-	import { sicknessStatus } from '#lib/constants/sickness.ts';
-	import type { SicknessStatus } from '@prisma/client';
-	import { getPlacementTypeClass } from '#lib/constants/placement.ts';
-	import * as Accordion from '#lib/components/ui/accordion/index.ts';
 	import CatMediaGallery from './CatMediaGallery.svelte';
-	import PlacementCreateForm from '../placements/PlacementCreateForm.svelte';
-	import PlacementEditForm from '../placements/PlacementEditForm.svelte';
-	import CatVolunteerCreateForm from '../catVolunteer/CatVolunteerCreateForm.svelte';
-	import CatVolunteerRemoveButton from '../catVolunteer/CatVolunteerRemoveButton.svelte';
-	import SicknessEditForm from '../sickness/SicknessEditForm.svelte';
-	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
-	import { publicMediaUrl } from '#lib/media/urls.ts';
-	import { getTrialInfo } from '#lib/utils/adoption.ts';
-	import AdoptionFinalizeDialog from '../adoptions/AdoptionFinalizeDialog.svelte';
-	import AdoptionCancelDialog from '../adoptions/AdoptionCancelDialog.svelte';
-	import BlacklistAddDialog from '#lib/components/blacklist/BlacklistAddDialog.svelte';
-	import { ADOPTABLE_STATUSES, ADOPTION_STATUS } from '#lib/constants/adoption.ts';
+	import CatSicknesses from './panel/CatSicknesses.svelte';
+	import CatVolunteers from './panel/CatVolunteers.svelte';
+	import CatPanelHeader from './panel/CatPanelHeader.svelte';
+	import CatAdoptionRequests from './panel/CatAdoptionRequests.svelte';
+	import CatPlacements from './panel/CatPlacements.svelte';
+	import CatPlacementHistory from './panel/CatPlacementHistory.svelte';
+	import { ADOPTABLE_STATUSES } from '#lib/constants/adoption.ts';
 	import AdoptionCreateDialog from '../forms/panels/AdoptionCreateDialog.svelte';
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
 	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
 	import CatHealthCard from './profile/CatHealthCard.svelte';
-	import type { AdoptionFormJson } from '#lib/types/form.ts';
 
 	interface Props {
 		cat: CatFull | null;
@@ -120,10 +107,6 @@
 		editingImage = false;
 	};
 
-	// Photo principale : celle marquée isPrimary, sinon la première image
-	const primaryMedia = $derived(cat?.media?.find((m) => m.file.type === 'IMAGE') ?? null);
-	const primaryStyle = $derived(primaryMedia ? focalPointStyle(primaryMedia) : '');
-
 	// ===== DROITS =====
 	// Même règle que le serveur : admin, ou bénévole assigné à ce chat
 	// (maladies, documents, soins, adoption : tout ce qui concerne le chat)
@@ -134,8 +117,6 @@
 	// Si l'adoption est annulée (statut changé), les placements reviennent automatiquement.
 	const adoption = $derived(cat?.adoptions?.[0] ?? null);
 	const isAdopted = $derived(cat?.status === 'ADOPTED' && adoption !== null);
-	const trial = $derived(adoption ? getTrialInfo(adoption) : null);
-	const isSterilized = $derived(!!cat && (cat.isSterilize || cat.isAlreadySterilized));
 	// ===== DEMANDES D'ADOPTION DU CHAT (précises, en attente) =====
 	// Les traiter depuis la fiche : le panneau de la page Formulaires s'ouvre à la place de la fiche.
 	// Une demande traitée (acceptée ou refusée) quitte la liste : le panneau se referme tout seul.
@@ -147,133 +128,11 @@
 	const canAdopt = $derived(
 		canManageCat && !!cat && ADOPTABLE_STATUSES.includes(cat.status) && !isAdopted
 	);
-	// L'adresse de l'adoptant sur une seule ligne : « 12 rue X, 34000 Montpellier »
-	const adopterAddress = $derived.by(() => {
-		const profil = adoption?.profil;
-		if (!profil) return '';
-		const town = [profil.postalCode, profil.city].filter(Boolean).join(' ');
-		return [profil.address, town].filter(Boolean).join(', ');
-	});
-
-	// Ce que le ménage de la finalisation supprimera : tout sauf UNE photo (les PDF ne bougent pas)
-	const galleryPhotos = $derived(cat?.media?.filter((m) => m.file.type === 'IMAGE').length ?? 0);
-	const galleryVideos = $derived(cat?.media?.filter((m) => m.file.type === 'VIDEO').length ?? 0);
 
 	// ===== DÉRIVÉS =====
-	const activeSicknesses = $derived(cat?.sicknesses?.filter((s) => s.status !== 'RESOLVED') ?? []);
-
-	// On garde le lien complet (volunteerId + profil) pour pouvoir le retirer
-	const assignedVolunteers = $derived((cat?.volunteers ?? []).filter((cv) => cv.volunteer?.profil));
-
-	const activePlacements = $derived(
-		(cat?.placements ?? []).filter(
-			(p) =>
-				(p.type === 'LONG' && (p.status === 'ACTIVE' || p.status === 'BREAK')) ||
-				(p.type === 'SHORT' && p.status === 'ACTIVE') ||
-				(p.type === 'PROPOSAL' && p.status === 'ACTIVE') ||
-				(p.type === 'TRANSFER' && p.status === 'ACTIVE')
-		)
-	);
-
-	const activeProposalPlacements = $derived(activePlacements.filter((p) => p.type === 'PROPOSAL'));
-	const activeTransferPlacements = $derived(activePlacements.filter((p) => p.type === 'TRANSFER'));
-	const activeLongPlacement = $derived(activePlacements.find((p) => p.type === 'LONG') ?? null);
-	const activeShortPlacement = $derived(activePlacements.find((p) => p.type === 'SHORT') ?? null);
-
-	const stoppedPlacements = $derived(
-		(cat?.placements ?? [])
-			.filter((p) => p.status === 'STOP')
-			.sort((a, b) => {
-				const dateA = new Date(a.endDate ?? a.startDate ?? 0).getTime();
-				const dateB = new Date(b.endDate ?? b.startDate ?? 0).getTime();
-				return dateB - dateA;
-			})
-	);
-
-	const sexIcon = $derived(cat ? getSexIcon(cat.sex) : null);
-
-	type Placement = NonNullable<CatFull['placements']>[number];
-
-	const PLACEMENT_LABEL: Record<string, string> = {
-		LONG: 'Classic',
-		SHORT: 'Relais',
-		PROPOSAL: 'Proposition',
-		TRANSFER: 'Transfert'
-	};
 </script>
 
 {#if cat}
-	<!-- ===== SNIPPET : une carte de placement ===== -->
-	{#snippet placementCard(placement: Placement, isHistory: boolean = false)}
-		<div
-			class="grid items-center gap-2 rounded border px-2 py-1 text-xs {getPlacementTypeClass(
-				placement.type
-			)} {isHistory ? 'opacity-70' : ''}"
-		>
-			<div class="flex items-center justify-between gap-2">
-				<p class="text-sm font-semibold">
-					{placement.host.profil.firstName}
-					{truncate(placement.host.profil.lastName, 1)}.
-				</p>
-				{#if !isHistory && placement.status === 'BREAK'}
-					<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>
-				{/if}
-				<div class="flex items-center gap-1">
-					<Badge variant="outline" class="text-xs">
-						{PLACEMENT_LABEL[placement.type] ?? placement.type}
-					</Badge>
-					{#if isAdmin && !isHistory}
-						<PlacementEditForm {cat} {placement} />
-					{/if}
-				</div>
-			</div>
-
-			<div class="ml-6 flex min-w-0 flex-wrap gap-2">
-				<div class="flex gap-2">
-					<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-					<a
-						href={`tel:${placement.host.profil.phone}`}
-						class="text-xs text-blue-500 underline hover:text-primary"
-					>
-						{placement.host.profil.phone}
-					</a>
-				</div>
-				<div class="flex min-w-0 gap-2">
-					<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-					<a
-						href={`mailto:${placement.host.profil.email}`}
-						class="block text-xs break-all text-blue-500 underline hover:text-primary"
-					>
-						{placement.host.profil.email}
-					</a>
-				</div>
-				<p class="block text-xs">
-					{placement.host.profil.address}
-					{placement.host.profil.city}
-				</p>
-			</div>
-
-			{#if placement.startDate}
-				<div class="flex flex-wrap justify-between gap-x-4">
-					<p>Début {formatDateNum(placement.startDate)}</p>
-					<p>Fin {placement.endDate ? formatDateNum(placement.endDate) : '—'}</p>
-				</div>
-			{/if}
-		</div>
-	{/snippet}
-
-	<!-- ===== SNIPPET : un groupe de placements avec son titre ===== -->
-	{#snippet placementGroup(label: string, list: Placement[])}
-		{#if list.length > 0}
-			<div class="grid gap-2">
-				<span class="block text-xs text-muted-foreground">{label}</span>
-				{#each list as placement (placement.id)}
-					{@render placementCard(placement)}
-				{/each}
-			</div>
-		{/if}
-	{/snippet}
-
 	{#if openRequest}
 		<!-- Traiter une demande : le même panneau que la page Formulaires (modifier, refuser, adopter) -->
 		<AdoptionFormPanel
@@ -288,217 +147,16 @@
 				<!-- ============================================================ -->
 				<!-- 1. EN-TÊTE : qui est ce chat ?                                 -->
 				<!-- ============================================================ -->
-				<Card.Header class="flex flex-wrap items-stretch gap-4 pl-0 sm:gap-6">
-					<!-- Photo : collée au bord gauche, bord droit en arc de cercle -->
-					<!-- Clic = galerie. Souris : icône au survol | Tactile : pastille toujours visible -->
-					<button
-						type="button"
-						onclick={() => (editingImage = true)}
-						class="group relative h-38 w-32 shrink-0 self-start overflow-hidden rounded-r-[5rem] bg-muted sm:w-50"
-						aria-label="Gérer les photos de {cat.name ?? 'ce chat'}"
-					>
-						{#if primaryMedia}
-							<img
-								src={publicMediaUrl(primaryMedia.file.storageKey)}
-								alt={cat.name ?? cat.catNumber}
-								class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 pointer-fine:group-hover:scale-105"
-								style={primaryStyle}
-							/>
-						{:else}
-							<span class="flex h-full items-center justify-center text-muted-foreground">
-								<Icon name="cat" class="size-10 opacity-40" />
-							</span>
-						{/if}
-
-						<!-- Souris : voile sombre + appareil photo au survol (ou au focus clavier) -->
-						<span
-							class="absolute inset-0 hidden items-center justify-center bg-black/40 text-white opacity-0 transition-opacity pointer-fine:flex pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-visible:opacity-100"
-						>
-							<Camera class="size-7" />
-						</span>
-
-						<!-- Tactile : pas de survol, donc une petite pastille toujours visible -->
-						<span
-							class="absolute bottom-2 left-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white pointer-fine:hidden"
-						>
-							<Camera class="size-4" />
-						</span>
-					</button>
-
-					<!-- Infos : qui est ce chat, et où en est-il ? -->
-					<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 pr-6 lg:flex-initial">
-						<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-							<Card.Title class="text-xl sm:text-2xl">{cat.name ?? 'Sans nom'}</Card.Title>
-							<span class="text-sm text-muted-foreground">{getAgeBadge(cat.birthDate)}</span>
-							{#if sexIcon}
-								<p class="flex items-center gap-1.5 font-medium">
-									<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
-									{sexIcon.label}
-								</p>
-							{/if}
-						</div>
-
-						<p class="text-sm text-muted-foreground">
-							N° de suivi : <span class="font-medium text-foreground">{cat.catNumber}</span>
-						</p>
-
-						<div class="flex flex-wrap gap-2">
-							<Badge variant="outline" class="text-sm">
-								{statusLabel[cat.status] ?? cat.status}
-							</Badge>
-							{#if cat.isVisible}
-								<Badge class="bg-green-100 text-sm text-green-700">Visible</Badge>
-							{:else}
-								<Badge class="bg-red-100 text-sm text-red-700">Masqué</Badge>
-							{/if}
-						</div>
-
-						<!-- L'état de l'adoption : sur sa propre ligne, c'est l'information du moment -->
-						{#if isAdopted && adoption}
-							<!-- Badge sur 2 lignes (flex-col, coins arrondis au lieu de pilule) : la colonne des
-							     infos reste étroite, et la carte Adoptant gagne de la place -->
-							{#if adoption.status === 'TRIAL' && trial}
-								<Badge
-									class="w-fit flex-col items-start gap-0 rounded-lg text-sm {trial.isDue
-										? 'bg-red-100 text-red-700'
-										: ADOPTION_STATUS.TRIAL.color}"
-								>
-									<span>
-										{trial.isDue ? 'À finaliser' : ADOPTION_STATUS.TRIAL.label}
-										· fin {formatDateNum(adoption.trialEndsAt)}
-									</span>
-									{#if !trial.isDue}
-										<span class="text-xs font-normal">
-											dans {trial.daysLeft} jour{trial.daysLeft > 1 ? 's' : ''}
-										</span>
-									{/if}
-								</Badge>
-							{:else if adoption.status === 'FINAL'}
-								<Badge
-									class="w-fit flex-col items-start gap-0 rounded-lg text-sm {ADOPTION_STATUS.FINAL
-										.color}"
-								>
-									<span>{ADOPTION_STATUS.FINAL.label}</span>
-									<span class="text-xs font-normal">
-										depuis le {formatDateNum(adoption.finalizedAt)}
-									</span>
-								</Badge>
-							{/if}
-						{/if}
-					</div>
-
-					<!-- Adoptant + action : à droite sur PC, en dessous sur tablette et mobile.
-				     Le {#if} englobe le conteneur : sans adoption, aucun bloc vide ne prend de place -->
-					{#if isAdopted && adoption}
-						<div class="w-full min-w-0 lg:w-auto lg:flex-1 lg:pt-6">
-							<SectionCard
-								icon={CAT_SECTION_CONFIG.adoptions.icon}
-								title={CAT_SECTION_CONFIG.adoptions.label}
-								color={CAT_SECTION_CONFIG.adoptions.color}
-							>
-								<!-- Les actions sur la ligne du titre : la carte reste aussi haute que la photo.
-								     Annuler (discret) puis Finaliser (principale) -->
-								{#snippet action()}
-									<!-- Blacklist : admin seulement, petite icône pour ne pas charger la ligne -->
-									{#if isAdmin && adoption.profil && !cat.adopterBlacklist}
-										<BlacklistAddDialog
-											email={adoption.profil.email}
-											name={`${adoption.profil.firstName} ${adoption.profil.lastName}`}
-											trigger="icon"
-										/>
-									{/if}
-									{#if canManageCat && adoption.status !== 'CANCELLED'}
-										<!-- Retour du chat : possible pendant l'essai ET après une adoption définitive -->
-										<AdoptionCancelDialog
-											adoptionId={adoption.id}
-											catId={cat.id}
-											catName={cat.name ?? 'Ce chat'}
-											isFinal={adoption.status === 'FINAL'}
-										/>
-										{#if adoption.status === 'TRIAL'}
-											<AdoptionFinalizeDialog
-												adoptionId={adoption.id}
-												catName={cat.name ?? 'ce chat'}
-												{isSterilized}
-												removedPhotos={Math.max(galleryPhotos - 1, 0)}
-												removedVideos={galleryVideos}
-												disabled={!trial?.isDue}
-											/>
-										{/if}
-									{/if}
-								{/snippet}
-
-								{#if adoption.profil}
-									{@const adopter = adoption.profil}
-									<!-- flex-wrap : les infos se rangent selon la place disponible,
-								     sur une ligne si la carte est large, sur plusieurs sinon -->
-									<!-- 3 lignes : le nom, puis le contact (tél + mail côte à côte), puis l'adresse -->
-									<div class="grid min-w-0 gap-2 text-xs">
-										<div class="flex min-w-0 items-center gap-2">
-											<p class="truncate text-base font-semibold">
-												{adopter.firstName}
-												{adopter.lastName}
-											</p>
-											{#if cat.adopterBlacklist}
-												<!-- La raison au survol, et lue par les lecteurs d'écran -->
-												<Badge
-													class="shrink-0 bg-red-100 text-red-700"
-													title={cat.adopterBlacklist.reason}
-												>
-													Blacklisté
-													<span class="sr-only">: {cat.adopterBlacklist.reason}</span>
-												</Badge>
-											{/if}
-										</div>
-
-										<!-- flex-wrap : tél et mail sur la même ligne, le mail passe dessous si la carte est étroite -->
-										<div class="flex min-w-0 flex-wrap gap-x-6 gap-y-2">
-											{#if adopter.phone}
-												<div class="flex min-w-0 items-center gap-2">
-													<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-													<a
-														href={`tel:${adopter.phone}`}
-														class="truncate text-blue-500 underline hover:text-primary"
-													>
-														{adopter.phone}
-													</a>
-												</div>
-											{/if}
-											<div class="flex max-w-full min-w-0 items-center gap-2">
-												<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-												<a
-													href={`mailto:${adopter.email}`}
-													title={adopter.email}
-													class="truncate text-blue-500 underline hover:text-primary"
-												>
-													{adopter.email}
-												</a>
-											</div>
-										</div>
-
-										{#if adopterAddress}
-											<div class="flex min-w-0 items-center gap-2">
-												<Icon name="map" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-												<span>{adopterAddress}</span>
-											</div>
-										{/if}
-									</div>
-								{:else}
-									<p class="text-muted-foreground">Profil non disponible</p>
-								{/if}
-							</SectionCard>
-						</div>
-					{:else if canAdopt}
-						<!-- Pas encore adopté : l'action à la place de la carte Adoptant.
-					     Une fois l'adoption créée, la carte la remplace (le load est relancé) -->
-						<div class="ml-auto self-start pt-6 pr-6">
-							<Button size="sm" onclick={() => (showAdoptDialog = true)}>
-								<HeartHandshake class="size-4" />
-								Adopter
-							</Button>
-						</div>
-					{/if}
-				</Card.Header>
+				<CatPanelHeader
+					{cat}
+					{adoption}
+					{isAdopted}
+					{isAdmin}
+					canManage={canManageCat}
+					{canAdopt}
+					onEditPhoto={() => (editingImage = true)}
+					onAdopt={() => (showAdoptDialog = true)}
+				/>
 
 				<Card.Content class="flex flex-col gap-4 text-sm">
 					<Separator />
@@ -508,171 +166,18 @@
 					<!-- ============================================================ -->
 					<section class="grid gap-4">
 						<!-- Bénévoles référents (toujours affichés, même après adoption) -->
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.volunteer.icon}
-							title={CAT_SECTION_CONFIG.volunteer.label}
-							color={CAT_SECTION_CONFIG.volunteer.color}
-						>
-							{#snippet action()}
-								{#if isAdmin}
-									<CatVolunteerCreateForm
-										catId={cat.id}
-										volunteers={volunteers ?? []}
-										assignedVolunteerIds={assignedVolunteers.map((cv) => cv.volunteerId)}
-									/>
-								{/if}
-							{/snippet}
-
-							{#if assignedVolunteers.length > 0}
-								<div class="flex flex-wrap gap-4 text-sm">
-									{#each assignedVolunteers as cv (cv.volunteerId)}
-										{@const profil = cv.volunteer.profil}
-										<div class="grid min-w-0 gap-2 rounded-xl border border-sky-400 bg-sky-100 p-2">
-											<div class="flex items-center justify-between gap-2">
-												<p class="font-semibold">
-													{profil.firstName}
-													{truncate(profil.lastName, 1)}.
-												</p>
-												{#if isAdmin}
-													<CatVolunteerRemoveButton
-														catId={cat.id}
-														volunteerId={cv.volunteerId}
-														volunteerName={`${profil.firstName} ${profil.lastName}`}
-													/>
-												{/if}
-											</div>
-											<div class="flex gap-2">
-												<Icon name="phone" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-												<a
-													href={`tel:${profil.phone}`}
-													class="text-xs text-blue-500 underline hover:text-primary"
-												>
-													{profil.phone}
-												</a>
-											</div>
-											<div class="flex min-w-0 gap-2">
-												<Icon name="mail" iconClass="h-5 w-5 shrink-0 text-muted-foreground" />
-												<a
-													href={`mailto:${profil.email}`}
-													class="block text-xs break-all text-blue-500 underline hover:text-primary"
-												>
-													{profil.email}
-												</a>
-											</div>
-										</div>
-									{/each}
-								</div>
-							{:else}
-								<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-									<p>Aucun bénévole associé à ce chat</p>
-								</div>
-							{/if}
-						</SectionCard>
+						<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 
 						<!-- Demandes d'adoption en attente pour ce chat (tant qu'il n'est pas adopté) -->
-						{#if !isAdopted && pendingRequests.length > 0}
-							<SectionCard
-								icon={CAT_SECTION_CONFIG.adoptions.icon}
-								title="Demandes d'adoption ({pendingRequests.length})"
-								color="amber"
-							>
-								<!-- Une ligne par demande : juste de quoi appeler l'adoptant (détail dans « Traiter ») -->
-								<!-- @container : sur une fiche étroite, le contact passe sous le nom -->
-								<ul
-									class="@container divide-y divide-amber-200 rounded-xl border border-amber-300 bg-amber-100"
-								>
-									{#each pendingRequests as request (request.id)}
-										{@const answers = request.data as AdoptionFormJson}
-										<li
-											class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-3 py-2 @lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.5fr)_auto]"
-										>
-											<p class="flex min-w-0 items-center gap-2 font-semibold">
-												<span class="truncate">
-													{answers.firstName ?? ''}
-													{answers.lastName ?? ''}
-												</span>
-												{#if request.blacklist}
-													<Badge
-														class="shrink-0 bg-red-100 text-xs text-red-700"
-														title={request.blacklist.reason}
-													>
-														Blacklisté
-													</Badge>
-												{/if}
-											</p>
-
-											{#if answers.phone}
-												<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
-													<Icon name="phone" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-													<a
-														href={`tel:${answers.phone}`}
-														class="text-xs text-blue-500 underline hover:text-primary"
-													>
-														{answers.phone}
-													</a>
-												</div>
-											{:else}
-												<span class="col-start-1 text-xs text-muted-foreground @lg:col-start-auto"
-													>—</span
-												>
-											{/if}
-
-											<div class="col-start-1 flex min-w-0 items-center gap-2 @lg:col-start-auto">
-												<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
-												<a
-													href={`mailto:${request.email}`}
-													title={request.email}
-													class="truncate text-xs text-blue-500 underline hover:text-primary"
-												>
-													{request.email}
-												</a>
-											</div>
-
-											<Button
-												size="sm"
-												variant="outline"
-												class="col-start-2 row-span-3 row-start-1 @lg:col-start-auto @lg:row-span-1 @lg:row-start-auto"
-												onclick={() => (openRequestId = request.id)}
-											>
-												Traiter
-											</Button>
-										</li>
-									{/each}
-								</ul>
-							</SectionCard>
+						{#if !isAdopted}
+							<CatAdoptionRequests
+								requests={pendingRequests}
+								onOpen={(formId) => (openRequestId = formId)}
+							/>
 						{/if}
 
 						<!-- Familles d'accueil -->
-						<SectionCard
-							icon={CAT_SECTION_CONFIG.host.icon}
-							title={CAT_SECTION_CONFIG.host.label}
-							color={CAT_SECTION_CONFIG.host.color}
-						>
-							{#snippet action()}
-								{#if isAdmin}
-									<PlacementCreateForm catId={cat.id} {cat} hosts={hosts ?? []} />
-								{/if}
-							{/snippet}
-
-							{#if activePlacements.length > 0}
-								<div class="ml-0 grid gap-4 sm:ml-6">
-									{@render placementGroup('FA (Proposition)', activeProposalPlacements)}
-									{@render placementGroup('FA (Transfert)', activeTransferPlacements)}
-									{@render placementGroup(
-										'FA (Classic)',
-										activeLongPlacement ? [activeLongPlacement] : []
-									)}
-									{@render placementGroup(
-										'FA (Relais)',
-										activeShortPlacement ? [activeShortPlacement] : []
-									)}
-								</div>
-							{:else}
-								<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-									<p>Aucune FA associée à ce chat</p>
-								</div>
-							{/if}
-						</SectionCard>
+						<CatPlacements {cat} hosts={hosts ?? []} {isAdmin} />
 					</section>
 
 					<Separator />
@@ -744,68 +249,8 @@
 					<!-- ============================================================ -->
 					<!-- 4. MALADIES                                                   -->
 					<!-- ============================================================ -->
-					<SectionCard
-						icon={CAT_SECTION_CONFIG.sicknesses.icon}
-						title={CAT_SECTION_CONFIG.sicknesses.label}
-						color={CAT_SECTION_CONFIG.sicknesses.color}
-					>
-						{#snippet action()}
-							{#if canManageCat}
-								<SicknessEditForm catId={cat.id} />
-							{/if}
-						{/snippet}
-
-						{#if activeSicknesses.length > 0}
-							<div class="space-y-4">
-								{#each activeSicknesses as sickness (sickness.id)}
-									<!-- PC : 1 + 2 + 2 colonnes | Mobile : empilé -->
-									<div
-										class="relative grid grid-cols-1 gap-3 rounded-xl border border-lime-500 bg-lime-100 px-4 py-2 pr-12 text-sm sm:grid-cols-5 sm:gap-4"
-									>
-										<div class="sm:col-span-1">
-											<span class="block text-xs text-muted-foreground">
-												Maladie {sicknessStatus[sickness.status as SicknessStatus]}
-											</span>
-											<span class="font-medium">{sickness.name}</span>
-
-											<div class="flex gap-2 pt-2">
-												<div>
-													<span class="block text-xs text-muted-foreground">Début</span>
-													<span class="text-xs">{formatDateNum(sickness.startDate)}</span>
-												</div>
-												{#if sickness.endDate}
-													<div>
-														<span class="block text-xs text-muted-foreground">Fin</span>
-														<span class="text-xs">{formatDateNum(sickness.endDate)}</span>
-													</div>
-												{/if}
-											</div>
-										</div>
-										{#if sickness.description}
-											<div class="sm:col-span-2">
-												<span class="block text-xs text-muted-foreground">Description</span>
-												<p class="text-xs whitespace-pre-line">{sickness.description}</p>
-											</div>
-										{/if}
-										<div class="sm:col-span-2">
-											<span class="block text-xs text-muted-foreground">Traitement</span>
-											<span class="text-xs">{sickness.treatment ?? '—'}</span>
-										</div>
-
-										{#if canManageCat}
-											<div class="absolute top-1 right-1">
-												<SicknessEditForm catId={cat.id} {sickness} />
-											</div>
-										{/if}
-									</div>
-								{/each}
-							</div>
-						{:else}
-							<div class="flex items-center justify-center rounded-xl border-2 border-dotted p-4">
-								<p>Aucune maladie active</p>
-							</div>
-						{/if}
-					</SectionCard>
+					<!-- Même règle que les documents et les soins : admin, ou bénévole associée au chat -->
+					<CatSicknesses {cat} canManage={canManageCat} />
 
 					<Separator />
 
@@ -828,28 +273,7 @@
 					<!-- ============================================================ -->
 					<!-- 7. HISTORIQUE                                                 -->
 					<!-- ============================================================ -->
-					<Accordion.Root type="single">
-						<Accordion.Item value="history" class="border-0">
-							<Accordion.Trigger class="py-2 text-base font-semibold hover:no-underline sm:text-lg">
-								<div class="flex items-center gap-2">
-									<Icon name="history" class="h-5 w-5 text-slate-600" />
-									<span>Historique des placements</span>
-									<Badge variant="secondary" class="ml-2">{stoppedPlacements.length}</Badge>
-								</div>
-							</Accordion.Trigger>
-							<Accordion.Content>
-								{#if stoppedPlacements.length > 0}
-									<div class="grid gap-2">
-										{#each stoppedPlacements as placement (placement.id)}
-											{@render placementCard(placement, true)}
-										{/each}
-									</div>
-								{:else}
-									<p class="py-2 text-sm text-muted-foreground">Aucun placement terminé.</p>
-								{/if}
-							</Accordion.Content>
-						</Accordion.Item>
-					</Accordion.Root>
+					<CatPlacementHistory {cat} />
 				</Card.Content>
 			{:else if editingImage}
 				<Card.Content>

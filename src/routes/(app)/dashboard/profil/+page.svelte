@@ -21,7 +21,7 @@
 		ChevronRight,
 		CalendarClock
 	} from '@lucide/svelte';
-	import { DISTRICTS, DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import type { ActionData, PageData } from './$types';
 	import { fade } from 'svelte/transition';
 	import { format } from 'date-fns';
@@ -31,10 +31,8 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	const DISTRICT_OPTIONS = [
-		{ value: '', label: 'Aucun' },
-		...DISTRICTS.map((d) => ({ value: d, label: DISTRICT_LABELS[d] }))
-	];
+	// Les quartiers + « Aucun » : un profil peut ne pas avoir de quartier
+	const districtChoices = [{ value: '', label: 'Aucun' }, ...DISTRICT_OPTIONS];
 
 	const isAdmin = $derived(data.volunteer.role === 'ADMIN');
 	const roleLabel = $derived(
@@ -361,7 +359,7 @@
 							<SelectField
 								id="district"
 								label="Quartier"
-								options={DISTRICT_OPTIONS}
+								options={districtChoices}
 								value={data.volunteer.district ?? ''}
 								placeholder="Aucun"
 								class="w-full"

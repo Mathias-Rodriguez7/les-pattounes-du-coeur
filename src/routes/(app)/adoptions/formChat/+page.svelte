@@ -13,7 +13,7 @@
 		step2Schema,
 		step3Schema
 	} from '#lib/schemas/formShema/adoptionForm.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
@@ -27,6 +27,7 @@
 		ADOPTION_SEX_OPTIONS,
 		FORM_SECTION_CONFIG
 	} from '#lib/constants/forms.ts';
+	import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 	let { data }: { data: { form: SuperValidated<Infer<typeof adoptionFormSchema>> } } = $props();
 
@@ -67,17 +68,13 @@
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
 
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
-
 	// Validation par étape + affichage des erreurs de l'étape
 	function validateCurrentStep(): boolean {
 		const schema = step === 1 ? step1Schema : step === 2 ? step2Schema : step3Schema;
 		const result = schema.safeParse(get(formData));
 		if (result.success) return true;
 
-		const flat = result.error.flatten().fieldErrors as Record<string, string[]>;
+		const flat = zodFieldErrors(result.error) as Record<string, string[]>;
 		errors.update(($e) => ({ ...$e, ...flat }));
 		toast.error('Veuillez corriger les erreurs du formulaire');
 		return false;
@@ -236,7 +233,7 @@
 											label="Quartier"
 											placeholder="Quartier"
 											size="sm"
-											options={districtOptions}
+											options={DISTRICT_OPTIONS}
 											bind:value={
 												() => $formData.district ?? '', (v) => ($formData.district = v || null)
 											}

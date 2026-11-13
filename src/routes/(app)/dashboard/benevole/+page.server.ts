@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { District, VolunteerRole } from '@prisma/client';
@@ -6,26 +6,13 @@ import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutatio
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
+import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	// ✅ Vérifier que l'user existe ET est ADMIN
-	if (!locals.user) {
-		redirect(302, '/');
-	}
+	// Page réservée à l'admin (avant le try : redirect() lance une exception)
+	requireAdmin(locals);
 
 	try {
-		const volunteerId = locals.user.id;
-
-		// Vérifier que l'utilisateur est ADMIN
-		const volunteer = await prisma.volunteer.findUnique({
-			where: { id: volunteerId },
-			select: { role: true }
-		});
-
-		if (volunteer?.role !== 'ADMIN') {
-			redirect(302, '/');
-		}
-
 		// 🔍 Récupérer les filtres depuis les query params
 		const districtParam = url.searchParams.get('district');
 		const roleParam = url.searchParams.get('role');
@@ -195,7 +182,7 @@ export const actions: Actions = {
 
 	deleteProfile: async ({ request, locals }) => {
 		try {
-			if (!locals.user || locals.user.role !== 'ADMIN') {
+			if (!hasAdminRole(locals.user)) {
 				return fail(403, { success: false, error: 'Non autorisé' });
 			}
 

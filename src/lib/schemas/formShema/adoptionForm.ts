@@ -15,6 +15,17 @@ const optionalString = (min = 1, msg?: string) =>
 		z.string().trim().min(min, msg).optional()
 	);
 
+/**
+ * Texte facultatif d'une MISE À JOUR : convertFormData transforme un champ vide en null.
+ * null veut dire « vidé par l'utilisatrice » : on le garde (il efface l'ancienne valeur),
+ * alors qu'optionalString le refusait (« expected string, received null »).
+ */
+const clearableString = (min = 1, msg?: string) =>
+	z.preprocess(
+		(v) => (v === null || (typeof v === 'string' && v.trim() === '') ? null : v),
+		z.string().trim().min(min, msg).nullable().optional()
+	);
+
 const optionalNumber = (min: number, max: number) =>
 	z.preprocess(
 		(v) => (v === '' || v === null ? undefined : v),
@@ -177,9 +188,9 @@ export const updateAdoptionFormSchema = z
 		// Champs optionnels de step 2
 		catAge: z.enum(enumKeys(CAT_AGE_PREFERENCES)).optional(),
 		catSex: z.enum(enumKeys(CAT_SEX_PREFERENCES)).optional(),
-		color: optionalString(2, 'Veuillez indiquer une couleur'),
+		color: clearableString(2, 'Veuillez indiquer une couleur'),
 		furLength: z.enum(enumKeys(CAT_FUR_PREFERENCES)).optional(),
-		temperament: optionalString(5, 'Le caractère doit contenir au moins 5 caractères'),
+		temperament: clearableString(5, 'Le caractère doit contenir au moins 5 caractères'),
 
 		// Champs optionnels de step 3
 		housingSize: optionalNumber(10, 1000),
@@ -188,7 +199,7 @@ export const updateAdoptionFormSchema = z
 		hasPets: z.boolean().optional(),
 		numberOfCats: z.coerce.number().int().min(0).optional(),
 		numberOfDogs: z.coerce.number().int().min(0).optional(),
-		otherPets: optionalString(),
+		otherPets: clearableString(),
 		numberOfChildren: z.coerce.number().int().min(0).optional(),
 
 		// Champs additionnels

@@ -11,12 +11,13 @@
 		volunteerStep3Schema,
 		volunteerStep4Schema
 	} from '#lib/schemas/formShema/volunteerForm.ts';
-	import { DISTRICT_LABELS } from '#lib/utils/districts.ts';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 	let { data }: { data: SuperValidated<Infer<typeof volunteerFormSchema>> } = $props();
 
@@ -56,10 +57,6 @@
 		$formData.birthDate = date.toISOString().split('T')[0] as never;
 	}
 
-	const districtOptions = $derived(
-		Object.entries(DISTRICT_LABELS).map(([value, label]) => ({ value, label }))
-	);
-
 	const availabilityOptions = [
 		{ value: 'LOW', label: 'Quelques heures par mois' },
 		{ value: 'MEDIUM', label: 'Quelques heures par semaine' },
@@ -88,7 +85,7 @@
 		const result = schema.safeParse(get(formData));
 
 		if (!result.success) {
-			const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
+			const fieldErrors = zodFieldErrors(result.error) as Record<string, string[]>;
 			errors.update((current) => {
 				const next = { ...current } as Record<string, string[] | undefined>;
 				for (const [key, messages] of Object.entries(fieldErrors)) {
@@ -229,7 +226,7 @@
 						label="Quartier"
 						placeholder="Quartier"
 						size="sm"
-						options={districtOptions}
+						options={DISTRICT_OPTIONS}
 						bind:value={() => $formData.district ?? '', (v) => ($formData.district = v || null)}
 					/>
 				{/if}

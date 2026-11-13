@@ -4,6 +4,7 @@ import type { UploadPurpose } from '#lib/media/rules.ts';
 import type { StorageFolder } from '#lib/server/storage.ts';
 import { canManageNews } from '#lib/permissions/news.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 type PurposeConfig = {
 	allowed: MediaType[];
@@ -50,6 +51,6 @@ export const UPLOAD_PURPOSE_CONFIG: Record<UploadPurpose, PurposeConfig> = {
 		isPrivate: true,
 		needsTarget: false,
 		folder: () => 'info',
-		canUpload: (user) => user.role === 'ADMIN'
+		canUpload: (user) => hasAdminRole(user)
 	}
 };

@@ -4,6 +4,7 @@ import prisma from '#lib/server/prisma.ts';
 import { hashPassword, verifyPassword } from '#lib/server/hashing.ts';
 import { z } from 'zod';
 import { updateVolunteer } from '#lib/server/volunteers/mutations.ts';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -86,7 +87,7 @@ export const actions: Actions = {
 				return fail(400, {
 					success: false,
 					error: 'Validation échouée',
-					errors: result.error.flatten().fieldErrors,
+					errors: zodFieldErrors(result.error),
 					action: 'updateEmail'
 				});
 			}
@@ -172,7 +173,7 @@ export const actions: Actions = {
 				return fail(400, {
 					success: false,
 					error: 'Validation échouée',
-					errors: result.error.flatten().fieldErrors,
+					errors: zodFieldErrors(result.error),
 					action: 'updatePassword'
 				});
 			}

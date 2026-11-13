@@ -7,6 +7,9 @@ import {
 	type UpdateHostInput
 } from '../../schemas/host';
 import { isEmailBlacklisted } from '../accountStatus';
+import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { applyHostRules } from '#lib/hosts/rules.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -93,7 +96,7 @@ function buildProfilData(data: CreateHostInput | UpdateHostInput) {
 }
 
 export async function createHost({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -112,7 +115,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -212,7 +215,7 @@ export async function createHost({ request, locals }: { request: Request; locals
 }
 
 export async function updateHost({ request, locals }: { request: Request; locals: App.Locals }) {
-	if (!locals.user || locals.user.role !== 'ADMIN') {
+	if (!hasAdminRole(locals.user)) {
 		return {
 			success: false,
 			error: 'Non autorisé',
@@ -240,7 +243,7 @@ export async function updateHost({ request, locals }: { request: Request; locals
 			return {
 				success: false,
 				error: 'Erreur de validation',
-				errors: result.error.flatten().fieldErrors
+				errors: zodFieldErrors(result.error)
 			};
 		}
 
@@ -290,7 +293,8 @@ export async function updateHost({ request, locals }: { request: Request; locals
 			}
 		}
 
-		const hostData = buildHostData(validatedData);
+		// Décocher « Animaux au domicile » ou « Extérieur » efface aussi ce qui en dépend (voir hosts/rules.ts)
+		const hostData = buildHostData(applyHostRules(validatedData));
 		const profilData = buildProfilData(validatedData);
 
 		const updatedHost = await prisma.host.update({
