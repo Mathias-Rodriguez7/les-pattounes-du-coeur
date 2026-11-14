@@ -141,7 +141,7 @@ export async function createAdoption(
 				status: 'PENDING',
 				...(input.formId && { id: { not: input.formId } })
 			},
-			select: { id: true, notes: true }
+			select: { id: true, notes: true, email: true, data: true }
 		});
 		for (const other of otherRequests) {
 			await tx.form.update({
@@ -154,7 +154,12 @@ export async function createAdoption(
 			});
 		}
 
-		return { adoption, rejectedCount: otherRequests.length };
+		// Les personnes refusées, pour leur écrire APRÈS la transaction (un email ne s'annule pas)
+		const rejected = otherRequests.map((other) => ({
+			email: other.email,
+			firstName: (other.data as { firstName?: string } | null)?.firstName ?? null
+		}));
+		return { adoption, rejected, catName: cat.name };
 	});
 }
 

@@ -9,6 +9,7 @@ import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { prepareMedia, discardUpload } from '#lib/server/media/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { sendAdoptedElsewhereEmail } from '#lib/server/mailer.ts';
 
 type Args = { request: Request; locals: App.Locals };
 
@@ -95,17 +96,41 @@ export async function createAdoptionAction({ request, locals }: Args) {
 
 		// 4. Tout est vérifié : on crée l'adoption (et tout le reste) en une transaction
 		try {
-			const { adoption, rejectedCount } = await createAdoption(parsed.data, prepared.data, {
+			const { adoption, rejected, catName } = await createAdoption(parsed.data, prepared.data, {
 				allowBlacklisted
 			});
 			contractAttached = true;
 
+			// Les autres demandes ont été refusées : un email type à chaque personne.
+			// allSettled : un email qui échoue n'empêche pas les autres de partir
+			const volunteer = {
+				name: `${user.profil.firstName} ${user.profil.lastName}`,
+				email: user.profil.email
+			};
+			const catsUrl = `${new URL(request.url).origin}/adoptions/chat`;
+			const results = await Promise.allSettled(
+				rejected.map((person) =>
+					sendAdoptedElsewhereEmail({
+						to: person.email,
+						firstName: person.firstName,
+						catName,
+						volunteer,
+						catsUrl
+					})
+				)
+			);
+			const failedEmails = results.filter((result) => result.status === 'rejected').length;
+			if (failedEmails > 0)
+				console.error(`❌ ${failedEmails} email(s) « chat adopté » non envoyé(s)`);
+
+			const rejectedCount = rejected.length;
 			const rejectedMessage =
-				rejectedCount === 0
+				(rejectedCount === 0
 					? ''
 					: rejectedCount === 1
-						? ' 1 autre demande a été refusée.'
-						: ` ${rejectedCount} autres demandes ont été refusées.`;
+						? ' 1 autre demande a été refusée (email envoyé).'
+						: ` ${rejectedCount} autres demandes ont été refusées (emails envoyés).`) +
+				(failedEmails > 0 ? ` ⚠️ ${failedEmails} email(s) n’ont pas pu partir.` : '');
 
 			return {
 				success: true,

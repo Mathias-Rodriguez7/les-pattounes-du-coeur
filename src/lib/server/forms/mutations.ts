@@ -17,6 +17,8 @@ import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { applyHostRules } from '#lib/hosts/rules.ts';
 import { applyVolunteerRules } from '#lib/volunteers/rules.ts';
 import { applyAdoptionRules } from '#lib/adoptions/rules.ts';
+import { hasPlaceholder } from '#lib/adoptions/rejectMessage.ts';
+import { sendAdoptionRejectedEmail } from '#lib/server/mailer.ts';
 
 // 🎯 Union type (utilise les types)
 type UpdateFormInput =
@@ -339,7 +341,19 @@ export async function setFlexibleDispatcher({
 // ==========================================
 const rejectFormSchema = z.object({
 	formId: z.uuid('Demande invalide'),
-	reason: z.string().trim().min(1, 'Indiquez la raison du refus').max(500, '500 caractères maximum')
+	// La raison : une note INTERNE, pour l'équipe
+	reason: z
+		.string()
+		.trim()
+		.min(1, 'Indiquez la raison du refus')
+		.max(500, '500 caractères maximum'),
+	// Le message : envoyé par email à l'adoptant
+	message: z
+		.string()
+		.trim()
+		.min(20, 'Écrivez le message envoyé à l’adoptant')
+		.max(3000, '3000 caractères maximum')
+		.refine((text) => !hasPlaceholder(text), 'Complétez le passage entre crochets')
 });
 
 export async function rejectForm({ request, locals }: { request: Request; locals: App.Locals }) {
@@ -353,11 +367,11 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 			errors: zodFieldErrors(parsed.error)
 		};
 	}
-	const { formId, reason } = parsed.data;
+	const { formId, reason, message } = parsed.data;
 
 	const form = await prisma.form.findUnique({
 		where: { id: formId },
-		select: { type: true, status: true, notes: true, assignedToId: true, catId: true }
+		select: { type: true, status: true, notes: true, assignedToId: true, catId: true, email: true }
 	});
 	if (!form || !form.type.startsWith('ADOPTION')) {
 		return { success: false, error: 'Demande introuvable' };
@@ -370,15 +384,37 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 		return { success: false, error: 'Cette demande a déjà été traitée' };
 	}
 
-	// La raison s'AJOUTE aux notes existantes, datée
+	// L'email part au nom de la bénévole : « Répondre » lui écrit directement.
+	// Un email qui échoue ne bloque pas le refus : on le note, et on le dit.
+	const volunteer = {
+		name: `${locals.user.profil.firstName} ${locals.user.profil.lastName}`,
+		email: locals.user.profil.email
+	};
+	let emailSent = true;
+	try {
+		await sendAdoptionRejectedEmail({ to: form.email, message, volunteer });
+	} catch (error) {
+		console.error('❌ Email de refus non envoyé :', error);
+		emailSent = false;
+	}
+
+	// La raison et le sort de l'email s'AJOUTENT aux notes existantes, datés
 	const today = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+	const emailNote = emailSent
+		? `Email de refus envoyé par ${volunteer.name}.`
+		: '⚠️ Email de refus non envoyé : prévenir l’adoptant.';
 	await prisma.form.update({
 		where: { id: formId },
 		data: {
 			status: 'REJECTED',
-			notes: [form.notes, `Refusée le ${today} : ${reason}`].filter(Boolean).join('\n')
+			notes: [form.notes, `Refusée le ${today} : ${reason}`, emailNote].filter(Boolean).join('\n')
 		}
 	});
 
-	return { success: true, message: 'Demande refusée' };
+	return {
+		success: true,
+		message: emailSent
+			? 'Demande refusée, email envoyé à l’adoptant'
+			: 'Demande refusée, mais l’email n’a pas pu partir : pensez à prévenir l’adoptant'
+	};
 }

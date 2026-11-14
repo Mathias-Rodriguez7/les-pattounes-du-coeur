@@ -23,7 +23,7 @@
 </script>
 
 <div class="flex flex-wrap justify-end gap-2">
-	<RejectFormDialog formId={form.id} {requesterName} />
+	<RejectFormDialog formId={form.id} {requesterName} catName={form.cat?.name} />
 	{#if form.type === 'ADOPTION_SPECIFIC'}
 		<Button
 			type="button"
