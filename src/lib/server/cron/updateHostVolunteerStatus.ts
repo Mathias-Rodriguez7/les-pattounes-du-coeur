@@ -1,5 +1,6 @@
 // src/lib/server/cron/updateHostVolunteerStatus.ts
 import prisma from '#lib/server/prisma.ts';
+import { endOfDay } from '#lib/volunteers/breaks.ts';
 
 /**
  * Vérifie et met à jour le statut des hosts/volunteers
@@ -50,4 +51,23 @@ export async function endFinishedBreaks() {
 		console.error('❌ Erreur lors de la mise à jour des statuts:', error);
 		throw error;
 	}
+}
+
+/**
+ * Pauses PRÉVUES par les bénévoles (depuis leur Profil) : le jour du début, elles passent
+ * en pause. (La fin, elle, est gérée par endFinishedBreaks.)
+ * Même règle que le Profil : une pause commence dès son jour de début.
+ */
+export async function startScheduledBreaks() {
+	const now = new Date();
+	const { count } = await prisma.volunteer.updateMany({
+		where: {
+			actif: 'ACTIVE',
+			breakStart: { lte: endOfDay(now) },
+			breakEnd: { gt: now }
+		},
+		data: { actif: 'BREAK' }
+	});
+	console.log(`✅ Pauses commencées : ${count}`);
+	return count;
 }

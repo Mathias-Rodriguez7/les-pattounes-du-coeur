@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { District, VolunteerRole, ColabActivity } from '@prisma/client';
 import { emailField } from '#lib/schemas/fields.ts';
+import { startOfDay } from '#lib/volunteers/breaks.ts';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z
@@ -51,3 +52,18 @@ export const deleteVolunteerSchema = z.object({
 export type CreateVolunteerInput = z.infer<typeof createVolunteerSchema>;
 export type UpdateVolunteerInput = z.infer<typeof updateVolunteerSchema>;
 export type DeleteVolunteerInput = z.infer<typeof deleteVolunteerSchema>;
+
+// ✅ La pause qu'une bénévole se donne depuis son Profil
+export const ownBreakSchema = z
+	.object({
+		breakStart: z.coerce.date({ message: 'Choisissez les dates de la pause' }),
+		breakEnd: z.coerce.date({ message: 'Choisissez les dates de la pause' })
+	})
+	.refine((d) => d.breakEnd >= d.breakStart, {
+		path: ['breakEnd'],
+		message: 'La fin de la pause doit être après le début'
+	})
+	.refine((d) => d.breakStart >= startOfDay(new Date()), {
+		path: ['breakStart'],
+		message: 'La pause ne peut pas commencer dans le passé'
+	});

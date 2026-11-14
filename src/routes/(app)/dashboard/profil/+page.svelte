@@ -6,6 +6,7 @@
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 	import PasswordField from '#lib/components/fields/PasswordField.svelte';
+	import DateRangePicker from '#lib/components/fields/DateRangePicker.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import {
@@ -19,7 +20,8 @@
 		Check,
 		X,
 		ChevronRight,
-		CalendarClock
+		CalendarClock,
+		CalendarOff
 	} from '@lucide/svelte';
 	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import type { ActionData, PageData } from './$types';
@@ -58,6 +60,23 @@
 			? format(data.volunteer.breakEnd, 'd MMMM yyyy', { locale: fr })
 			: null
 	);
+
+	// ===== PAUSE =====
+	const formatDay = (date: Date) => format(date, 'd MMMM yyyy', { locale: fr });
+	const isOnBreak = $derived(data.volunteer.actif === 'BREAK');
+	// Une pause en cours, ou prévue (le cron la commencera le jour venu)
+	const breakSummary = $derived.by(() => {
+		const { breakStart, breakEnd } = data.volunteer;
+		if (isOnBreak && breakEnd) return `En pause jusqu'au ${formatDay(breakEnd)} inclus.`;
+		if (breakStart && breakEnd) {
+			return `Pause prévue du ${formatDay(breakStart)} au ${formatDay(breakEnd)}.`;
+		}
+		return 'Aucune pause prévue. Votre statut passera en « Pause » automatiquement aux dates choisies.';
+	});
+	// Les dates choisies dans le calendrier (rien tant qu'on n'a pas choisi début ET fin)
+	let pickedBreak = $state<{ start: Date; end: Date } | null>(null);
+	let breakIsSubmitting = $state(false);
+	const today = new Date();
 
 	// ===== PROFIL =====
 	let profileIsSubmitting = $state(false);
@@ -256,6 +275,79 @@
 					</button>
 				</Card.Content>
 			</Card.Root>
+			<!-- PAUSE (pas pour une bénévole arrêtée : c'est l'association qui la réactive) -->
+			{#if data.volunteer.actif !== 'STOP'}
+				<!-- Tablette : toute la largeur sous les 2 cartes | Desktop : dans la colonne -->
+				<Card.Root class="gap-0 self-start py-0 sm:col-span-2 lg:col-span-1">
+					<Card.Header class="px-6 py-4">
+						<Card.Title class="flex items-center gap-2 text-base">
+							<CalendarOff class="size-4 text-primary" />
+							Pause
+						</Card.Title>
+					</Card.Header>
+
+					<Separator />
+
+					<Card.Content class="grid gap-3 p-4">
+						<p class="text-sm text-muted-foreground">{breakSummary}</p>
+
+						<form
+							method="POST"
+							action="?/setBreak"
+							class="grid gap-3"
+							use:enhance={() => {
+								breakIsSubmitting = true;
+								return async ({ update }) => {
+									await update({ reset: false });
+									breakIsSubmitting = false;
+									pickedBreak = null;
+								};
+							}}
+						>
+							<DateRangePicker
+								label="Dates de la pause"
+								startName="breakStart"
+								endName="breakEnd"
+								startValue={data.volunteer.breakStart ?? undefined}
+								endValue={data.volunteer.breakEnd ?? undefined}
+								minDate={today}
+								onSelect={(dates) => (pickedBreak = dates)}
+								error={errorFor('setBreak', 'breakStart') || errorFor('setBreak', 'breakEnd')}
+							/>
+							<Button type="submit" size="sm" disabled={!pickedBreak || breakIsSubmitting}>
+								{#if breakIsSubmitting}
+									<LoaderCircle class="size-4 animate-spin" />
+								{/if}
+								{data.volunteer.breakStart ? 'Modifier la pause' : 'Enregistrer la pause'}
+							</Button>
+						</form>
+
+						{#if data.volunteer.breakStart || isOnBreak}
+							<form
+								method="POST"
+								action="?/cancelBreak"
+								use:enhance={() => {
+									breakIsSubmitting = true;
+									return async ({ update }) => {
+										await update({ reset: false });
+										breakIsSubmitting = false;
+									};
+								}}
+							>
+								<Button
+									type="submit"
+									variant="outline"
+									size="sm"
+									class="w-full"
+									disabled={breakIsSubmitting}
+								>
+									{isOnBreak ? 'Reprendre dès aujourd’hui' : 'Annuler la pause'}
+								</Button>
+							</form>
+						{/if}
+					</Card.Content>
+				</Card.Root>
+			{/if}
 		</aside>
 
 		<!-- ================= COLONNE DROITE : INFORMATIONS ================= -->

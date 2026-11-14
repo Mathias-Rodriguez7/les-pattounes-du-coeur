@@ -5,6 +5,8 @@ import { hashPassword, verifyPassword } from '#lib/server/hashing.ts';
 import { z } from 'zod';
 import { updateVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { ownBreakSchema } from '#lib/schemas/volunteer.ts';
+import { cancelOwnBreak, setOwnBreak } from '#lib/server/volunteers/breaks.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -39,6 +41,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 				district: volunteer.profil.district ?? '',
 				role: volunteer.role,
 				actif: volunteer.actif,
+				breakStart: volunteer.breakStart,
 				breakEnd: volunteer.breakEnd,
 				createdAt: volunteer.createdAt
 			},
@@ -252,5 +255,46 @@ export const actions: Actions = {
 		}
 
 		return { success: true, message: 'Profil mis à jour', action: 'updateProfile' };
+	},
+
+	// ===== PAUSE : la bénévole choisit ses dates, le statut suit tout seul =====
+	setBreak: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non authentifié', action: 'setBreak' });
+		}
+
+		const parsed = ownBreakSchema.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success) {
+			return fail(400, {
+				success: false,
+				error: 'Dates de pause invalides',
+				errors: zodFieldErrors(parsed.error),
+				action: 'setBreak'
+			});
+		}
+
+		const result = await setOwnBreak(locals.user.id, parsed.data);
+		if (!result.success) {
+			return fail(400, { ...result, action: 'setBreak' });
+		}
+
+		return {
+			success: true,
+			message: result.startsNow ? 'Vous êtes en pause' : 'Pause enregistrée',
+			action: 'setBreak'
+		};
+	},
+
+	cancelBreak: async ({ locals }) => {
+		if (!locals.user) {
+			return fail(401, { success: false, error: 'Non authentifié', action: 'cancelBreak' });
+		}
+
+		const result = await cancelOwnBreak(locals.user.id);
+		if (!result.success) {
+			return fail(400, { ...result, action: 'cancelBreak' });
+		}
+
+		return { success: true, message: 'Pause annulée : vous êtes active', action: 'cancelBreak' };
 	}
 };
