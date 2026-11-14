@@ -27,7 +27,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 			redirect(302, '/login');
 		}
 
+		// Les deux chiffres de l'en-tête : les chats qu'elle suit encore (à l'adoption ou à
+		// sociabiliser) et les demandes en attente qui lui sont attribuées
+		const [catsFollowed, pendingForms] = await Promise.all([
+			prisma.catVolunteer.count({
+				where: { volunteerId, cat: { status: { in: ['AVAILABLE', 'SOCIALIZE'] } } }
+			}),
+			prisma.form.count({ where: { assignedToId: volunteerId, status: 'PENDING' } })
+		]);
+
 		return {
+			stats: { catsFollowed, pendingForms },
 			volunteer: {
 				id: volunteer.id,
 				firstName: volunteer.profil.firstName,

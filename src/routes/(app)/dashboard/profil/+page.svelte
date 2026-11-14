@@ -6,22 +6,19 @@
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 	import PasswordField from '#lib/components/fields/PasswordField.svelte';
-	import DateRangePicker from '#lib/components/fields/DateRangePicker.svelte';
+	import ProfileHeader from '#lib/components/profile/ProfileHeader.svelte';
+	import ProfileBreakCard from '#lib/components/profile/ProfileBreakCard.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import {
 		Mail,
-		Phone,
-		MapPinHouse,
 		Lock,
 		ShieldCheck,
 		LoaderCircle,
 		Save,
 		Check,
 		X,
-		ChevronRight,
-		CalendarClock,
-		CalendarOff
+		ChevronRight
 	} from '@lucide/svelte';
 	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import type { ActionData, PageData } from './$types';
@@ -60,23 +57,6 @@
 			? format(data.volunteer.breakEnd, 'd MMMM yyyy', { locale: fr })
 			: null
 	);
-
-	// ===== PAUSE =====
-	const formatDay = (date: Date) => format(date, 'd MMMM yyyy', { locale: fr });
-	const isOnBreak = $derived(data.volunteer.actif === 'BREAK');
-	// Une pause en cours, ou prévue (le cron la commencera le jour venu)
-	const breakSummary = $derived.by(() => {
-		const { breakStart, breakEnd } = data.volunteer;
-		if (isOnBreak && breakEnd) return `En pause jusqu'au ${formatDay(breakEnd)} inclus.`;
-		if (breakStart && breakEnd) {
-			return `Pause prévue du ${formatDay(breakStart)} au ${formatDay(breakEnd)}.`;
-		}
-		return 'Aucune pause prévue. Votre statut passera en « Pause » automatiquement aux dates choisies.';
-	});
-	// Les dates choisies dans le calendrier (rien tant qu'on n'a pas choisi début ET fin)
-	let pickedBreak = $state<{ start: Date; end: Date } | null>(null);
-	let breakIsSubmitting = $state(false);
-	const today = new Date();
 
 	// ===== PROFIL =====
 	let profileIsSubmitting = $state(false);
@@ -168,313 +148,201 @@
 	<title>Mon profil – Les Pattounes du Cœur</title>
 </svelte:head>
 
-<main
-	in:fade={{ duration: 200 }}
-	class="flex min-h-full items-center justify-center bg-[url('/img/background.png')] bg-cover bg-center px-4 py-6 sm:px-6 lg:py-10"
->
-	<div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-3">
-		<!-- ================= COLONNE GAUCHE ================= -->
-		<!-- Téléphone : empilé | Tablette : 2 cartes côte à côte | Desktop : colonne -->
-		<aside class="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
-			<!-- CARTE D'IDENTITÉ -->
-			<Card.Root class="gap-0 overflow-hidden py-0">
-				<!-- Seul dégradé de la page : c'est le point fort visuel -->
-				<div class="h-20 bg-linear-to-r from-primary/80 to-accent"></div>
+<main in:fade={{ duration: 200 }} class="min-h-full px-4 py-6 sm:px-6 lg:py-10">
+	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+		<ProfileHeader
+			name={`${data.volunteer.firstName} ${data.volunteer.lastName}`}
+			{initials}
+			{roleLabel}
+			{statusLabel}
+			statusDotClass={STATUS_DOT[data.volunteer.actif ?? ''] ?? 'bg-gray-400'}
+			{memberSince}
+			{breakEndLabel}
+			catsFollowed={data.stats.catsFollowed}
+			pendingForms={data.stats.pendingForms}
+		/>
 
-				<Card.Content class="-mt-10 flex flex-col items-center px-6 pb-6 text-center">
-					<div
-						class="flex size-20 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground ring-4 ring-card"
-					>
-						{initials}
-					</div>
-
-					<h1 class="mt-3 text-xl font-bold">
-						{data.volunteer.firstName}
-						{data.volunteer.lastName}
-					</h1>
-
-					<div class="mt-2 flex flex-wrap items-center justify-center gap-2">
-						<span class="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">
-							{roleLabel}
-						</span>
-						<span
-							class="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-0.5 text-xs font-medium"
-						>
-							<span
-								class="size-2 rounded-full {STATUS_DOT[data.volunteer.actif ?? ''] ??
-									'bg-gray-400'}"
-							></span>
-							{statusLabel}
-						</span>
-					</div>
-
-					{#if breakEndLabel}
-						<p class="mt-2 text-xs text-muted-foreground">En pause jusqu'au {breakEndLabel}</p>
-					{/if}
-
-					<ul class="mt-5 w-full space-y-2.5 text-left text-sm text-muted-foreground">
-						<li class="flex items-center gap-3">
-							<Mail class="size-4 shrink-0" />
-							<span class="truncate">{data.volunteer.email}</span>
-						</li>
-						<li class="flex items-center gap-3">
-							<Phone class="size-4 shrink-0" />
-							<span>{data.volunteer.phone}</span>
-						</li>
-						<li class="flex items-center gap-3">
-							<MapPinHouse class="size-4 shrink-0" />
-							<span class="truncate">
-								{data.volunteer.postalCode}
-								{data.volunteer.city}
-							</span>
-						</li>
-						<li class="flex items-center gap-3">
-							<CalendarClock class="size-4 shrink-0" />
-							<span>Membre depuis {memberSince}</span>
-						</li>
-					</ul>
-				</Card.Content>
-			</Card.Root>
-
-			<!-- SÉCURITÉ -->
-			<Card.Root class="gap-0 self-start py-0">
-				<Card.Header class="px-6 py-4">
-					<Card.Title class="flex items-center gap-2 text-base">
-						<ShieldCheck class="size-4 text-primary" />
-						Sécurité
-					</Card.Title>
+		<!-- Desktop : le formulaire (2/3) et une colonne Pause + Sécurité (1/3), chacun à sa hauteur
+		     Tablette : les deux cartes de droite côte à côte, sous le formulaire -->
+		<div class="grid gap-6 lg:grid-cols-3 lg:items-start">
+			<!-- ================= INFORMATIONS ================= -->
+			<Card.Root class="gap-0 py-0 lg:col-span-2">
+				<Card.Header class="px-4 py-4 sm:px-6">
+					<Card.Title class="text-lg">Informations personnelles</Card.Title>
+					<Card.Description>
+						Ces informations permettent à l'association de vous contacter.
+					</Card.Description>
 				</Card.Header>
 
 				<Separator />
 
-				<Card.Content class="p-3">
-					<button
-						type="button"
-						onclick={() => (emailDialogOpen = true)}
-						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
+				<Card.Content class="p-4 sm:p-6">
+					<form
+						method="POST"
+						action="?/updateProfile"
+						class="flex flex-col"
+						use:enhance={() => {
+							profileIsSubmitting = true;
+							return async ({ update }) => {
+								await update({ reset: false });
+								profileIsSubmitting = false;
+							};
+						}}
 					>
-						<Mail class="size-4 shrink-0 text-muted-foreground" />
-						<div class="min-w-0 flex-1">
-							<p class="text-sm font-medium">Adresse email</p>
-							<p class="truncate text-xs text-muted-foreground">{data.volunteer.email}</p>
-						</div>
-						<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
-					</button>
+						<div class="grid gap-4">
+							<!-- Prénom / Nom -->
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<InputField
+									id="firstName"
+									label="Prénom"
+									value={data.volunteer.firstName}
+									error={errorFor('updateProfile', 'firstName')}
+									required
+								/>
+								<InputField
+									id="lastName"
+									label="Nom"
+									value={data.volunteer.lastName}
+									error={errorFor('updateProfile', 'lastName')}
+									required
+								/>
+							</div>
 
-					<button
-						type="button"
-						onclick={() => (passwordDialogOpen = true)}
-						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
-					>
-						<Lock class="size-4 shrink-0 text-muted-foreground" />
-						<div class="min-w-0 flex-1">
-							<p class="text-sm font-medium">Mot de passe</p>
-							<p class="text-xs tracking-widest text-muted-foreground">••••••••</p>
+							<!-- Naissance / Téléphone / (Rôle) : 3 colonnes seulement si le Rôle est affiché -->
+							<div class="grid grid-cols-1 gap-4 {isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">
+								<DatePicker
+									name="birthDate"
+									label="Date de naissance"
+									value={data.volunteer.birthDate ?? undefined}
+									error={errorFor('updateProfile', 'birthDate')}
+								/>
+								<InputField
+									id="phone"
+									label="Téléphone"
+									type="tel"
+									placeholder="0612345678"
+									value={data.volunteer.phone}
+									error={errorFor('updateProfile', 'phone')}
+									required
+								/>
+								{#if isAdmin}
+									<SelectField
+										id="role"
+										label="Rôle"
+										options={VOLUNTEER_ROLE_OPTIONS}
+										value={data.volunteer.role}
+										class="w-full"
+										wrapperClass="space-y-2"
+									/>
+								{/if}
+							</div>
+
+							<!-- Adresse -->
+							<InputField
+								id="address"
+								label="Adresse"
+								value={data.volunteer.address}
+								error={errorFor('updateProfile', 'address')}
+								required
+							/>
+
+							<!-- Ville / Code postal / Quartier -->
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+								<InputField
+									id="city"
+									label="Ville"
+									value={data.volunteer.city}
+									error={errorFor('updateProfile', 'city')}
+									required
+								/>
+								<InputField
+									id="postalCode"
+									label="Code postal"
+									placeholder="34000"
+									value={data.volunteer.postalCode}
+									error={errorFor('updateProfile', 'postalCode')}
+									required
+								/>
+								<SelectField
+									id="district"
+									label="Quartier"
+									options={districtChoices}
+									value={data.volunteer.district ?? ''}
+									placeholder="Aucun"
+									class="w-full"
+									wrapperClass="space-y-2"
+								/>
+							</div>
 						</div>
-						<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
-					</button>
+
+						<!-- Bouton : pleine largeur sur téléphone, à droite sur écran plus large -->
+						<div class="flex justify-end pt-6">
+							<Button type="submit" class="w-full sm:w-auto" disabled={profileIsSubmitting}>
+								{#if profileIsSubmitting}
+									<LoaderCircle class="animate-spin" />
+									Enregistrement…
+								{:else}
+									<Save />
+									Enregistrer les modifications
+								{/if}
+							</Button>
+						</div>
+					</form>
 				</Card.Content>
 			</Card.Root>
-			<!-- PAUSE (pas pour une bénévole arrêtée : c'est l'association qui la réactive) -->
-			{#if data.volunteer.actif !== 'STOP'}
-				<!-- Tablette : toute la largeur sous les 2 cartes | Desktop : dans la colonne -->
-				<Card.Root class="gap-0 self-start py-0 sm:col-span-2 lg:col-span-1">
+
+			<aside class="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
+				<!-- PAUSE (pas pour une bénévole arrêtée : c'est l'association qui la réactive) -->
+				{#if data.volunteer.actif !== 'STOP'}
+					<ProfileBreakCard
+						actif={data.volunteer.actif}
+						breakStart={data.volunteer.breakStart}
+						breakEnd={data.volunteer.breakEnd}
+						error={errorFor('setBreak', 'breakStart') || errorFor('setBreak', 'breakEnd')}
+					/>
+				{/if}
+
+				<!-- SÉCURITÉ -->
+				<Card.Root class="gap-0 self-start py-0">
 					<Card.Header class="px-6 py-4">
 						<Card.Title class="flex items-center gap-2 text-base">
-							<CalendarOff class="size-4 text-primary" />
-							Pause
+							<ShieldCheck class="size-4 text-primary" />
+							Sécurité
 						</Card.Title>
 					</Card.Header>
 
 					<Separator />
 
-					<Card.Content class="grid gap-3 p-4">
-						<p class="text-sm text-muted-foreground">{breakSummary}</p>
-
-						<form
-							method="POST"
-							action="?/setBreak"
-							class="grid gap-3"
-							use:enhance={() => {
-								breakIsSubmitting = true;
-								return async ({ update }) => {
-									await update({ reset: false });
-									breakIsSubmitting = false;
-									pickedBreak = null;
-								};
-							}}
+					<Card.Content class="p-3">
+						<button
+							type="button"
+							onclick={() => (emailDialogOpen = true)}
+							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
 						>
-							<DateRangePicker
-								label="Dates de la pause"
-								startName="breakStart"
-								endName="breakEnd"
-								startValue={data.volunteer.breakStart ?? undefined}
-								endValue={data.volunteer.breakEnd ?? undefined}
-								minDate={today}
-								onSelect={(dates) => (pickedBreak = dates)}
-								error={errorFor('setBreak', 'breakStart') || errorFor('setBreak', 'breakEnd')}
-							/>
-							<Button type="submit" size="sm" disabled={!pickedBreak || breakIsSubmitting}>
-								{#if breakIsSubmitting}
-									<LoaderCircle class="size-4 animate-spin" />
-								{/if}
-								{data.volunteer.breakStart ? 'Modifier la pause' : 'Enregistrer la pause'}
-							</Button>
-						</form>
+							<Mail class="size-4 shrink-0 text-muted-foreground" />
+							<div class="min-w-0 flex-1">
+								<p class="text-sm font-medium">Adresse email</p>
+								<p class="truncate text-xs text-muted-foreground">{data.volunteer.email}</p>
+							</div>
+							<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
+						</button>
 
-						{#if data.volunteer.breakStart || isOnBreak}
-							<form
-								method="POST"
-								action="?/cancelBreak"
-								use:enhance={() => {
-									breakIsSubmitting = true;
-									return async ({ update }) => {
-										await update({ reset: false });
-										breakIsSubmitting = false;
-									};
-								}}
-							>
-								<Button
-									type="submit"
-									variant="outline"
-									size="sm"
-									class="w-full"
-									disabled={breakIsSubmitting}
-								>
-									{isOnBreak ? 'Reprendre dès aujourd’hui' : 'Annuler la pause'}
-								</Button>
-							</form>
-						{/if}
+						<button
+							type="button"
+							onclick={() => (passwordDialogOpen = true)}
+							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
+						>
+							<Lock class="size-4 shrink-0 text-muted-foreground" />
+							<div class="min-w-0 flex-1">
+								<p class="text-sm font-medium">Mot de passe</p>
+								<p class="text-xs tracking-widest text-muted-foreground">••••••••</p>
+							</div>
+							<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
+						</button>
 					</Card.Content>
 				</Card.Root>
-			{/if}
-		</aside>
-
-		<!-- ================= COLONNE DROITE : INFORMATIONS ================= -->
-		<Card.Root class="gap-0 py-0 lg:col-span-2">
-			<Card.Header class="px-4 py-4 sm:px-6">
-				<Card.Title class="text-lg">Informations personnelles</Card.Title>
-				<Card.Description>
-					Ces informations permettent à l'association de vous contacter.
-				</Card.Description>
-			</Card.Header>
-
-			<Separator />
-
-			<Card.Content class="flex flex-1 flex-col p-4 sm:p-6">
-				<form
-					method="POST"
-					action="?/updateProfile"
-					class="flex flex-1 flex-col"
-					use:enhance={() => {
-						profileIsSubmitting = true;
-						return async ({ update }) => {
-							await update({ reset: false });
-							profileIsSubmitting = false;
-						};
-					}}
-				>
-					<div class="grid gap-4">
-						<!-- Prénom / Nom -->
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<InputField
-								id="firstName"
-								label="Prénom"
-								value={data.volunteer.firstName}
-								error={errorFor('updateProfile', 'firstName')}
-								required
-							/>
-							<InputField
-								id="lastName"
-								label="Nom"
-								value={data.volunteer.lastName}
-								error={errorFor('updateProfile', 'lastName')}
-								required
-							/>
-						</div>
-
-						<!-- Naissance / Téléphone / (Rôle) : 3 colonnes seulement si le Rôle est affiché -->
-						<div class="grid grid-cols-1 gap-4 {isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">
-							<DatePicker
-								name="birthDate"
-								label="Date de naissance"
-								value={data.volunteer.birthDate ?? undefined}
-								error={errorFor('updateProfile', 'birthDate')}
-							/>
-							<InputField
-								id="phone"
-								label="Téléphone"
-								type="tel"
-								placeholder="0612345678"
-								value={data.volunteer.phone}
-								error={errorFor('updateProfile', 'phone')}
-								required
-							/>
-							{#if isAdmin}
-								<SelectField
-									id="role"
-									label="Rôle"
-									options={VOLUNTEER_ROLE_OPTIONS}
-									value={data.volunteer.role}
-									class="w-full"
-									wrapperClass="space-y-2"
-								/>
-							{/if}
-						</div>
-
-						<!-- Adresse -->
-						<InputField
-							id="address"
-							label="Adresse"
-							value={data.volunteer.address}
-							error={errorFor('updateProfile', 'address')}
-							required
-						/>
-
-						<!-- Ville / Code postal / Quartier -->
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-							<InputField
-								id="city"
-								label="Ville"
-								value={data.volunteer.city}
-								error={errorFor('updateProfile', 'city')}
-								required
-							/>
-							<InputField
-								id="postalCode"
-								label="Code postal"
-								placeholder="34000"
-								value={data.volunteer.postalCode}
-								error={errorFor('updateProfile', 'postalCode')}
-								required
-							/>
-							<SelectField
-								id="district"
-								label="Quartier"
-								options={districtChoices}
-								value={data.volunteer.district ?? ''}
-								placeholder="Aucun"
-								class="w-full"
-								wrapperClass="space-y-2"
-							/>
-						</div>
-					</div>
-
-					<!-- Bouton : pleine largeur sur téléphone, à droite sur écran plus large -->
-					<div class="mt-auto flex justify-end pt-6">
-						<Button type="submit" class="w-full sm:w-auto" disabled={profileIsSubmitting}>
-							{#if profileIsSubmitting}
-								<LoaderCircle class="animate-spin" />
-								Enregistrement…
-							{:else}
-								<Save />
-								Enregistrer les modifications
-							{/if}
-						</Button>
-					</div>
-				</form>
-			</Card.Content>
-		</Card.Root>
+			</aside>
+		</div>
 	</div>
 </main>
 
