@@ -13,15 +13,25 @@
 	// En-tête d'une demande d'adoption : qui, statut, type, date, bénévole assignée, crayon
 	interface Props {
 		form: FormWithRelations;
-		/** Pour assigner une demande libre (admin, répartitrice) */
+		/** À qui attribuer la demande (page Formulaires) */
 		volunteers?: VolunteerBasic[];
-		canAssign?: boolean;
+		/** Admin, ou la bénévole qui a la demande libre : bouton « Réassigner » */
+		canReassign?: boolean;
+		/** Peut-elle traiter la demande ? Sinon, pas de crayon : elle doit d'abord se l'attribuer */
+		canEdit?: boolean;
 		/** Ouvert depuis la fiche du chat : bouton « Retour » */
 		onClose?: () => void;
 		onEdit: () => void;
 	}
 
-	let { form, volunteers = [], canAssign = false, onClose, onEdit }: Props = $props();
+	let {
+		form,
+		volunteers = [],
+		canReassign = false,
+		canEdit = true,
+		onClose,
+		onEdit
+	}: Props = $props();
 
 	const data = $derived(form.data as AdoptionFormJson);
 	const birthDate = $derived(data.birthDate ? new Date(data.birthDate) : null);
@@ -63,7 +73,7 @@
 					Assigné à: <span class="font-medium">{assignedName}</span>
 				</p>
 			{/if}
-			{#if form.type === 'ADOPTION_FLEXIBLE' && canAssign}
+			{#if form.type === 'ADOPTION_FLEXIBLE' && canReassign && volunteers.length > 0}
 				<AssignVolunteerDialog
 					formId={form.id}
 					currentVolunteerId={form.assignedToId}
@@ -72,10 +82,18 @@
 			{/if}
 		</div>
 
-		<div class="grid justify-items-end gap-2">
-			<Button variant="ghost" size="icon" onclick={onEdit} class="shrink-0">
-				<Pencil class="h-5 w-5" />
-			</Button>
-		</div>
+		{#if canEdit}
+			<div class="grid justify-items-end gap-2">
+				<Button
+					variant="ghost"
+					size="icon"
+					onclick={onEdit}
+					class="shrink-0"
+					aria-label="Modifier la demande"
+				>
+					<Pencil class="h-5 w-5" />
+				</Button>
+			</div>
+		{/if}
 	</section>
 </Card.Header>

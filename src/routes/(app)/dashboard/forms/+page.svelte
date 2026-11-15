@@ -11,8 +11,6 @@
 	import FormRow from '#lib/components/forms/FormRow.svelte';
 	import FormPanel from '#lib/components/forms/FormPanel.svelte';
 	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '#lib/constants/forms.js';
-	import CardAction from '#lib/components/ui/card/card-action.svelte';
-	import AssignDispatcherDialog from '#lib/components/forms/AssignDispatcherDialog.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { resolve } from '$app/paths';
@@ -49,14 +47,13 @@
 	let statusFilter = $state(data.filters.status ?? 'PENDING');
 
 	// ==========================================
-	// Portée : « Mes formulaires » ou « Tous » (admin : tout, répartitrice : les libres)
+	// Portée : « Mes formulaires » ou « Tous » (admin : tout, les autres : les demandes libres à personne)
 	// Le changement passe par l'URL, le serveur recalcule la liste.
 	// Aucun filtre n'est imposé : chacune utilise les filtres pour affiner.
 	// ==========================================
-	const canSwitchScope = $derived(data.canSeeAll);
 	const showAll = $derived(data.scope === 'all');
 	const scopeTitle = $derived(
-		!showAll ? 'Mes formulaires' : data.isAdmin ? 'Tous les formulaires' : 'Tous les flexibles'
+		!showAll ? 'Mes formulaires' : data.isAdmin ? 'Tous les formulaires' : 'Flexibles à attribuer'
 	);
 
 	function setScope(checked: boolean) {
@@ -156,19 +153,13 @@
 				<Card.Root class="flex min-w-0 flex-col lg:col-span-2">
 					<Card.Header class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2">
 						<Card.Title class="flex items-center gap-3 text-xl font-bold sm:text-2xl">
-							{#if canSwitchScope}
-								<Switch id="scope-toggle" checked={showAll} onCheckedChange={setScope} />
-							{/if}{scopeTitle}
+							<Switch
+								id="scope-toggle"
+								checked={showAll}
+								onCheckedChange={setScope}
+								aria-label="Voir toutes les demandes"
+							/>{scopeTitle}
 						</Card.Title>
-						<CardAction>
-							{#if data.isAdmin}
-								<AssignDispatcherDialog
-									volunteers={data.volunteers}
-									currentDispatcherId={data.volunteers.find((v) => v.isFlexibleDispatcher)?.id ??
-										null}
-								/>
-							{/if}
-						</CardAction>
 					</Card.Header>
 
 					<Card.Content>
@@ -250,7 +241,7 @@
 					form={selectedForm}
 					volunteers={data.volunteers}
 					isAdmin={data.isAdmin}
-					canAssign={data.canAssign}
+					currentUserId={data.userId}
 				/>
 			{/snippet}
 		</ListDetailLayout>

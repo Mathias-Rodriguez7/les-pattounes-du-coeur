@@ -14,6 +14,7 @@
 	import AdoptionHomeSummary from '#lib/components/adoptions/panel/AdoptionHomeSummary.svelte';
 	import AdoptionRequestActions from '#lib/components/adoptions/panel/AdoptionRequestActions.svelte';
 	import AdoptionCreateDialog from './AdoptionCreateDialog.svelte';
+	import AssignToMeButton from '../AssignToMeButton.svelte';
 	import CatPicker from '#lib/components/cats/CatPicker.svelte';
 	import type {
 		FormEditData,
@@ -27,15 +28,25 @@
 	import CatProfileSummary from '#lib/components/cats/profile/CatProfileSummary.svelte';
 
 	interface Props {
-		/** blacklist : la raison si l'email est blacklisté (ajoutée par le load) */
-		form: FormWithRelations & { blacklist?: BlacklistInfo | null };
+		/**
+		 * blacklist : la raison si l'email est blacklisté (ajoutée par le load)
+		 * canManage : peut-elle traiter la demande ? (page Formulaires ; absent = oui)
+		 * canReassign / canTake : boutons d'attribution (page Formulaires ; absents = aucun)
+		 */
+		form: FormWithRelations & {
+			blacklist?: BlacklistInfo | null;
+			canManage?: boolean;
+			canReassign?: boolean;
+			canTake?: boolean;
+		};
 		/** Le chat de la demande (demande précise) : form.cat */
 		catData?: FormWithRelations['cat'];
-		/** Pour assigner une demande libre (admin, répartitrice) */
+		/** À qui attribuer une demande libre (page Formulaires) */
 		volunteers?: VolunteerBasic[];
 		/** Les chats proposables pour une demande libre (CatPicker) */
 		cats?: CatPickerItem[];
-		canAssign?: boolean;
+		/** La personne connectée : pour « Me l'attribuer » */
+		currentUserId?: string;
 		/** Seule l'admin peut autoriser une adoption malgré la blacklist */
 		isAdmin?: boolean;
 		/** Présent quand le panneau est ouvert depuis la fiche du chat (bouton « Retour ») */
@@ -47,7 +58,7 @@
 		catData,
 		volunteers = [],
 		cats = [],
-		canAssign = false,
+		currentUserId = '',
 		isAdmin = false,
 		onClose
 	}: Props = $props();
@@ -55,6 +66,14 @@
 	// Blacklist : la bénévole voit la raison ; seule l'admin peut quand même créer l'adoption
 	const blacklist = $derived(form.blacklist ?? null);
 	const isBlockedByBlacklist = $derived(!!blacklist && !isAdmin);
+
+	// Une demande libre d'une autre bénévole : on la consulte, et on se l'attribue pour la traiter
+	const canManage = $derived(form.canManage !== false);
+	const assignedName = $derived(
+		form.assignedTo
+			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
+			: null
+	);
 
 	let isEditing = $state(false);
 	let showCreateDialog = $state(false);
@@ -139,7 +158,14 @@
 				<CatPicker {cats} {form} onSelect={handleCatSelected} onCancel={handleCancelPicker} />
 			</Card.Content>
 		{:else}
-			<AdoptionRequestHeader {form} {volunteers} {canAssign} {onClose} onEdit={startEditing} />
+			<AdoptionRequestHeader
+				{form}
+				{volunteers}
+				canReassign={form.canReassign === true}
+				canEdit={canManage}
+				{onClose}
+				onEdit={startEditing}
+			/>
 
 			<Card.Content class="@container flex flex-col gap-6 text-sm">
 				<Separator />
@@ -222,13 +248,28 @@
 				     Une demande déjà acceptée ou refusée ne se traite plus -->
 				{#if form.status === 'PENDING'}
 					<Separator />
-					<AdoptionRequestActions
-						{form}
-						hasCat={!!adoptionCatId}
-						isBlocked={isBlockedByBlacklist}
-						onCreate={() => (showCreateDialog = true)}
-						onPickCat={() => (showCatPicker = true)}
-					/>
+					{#if canManage}
+						<AdoptionRequestActions
+							{form}
+							hasCat={!!adoptionCatId}
+							isBlocked={isBlockedByBlacklist}
+							onCreate={() => (showCreateDialog = true)}
+							onPickCat={() => (showCatPicker = true)}
+						/>
+					{:else}
+						<!-- Pas (encore) la sienne : elle se l'attribue d'abord -->
+						<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted p-3">
+							<p class="text-sm text-muted-foreground">
+								{assignedName
+									? `Demande suivie par ${assignedName}.`
+									: 'Personne ne suit cette demande.'}
+								{form.canTake ? 'Attribuez-la-vous pour la traiter.' : ''}
+							</p>
+							{#if form.canTake && currentUserId}
+								<AssignToMeButton formId={form.id} userId={currentUserId} />
+							{/if}
+						</div>
+					{/if}
 				{/if}
 			</Card.Content>
 		{/if}

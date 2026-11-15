@@ -10,7 +10,7 @@ import {
 } from '#lib/schemas/formShema/volunteerForm.ts';
 import { updateHostSchema, type UpdateHostInput } from '#lib/schemas/formShema/hostForm.ts';
 import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema/colabForm.ts';
-import { canManageForm } from '#lib/server/permissions/form.ts';
+import { canAssignForm, canManageForm } from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
@@ -244,24 +244,16 @@ export async function assignVolunteer({
 		return { success: false, error: 'Bénévole invalide' };
 	}
 
-	// Admin : toutes les demandes. Répartitrice : seulement les demandes LIBRES
-	const [currentVolunteer, form] = await Promise.all([
-		prisma.volunteer.findUnique({
-			where: { id: locals.user.id },
-			select: { role: true, isFlexibleDispatcher: true }
-		}),
-		prisma.form.findUnique({ where: { id: formId }, select: { type: true } })
-	]);
-
+	const form = await prisma.form.findUnique({
+		where: { id: formId },
+		select: { type: true, assignedToId: true }
+	});
 	if (!form) {
 		return { success: false, error: 'Formulaire introuvable' };
 	}
 
-	const isAdmin = hasAdminRole(currentVolunteer);
-	const isDispatcherOfThisForm =
-		currentVolunteer?.isFlexibleDispatcher === true && form.type === 'ADOPTION_FLEXIBLE';
-
-	if (!isAdmin && !isDispatcherOfThisForm) {
+	// Admin : tout. Demande libre : celle qui l'a la passe ; à personne, chacune la prend pour elle
+	if (!canAssignForm(locals.user, form, volunteerId)) {
 		return { success: false, error: "Vous n'êtes pas autorisée à assigner cette demande" };
 	}
 
@@ -289,49 +281,6 @@ export async function assignVolunteer({
 	});
 
 	return { success: true, form: updatedForm, message: 'Bénévole assigné avec succès' };
-}
-
-export async function setFlexibleDispatcher({
-	request,
-	locals
-}: {
-	request: Request;
-	locals: App.Locals;
-}) {
-	// Seuls les ADMIN peuvent désigner le dispatcher
-	if (!hasAdminRole(locals.user)) {
-		return { success: false, error: 'Action réservée aux administrateurs' };
-	}
-
-	const formData = await request.formData();
-	const volunteerId = formData.get('volunteerId')?.toString();
-
-	if (!volunteerId) {
-		return { success: false, error: 'Bénévole manquant' };
-	}
-
-	const target = await prisma.volunteer.findUnique({
-		where: { id: volunteerId },
-		select: { id: true }
-	});
-
-	if (!target) {
-		return { success: false, error: 'Bénévole introuvable' };
-	}
-
-	// Transaction : on retire le rôle à tous les autres, puis on l'attribue à la cible
-	await prisma.$transaction([
-		prisma.volunteer.updateMany({
-			where: { isFlexibleDispatcher: true, NOT: { id: volunteerId } },
-			data: { isFlexibleDispatcher: false }
-		}),
-		prisma.volunteer.update({
-			where: { id: volunteerId },
-			data: { isFlexibleDispatcher: true }
-		})
-	]);
-
-	return { success: true, message: 'Dispatcher flexible mis à jour' };
 }
 
 // ==========================================

@@ -2,16 +2,11 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { FormType, FormStatus, type Prisma } from '@prisma/client';
-import {
-	updateForm,
-	rejectForm,
-	assignVolunteer,
-	setFlexibleDispatcher
-} from '#lib/server/forms/mutations.ts';
+import { updateForm, rejectForm, assignVolunteer } from '#lib/server/forms/mutations.ts';
 import { createVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { createHost } from '#lib/server/hosts/mutations.ts';
 import { catPickerSelect } from '#lib/types/cat.ts';
-import { myFormsWhere } from '#lib/server/permissions/form.ts';
+import { assignRights, myFormsWhere } from '#lib/server/permissions/form.ts';
 import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
 import { formInclude } from '#lib/types/form.ts';
 import { withBlacklist } from '#lib/server/accountStatus.ts';
@@ -23,20 +18,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		redirect(302, '/');
 	}
 
-	const volunteerId = locals.user.id;
-	const volunteer = await prisma.volunteer.findUnique({
-		where: { id: volunteerId },
-		select: { role: true, isFlexibleDispatcher: true }
-	});
-
-	if (!volunteer) {
-		redirect(302, '/');
-	}
-
-	const isAdmin = hasAdminRole(volunteer);
-	const isFlexibleDispatcher = volunteer.isFlexibleDispatcher;
-	// Vue « Tous » : l'admin voit toutes les demandes, la répartitrice toutes les demandes libres
-	const canSeeAll = isAdmin || isFlexibleDispatcher;
+	const user = locals.user;
+	const volunteerId = user.id;
+	// locals.user est rechargé à chaque requête : inutile de relire le rôle en base
+	const isAdmin = hasAdminRole(user);
 
 	// 🔍 Filtres
 	const typeParam = url.searchParams.get('type');
@@ -53,8 +38,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			? (statusParam as FormStatus)
 			: undefined;
 
-	// 🔀 Mode d'affichage : 'mine' par défaut, 'all' seulement si autorisé
-	const scope: 'mine' | 'all' = scopeParam === 'all' && canSeeAll ? 'all' : 'mine';
+	// 🔀 Mode d'affichage : 'mine' par défaut, 'all' sur demande.
+	// « Tous » = toutes les demandes pour l'admin ; pour les autres, les demandes LIBRES
+	// que personne n'a encore prises (elles se les attribuent)
+	const scope: 'mine' | 'all' = scopeParam === 'all' ? 'all' : 'mine';
 
 	const baseFilters: Prisma.FormWhereInput = {
 		...(typeFilter && { type: typeFilter }),
@@ -64,14 +51,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 🏗️ Condition WHERE selon le mode
 	// - mine : mes demandes (assignées OU de mes chats), pour tout le monde, admin compris
 	// - all + admin : toutes les demandes
-	// - all + répartitrice : toutes les demandes libres
+	// - all + bénévole : les demandes libres à personne
 	let whereCondition: Prisma.FormWhereInput;
 	if (scope === 'mine') {
 		whereCondition = { AND: [baseFilters, myFormsWhere(volunteerId)] };
 	} else if (isAdmin) {
 		whereCondition = baseFilters;
 	} else {
-		whereCondition = { ...baseFilters, type: FormType.ADOPTION_FLEXIBLE };
+		whereCondition = { ...baseFilters, type: FormType.ADOPTION_FLEXIBLE, assignedToId: null };
 	}
 
 	// 📊 Stats
@@ -86,26 +73,36 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 🆕 Le chat et la bénévole assignée arrivent avec la demande, en une seule requête
 	// (avant : une requête de plus par demande pour retrouver son chat)
 	// Chaque demande arrive avec `blacklist` : la raison, si son email est blacklisté
-	const forms = await withBlacklist(
-		await prisma.form.findMany({
+	const [rawForms, myCats] = await Promise.all([
+		prisma.form.findMany({
 			where: whereCondition,
 			include: formInclude,
 			orderBy: { createdAt: 'desc' }
-		})
-	);
+		}),
+		prisma.catVolunteer.findMany({ where: { volunteerId }, select: { catId: true } })
+	]);
 
-	// 📋 Volunteers pour l'assignation : admin, et répartitrice des demandes libres
-	const canAssign = isAdmin || isFlexibleDispatcher;
-	const volunteers = canAssign
-		? await prisma.volunteer.findMany({
-				select: {
-					id: true,
-					isFlexibleDispatcher: true,
-					profil: { select: { firstName: true, lastName: true } }
-				},
-				orderBy: { profil: { firstName: 'asc' } }
-			})
-		: [];
+	// canManage : peut-elle TRAITER la demande (modifier, refuser, adopter) ? Même règle que
+	// canManageForm côté serveur. Dans « Tous », une demande libre d'une autre bénévole se
+	// consulte… et s'attribue d'abord (bouton « Me l'attribuer »)
+	const myCatIds = new Set(myCats.map((c) => c.catId));
+	// canReassign / canTake : quels boutons d'attribution afficher (même règle que le serveur)
+	const forms = (await withBlacklist(rawForms)).map((form) => ({
+		...form,
+		canManage:
+			isAdmin ||
+			form.assignedToId === volunteerId ||
+			(form.catId !== null && myCatIds.has(form.catId)),
+		...assignRights(user, form)
+	}));
+
+	// 📋 Les bénévoles à qui attribuer une demande : seulement celles en activité
+	// (toute bénévole peut attribuer une demande libre : voir canAssignForm)
+	const volunteers = await prisma.volunteer.findMany({
+		where: { OR: [{ actif: 'ACTIVE' }, { actif: null }] },
+		select: { id: true, profil: { select: { firstName: true, lastName: true } } },
+		orderBy: { profil: { firstName: 'asc' } }
+	});
 
 	// 🐱 Les chats qu'on peut proposer pour une demande libre :
 	// adoptables, et seulement ceux dont la personne connectée est en charge (admin compris)
@@ -125,8 +122,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		cats,
 		stats: { totalForms, pendingForms, approvedForms, rejectedForms },
 		isAdmin,
-		canAssign,
-		canSeeAll,
+		userId: volunteerId,
 		scope,
 		filters: {
 			type: typeFilter || null,
@@ -211,17 +207,6 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur assignation bénévole:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
-		}
-	},
-
-	setFlexibleDispatcher: async ({ request, locals }) => {
-		try {
-			const result = await setFlexibleDispatcher({ request, locals });
-			if (!result.success) return fail(400, result);
-			return result;
-		} catch (error) {
-			console.error('Erreur mise à jour dispatcher flexible:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},
