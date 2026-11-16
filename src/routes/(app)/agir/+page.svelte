@@ -5,6 +5,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import FormSOS from '#lib/components/forms/FormSOS.svelte';
 	import FormHost from '#lib/components/forms/FormHost.svelte';
+	import HostIntro from '#lib/components/forms/HostIntro.svelte';
 	import FormVolunteer from '#lib/components/forms/FormVolunteer.svelte';
 	import FormColab from '#lib/components/forms/FormColab.svelte';
 	import CountUp from '#lib/components/CountUp.svelte';
@@ -19,6 +20,25 @@
 
 	// Les formulaires sont longs : la fenêtre défile au lieu de dépasser de l'écran
 	const dialogClass = 'bg-secondary-foreground max-h-[90dvh] overflow-y-auto sm:max-w-125';
+	// Le texte à lire avant le formulaire FA : une fenêtre plus large, plus confortable à lire.
+	// Attention : Dialog.Content a sa propre largeur par taille d'écran (sm: ET lg:, voir
+	// dialog-content.svelte). Il faut redonner les DEUX : un sm: seul est écrasé par son lg:.
+	const readingDialogClass =
+		'bg-secondary-foreground max-h-[90dvh] overflow-y-auto sm:max-w-6xl lg:max-w-6xl transition-[max-width] duration-200';
+
+	// Devenir FA : d'abord le texte à lire, puis le formulaire. À chaque ouverture, on repart du texte
+	let hostOpen = $state(false);
+	let hostIntroRead = $state(false);
+	$effect(() => {
+		if (!hostOpen) hostIntroRead = false;
+	});
+
+	// Le texte est long : en passant au formulaire, on remonte en haut de la fenêtre
+	let hostDialogContent = $state<HTMLElement | null>(null);
+	function startHostForm() {
+		hostIntroRead = true;
+		hostDialogContent?.scrollTo({ top: 0 });
+	}
 </script>
 
 <main in:fade={{ duration: 200 }} class="flex justify-center px-4 py-8">
@@ -115,12 +135,19 @@
 				</Card.Content>
 
 				<Card.Footer class="justify-end">
-					<Dialog.Root>
+					<Dialog.Root bind:open={hostOpen}>
 						<Dialog.Trigger class={buttonVariants({ size: 'lg' })}>
 							Devenir famille d’accueil
 						</Dialog.Trigger>
-						<Dialog.Content class={dialogClass}>
-							<FormHost data={data.hostForm} />
+						<Dialog.Content
+							class={hostIntroRead ? dialogClass : readingDialogClass}
+							bind:ref={hostDialogContent}
+						>
+							{#if hostIntroRead}
+								<FormHost data={data.hostForm} />
+							{:else}
+								<HostIntro onContinue={startHostForm} />
+							{/if}
 						</Dialog.Content>
 					</Dialog.Root>
 				</Card.Footer>
