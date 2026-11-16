@@ -18,21 +18,24 @@
 	const PAGE_SIZE = 10;
 	let currentPage = $state(1);
 
-	// Une ligne par chat : son statut, et la FA chez qui il est placé (s'il l'est)
+	// Une ligne par chat : son statut, et la FA chez qui il est placé (s'il l'est).
+	// Un chat adopté reste suivi par la bénévole, mais il est rangé dans l'historique
 	const catList = $derived(
-		volunteer.cats.map((catVolunteer) => {
-			const placement = catVolunteer.cat.placements?.[0];
-			return {
-				catId: catVolunteer.catId,
-				catName: catVolunteer.cat.name,
-				catStatus: catVolunteer.cat.status,
-				hostFirstName: placement?.host.profil.firstName || null,
-				hostLastName: placement?.host.profil.lastName || null,
-				placementId: placement?.id || null,
-				hostId: placement?.hostId ?? null,
-				hasPlacement: !!placement
-			};
-		})
+		volunteer.cats
+			.filter((catVolunteer) => catVolunteer.cat.status !== 'ADOPTED')
+			.map((catVolunteer) => {
+				const placement = catVolunteer.cat.placements?.[0];
+				return {
+					catId: catVolunteer.catId,
+					catName: catVolunteer.cat.name,
+					catStatus: catVolunteer.cat.status,
+					hostFirstName: placement?.host.profil.firstName || null,
+					hostLastName: placement?.host.profil.lastName || null,
+					placementId: placement?.id || null,
+					hostId: placement?.hostId ?? null,
+					hasPlacement: !!placement
+				};
+			})
 	);
 
 	const paginatedCats = $derived(

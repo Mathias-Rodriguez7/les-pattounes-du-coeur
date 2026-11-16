@@ -6,14 +6,17 @@
 	import { CAT_SECTION_CONFIG, CAT_CARE_TYPES } from '#lib/constants/cat.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
 	import type { CatFull } from '#lib/types/cat.ts';
+	import type { VeterinarianOption } from '#lib/server/veterinarians/queries.ts';
 
 	interface Props {
 		cat: CatFull;
 		/** Admin, ou bénévole associée au chat */
 		canManage?: boolean;
+		/** La liste des vétérinaires, pour un nouveau soin */
+		veterinarians?: VeterinarianOption[];
 	}
 
-	let { cat, canManage = false }: Props = $props();
+	let { cat, canManage = false, veterinarians = [] }: Props = $props();
 
 	const cares = $derived(cat.cares ?? []);
 </script>
@@ -25,7 +28,7 @@
 >
 	{#snippet action()}
 		{#if canManage}
-			<CareCreateDialog catId={cat.id} sicknesses={cat.sicknesses ?? []} />
+			<CareCreateDialog catId={cat.id} sicknesses={cat.sicknesses ?? []} {veterinarians} />
 		{/if}
 	{/snippet}
 
@@ -46,10 +49,13 @@
 								<span class="block text-xs text-muted-foreground">Date</span>
 								<span class="text-xs">{formatDateNum(care.date)}</span>
 							</div>
-							{#if care.veterinary}
+							<!-- Le vétérinaire de la liste, sinon le nom saisi (« Autre… » ou soin plus ancien) -->
+							{#if care.veterinarian || care.veterinary}
 								<div class="min-w-0">
 									<span class="block text-xs text-muted-foreground">Vétérinaire</span>
-									<span class="text-xs wrap-break-word">{care.veterinary}</span>
+									<span class="text-xs wrap-break-word">
+										{care.veterinarian?.name ?? care.veterinary}
+									</span>
 								</div>
 							{/if}
 						</div>

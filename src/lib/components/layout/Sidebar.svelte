@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { anyPath } from '#lib/utils/paths.ts';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -17,6 +18,7 @@
 		Newspaper,
 		ClipboardList,
 		FileQuestionMark,
+		Stethoscope,
 		Ban
 	} from '@lucide/svelte';
 
@@ -94,6 +96,12 @@
 			icon: FileQuestionMark,
 			href: 'dashboard/information',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
+		},
+		{
+			label: 'Vétérinaires',
+			icon: Stethoscope,
+			href: 'dashboard/veterinaires',
+			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		}
 	];
 
@@ -110,7 +118,7 @@
 	// On compare donc avec resolve(href), qui donne la vraie URL ('/dashboard/chat').
 	function isActive(href: Path): boolean {
 		const path = page.url.pathname;
-		const target = resolve(href);
+		const target = resolve(anyPath(href));
 		return href === 'dashboard'
 			? path === target
 			: path === target || path.startsWith(`${target}/`);
@@ -169,7 +177,7 @@
 			{@const active = isActive(item.href)}
 			{@const badge = badges[item.href] ?? 0}
 			<a
-				href={resolve(item.href)}
+				href={resolve(anyPath(item.href))}
 				onclick={() => onClose?.()}
 				aria-current={active ? 'page' : undefined}
 				class="group relative flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150

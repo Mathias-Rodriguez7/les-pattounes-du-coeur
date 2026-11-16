@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { District } from '@prisma/client';
 import { emailField } from '#lib/schemas/fields.ts';
+import {
+	ADOPTION_TRIAL_DEFAULT_MONTHS,
+	ADOPTION_TRIAL_MAX_MONTHS,
+	ADOPTION_TRIAL_MIN_MONTHS
+} from '#lib/constants/adoption.ts';
 
 // ✅ Convertir les enums Prisma en arrays pour z.enum()
 const districtEnum = z
@@ -27,6 +32,13 @@ export const createAdoptionSchema = z.object({
 
 	// Adoption
 	catId: z.uuid('ID de chat invalide'), // obligatoire pour créer une adoption
+	// La durée de la période d'essai, choisie par la bénévole
+	trialMonths: z.coerce
+		.number()
+		.int()
+		.min(ADOPTION_TRIAL_MIN_MONTHS, `Période d'essai : ${ADOPTION_TRIAL_MIN_MONTHS} mois minimum`)
+		.max(ADOPTION_TRIAL_MAX_MONTHS, `Période d'essai : ${ADOPTION_TRIAL_MAX_MONTHS} mois maximum`)
+		.default(ADOPTION_TRIAL_DEFAULT_MONTHS),
 	// Facultatif : une adoption peut se faire sans demande (adoptant rencontré hors du site).
 	// Un champ caché vide arrive comme '' : on le traite comme « pas de demande »
 	formId: z
@@ -47,10 +59,12 @@ export const updateAdoptionSchema = createAdoptionSchema.partial().extend({
 	adoptionId: z.uuid('ID invalide')
 });
 
-// Finaliser : la case « Stérilisation vérifiée » est obligatoire
+// Finaliser : les cases « Stérilisation vérifiée » et « Propriétaire changé sur l'I-CAD »
+// sont obligatoires
 export const finalizeAdoptionSchema = z.object({
 	adoptionId: z.uuid('ID invalide'),
-	sterilizationChecked: z.literal('true', 'Confirmez que la stérilisation a été vérifiée')
+	sterilizationChecked: z.literal('true', 'Confirmez que la stérilisation a été vérifiée'),
+	icadChecked: z.literal('true', "Confirmez que le propriétaire a été changé sur l'I-CAD")
 });
 
 // Annuler une adoption (retour du chat) : le chat repasse disponible OU en socialisation.

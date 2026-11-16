@@ -29,11 +29,16 @@
 
 	let open = $state(false);
 	let sterilizationChecked = $state(false);
+	let icadChecked = $state(false);
 	let submitting = $state(false);
+	const allChecked = $derived(sterilizationChecked && icadChecked);
 
-	// À chaque fermeture, la case est décochée : il faut la recocher en connaissance de cause
+	// À chaque fermeture, les cases sont décochées : il faut les recocher en connaissance de cause
 	$effect(() => {
-		if (!open) sterilizationChecked = false;
+		if (!open) {
+			sterilizationChecked = false;
+			icadChecked = false;
+		}
 	});
 
 	const plural = (count: number, word: string) => `${count} ${word}${count > 1 ? 's' : ''}`;
@@ -51,6 +56,11 @@
 		// Le serveur l'exige aussi (z.literal('true')) : ici, c'est seulement pour un message immédiat
 		if (!sterilizationChecked) {
 			toast.error('Confirmez que la stérilisation a été vérifiée');
+			cancel();
+			return;
+		}
+		if (!icadChecked) {
+			toast.error("Confirmez que le propriétaire a été changé sur l'I-CAD");
 			cancel();
 			return;
 		}
@@ -108,6 +118,16 @@
 				disabled={submitting}
 			/>
 
+			<CheckboxField
+				id="finalize-icad"
+				name="icadChecked"
+				label="Propriétaire changé sur l'I-CAD"
+				description="L'adoptant est maintenant enregistré comme propriétaire du chat. La date sera notée sur l'adoption."
+				checked={icadChecked}
+				onChange={(value) => (icadChecked = value)}
+				disabled={submitting}
+			/>
+
 			{#if removedTotal > 0}
 				<div
 					class="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
@@ -126,7 +146,7 @@
 					>Annuler</Button
 				>
 
-				<Button type="submit" disabled={!sterilizationChecked || submitting}>
+				<Button type="submit" disabled={!allChecked || submitting}>
 					{#if submitting}
 						<LoaderCircle class="size-4 animate-spin" />
 					{/if}

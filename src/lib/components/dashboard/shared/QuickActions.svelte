@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { anyPath } from '#lib/utils/paths.ts';
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
@@ -25,7 +26,7 @@
 	<SectionHeader title="Actions rapides" />
 	<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 		{#each actions as action (action.label)}
-			<a href={resolve(action.href as Path)} class="group">
+			<a href={resolve(anyPath(action.href as Path))} class="group">
 				<div
 					class="rounded-xl border border-border bg-card px-4 py-6 transition-all hover:border-primary/50 hover:shadow-md sm:px-6 sm:py-8"
 				>

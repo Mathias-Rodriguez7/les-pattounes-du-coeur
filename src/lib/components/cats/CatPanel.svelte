@@ -15,6 +15,7 @@
 	import CatMediaGallery from './CatMediaGallery.svelte';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
+	import type { VeterinarianOption } from '#lib/server/veterinarians/queries.ts';
 	import CatSicknesses from './panel/CatSicknesses.svelte';
 	import CatVolunteers from './panel/CatVolunteers.svelte';
 	import CatPanelHeader from './panel/CatPanelHeader.svelte';
@@ -31,10 +32,12 @@
 		cat: CatFull | null;
 		hosts?: HostFull[] | null;
 		volunteers?: VolunteerBasic[] | null;
+		/** La liste des vétérinaires, pour un nouveau soin */
+		veterinarians?: VeterinarianOption[];
 		isAdmin?: boolean;
 	}
 
-	const { cat, hosts = [], volunteers = [], isAdmin = false }: Props = $props();
+	const { cat, hosts = [], volunteers = [], veterinarians = [], isAdmin = false }: Props = $props();
 
 	let isEditing = $state(false);
 	let editingImage = $state(false);
@@ -266,7 +269,7 @@
 					<!-- 6. SOINS VÉTÉRINAIRES                                         -->
 					<!-- ============================================================ -->
 					<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-					<CatCares {cat} canManage={canManageCat} />
+					<CatCares {cat} canManage={canManageCat} {veterinarians} />
 
 					<Separator />
 

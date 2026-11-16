@@ -8,6 +8,7 @@
 	import VolunteerPanelHeader from './panel/VolunteerPanelHeader.svelte';
 	import VolunteerIdentity from './panel/VolunteerIdentity.svelte';
 	import VolunteerCats from './panel/VolunteerCats.svelte';
+	import VolunteerCatHistory from './panel/VolunteerCatHistory.svelte';
 	import VolunteerAssignedForms from './panel/VolunteerAssignedForms.svelte';
 
 	const {
@@ -61,6 +62,9 @@
 					</div>
 					<VolunteerAssignedForms {volunteer} />
 				</div>
+
+				<!-- Les chats adoptés et ceux qu'elle ne suit plus -->
+				<VolunteerCatHistory {volunteer} />
 			</Card.Content>
 		{:else}
 			<Card.Content class="grid grid-cols-1 gap-6">

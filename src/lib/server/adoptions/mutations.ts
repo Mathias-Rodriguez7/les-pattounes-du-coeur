@@ -5,7 +5,7 @@ import { isEmailBlacklisted } from '../accountStatus';
 import { addMonths, formatDateNum, todayDateOnly } from '#lib/utils/date.ts';
 import type { MediaData } from '#lib/server/media/mutations.ts';
 import { deleteFiles } from '#lib/server/storage.ts';
-import { ADOPTABLE_STATUSES, ADOPTION_TRIAL_MONTHS } from '#lib/constants/adoption.ts';
+import { ADOPTABLE_STATUSES } from '#lib/constants/adoption.ts';
 
 /** L'adoptant est blacklisté et personne n'a autorisé l'adoption : l'action affiche la raison */
 export class BlacklistedAdopterError extends Error {
@@ -76,12 +76,13 @@ export async function createAdoption(
 			}
 		});
 
-		// 4. Créer l'adoption : elle commence TOUJOURS par une période d'essai
+		// 4. Créer l'adoption : elle commence TOUJOURS par une période d'essai,
+		//    dont la bénévole a choisi la durée
 		const adoption = await tx.adoption.create({
 			data: {
 				catId: input.catId,
 				profilId: profil.id,
-				trialEndsAt: addMonths(new Date(), ADOPTION_TRIAL_MONTHS)
+				trialEndsAt: addMonths(new Date(), input.trialMonths)
 			}
 		});
 
@@ -167,6 +168,7 @@ export async function createAdoption(
  * Fin de la période d'essai : l'adoption devient définitive.
  * - uniquement depuis TRIAL, et pas avant trialEndsAt ;
  * - la bénévole a vérifié la stérilisation : la fiche du chat est mise à jour si besoin ;
+ * - elle a changé le propriétaire sur l'I-CAD : la date est enregistrée sur l'adoption ;
  * - ménage de la galerie : on garde UNE photo (la principale, sinon la plus ancienne),
  *   on supprime les autres photos et les vidéos. Les PDF (contrat, documents, soins) restent.
  */
@@ -197,7 +199,7 @@ export async function finalizeAdoption(adoptionId: string) {
 		// 1. L'adoption devient définitive
 		await tx.adoption.update({
 			where: { id: adoptionId },
-			data: { status: 'FINAL', finalizedAt: today }
+			data: { status: 'FINAL', finalizedAt: today, icadTransferredAt: today }
 		});
 
 		// 2. Stérilisation vérifiée : la fiche du chat le reflète

@@ -22,7 +22,11 @@
 	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import { Ban } from '@lucide/svelte';
 	import { untrack } from 'svelte';
-	import { formatDateNum } from '#lib/utils/date.ts';
+	import { addMonths, formatDateNum } from '#lib/utils/date.ts';
+	import {
+		ADOPTION_TRIAL_DEFAULT_MONTHS,
+		ADOPTION_TRIAL_OPTIONS
+	} from '#lib/constants/adoption.ts';
 
 	/** Une demande en attente qu'on peut lier à l'adoption (depuis la fiche du chat) */
 	type LinkableRequest = {
@@ -99,6 +103,10 @@
 	// ✅ Profil de l'adoptant : un seul objet (le même type que les autres formulaires « personne »)
 	let person = $state<PersonForm>(emptyPersonForm());
 
+	// ✅ La période d'essai : 1 mois par défaut, la bénévole choisit
+	let trialMonths = $state(String(ADOPTION_TRIAL_DEFAULT_MONTHS));
+	const trialEnd = $derived(formatDateNum(addMonths(new Date(), Number(trialMonths))));
+
 	// ✅ Le contrat (obligatoire)
 	let files = $state<File[]>([]);
 	let progress = $state<Record<string, number>>({});
@@ -110,6 +118,7 @@
 		if (!open) return;
 		untrack(() => {
 			linkedFormId = formId ?? '';
+			trialMonths = String(ADOPTION_TRIAL_DEFAULT_MONTHS);
 			files = [];
 			progress = {};
 			serverBlacklist = null;
@@ -130,7 +139,8 @@
 			...toPersonInput(person),
 			// Avant, ces deux-là manquaient : la validation échouait toujours
 			formId: linkedFormId || undefined,
-			catId
+			catId,
+			trialMonths
 		});
 
 		if (!result.success) {
@@ -226,8 +236,8 @@
 		<Dialog.Header>
 			<Dialog.Title>Valider l'adoption</Dialog.Title>
 			<Dialog.Description>
-				Vérifiez les coordonnées de l'adoptant, puis joignez le contrat signé. L'adoption commencera
-				par une période d'essai de 6 mois.
+				Vérifiez les coordonnées de l'adoptant, choisissez la durée de la période d'essai, puis
+				joignez le contrat signé.
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -297,6 +307,19 @@
 					{/if}
 				</div>
 			{/if}
+
+			<!-- ⏳ La période d'essai (1 mois minimum) -->
+			<div class="grid gap-1 sm:max-w-xs">
+				<SelectField
+					id="adoption-trial-months"
+					name="trialMonths"
+					label="Période d'essai"
+					options={ADOPTION_TRIAL_OPTIONS}
+					bind:value={trialMonths}
+					disabled={isSubmitting}
+				/>
+				<p class="text-xs text-muted-foreground">Jusqu'au {trialEnd}</p>
+			</div>
 
 			<!-- 📄 Le contrat signé (obligatoire) -->
 			<MediaUpload

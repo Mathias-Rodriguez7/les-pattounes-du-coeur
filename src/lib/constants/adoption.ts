@@ -2,8 +2,19 @@
 import type { AdoptionTone } from '#lib/utils/adoption.ts';
 import type { AdoptionStatus, CatStatus } from '@prisma/client';
 
-/** Durée de la période d'essai, en mois (fixée par l'association) */
-export const ADOPTION_TRIAL_MONTHS = 6;
+/** Durée de la période d'essai, en mois : la bénévole la choisit (1 mois minimum) */
+export const ADOPTION_TRIAL_MIN_MONTHS = 1;
+export const ADOPTION_TRIAL_MAX_MONTHS = 6;
+export const ADOPTION_TRIAL_DEFAULT_MONTHS = 1;
+
+/** Les choix de la liste « Période d'essai » : 1 mois, 2 mois… */
+export const ADOPTION_TRIAL_OPTIONS = Array.from(
+	{ length: ADOPTION_TRIAL_MAX_MONTHS - ADOPTION_TRIAL_MIN_MONTHS + 1 },
+	(_, i) => {
+		const months = ADOPTION_TRIAL_MIN_MONTHS + i;
+		return { value: String(months), label: `${months} mois` };
+	}
+);
 
 export const ADOPTION_STATUS = {
 	TRIAL: { label: "Période d'essai", color: 'bg-amber-100 text-amber-800' },

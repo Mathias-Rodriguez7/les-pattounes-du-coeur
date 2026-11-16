@@ -128,7 +128,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 						}
 					}
 				},
-				assignedForms: true
+				assignedForms: true,
+				// Les chats qu'elle ne suit plus (historique), du plus récent au plus ancien
+				catHistory: {
+					include: { cat: { select: { id: true, name: true, status: true } } },
+					orderBy: { endedAt: 'desc' }
+				}
 			},
 			orderBy: {
 				createdAt: 'desc'

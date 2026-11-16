@@ -15,6 +15,9 @@ export const createCareSchema = z.object({
 	reason: z.string().trim().min(1, 'Le motif est obligatoire').max(2000, 'Max 2 000 caractères'),
 
 	// Facultatifs : '' → null
+	// Le vétérinaire de la liste (son id)…
+	veterinarianId: z.preprocess(emptyToNull, z.uuid('Vétérinaire invalide').nullish()),
+	// …ou, pour « Autre… », son nom saisi à la main
 	veterinary: z.preprocess(emptyToNull, z.string().trim().max(255, 'Max 255 caractères').nullish()),
 	description: z.preprocess(
 		emptyToNull,

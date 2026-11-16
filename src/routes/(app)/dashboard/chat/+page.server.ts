@@ -15,6 +15,7 @@ import { canManageCat, canManagePlacement } from '#lib/server/permissions/cat.ts
 import { catFullArgs } from '#lib/types/cat.ts';
 import { hostFullArgs } from '#lib/types/host.ts';
 import { createCare, deleteCare } from '#lib/server/cares/mutations.ts';
+import { activeVeterinarianOptions } from '#lib/server/veterinarians/queries.ts';
 import {
 	addCatMedia,
 	setPrimaryCatMedia,
@@ -115,6 +116,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			},
 			hosts,
 			volunteers,
+			// La liste « Vétérinaire » d'un nouveau soin
+			veterinarians: await activeVeterinarianOptions(),
 			isAdmin
 		};
 	} catch (error) {

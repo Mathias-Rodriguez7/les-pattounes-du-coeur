@@ -132,11 +132,18 @@ export async function deleteCatVolunteer({
 			return { success: false, error: 'Association non trouvée', errors: {} };
 		}
 
-		await prisma.catVolunteer.delete({
-			where: {
-				catId_volunteerId: { catId, volunteerId }
-			}
-		});
+		// Le lien part dans l'historique de la bénévole (début = date du lien), puis il est retiré.
+		// Une transaction : jamais de lien retiré sans trace, ni de trace sans retrait
+		await prisma.$transaction([
+			prisma.catVolunteerHistory.create({
+				data: { catId, volunteerId, startedAt: existing.createdAt }
+			}),
+			prisma.catVolunteer.delete({
+				where: {
+					catId_volunteerId: { catId, volunteerId }
+				}
+			})
+		]);
 
 		return {
 			success: true,

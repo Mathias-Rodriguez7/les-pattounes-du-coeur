@@ -305,6 +305,7 @@
 					cat={selectedCat}
 					hosts={data.hosts}
 					volunteers={data.volunteers}
+					veterinarians={data.veterinarians}
 					isAdmin={data.isAdmin}
 				/>
 			{/snippet}

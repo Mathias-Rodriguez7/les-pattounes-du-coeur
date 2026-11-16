@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { anyPath } from '#lib/utils/paths.ts';
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
@@ -46,7 +47,7 @@
 					<div class="mt-4 flex flex-col gap-3">
 						{#each group.tasks as task (task.label)}
 							<a
-								href={resolve(task.href as Path)}
+								href={resolve(anyPath(task.href as Path))}
 								class="flex flex-col gap-2 rounded-lg border border-transparent px-2 py-2 transition-all hover:border-primary/50 hover:shadow-md"
 							>
 								<div class="flex items-center justify-between gap-2">

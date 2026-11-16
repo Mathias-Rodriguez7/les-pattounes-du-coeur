@@ -64,7 +64,8 @@ export async function createCare({
 		};
 	}
 
-	const { catId, type, date, reason, veterinary, description, sicknessId } = parsed.data;
+	const { catId, type, date, reason, veterinary, veterinarianId, description, sicknessId } =
+		parsed.data;
 
 	// 3. Droits : admin, ou bénévole associée au chat
 	if (!(await canManageCat(locals.user, catId))) {
@@ -86,6 +87,20 @@ export async function createCare({
 				success: false,
 				error: 'Maladie invalide pour ce chat',
 				errors: { sicknessId: ['Maladie invalide'] }
+			};
+		}
+	}
+
+	// 5 bis. Le vétérinaire, s'il est choisi dans la liste, doit y être encore proposé
+	if (veterinarianId) {
+		const isListed = await prisma.veterinarian.count({
+			where: { id: veterinarianId, isActive: true }
+		});
+		if (!isListed) {
+			return {
+				success: false,
+				error: "Ce vétérinaire n'est plus dans la liste",
+				errors: { veterinarianId: ['Vétérinaire invalide'] }
 			};
 		}
 	}
@@ -125,7 +140,10 @@ export async function createCare({
 					// "2026-11-06" est lu comme minuit UTC : la bonne date en base
 					date: new Date(date),
 					reason,
-					veterinary: veterinary ?? null,
+					// Un vétérinaire de la liste, OU un nom saisi (« Autre… ») : jamais les deux
+					...(veterinarianId
+						? { veterinarian: { connect: { id: veterinarianId } } }
+						: { veterinary: veterinary ?? null }),
 					description: description ?? null,
 					...(sicknessId && { sickness: { connect: { id: sicknessId } } }),
 					documents: {

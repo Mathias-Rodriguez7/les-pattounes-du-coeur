@@ -51,7 +51,7 @@
 	<div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 pb-6">
 		<!-- L'avatar chevauche le bandeau -->
 		<div
-			class="-mt-12 flex size-24 shrink-0 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-foreground ring-4 ring-card sm:-mt-14 sm:size-28"
+			class="z-10 -mt-12 flex size-24 shrink-0 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-foreground ring-4 ring-card sm:-mt-14 sm:size-28"
 		>
 			{initials}
 		</div>

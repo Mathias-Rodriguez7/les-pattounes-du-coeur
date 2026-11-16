@@ -994,6 +994,12 @@ async function main() {
 		(v) => v.actif === 'ACTIVE' && !blacklistedIds.has(v.profilId)
 	);
 
+	// Les vétérinaires de la liste : ils viennent de la migration, le seed ne les recrée pas
+	const seedVets = await prisma.veterinarian.findMany({
+		where: { isActive: true },
+		select: { id: true }
+	});
+
 	// ---------------------
 	// 🏠 FAMILLES D'ACCUEIL (80)
 	// ---------------------
@@ -1475,7 +1481,11 @@ async function main() {
 					date: care.date,
 					reason: care.reason,
 					description: care.description,
-					veterinary: pick(VETERINARIES),
+					// Un vétérinaire de la liste (créée par la migration) le plus souvent,
+					// sinon un nom saisi à la main (« Autre… »)
+					...(seedVets.length > 0 && randomBool(0.8)
+						? { veterinarianId: pick(seedVets).id }
+						: { veterinary: pick(VETERINARIES) }),
 					sicknessId: care.sickness === undefined ? null : sicknessIds[care.sickness],
 					documents: { create: media.map((m) => ({ media: { create: m } })) }
 				}
@@ -1488,6 +1498,20 @@ async function main() {
 			await prisma.catVolunteer.create({ data: { catId: cat.id, volunteerId: v.id } });
 		}
 		const referentId = followers[0].id;
+
+		// Une bénévole qui a suivi ce chat avant (historique), pour environ un chat sur quatre
+		const formerVolunteer = pick(activeVolunteers);
+		if (randomBool(0.25) && !followers.some((f) => f.id === formerVolunteer.id)) {
+			const startedAt = daysAgo(int(120, 400));
+			await prisma.catVolunteerHistory.create({
+				data: {
+					catId: cat.id,
+					volunteerId: formerVolunteer.id,
+					startedAt,
+					endedAt: addDays(startedAt, int(30, 100))
+				}
+			});
+		}
 
 		// ===== 9. Familles d'accueil : des séjours qui se suivent, sans trou ni chevauchement =====
 		const isKitten = ageMonths < 6;

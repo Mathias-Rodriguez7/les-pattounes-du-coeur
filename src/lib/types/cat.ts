@@ -69,6 +69,7 @@ export const catFullArgs = {
 			orderBy: { date: 'desc' },
 			include: {
 				sickness: { select: { id: true, name: true } },
+				veterinarian: { select: { id: true, name: true } },
 				documents: {
 					orderBy: { createdAt: 'asc' },
 					include: { media: { select: { id: true, originalName: true, sizeBytes: true } } }

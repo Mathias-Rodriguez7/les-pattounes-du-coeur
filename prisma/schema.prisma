@@ -49,6 +49,7 @@ model Volunteer {
   updatedAt            DateTime @default(now()) @updatedAt @map("updatedAt")
 
   cats                 CatVolunteer[]
+  catHistory           CatVolunteerHistory[] // les chats qu'elle a suivis (liens terminés)
   sessions             Session[]
   assignedForms        Form[] @relation("assignedForms")
   createdInvitations   Invitation[] @relation("createdInvitations")
@@ -143,6 +144,7 @@ model Cat {
   media               MediaCat[]
   documents           CatDocument[] // 🆕 abandon, contrats, retours…
   volunteers          CatVolunteer[]
+  volunteerHistory    CatVolunteerHistory[] // les bénévoles qui l'ont suivi (liens terminés)
   placements          Placement[]
   cares               Care[]
   news                NewsCat[]
@@ -188,6 +190,11 @@ model Care {
   sicknessId  String? @db.Uuid @map("sickness_id")
   sickness    Sickness? @relation(fields: [sicknessId], references: [id], onDelete: SetNull)
 
+  // Le vétérinaire de la liste. Absent : « Autre », le nom est alors dans `veterinary`
+  // (et les soins saisis avant la liste gardent leur texte)
+  veterinarianId String? @db.Uuid @map("veterinarian_id")
+  veterinarian   Veterinarian? @relation(fields: [veterinarianId], references: [id], onDelete: SetNull)
+
   createdAt   DateTime @default(now()) @map("createdAt")
   updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
 
@@ -195,6 +202,35 @@ model Care {
 
   @@index([catId])
   @@index([sicknessId])
+  @@index([veterinarianId])
+}
+
+/// Les vétérinaires de l'association : partenaires, urgences, spécialistes (liste gérée par l'admin)
+model Veterinarian {
+  id        String @id @default(uuid()) @db.Uuid
+  category  VeterinarianCategory @default(PARTNER)
+  name      String @db.VarChar(255) // la clinique (ou le cabinet)
+  doctors   String? @db.VarChar(255) // « Dr MENARD », « Dr GILLES et Dr COIGNET »
+  specialty String? @db.VarChar(255) // « dermatologie », « ophtalmologie »…
+  area      String? @db.VarChar(100) // le secteur : « Montpellier / Port Marianne »
+  address   String? @db.VarChar(255)
+  phone     String? @db.VarChar(30)
+  website   String? @db.VarChar(255)
+  hours     String? @db.Text
+  notes     String? @db.Text
+  // Retiré de la liste : il n'est plus proposé, mais les soins passés gardent son nom
+  isActive  Boolean @default(true) @map("is_active")
+
+  cares     Care[]
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
+}
+
+enum VeterinarianCategory {
+  PARTNER    // toutes prises en charge
+  EMERGENCY  // urgences (nuit, week-end)
+  SPECIALIST // uniquement sur orientation d'un autre vétérinaire
 }
 
 //////////////////////////
@@ -345,6 +381,21 @@ model CatVolunteer {
   @@id([catId, volunteerId])
 }
 
+/// Un lien bénévole ↔ chat TERMINÉ (la bénévole a été retirée du chat) : son historique.
+/// Les liens en cours restent dans CatVolunteer : rien ne change pour le reste de l'appli.
+model CatVolunteerHistory {
+  id          String @id @default(uuid()) @db.Uuid
+  catId       String @db.Uuid @map("cat_id")
+  cat         Cat @relation(fields: [catId], references: [id], onDelete: Cascade)
+  volunteerId String @db.Uuid @map("volunteer_id")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  startedAt   DateTime @map("started_at") // la date du lien d'origine (CatVolunteer.createdAt)
+  endedAt     DateTime @default(now()) @map("ended_at")
+
+  @@index([volunteerId])
+  @@index([catId])
+}
+
 model Placement {
   id        String @id @default(uuid()) @db.Uuid
   catId     String @db.Uuid @map("cat_id")
@@ -372,6 +423,7 @@ model Adoption {
   finalizedAt DateTime?      @map("finalized_at") @db.Date
   endDate     DateTime?      @map("end_date") @db.Date // date d'annulation / de retour
   cancelReason String?     @map("cancel_reason") @db.Text // pourquoi l'adoption a été annulée (facultatif)
+  icadTransferredAt DateTime? @map("icad_transferred_at") @db.Date // propriétaire changé sur l'I-CAD (à la finalisation)
 
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")

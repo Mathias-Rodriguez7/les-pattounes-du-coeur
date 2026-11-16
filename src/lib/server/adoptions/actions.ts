@@ -135,7 +135,7 @@ export async function createAdoptionAction({ request, locals }: Args) {
 			return {
 				success: true,
 				adoptionId: adoption.id,
-				message: `Adoption créée (période d'essai de 6 mois).${rejectedMessage}`
+				message: `Adoption créée (période d'essai de ${parsed.data.trialMonths} mois).${rejectedMessage}`
 			};
 		} catch (err) {
 			// Blacklist : on renvoie la raison, pour que le dialogue l'affiche

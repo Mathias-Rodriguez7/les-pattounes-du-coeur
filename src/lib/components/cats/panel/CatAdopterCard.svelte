@@ -7,6 +7,8 @@
 	import AdoptionFinalizeDialog from '#lib/components/adoptions/AdoptionFinalizeDialog.svelte';
 	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
+	import { formatDateNum } from '#lib/utils/date.ts';
+	import { BadgeCheck } from '@lucide/svelte';
 	import type { CatAdoption, CatFull } from '#lib/types/cat.ts';
 
 	// Carte « Adoptant » de l'en-tête : qui a adopté le chat, et les actions sur l'adoption
@@ -125,6 +127,15 @@
 				<div class="flex min-w-0 items-center gap-2">
 					<Icon name="map" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 					<span>{adopterAddress}</span>
+				</div>
+			{/if}
+
+			<!-- I-CAD : le changement de propriétaire, noté à la finalisation -->
+			{#if adoption.icadTransferredAt}
+				<div class="flex min-w-0 items-center gap-2 text-muted-foreground">
+					<BadgeCheck class="size-4 shrink-0 text-green-600" />
+					<span>Propriétaire changé sur l'I-CAD le {formatDateNum(adoption.icadTransferredAt)}</span
+					>
 				</div>
 			{/if}
 		</div>

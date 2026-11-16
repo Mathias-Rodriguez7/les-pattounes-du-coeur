@@ -97,12 +97,22 @@ export type CatVolunteerWithRelations = {
 	};
 };
 
+export type CatVolunteerHistoryItem = {
+	id: string;
+	catId: string;
+	startedAt: Date;
+	endedAt: Date;
+	cat: { id: string; name: string | null; status: string };
+};
+
 export type VolunteerWithRelations = Omit<Volunteer, 'actif' | VolunteerSecretField> & {
 	actif: ColabActivity | null;
 	/** host : la bénévole est aussi famille d'accueil (chargé par la page Bénévoles)
 	 *  blacklists : sa blacklist active, 0 ou 1 ligne (chargé par la page Bénévoles) */
 	profil: Profil & { host?: Host | null; blacklists?: ActiveBlacklist[] };
 	cats: CatVolunteerWithRelations[];
+	/** Les liens terminés (la bénévole a été retirée du chat) */
+	catHistory?: CatVolunteerHistoryItem[];
 	assignedForms: Form[];
 	breakStart?: Date | null;
 	breakEnd?: Date | null;
