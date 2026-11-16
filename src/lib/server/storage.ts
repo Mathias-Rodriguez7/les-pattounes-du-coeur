@@ -187,6 +187,23 @@ export function getPublicUrl(storageKey: string): string {
 	return `${base.replace(/\/$/, '')}/${storageKey}`;
 }
 
+/**
+ * Le contenu d'un fichier PRIVÉ, en flux : pour le servir nous-mêmes (même origine que le site),
+ * quand une URL S3 externe ne convient pas (pdf.js doit pouvoir lire le fichier).
+ * À n'appeler qu'après avoir vérifié les droits.
+ */
+export async function readPrivateFile(storageKey: string) {
+	const result = await getStorage().client.send(
+		new GetObjectCommand({ Bucket: getStorage().buckets.private, Key: storageKey })
+	);
+	if (!result.Body) throw new Error(`[storage] Fichier vide : ${storageKey}`);
+	return {
+		body: result.Body.transformToWebStream(),
+		contentType: result.ContentType ?? 'application/octet-stream',
+		size: result.ContentLength
+	};
+}
+
 const DOWNLOAD_URL_TTL = 5 * 60; // 5 minutes
 
 /** URL temporaire pour lire un fichier PRIVÉ. À n'appeler qu'après avoir vérifié les droits. */

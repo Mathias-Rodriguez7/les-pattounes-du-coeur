@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { updateVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { ownBreakSchema } from '#lib/schemas/volunteer.ts';
+import { newPasswordField } from '#lib/schemas/password.ts';
 import { cancelOwnBreak, setOwnBreak } from '#lib/server/volunteers/breaks.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -71,12 +72,8 @@ const updateEmailSchema = z.object({
 const updatePasswordSchema = z
 	.object({
 		currentPassword: z.string().min(1, 'Le mot de passe actuel est obligatoire'),
-		newPassword: z
-			.string()
-			.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-			.regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
-			.regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
-			.regex(/[!@#$%^&*]/, 'Le mot de passe doit contenir au moins un caractère spécial'),
+		// Les règles sont partagées avec l'inscription bénévole (schemas/password.ts)
+		newPassword: newPasswordField,
 		confirmPassword: z.string()
 	})
 	.refine((data) => data.newPassword === data.confirmPassword, {

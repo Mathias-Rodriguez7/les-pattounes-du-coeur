@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { verifyPassword } from '#lib/server/hashing.ts';
 import prisma from '#lib/server/prisma.ts';
 import { activeBlacklists, isAccountDisabled } from '#lib/server/accountStatus.ts';
+import { startSession } from '#lib/server/sessions.ts';
 
 export const actions = {
 	default: async ({ request, cookies }) => {
@@ -43,24 +44,7 @@ export const actions = {
 			return fail(403, { error: "Votre compte est désactivé. Contactez l'association." });
 		}
 
-		// session simple (tu adapteras avec ton model Session)
-		const sessionToken = crypto.randomUUID();
-		const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
-
-		await prisma.session.create({
-			data: {
-				token: sessionToken,
-				volunteerId: volunteer.id,
-				expiresAt
-			}
-		});
-
-		cookies.set('session', sessionToken, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'strict',
-			expires: expiresAt
-		});
+		await startSession(cookies, volunteer.id);
 
 		throw redirect(303, '/dashboard');
 	}

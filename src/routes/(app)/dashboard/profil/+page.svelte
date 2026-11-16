@@ -6,6 +6,7 @@
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import DatePicker from '#lib/components/fields/DatePicker.svelte';
 	import PasswordField from '#lib/components/fields/PasswordField.svelte';
+	import { PASSWORD_RULES } from '#lib/schemas/password.ts';
 	import ProfileHeader from '#lib/components/profile/ProfileHeader.svelte';
 	import ProfileBreakCard from '#lib/components/profile/ProfileBreakCard.svelte';
 	import { toast } from 'svelte-sonner';
@@ -86,13 +87,10 @@
 	let passwordConfirm = $state('');
 	let passwordIsSubmitting = $state(false);
 
-	// Mêmes règles que updatePasswordSchema côté serveur
-	const passwordRules = $derived([
-		{ label: '8 caractères minimum', ok: passwordNew.length >= 8 },
-		{ label: 'Une majuscule', ok: /[A-Z]/.test(passwordNew) },
-		{ label: 'Un chiffre', ok: /[0-9]/.test(passwordNew) },
-		{ label: 'Un caractère spécial (!@#$%^&*)', ok: /[!@#$%^&*]/.test(passwordNew) }
-	]);
+	// Les MÊMES règles que le serveur (schemas/password.ts)
+	const passwordRules = $derived(
+		PASSWORD_RULES.map((rule) => ({ label: rule.label, ok: rule.test(passwordNew) }))
+	);
 	const passwordMismatch = $derived(passwordConfirm.length > 0 && passwordNew !== passwordConfirm);
 	const canSubmitPassword = $derived(
 		passwordCurrent.length > 0 &&
