@@ -71,14 +71,17 @@
 	</div>
 {:else}
 	<!-- ================= PUBLIC ================= -->
-	<div class="flex min-h-screen flex-col">
+	<!-- Le contenu (flex-1) prend toute la place libre : sur une page courte,
+	     le footer reste collé en bas de l'écran au lieu de laisser un vide sous lui.
+	     dvh : la hauteur réellement visible sur mobile (barres du navigateur comprises) -->
+	<div class="flex min-h-dvh flex-col">
 		<Navbar />
 
 		<div class="flex-1">
 			{@render children()}
-
-			<Footer />
 		</div>
+
+		<Footer />
 	</div>
 {/if}
 
