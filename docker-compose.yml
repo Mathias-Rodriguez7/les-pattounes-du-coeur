@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: les_pattounes_app
     restart: unless-stopped
+    # Un mini-processus (tini) transmet proprement l'ordre d'arrêt : restart rapide et propre
+    init: true
     depends_on:
       - db
       - s3

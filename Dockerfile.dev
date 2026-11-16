@@ -14,4 +14,10 @@ RUN npx prisma generate
 
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host"]
+# Au démarrage : on complète node_modules s'il lui manque quelque chose, puis on lance Vite.
+# - node_modules vit dans un volume (voir docker-compose.yml) : il peut perdre des paquets
+#   « optionnels », comme le module natif de Vite (bug npm #4828). `npm install` les remet.
+#   Quand tout est déjà là, il ne fait rien (quelques secondes).
+# - `exec` : Vite devient le processus principal et reçoit directement l'ordre d'arrêt
+#   (avant, npm le recevait mal : arrêts lents ou brutaux).
+CMD ["sh", "-c", "npm install --include=optional --prefer-offline --no-audit --no-fund && npx prisma generate && exec npx vite dev --host"]
