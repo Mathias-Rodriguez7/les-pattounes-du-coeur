@@ -48,6 +48,12 @@
 	let sexFilter = $state('');
 	let ageFilter = $state('');
 	let searchQuery = $state('');
+	// Admin, sur « Tous les chats » : avec ou sans bénévole associée
+	let volunteerFilter = $state('');
+	const VOLUNTEER_FILTER_OPTIONS = [
+		{ value: 'WITH', label: 'Avec bénévole' },
+		{ value: 'NONE', label: 'Sans bénévole' }
+	];
 
 	// « À finaliser » n'est pas un statut de chat : une valeur à part, ajoutée aux statuts
 	const ADOPTION_DUE = 'ADOPTION_DUE';
@@ -64,6 +70,7 @@
 		sexFilter = '';
 		ageFilter = '';
 		searchQuery = '';
+		volunteerFilter = '';
 	}
 
 	function clearFilters() {
@@ -71,6 +78,7 @@
 		sexFilter = '';
 		ageFilter = '';
 		searchQuery = '';
+		volunteerFilter = '';
 	}
 
 	function selectCat(catId: string) {
@@ -155,6 +163,11 @@
 		}
 		if (sexFilter) filtered = filtered.filter((c) => c.sex === sexFilter);
 		if (ageFilter) filtered = filtered.filter((c) => getAgeBadge(c.birthDate) === ageFilter);
+		// Seulement sur « Tous les chats » : sur « Mes chats », ils ont tous une bénévole (moi)
+		if (effectiveShowAll && volunteerFilter) {
+			const wanted = volunteerFilter === 'WITH';
+			filtered = filtered.filter((c) => c.volunteers.length > 0 === wanted);
+		}
 
 		const query = searchQuery.trim().toLowerCase();
 		if (query) {
@@ -169,7 +182,11 @@
 
 	// Inclut le statut : sinon « Aucun chat » s'affichait alors qu'un filtre était actif
 	const hasActiveFilters = $derived(
-		statusFilter !== '' || !!sexFilter || !!ageFilter || !!searchQuery.trim()
+		statusFilter !== '' ||
+			!!sexFilter ||
+			!!ageFilter ||
+			!!searchQuery.trim() ||
+			(effectiveShowAll && !!volunteerFilter)
 	);
 </script>
 
@@ -248,6 +265,17 @@
 										placeholder="Âge"
 										class="w-full sm:w-32"
 									/>
+									<!-- Admin sur « Tous les chats » : retrouver les chats que personne ne suit -->
+									{#if effectiveShowAll}
+										<SelectField
+											id="cat-filter-volunteer"
+											label=""
+											options={VOLUNTEER_FILTER_OPTIONS}
+											bind:value={volunteerFilter}
+											placeholder="Bénévole"
+											class="w-full sm:w-36"
+										/>
+									{/if}
 								{/snippet}
 							</TableToolbar>
 
