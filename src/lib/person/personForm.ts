@@ -57,6 +57,18 @@ export function personFormFrom(data: PersonInitialData): PersonForm {
 	};
 }
 
+/**
+ * Les champs « personne » d'un profil enregistré : pour pré-remplir un formulaire de création
+ * quand la personne existe déjà (une bénévole qui devient FA, une FA qui devient bénévole)
+ */
+export function personDataFromProfil(profil: {
+	[K in keyof PersonForm]: string | Date | null;
+}): PersonInitialData {
+	const { firstName, lastName, birthDate, email, phone, address, city, postalCode, district } =
+		profil;
+	return { firstName, lastName, birthDate, email, phone, address, city, postalCode, district };
+}
+
 /** Les valeurs à valider : textes nettoyés, date au format AAAA-MM-JJ, quartier vide → undefined */
 export function toPersonInput(form: PersonForm) {
 	return {

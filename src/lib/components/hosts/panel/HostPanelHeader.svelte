@@ -4,7 +4,9 @@
 	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
-	import { Pencil } from '@lucide/svelte';
+	import { HandHeart, Pencil } from '@lucide/svelte';
+	import NewVolunteerDialog from '#lib/components/volunteers/NewVolunteerDialog.svelte';
+	import { personDataFromProfil } from '#lib/person/personForm.ts';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import { formatAge } from '#lib/utils/age.ts';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
@@ -22,6 +24,10 @@
 	}
 
 	let { host, isAdmin, onEdit }: Props = $props();
+
+	// Devenir bénévole (admin) : le dialogue de création, pré-rempli avec SON profil
+	let becomeVolunteerOpen = $state(false);
+	const personData = $derived(personDataFromProfil(host.profil));
 
 	const fullName = $derived(`${host.profil.firstName} ${host.profil.lastName}`);
 	// Sa blacklist active (0 ou 1), chargée avec la FA (hostFullArgs)
@@ -77,6 +83,17 @@
 						</div>
 					{/if}
 				</div>
+				{#if isAdmin && !host.profil.volunteer && !blacklist}
+					<Button
+						variant="outline"
+						size="sm"
+						class="mt-2 w-fit"
+						onclick={() => (becomeVolunteerOpen = true)}
+					>
+						<HandHeart class="size-4" />
+						Créer son profil bénévole
+					</Button>
+				{/if}
 			</div>
 
 			<!-- PAUSE : pleine largeur sur mobile, à côté des infos sur PC -->
@@ -120,3 +137,7 @@
 		{/if}
 	</section>
 </Card.Header>
+
+{#if isAdmin && !host.profil.volunteer}
+	<NewVolunteerDialog bind:open={becomeVolunteerOpen} initialData={personData} fromProfile />
+{/if}

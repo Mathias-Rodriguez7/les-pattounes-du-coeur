@@ -2,6 +2,7 @@
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
 	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
+	import PersonFromProfile from '#lib/components/person/PersonFromProfile.svelte';
 	import { createVolunteerSchema } from '#lib/schemas/volunteer.ts';
 	import { flattenErrors, firstMessages } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
@@ -28,9 +29,20 @@
 		initialData?: PersonInitialData | null;
 		/** L'identifiant de cette demande, envoyé avec la création */
 		formId?: string;
+		/**
+		 * Une FA qui devient bénévole : initialData est SON profil. Ses coordonnées sont
+		 * affichées sans être modifiables (le compte est rattaché à son profil)
+		 */
+		fromProfile?: boolean;
 	}
 
-	let { open = $bindable(false), onCancel, initialData = null, formId = '' }: Props = $props();
+	let {
+		open = $bindable(false),
+		onCancel,
+		initialData = null,
+		formId = '',
+		fromProfile = false
+	}: Props = $props();
 
 	// Tous les champs dans UN objet (voir newVolunteerForm.ts)
 	let form = $state<NewVolunteerForm>(emptyNewVolunteerForm());
@@ -109,7 +121,11 @@
 	<!-- Hauteur limitée à l'écran visible : le contenu défile, le bouton reste en bas -->
 	<Dialog.Content size="md" class="flex max-h-[90dvh] flex-col gap-0 p-0">
 		<Dialog.Header class="p-4 sm:p-6">
-			<Dialog.Title>Créer un nouveau bénévole</Dialog.Title>
+			<Dialog.Title>
+				{fromProfile
+					? `${form.firstName} ${form.lastName} devient bénévole`
+					: 'Créer un nouveau bénévole'}
+			</Dialog.Title>
 			<Dialog.Description>
 				Un email avec un mot de passe temporaire lui sera envoyé.
 			</Dialog.Description>
@@ -125,32 +141,37 @@
 		>
 			<!-- Zone qui défile -->
 			<div class="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
-				<!-- PROFIL -->
-				<PersonProfileFields
-					bind:firstName={form.firstName}
-					bind:lastName={form.lastName}
-					bind:birthDate={form.birthDate}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+				{#if fromProfile}
+					<!-- Personne déjà connue : ses coordonnées, en lecture -->
+					<PersonFromProfile person={form} errors={fieldErrors} />
+				{:else}
+					<!-- PROFIL -->
+					<PersonProfileFields
+						bind:firstName={form.firstName}
+						bind:lastName={form.lastName}
+						bind:birthDate={form.birthDate}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
 
-				<!-- CONTACT -->
-				<PersonContactFields
-					bind:phone={form.phone}
-					bind:email={form.email}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+					<!-- CONTACT -->
+					<PersonContactFields
+						bind:phone={form.phone}
+						bind:email={form.email}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
 
-				<!-- ADRESSE -->
-				<PersonAddressFields
-					bind:address={form.address}
-					bind:city={form.city}
-					bind:postalCode={form.postalCode}
-					bind:district={form.district}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+					<!-- ADRESSE -->
+					<PersonAddressFields
+						bind:address={form.address}
+						bind:city={form.city}
+						bind:postalCode={form.postalCode}
+						bind:district={form.district}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
+				{/if}
 
 				<!-- RÔLE -->
 				<SectionCard

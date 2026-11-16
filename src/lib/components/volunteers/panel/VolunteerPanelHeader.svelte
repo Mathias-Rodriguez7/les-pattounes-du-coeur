@@ -4,7 +4,9 @@
 	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
-	import { Pencil } from '@lucide/svelte';
+	import { House, Pencil } from '@lucide/svelte';
+	import NewHostDialog from '#lib/components/hosts/NewHostDialog.svelte';
+	import { personDataFromProfil } from '#lib/person/personForm.ts';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import { formatAge } from '#lib/utils/age.ts';
 	import { formatDate } from '#lib/utils/date.ts';
@@ -42,6 +44,10 @@
 	const isOnBreak = $derived(
 		volunteer.actif === 'BREAK' && !!(volunteer.breakStart || volunteer.breakEnd)
 	);
+
+	// Devenir FA (admin) : le dialogue de création, pré-rempli avec SON profil
+	let becomeHostOpen = $state(false);
+	const personData = $derived(personDataFromProfil(volunteer.profil));
 </script>
 
 <Card.Header class="gap-4">
@@ -80,6 +86,12 @@
 					</span>
 				{/if}
 			</div>
+			{#if isAdmin && !volunteer.profil.host && !blacklist}
+				<Button variant="outline" size="sm" class="mt-3" onclick={() => (becomeHostOpen = true)}>
+					<House class="size-4" />
+					Créer son profil FA
+				</Button>
+			{/if}
 		</div>
 
 		<!-- Édition -->
@@ -118,3 +130,7 @@
 		</SectionCard>
 	{/if}
 </Card.Header>
+
+{#if isAdmin && !volunteer.profil.host}
+	<NewHostDialog bind:open={becomeHostOpen} initialData={personData} fromProfile />
+{/if}

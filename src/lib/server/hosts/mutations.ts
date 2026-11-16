@@ -138,8 +138,8 @@ export async function createHost({ request, locals }: { request: Request; locals
 		if (existingProfil?.host) {
 			return {
 				success: false,
-				error: 'Cet email est déjà utilisé par un bénévole',
-				errors: { email: ['Email déjà utilisé par un bénévole'] }
+				error: "Cette personne est déjà famille d'accueil",
+				errors: { email: ["Email déjà utilisé par une famille d'accueil"] }
 			};
 		}
 
@@ -180,20 +180,23 @@ export async function createHost({ request, locals }: { request: Request; locals
 				babyFeeding: validatedData.babyFeeding,
 				stopActivity: validatedData.stopActivity,
 
-				// Créer le profil associé
-				profil: {
-					create: {
-						firstName: validatedData.firstName,
-						lastName: validatedData.lastName,
-						birthDate: validatedData.birthDate,
-						email: validatedData.email,
-						phone: validatedData.phone,
-						address: validatedData.address,
-						city: validatedData.city,
-						postalCode: validatedData.postalCode,
-						district: validatedData.district
-					}
-				}
+				// Personne déjà connue (bénévole, adoptante…) : on rattache la FA à SON profil.
+				// Sinon, on crée le profil. (Même logique que createVolunteer)
+				profil: existingProfil
+					? { connect: { id: existingProfil.id } }
+					: {
+							create: {
+								firstName: validatedData.firstName,
+								lastName: validatedData.lastName,
+								birthDate: validatedData.birthDate,
+								email: validatedData.email,
+								phone: validatedData.phone,
+								address: validatedData.address,
+								city: validatedData.city,
+								postalCode: validatedData.postalCode,
+								district: validatedData.district
+							}
+						}
 			},
 			include: { profil: true }
 		});

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { emptyPersonForm, personFormFrom, toPersonInput } from './personForm.ts';
+import {
+	emptyPersonForm,
+	personDataFromProfil,
+	personFormFrom,
+	toPersonInput
+} from './personForm.ts';
 import {
 	toCreateVolunteerInput,
 	emptyNewVolunteerForm
@@ -27,5 +32,28 @@ describe('newVolunteerForm', () => {
 	it('la personne + son rôle (MANAGER par défaut)', () => {
 		const input = toCreateVolunteerInput({ ...emptyNewVolunteerForm(), firstName: ' Jean ' });
 		expect(input).toMatchObject({ firstName: 'Jean', role: 'MANAGER', district: undefined });
+	});
+});
+
+describe('personDataFromProfil', () => {
+	it('ne garde que les champs « personne » du profil', () => {
+		const profil = {
+			id: 'p1',
+			firstName: 'Léa',
+			lastName: 'Martin',
+			birthDate: new Date('1990-05-01'),
+			email: 'lea@test.com',
+			phone: '0612345678',
+			address: '1 rue du Chat',
+			city: 'Montpellier',
+			postalCode: '34000',
+			district: 'CENTRE_VILLE',
+			createdAt: new Date()
+		};
+		const data = personDataFromProfil(profil);
+		expect(data).not.toHaveProperty('id');
+		expect(data).not.toHaveProperty('createdAt');
+		expect(personFormFrom(data).email).toBe('lea@test.com');
+		expect(personFormFrom(data).district).toBe('CENTRE_VILLE');
 	});
 });

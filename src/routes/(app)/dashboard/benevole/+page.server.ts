@@ -3,6 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { District, VolunteerRole } from '@prisma/client';
 import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutations.ts';
+import { createHost } from '#lib/server/hosts/mutations.ts';
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
@@ -163,6 +164,20 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur création bénévole:', error);
+			return fail(500, { success: false, error: 'Erreur serveur' });
+		}
+	},
+
+	// « Créer son profil FA » (en-tête d'une bénévole) : la même création que la page FA
+	createHost: async ({ request, locals }) => {
+		try {
+			const result = await createHost({ request, locals });
+			if (!result.success) {
+				return fail(400, result);
+			}
+			return result;
+		} catch (error) {
+			console.error("Erreur création famille d'accueil:", error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
 	},

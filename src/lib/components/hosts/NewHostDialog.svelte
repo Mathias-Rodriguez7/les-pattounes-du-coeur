@@ -2,6 +2,7 @@
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
 	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
+	import PersonFromProfile from '#lib/components/person/PersonFromProfile.svelte';
 	import HostAnimalsFields from '#lib/components/hosts/fields/HostAnimalsFields.svelte';
 	import HostHomeFields from '#lib/components/hosts/fields/HostHomeFields.svelte';
 	import HostCapacityFields from '#lib/components/hosts/fields/HostCapacityFields.svelte';
@@ -35,9 +36,20 @@
 		initialData?: NewHostInitialData | null;
 		/** L'identifiant de cette demande, envoyé avec la création */
 		formId?: string;
+		/**
+		 * Une bénévole qui devient FA : initialData est SON profil. Ses coordonnées sont
+		 * affichées sans être modifiables (la FA est rattachée à son profil)
+		 */
+		fromProfile?: boolean;
 	}
 
-	let { open = $bindable(false), onCancel, initialData = null, formId = '' }: Props = $props();
+	let {
+		open = $bindable(false),
+		onCancel,
+		initialData = null,
+		formId = '',
+		fromProfile = false
+	}: Props = $props();
 
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
@@ -123,7 +135,11 @@
 <Dialog.Root bind:open>
 	<Dialog.Content size="xl" class="max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Créer une nouvelle famille d'accueil</Dialog.Title>
+			<Dialog.Title>
+				{fromProfile
+					? `${form.firstName} ${form.lastName} devient famille d'accueil`
+					: "Créer une nouvelle famille d'accueil"}
+			</Dialog.Title>
 			<Dialog.Description>
 				Remplissez les champs obligatoires (*) pour ajouter une nouvelle famille d'accueil
 			</Dialog.Description>
@@ -162,32 +178,41 @@
 					</div>
 				</SectionCard>
 
-				<!-- Profil -->
-				<PersonProfileFields
-					bind:firstName={form.firstName}
-					bind:lastName={form.lastName}
-					bind:birthDate={form.birthDate}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+				{#if fromProfile}
+					<!-- Personne déjà connue : ses coordonnées, en lecture -->
+					<PersonFromProfile
+						person={form}
+						errors={fieldErrors}
+						class="sm:col-span-1 lg:col-span-3"
+					/>
+				{:else}
+					<!-- Profil -->
+					<PersonProfileFields
+						bind:firstName={form.firstName}
+						bind:lastName={form.lastName}
+						bind:birthDate={form.birthDate}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
 
-				<!-- Adresse -->
-				<PersonAddressFields
-					bind:address={form.address}
-					bind:city={form.city}
-					bind:postalCode={form.postalCode}
-					bind:district={form.district}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+					<!-- Adresse -->
+					<PersonAddressFields
+						bind:address={form.address}
+						bind:city={form.city}
+						bind:postalCode={form.postalCode}
+						bind:district={form.district}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
 
-				<!-- Contact -->
-				<PersonContactFields
-					bind:phone={form.phone}
-					bind:email={form.email}
-					errors={fieldErrors}
-					disabled={isSubmitting}
-				/>
+					<!-- Contact -->
+					<PersonContactFields
+						bind:phone={form.phone}
+						bind:email={form.email}
+						errors={fieldErrors}
+						disabled={isSubmitting}
+					/>
+				{/if}
 			</section>
 
 			<Separator />
