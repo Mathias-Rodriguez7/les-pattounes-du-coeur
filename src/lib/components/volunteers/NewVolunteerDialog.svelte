@@ -85,7 +85,10 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Bénévole créé avec succès');
+				// Le serveur envoie une invitation : son message dit à qui, et si l'email est parti
+				const message = (result.data?.message as string) ?? 'Invitation envoyée';
+				if (result.data?.emailSent === false) toast.warning(message);
+				else toast.success(message);
 				resetForm();
 				open = false;
 				await update();
@@ -96,7 +99,8 @@
 					fieldErrors = firstMessages(result.data.errors);
 					toast.error('Erreurs de validation du serveur');
 				} else {
-					toast.error('Erreur lors de la création');
+					// Ex : « Déposez d'abord la Convention FA dans la page Documents… »
+					toast.error((result.data?.error as string) ?? 'Erreur lors de la création');
 				}
 				await update();
 			} else if (result.type === 'error') {
@@ -127,7 +131,8 @@
 					: 'Créer un nouveau bénévole'}
 			</Dialog.Title>
 			<Dialog.Description>
-				Un email avec un mot de passe temporaire lui sera envoyé.
+				Elle recevra un email pour lire le Manuel de la gestionnaire et choisir son mot de passe :
+				son compte sera créé à ce moment-là.
 			</Dialog.Description>
 		</Dialog.Header>
 

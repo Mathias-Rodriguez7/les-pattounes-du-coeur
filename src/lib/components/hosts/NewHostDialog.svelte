@@ -103,7 +103,10 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('FA créé avec succès ✅');
+				// Le serveur envoie une invitation : son message dit à qui, et si l'email est parti
+				const message = (result.data?.message as string) ?? 'Invitation envoyée';
+				if (result.data?.emailSent === false) toast.warning(message);
+				else toast.success(message);
 				resetForm();
 				open = false;
 				await update();
@@ -113,7 +116,8 @@
 					fieldErrors = firstMessages(result.data.errors);
 					toast.error('Erreurs de validation du serveur');
 				} else {
-					toast.error('Erreur lors de la création');
+					// Ex : « Déposez d'abord la Convention FA dans la page Documents… »
+					toast.error((result.data?.error as string) ?? 'Erreur lors de la création');
 				}
 				await update();
 			} else if (result.type === 'error') {
@@ -141,7 +145,8 @@
 					: "Créer une nouvelle famille d'accueil"}
 			</Dialog.Title>
 			<Dialog.Description>
-				Remplissez les champs obligatoires (*) pour ajouter une nouvelle famille d'accueil
+				Remplissez les champs obligatoires (*). Elle recevra un email pour lire et accepter la
+				Convention FA : la famille d'accueil sera créée à ce moment-là.
 			</Dialog.Description>
 		</Dialog.Header>
 

@@ -5,9 +5,7 @@ import {
 	type CreateVolunteerInput,
 	type UpdateVolunteerInput
 } from '#lib/schemas/volunteer.ts';
-import { hashPassword } from '#lib/server/hashing.ts';
-import { randomBytes } from 'node:crypto';
-import { sendVolunteerWelcomeEmail } from '../mailer';
+import { inviteToJoin } from '#lib/server/invitations/mutations.ts';
 import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
@@ -143,65 +141,17 @@ export async function createVolunteer({
 			};
 		}
 
-		const tempPassword = randomBytes(12).toString('base64url');
-		const hashedPassword = await hashPassword(tempPassword);
-
-		const newVolunteer = await prisma.volunteer.create({
-			data: {
-				role: validatedData.role,
-				actif: validatedData.actif,
-				breakStart: validatedData.breakStart,
-				breakEnd: validatedData.breakEnd,
-				password: hashedPassword,
-				profil: existingProfil
-					? { connect: { id: existingProfil.id } }
-					: {
-							create: {
-								firstName: validatedData.firstName,
-								lastName: validatedData.lastName,
-								birthDate: validatedData.birthDate,
-								email: validatedData.email,
-								phone: validatedData.phone,
-								address: validatedData.address,
-								city: validatedData.city,
-								postalCode: validatedData.postalCode,
-								district: validatedData.district
-							}
-						}
-			},
-			include: { profil: true },
-			omit: { password: true, resetToken: true, resetTokenExpiresAt: true }
+		// Rien n'est créé maintenant : une invitation part par email. Le compte sera créé
+		// quand elle aura accepté le Manuel et choisi son mot de passe (acceptInvitation)
+		return await inviteToJoin({
+			kind: 'VOLUNTEER',
+			data,
+			email: validatedData.email,
+			firstName: validatedData.firstName,
+			formId: data.formId,
+			createdById: locals.user?.id ?? null,
+			origin: new URL(request.url).origin
 		});
-
-		try {
-			const isExistingProfil = Boolean(existingProfil);
-
-			await sendVolunteerWelcomeEmail({
-				to: newVolunteer.profil.email,
-				firstName: newVolunteer.profil.firstName,
-				email: newVolunteer.profil.email,
-				tempPassword,
-				isExistingProfil
-			});
-		} catch (err) {
-			console.error('Échec envoi mail bénévole:', err);
-			// Le volunteer est créé : on signale l'échec sans annuler la création
-			return {
-				success: true,
-				message: "Bénévole créé, mais l'email n'a pas pu être envoyé",
-				data: newVolunteer,
-				errors: {},
-				emailSent: false
-			};
-		}
-
-		return {
-			success: true,
-			message: 'Bénévole créé et email envoyé',
-			data: newVolunteer,
-			errors: {},
-			emailSent: true
-		};
 	} catch (error) {
 		console.error('Erreur création Bénévole:', error);
 		return {

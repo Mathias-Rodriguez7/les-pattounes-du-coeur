@@ -10,6 +10,7 @@ import { isEmailBlacklisted } from '../accountStatus';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { applyHostRules } from '#lib/hosts/rules.ts';
+import { inviteToJoin } from '#lib/server/invitations/mutations.ts';
 
 // ✅ Constantes pour éviter la duplication
 const PROFIL_FIELDS = [
@@ -153,60 +154,17 @@ export async function createHost({ request, locals }: { request: Request; locals
 			};
 		}
 
-		// ✅ Créer le Host avec TOUS les champs
-		const newHost = await prisma.host.create({
-			data: {
-				// Champs du Host
-				type: validatedData.type,
-				actif: validatedData.actif,
-				isAvailable: validatedData.isAvailable,
-				space: validatedData.space,
-				homeDescription: validatedData.homeDescription,
-				presence: validatedData.presence,
-				outside: validatedData.outside,
-				outsideDescription: validatedData.outsideDescription,
-				isStockFeed: validatedData.isStockFeed,
-				car: validatedData.car,
-				additionalInformation: validatedData.additionalInformation,
-				hasAnimalsAtHome: validatedData.hasAnimalsAtHome,
-				numberOfCatsAtHome: validatedData.numberOfCatsAtHome,
-				numberOfDogsAtHome: validatedData.numberOfDogsAtHome,
-				catAdult: validatedData.catAdult,
-				kittyAndKitten: validatedData.kittyAndKitten,
-				kitten: validatedData.kitten,
-				otherAnimalsAtHome: validatedData.otherAnimalsAtHome,
-				heal: validatedData.heal,
-				socialize: validatedData.socialize,
-				babyFeeding: validatedData.babyFeeding,
-				stopActivity: validatedData.stopActivity,
-
-				// Personne déjà connue (bénévole, adoptante…) : on rattache la FA à SON profil.
-				// Sinon, on crée le profil. (Même logique que createVolunteer)
-				profil: existingProfil
-					? { connect: { id: existingProfil.id } }
-					: {
-							create: {
-								firstName: validatedData.firstName,
-								lastName: validatedData.lastName,
-								birthDate: validatedData.birthDate,
-								email: validatedData.email,
-								phone: validatedData.phone,
-								address: validatedData.address,
-								city: validatedData.city,
-								postalCode: validatedData.postalCode,
-								district: validatedData.district
-							}
-						}
-			},
-			include: { profil: true }
+		// Rien n'est créé maintenant : une invitation part par email. La FA sera créée
+		// quand elle aura accepté la Convention (acceptInvitation)
+		return await inviteToJoin({
+			kind: 'HOST',
+			data,
+			email: validatedData.email,
+			firstName: validatedData.firstName,
+			formId: data.formId,
+			createdById: locals.user?.id ?? null,
+			origin: new URL(request.url).origin
 		});
-
-		return {
-			success: true,
-			message: "Famille d'accueil créée avec succès",
-			data: newHost,
-			errors: {}
-		};
 	} catch (error) {
 		console.error('Erreur création Host:', error);
 		return {

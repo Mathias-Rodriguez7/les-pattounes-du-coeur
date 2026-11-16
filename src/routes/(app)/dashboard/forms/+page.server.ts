@@ -132,23 +132,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
+	// La demande sera acceptée quand la personne aura accepté le document (acceptInvitation) :
+	// en attendant, elle reste « en attente »
 	createVolunteer: async ({ request, locals }) => {
 		try {
-			const formData = await request.clone().formData();
-			const formId = formData.get('formId')?.toString();
-
 			const result = await createVolunteer({ request, locals });
 			if (!result.success) {
 				return fail(400, result);
 			}
-
-			if (formId) {
-				await prisma.form.update({
-					where: { id: formId },
-					data: { status: 'APPROVED' }
-				});
-			}
-
 			return result;
 		} catch (error) {
 			console.error('Erreur création bénévole:', error);
@@ -158,18 +149,9 @@ export const actions: Actions = {
 
 	createHost: async ({ request, locals }) => {
 		try {
-			const formData = await request.clone().formData();
-			const formId = formData.get('formId')?.toString();
-
 			const result = await createHost({ request, locals });
 			if (!result.success) {
 				return fail(400, result);
-			}
-			if (formId) {
-				await prisma.form.update({
-					where: { id: formId },
-					data: { status: 'APPROVED' }
-				});
 			}
 			return result;
 		} catch (error) {

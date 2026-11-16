@@ -11,6 +11,7 @@ import {
 } from '$app/env/private';
 
 import { SOS_ALERT_TYPES, type SosAlertType } from '#lib/constants/sos.ts';
+import type { InvitationKind } from '@prisma/client';
 
 const transporter = nodemailer.createTransport({
 	host: SMTP_HOST,
@@ -18,47 +19,6 @@ const transporter = nodemailer.createTransport({
 	secure: false,
 	auth: { user: SMTP_USER, pass: SMTP_PASS }
 });
-
-export async function sendVolunteerWelcomeEmail({
-	to,
-	firstName,
-	email,
-	tempPassword,
-	isExistingProfil = false
-}: {
-	to: string;
-	firstName: string;
-	email: string;
-	tempPassword: string;
-	isExistingProfil?: boolean;
-}) {
-	const intro = isExistingProfil
-		? 'Vous êtes désormais également bénévole. Vous pouvez dès maintenant accéder à votre espace avec les identifiants ci-dessous.'
-		: 'Votre compte bénévole a été créé.';
-
-	await transporter.sendMail({
-		from: SMTP_FROM,
-		to,
-		subject: 'Votre accès bénévole',
-		text: `Bonjour ${firstName},
-
-${intro}
-
-Identifiant : ${email}
-Mot de passe temporaire : ${tempPassword}
-
-Nous vous conseillons de le modifier dès votre première connexion.`,
-		html: `
-            <p>Bonjour ${firstName},</p>
-            <p>${intro}</p>
-            <ul>
-                <li><strong>Identifiant :</strong> ${email}</li>
-                <li><strong>Mot de passe temporaire :</strong> ${tempPassword}</li>
-            </ul>
-            <p>Nous vous conseillons de le modifier dès votre première connexion.</p>
-        `
-	});
-}
 
 /** Neutralise le HTML : le texte d'un visiteur ne doit JAMAIS être interprété comme du code */
 function escapeHtml(text: string) {
@@ -198,5 +158,58 @@ ${signature.text}`,
 			</ul>
 			<p>Merci pour l’intérêt que vous portez à nos protégés.</p>
 			${signature.html}`
+	});
+}
+
+const INVITATION_TEXTS = {
+	HOST: {
+		subject: 'Bienvenue chez les Pattounes : une dernière étape',
+		intro:
+			"Merci de rejoindre nos familles d'accueil ! Avant de finaliser votre inscription, merci de lire notre Convention famille d'accueil et de l'accepter.",
+		button: 'Lire et valider'
+	},
+	VOLUNTEER: {
+		subject: 'Bienvenue chez les Pattounes : créez votre compte bénévole',
+		intro:
+			'Merci de rejoindre notre équipe de bénévoles ! Avant de créer votre compte, merci de lire le Manuel de la gestionnaire et de l’accepter. Vous choisirez ensuite votre mot de passe.',
+		button: 'Lire et créer mon compte'
+	}
+} as const satisfies Record<InvitationKind, { subject: string; intro: string; button: string }>;
+
+/** L'invitation à lire et accepter le document (lien valable jusqu'à `expiresAt`) */
+export async function sendInvitationEmail({
+	to,
+	firstName,
+	kind,
+	url,
+	expiresAt
+}: {
+	to: string;
+	firstName: string;
+	kind: InvitationKind;
+	url: string;
+	expiresAt: Date;
+}) {
+	const texts = INVITATION_TEXTS[kind];
+	const until = expiresAt.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+
+	await transporter.sendMail({
+		from: SMTP_FROM,
+		to,
+		subject: texts.subject,
+		text: `Bonjour ${firstName},
+
+${texts.intro}
+
+${texts.button} : ${url}
+
+Ce lien est valable jusqu'au ${until}.
+
+L'équipe des Pattounes du Cœur`,
+		html: `<p>Bonjour ${escapeHtml(firstName)},</p>
+			<p>${escapeHtml(texts.intro)}</p>
+			<p><a href="${escapeHtml(url)}" style="display:inline-block;padding:10px 18px;background:#dd6476;color:#ffffff;border-radius:999px;text-decoration:none;font-weight:bold">${escapeHtml(texts.button)}</a></p>
+			<p style="color:#666;font-size:13px">Ce lien est valable jusqu'au ${until}.</p>
+			<p>L'équipe des Pattounes du Cœur</p>`
 	});
 }
