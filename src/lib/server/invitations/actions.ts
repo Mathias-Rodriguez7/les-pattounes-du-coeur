@@ -40,6 +40,8 @@ export async function resendInvitationAction({ request, locals, url }: RequestEv
 
 	return {
 		success: true,
+		// Le nouveau lien remplace l'ancien : la page sélectionne la nouvelle invitation
+		invitationId: result.invitationId,
 		emailSent: result.emailSent,
 		message: result.emailSent
 			? `Invitation renvoyée à ${invitation.email}`

@@ -6,7 +6,7 @@ import { createHost, updateHost } from '#lib/server/hosts/mutations.ts';
 import { createVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
-import { pendingInvitations } from '#lib/server/invitations/queries.ts';
+import { pendingHostInvitations } from '#lib/server/invitations/queries.ts';
 import { cancelInvitationAction, resendInvitationAction } from '#lib/server/invitations/actions.ts';
 import { hostFullArgs } from '#lib/types/host.ts';
 import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
@@ -113,8 +113,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 		return {
 			hosts: hostsWithStats,
-			// Les inscriptions envoyées, pas encore acceptées (encart « Inscriptions en attente »)
-			invitations: await pendingInvitations('HOST'), // ✅ Utilise hostsWithStats au lieu de hosts
+			// Les candidatures (invitations pas encore acceptées) : affichées dans la liste, filtre « En attente »
+			invitations: await pendingHostInvitations(),
 			stats: {
 				totalHosts,
 				incompleteProfiles,

@@ -2,7 +2,15 @@
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
-	import PendingInvitations from '#lib/components/invitations/PendingInvitations.svelte';
+	import CandidateRow from '#lib/components/invitations/CandidateRow.svelte';
+	import CandidatePanel from '#lib/components/invitations/CandidatePanel.svelte';
+	import PendingCandidatesBanner from '#lib/components/invitations/PendingCandidatesBanner.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import {
+		PENDING_FILTER,
+		PENDING_FILTER_OPTION,
+		matchesCandidateSearch
+	} from '#lib/constants/invitation.ts';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -13,7 +21,11 @@
 	import NewVolunteerDialog from '#lib/components/volunteers/NewVolunteerDialog.svelte';
 	import { BLACKLIST_FILTER_OPTIONS, matchesBlacklistFilter } from '#lib/constants/blacklist.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
-	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '#lib/constants/volunteer.js';
+	import {
+		VOLUNTEER_ROLE_OPTIONS,
+		VOLUNTEER_STATUS_OPTIONS,
+		roleColors
+	} from '#lib/constants/volunteer.js';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { untrack } from 'svelte';
@@ -25,12 +37,16 @@
 	const volunteers = $derived(data.volunteers);
 	const stats = $derived(data.stats);
 
+	const candidates = $derived(data.invitations);
+
+	// La ligne choisie : une bénévole, ou une candidature (invitation pas encore acceptée)
 	let selectedVolunteerId = $state<string | null>(null);
 	const selectedVolunteer = $derived(volunteers.find((v) => v.id === selectedVolunteerId) ?? null);
+	const selectedCandidate = $derived(candidates.find((c) => c.id === selectedVolunteerId) ?? null);
 	const selectedVolunteerName = $derived(
 		selectedVolunteer
 			? `${selectedVolunteer.profil.firstName} ${selectedVolunteer.profil.lastName}`
-			: 'Détail du bénévole'
+			: (selectedCandidate?.name ?? 'Détail du bénévole')
 	);
 
 	// Tiroir du détail : utilisé uniquement sur mobile
@@ -41,6 +57,31 @@
 	let blacklistFilter = $state('');
 	let roleFilter = $state('');
 	let newVolunteerOpen = $state(false);
+
+	// Le filtre « Statut » propose aussi « En attente de validation » : les candidatures seules
+	const statusOptions = [...VOLUNTEER_STATUS_OPTIONS, PENDING_FILTER_OPTION];
+	const showCandidates = $derived(actifFilter === PENDING_FILTER);
+	const filteredCandidates = $derived(
+		showCandidates ? candidates.filter((c) => matchesCandidateSearch(c, searchQuery)) : []
+	);
+
+	function showPendingCandidates() {
+		clearFilters();
+		actifFilter = PENDING_FILTER;
+	}
+
+	// Candidature annulée : plus rien à afficher
+	function handleCandidateCancelled() {
+		selectedVolunteerId = null;
+		mobilePanelOpen = false;
+		rememberSelection(null);
+	}
+
+	// Lien renvoyé : c'est une NOUVELLE invitation, on la sélectionne
+	function handleCandidateResent(invitationId: string) {
+		selectedVolunteerId = invitationId;
+		rememberSelection(invitationId);
+	}
 
 	function selectVolunteer(volunteerId: string) {
 		selectedVolunteerId = volunteerId;
@@ -60,6 +101,13 @@
 	});
 
 	function openFromLink(id: string) {
+		// Une candidature : on passe sur le filtre « En attente »
+		if (candidates.some((c) => c.id === id)) {
+			showPendingCandidates();
+			selectVolunteer(id);
+			scrollToRow(id);
+			return;
+		}
 		if (!volunteers.some((v) => v.id === id)) {
 			toast.error("Ce bénévole n'est plus dans la liste.");
 			return;
@@ -135,12 +183,6 @@
 		<!-- ================= STATS ================= -->
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
 
-		<!-- ================= INSCRIPTIONS EN ATTENTE (seulement s'il y en a) ================= -->
-		<PendingInvitations
-			invitations={data.invitations}
-			documentName="le Manuel de la gestionnaire"
-		/>
-
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<ListDetailLayout bind:open={mobilePanelOpen} title={selectedVolunteerName}>
 			{#snippet list()}
@@ -153,7 +195,7 @@
 							<Card.Title class="text-xl font-bold sm:text-2xl">
 								Bénévoles
 								<span class="text-base font-normal text-muted-foreground">
-									({filteredVolunteers.length})
+									({showCandidates ? filteredCandidates.length : filteredVolunteers.length})
 								</span>
 							</Card.Title>
 							<Button class="rounded-2xl" size="sm" onclick={() => (newVolunteerOpen = true)}>
@@ -175,7 +217,7 @@
 									<SelectField
 										id="volunteer-status-filter"
 										label=""
-										options={VOLUNTEER_STATUS_OPTIONS}
+										options={statusOptions}
 										bind:value={actifFilter}
 										placeholder="Statut"
 										class="w-32"
@@ -198,6 +240,14 @@
 									/>
 								{/snippet}
 							</TableToolbar>
+
+							<!-- Les candidatures en attente : un clic applique le filtre -->
+							<PendingCandidatesBanner
+								count={candidates.length}
+								active={showCandidates}
+								onShow={showPendingCandidates}
+								onHide={clearFilters}
+							/>
 
 							<!-- Tableau : prend l'espace restant et défile dans la carte sur PC -->
 							<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
@@ -229,19 +279,36 @@
 										</Table.Row>
 									</Table.Header>
 									<Table.Body>
-										{#each filteredVolunteers as volunteer (volunteer.id)}
-											<VolunteerRow
-												{volunteer}
-												onclick={() => handleSelectVolunteer(volunteer.id)}
-												isSelected={selectedVolunteerId === volunteer.id}
-											/>
+										{#if showCandidates}
+											{#each filteredCandidates as candidate (candidate.id)}
+												<CandidateRow
+													{candidate}
+													columns={6}
+													onclick={() => handleSelectVolunteer(candidate.id)}
+													isSelected={selectedVolunteerId === candidate.id}
+												/>
+											{:else}
+												<Table.Row>
+													<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
+														Aucune candidature en attente.
+													</Table.Cell>
+												</Table.Row>
+											{/each}
 										{:else}
-											<Table.Row>
-												<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
-													Aucun bénévole ne correspond à ces filtres.
-												</Table.Cell>
-											</Table.Row>
-										{/each}
+											{#each filteredVolunteers as volunteer (volunteer.id)}
+												<VolunteerRow
+													{volunteer}
+													onclick={() => handleSelectVolunteer(volunteer.id)}
+													isSelected={selectedVolunteerId === volunteer.id}
+												/>
+											{:else}
+												<Table.Row>
+													<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
+														Aucun bénévole ne correspond à ces filtres.
+													</Table.Cell>
+												</Table.Row>
+											{/each}
+										{/if}
 									</Table.Body>
 								</Table.Root>
 							</div>
@@ -251,7 +318,27 @@
 			{/snippet}
 
 			{#snippet detail()}
-				<VolunteerPanel volunteer={selectedVolunteer} isAdmin={data.isAdmin} />
+				{#if selectedCandidate}
+					<CandidatePanel
+						candidate={selectedCandidate}
+						documentName="le Manuel de la gestionnaire"
+						isAdmin={data.isAdmin}
+						onResent={handleCandidateResent}
+						onCancelled={handleCandidateCancelled}
+					>
+						{#snippet details()}
+							<div class="flex items-center gap-2">
+								<span class="text-muted-foreground">Rôle prévu :</span>
+								<Badge class={selectedCandidate.role ? roleColors[selectedCandidate.role] : ''}>
+									{VOLUNTEER_ROLE_OPTIONS.find((r) => r.value === selectedCandidate.role)?.label ??
+										'—'}
+								</Badge>
+							</div>
+						{/snippet}
+					</CandidatePanel>
+				{:else}
+					<VolunteerPanel volunteer={selectedVolunteer} isAdmin={data.isAdmin} />
+				{/if}
 			{/snippet}
 		</ListDetailLayout>
 	</div>

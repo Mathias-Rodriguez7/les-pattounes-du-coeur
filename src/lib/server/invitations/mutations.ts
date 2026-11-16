@@ -54,7 +54,7 @@ export async function inviteToJoin({
 	const expiresAt = invitationExpiry();
 
 	// Une seule invitation en cours par personne et par rôle : la nouvelle remplace l'ancienne
-	await prisma.$transaction([
+	const [, invitation] = await prisma.$transaction([
 		prisma.invitation.deleteMany({ where: { email, kind } }),
 		prisma.invitation.create({
 			data: {
@@ -81,6 +81,7 @@ export async function inviteToJoin({
 		console.error("❌ Email d'invitation non envoyé :", error);
 		return {
 			success: true as const,
+			invitationId: invitation.id,
 			emailSent: false,
 			message: "Invitation créée, mais l'email n'a pas pu partir : utilisez « Renvoyer »"
 		};
@@ -88,6 +89,7 @@ export async function inviteToJoin({
 
 	return {
 		success: true as const,
+		invitationId: invitation.id,
 		emailSent: true,
 		message:
 			kind === 'HOST'

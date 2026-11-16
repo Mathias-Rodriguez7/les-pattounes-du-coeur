@@ -9,7 +9,24 @@
 
 	// Ce que la FA peut accueillir : logement, animaux, capacités, chats acceptés
 	interface Props {
-		host: HostFull;
+		/** Ce que la fiche affiche seulement : une candidature (pas encore de FA) peut aussi le passer */
+		host: Pick<
+			HostFull,
+			| 'space'
+			| 'outside'
+			| 'isStockFeed'
+			| 'car'
+			| 'hasAnimalsAtHome'
+			| 'numberOfCatsAtHome'
+			| 'numberOfDogsAtHome'
+			| 'otherAnimalsAtHome'
+			| 'heal'
+			| 'socialize'
+			| 'babyFeeding'
+			| 'catAdult'
+			| 'kittyAndKitten'
+			| 'kitten'
+		>;
 	}
 
 	let { host }: Props = $props();

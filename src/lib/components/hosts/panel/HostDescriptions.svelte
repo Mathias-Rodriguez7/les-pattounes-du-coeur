@@ -5,7 +5,17 @@
 
 	// Les textes libres d'une FA (seuls ceux qui sont remplis s'affichent)
 	interface Props {
-		host: HostFull;
+		/** Ce que la fiche affiche seulement : une candidature (pas encore de FA) peut aussi le passer */
+		host: Pick<
+			HostFull,
+			| 'actif'
+			| 'homeDescription'
+			| 'presence'
+			| 'outside'
+			| 'outsideDescription'
+			| 'stopActivity'
+			| 'additionalInformation'
+		>;
 	}
 
 	let { host }: Props = $props();

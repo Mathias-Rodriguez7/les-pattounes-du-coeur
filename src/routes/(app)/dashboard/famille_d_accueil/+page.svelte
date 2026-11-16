@@ -2,7 +2,18 @@
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
-	import PendingInvitations from '#lib/components/invitations/PendingInvitations.svelte';
+	import CandidateRow from '#lib/components/invitations/CandidateRow.svelte';
+	import CandidatePanel from '#lib/components/invitations/CandidatePanel.svelte';
+	import PendingCandidatesBanner from '#lib/components/invitations/PendingCandidatesBanner.svelte';
+	import HostProfile from '#lib/components/hosts/panel/HostProfile.svelte';
+	import HostDescriptions from '#lib/components/hosts/panel/HostDescriptions.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import {
+		PENDING_FILTER,
+		PENDING_FILTER_OPTION,
+		matchesCandidateSearch
+	} from '#lib/constants/invitation.ts';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -18,7 +29,8 @@
 		HOST_TYPE_OPTIONS,
 		HOST_HEAL_OPTIONS,
 		HOST_SOCIALIZE_OPTIONS,
-		HOST_BABY_FEEDING_OPTIONS
+		HOST_BABY_FEEDING_OPTIONS,
+		HOST_TYPES
 	} from '#lib/constants/host.js';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
@@ -31,12 +43,16 @@
 	const hosts = $derived(data.hosts);
 	const stats = $derived(data.stats);
 
+	const candidates = $derived(data.invitations);
+
+	// La ligne choisie : une FA, ou une candidature (invitation pas encore acceptée)
 	let selectedHostId = $state<string | null>(null);
 	const selectedHost = $derived(hosts.find((h) => h.id === selectedHostId) ?? null);
+	const selectedCandidate = $derived(candidates.find((c) => c.id === selectedHostId) ?? null);
 	const selectedHostName = $derived(
 		selectedHost
 			? `${selectedHost.profil.firstName} ${selectedHost.profil.lastName}`
-			: "Détail de la famille d'accueil"
+			: (selectedCandidate?.name ?? "Détail de la famille d'accueil")
 	);
 
 	let mobilePanelOpen = $state(false);
@@ -50,6 +66,31 @@
 	let socializeFilter = $state('');
 	let babyFilter = $state('');
 	let searchQuery = $state('');
+
+	// Le filtre « Statut » propose aussi « En attente de validation » : les candidatures seules
+	const statusOptions = [...HOST_ACTIF_OPTIONS, PENDING_FILTER_OPTION];
+	const showCandidates = $derived(actifFilter === PENDING_FILTER);
+	const filteredCandidates = $derived(
+		showCandidates ? candidates.filter((c) => matchesCandidateSearch(c, searchQuery)) : []
+	);
+
+	function showPendingCandidates() {
+		clearFilters();
+		actifFilter = PENDING_FILTER;
+	}
+
+	// Candidature annulée : plus rien à afficher
+	function handleCandidateCancelled() {
+		selectedHostId = null;
+		mobilePanelOpen = false;
+		rememberSelection(null);
+	}
+
+	// Lien renvoyé : c'est une NOUVELLE invitation, on la sélectionne
+	function handleCandidateResent(invitationId: string) {
+		selectedHostId = invitationId;
+		rememberSelection(invitationId);
+	}
 
 	function selectHost(hostId: string) {
 		selectedHostId = hostId;
@@ -69,6 +110,13 @@
 	});
 
 	function openFromLink(id: string) {
+		// Une candidature : on passe sur le filtre « En attente »
+		if (candidates.some((c) => c.id === id)) {
+			showPendingCandidates();
+			selectHost(id);
+			scrollToRow(id);
+			return;
+		}
 		if (!hosts.some((h) => h.id === id)) {
 			toast.error("Cette famille d'accueil n'est plus dans la liste.");
 			return;
@@ -145,9 +193,6 @@
 		<!-- ================= STATS ================= -->
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
 
-		<!-- ================= INSCRIPTIONS EN ATTENTE (seulement s'il y en a) ================= -->
-		<PendingInvitations invitations={data.invitations} documentName="la Convention FA" />
-
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<ListDetailLayout bind:open={mobilePanelOpen} title={selectedHostName}>
 			{#snippet list()}
@@ -160,7 +205,7 @@
 							<Card.Title class="text-xl font-bold sm:text-2xl">
 								Familles d'accueil
 								<span class="text-base font-normal text-muted-foreground">
-									({filteredHosts.length})
+									({showCandidates ? filteredCandidates.length : filteredHosts.length})
 								</span>
 							</Card.Title>
 							<Button class="rounded-2xl" size="sm" onclick={() => (newHostOpen = true)}>
@@ -189,7 +234,7 @@
 									<SelectField
 										id="host-filter-status"
 										label=""
-										options={HOST_ACTIF_OPTIONS}
+										options={statusOptions}
 										bind:value={actifFilter}
 										placeholder="Statut"
 										class="w-full sm:w-36"
@@ -229,6 +274,14 @@
 								{/snippet}
 							</TableToolbar>
 
+							<!-- Les candidatures en attente : un clic applique le filtre -->
+							<PendingCandidatesBanner
+								count={candidates.length}
+								active={showCandidates}
+								onShow={showPendingCandidates}
+								onHide={clearFilters}
+							/>
+
 							<!-- Tableau -->
 							<div class="min-h-0 flex-1 overflow-x-auto rounded-md lg:overflow-y-auto">
 								<Table.Root containerClass="overflow-visible">
@@ -259,19 +312,36 @@
 										</Table.Row>
 									</Table.Header>
 									<Table.Body>
-										{#each filteredHosts as host (host.id)}
-											<HostRow
-												{host}
-												onclick={() => handleSelectHost(host.id)}
-												isSelected={selectedHostId === host.id}
-											/>
+										{#if showCandidates}
+											{#each filteredCandidates as candidate (candidate.id)}
+												<CandidateRow
+													{candidate}
+													columns={8}
+													onclick={() => handleSelectHost(candidate.id)}
+													isSelected={selectedHostId === candidate.id}
+												/>
+											{:else}
+												<Table.Row>
+													<Table.Cell colspan={8} class="text-muted-foreground py-10 text-center">
+														Aucune candidature en attente.
+													</Table.Cell>
+												</Table.Row>
+											{/each}
 										{:else}
-											<Table.Row>
-												<Table.Cell colspan={8} class="text-muted-foreground py-10 text-center">
-													Aucune famille d'accueil ne correspond à ces filtres.
-												</Table.Cell>
-											</Table.Row>
-										{/each}
+											{#each filteredHosts as host (host.id)}
+												<HostRow
+													{host}
+													onclick={() => handleSelectHost(host.id)}
+													isSelected={selectedHostId === host.id}
+												/>
+											{:else}
+												<Table.Row>
+													<Table.Cell colspan={8} class="text-muted-foreground py-10 text-center">
+														Aucune famille d'accueil ne correspond à ces filtres.
+													</Table.Cell>
+												</Table.Row>
+											{/each}
+										{/if}
 									</Table.Body>
 								</Table.Root>
 							</div>
@@ -281,7 +351,33 @@
 			{/snippet}
 
 			{#snippet detail()}
-				<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
+				{#if selectedCandidate}
+					<CandidatePanel
+						candidate={selectedCandidate}
+						documentName="la Convention FA"
+						isAdmin={data.isAdmin}
+						onResent={handleCandidateResent}
+						onCancelled={handleCandidateCancelled}
+					>
+						{#snippet details()}
+							{#if selectedCandidate.host}
+								<div class="flex items-center gap-2">
+									<span class="text-muted-foreground">Type d'accueil prévu :</span>
+									<Badge variant="outline">
+										{selectedCandidate.host.type
+											? HOST_TYPES[selectedCandidate.host.type].label
+											: '—'}
+									</Badge>
+								</div>
+								<HostProfile host={selectedCandidate.host} />
+								<Separator />
+								<HostDescriptions host={selectedCandidate.host} />
+							{/if}
+						{/snippet}
+					</CandidatePanel>
+				{:else}
+					<HostPanel host={selectedHost} isAdmin={data.isAdmin} />
+				{/if}
 			{/snippet}
 		</ListDetailLayout>
 	</div>

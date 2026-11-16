@@ -6,7 +6,7 @@ import { createVolunteer, updateVolunteer } from '#lib/server/volunteers/mutatio
 import { createHost } from '#lib/server/hosts/mutations.ts';
 import { deleteProfile } from '#lib/server/mutations.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
-import { pendingInvitations } from '#lib/server/invitations/queries.ts';
+import { pendingVolunteerInvitations } from '#lib/server/invitations/queries.ts';
 import { cancelInvitationAction, resendInvitationAction } from '#lib/server/invitations/actions.ts';
 import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
@@ -137,8 +137,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 		return {
 			volunteers,
-			// Les inscriptions envoyées, pas encore acceptées (encart « Inscriptions en attente »)
-			invitations: await pendingInvitations('VOLUNTEER'),
+			// Les candidatures (invitations pas encore acceptées) : affichées dans la liste, filtre « En attente »
+			invitations: await pendingVolunteerInvitations(),
 			stats: {
 				totalVolunteers,
 				incompleteProfiles,
