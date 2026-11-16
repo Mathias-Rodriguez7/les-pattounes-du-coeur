@@ -3,7 +3,6 @@
 	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { Plus, LoaderCircle } from '@lucide/svelte';
 	import SelectField from '../fields/SelectField.svelte';
-	import InputField from '../fields/InputField.svelte';
 	import TextareaField from '../fields/TextareaField.svelte';
 	import DatePicker from '../fields/DatePicker.svelte';
 	import MediaUpload from '../media/MediaUpload.svelte';
@@ -11,6 +10,8 @@
 	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
+	import VeterinarianSelect from '#lib/components/veterinarians/VeterinarianSelect.svelte';
+	import type { VeterinarianOption } from '#lib/server/veterinarians/queries.ts';
 
 	type SicknessOption = { id: string; name: string; status: string };
 
@@ -18,9 +19,11 @@
 		catId: string;
 		/** Les maladies du chat, pour lier le soin à l'une d'elles */
 		sicknesses?: SicknessOption[];
+		/** La liste des vétérinaires (page Vétérinaires), pour le champ « Vétérinaire » */
+		veterinarians?: VeterinarianOption[];
 	}
 
-	let { catId, sicknesses = [] }: Props = $props();
+	let { catId, sicknesses = [], veterinarians = [] }: Props = $props();
 
 	const MAX_DOCUMENTS = 5;
 
@@ -28,6 +31,8 @@
 	let type = $state('CONTROL');
 	let date = $state<Date | undefined>(new Date());
 	let reason = $state('');
+	// Le vétérinaire : un de la liste (son id), '' (non précisé) ou « Autre… » + le nom saisi
+	let veterinarianChoice = $state('');
 	let veterinary = $state('');
 	let description = $state('');
 	let sicknessId = $state('');
@@ -47,6 +52,7 @@
 		type = 'CONTROL';
 		date = new Date();
 		reason = '';
+		veterinarianChoice = '';
 		veterinary = '';
 		description = '';
 		sicknessId = '';
@@ -151,14 +157,13 @@
 				required
 			/>
 
-			<!-- Véto + maladie liée -->
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<InputField
-					id="care-veterinary"
-					name="veterinary"
-					label="Vétérinaire (facultatif)"
-					bind:value={veterinary}
-					placeholder="Nom de la clinique ou du véto"
+			<!-- Véto + maladie liée : le véto prend toute la largeur s'il n'y a pas de maladie -->
+			<div class="grid grid-cols-1 gap-4 {sicknesses.length > 0 ? 'sm:grid-cols-2' : ''}">
+				<VeterinarianSelect
+					{veterinarians}
+					bind:choice={veterinarianChoice}
+					bind:other={veterinary}
+					disabled={submitting}
 				/>
 
 				{#if sicknesses.length > 0}
