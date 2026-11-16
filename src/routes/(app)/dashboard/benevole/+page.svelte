@@ -2,6 +2,7 @@
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
+	import PendingInvitations from '#lib/components/invitations/PendingInvitations.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -104,6 +105,12 @@
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- ================= STATS ================= -->
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
+
+		<!-- ================= INSCRIPTIONS EN ATTENTE (seulement s'il y en a) ================= -->
+		<PendingInvitations
+			invitations={data.invitations}
+			documentName="le Manuel de la gestionnaire"
+		/>
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<ListDetailLayout bind:open={mobilePanelOpen} title={selectedVolunteerName}>

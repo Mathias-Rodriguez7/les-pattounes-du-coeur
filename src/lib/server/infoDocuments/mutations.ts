@@ -134,6 +134,16 @@ export async function deleteInfoDocument({ request, locals }: Args): Promise<Res
 	});
 	if (!document) return { success: false, error: 'Document introuvable' };
 
+	// Déjà accepté (convention FA, manuel) : c'est la preuve de leur engagement, on le garde.
+	// (La base le refuserait de toute façon : onDelete: Restrict ; ici, avec un vrai message)
+	const acceptances = await prisma.charterAcceptance.count({ where: { documentId: document.id } });
+	if (acceptances > 0) {
+		return {
+			success: false,
+			error: `Ce document a été accepté par ${acceptances} personne${acceptances > 1 ? 's' : ''} : il ne peut plus être supprimé. Pour le remplacer, déposez simplement une nouvelle version.`
+		};
+	}
+
 	// Le document d'abord (il pointe vers le fichier), puis le fichier
 	await prisma.infoDocument.delete({ where: { id: document.id } });
 	await deleteMedia([document.file]);
