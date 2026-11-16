@@ -6,7 +6,10 @@ export const INFO_DOCUMENT_CATEGORY = {
 	CONTRACT: { label: 'Contrat', plural: 'Contrats' },
 	HEALTH: { label: 'Santé', plural: 'Santé' },
 	ADOPTION: { label: 'Adoption', plural: 'Adoption' },
-	OTHER: { label: 'Autre', plural: 'Autres' }
+	OTHER: { label: 'Autre', plural: 'Autres' },
+	// À accepter à l'inscription : le plus récent de la catégorie fait foi
+	FA_CHARTER: { label: 'Convention FA', plural: 'Convention FA' },
+	VOLUNTEER_CHARTER: { label: 'Manuel de la gestionnaire', plural: 'Manuel de la gestionnaire' }
 } satisfies Record<InfoDocumentCategory, { label: string; plural: string }>;
 
 /** L'ordre d'affichage des groupes (Object.keys garde l'ordre d'écriture) */

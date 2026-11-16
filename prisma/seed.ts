@@ -926,7 +926,6 @@ async function main() {
 			password: await hashPassword('admin123'),
 			role: 'ADMIN',
 			actif: 'ACTIVE',
-			isFlexibleDispatcher: true,
 			profilId: adminProfil.id
 		}
 	});
@@ -935,7 +934,6 @@ async function main() {
 			password: await hashPassword('manager123'),
 			role: 'MANAGER',
 			actif: 'ACTIVE',
-			isFlexibleDispatcher: false,
 			profilId: managerProfil.id
 		}
 	});
@@ -944,7 +942,6 @@ async function main() {
 			password: await hashPassword('comm123'),
 			role: 'COMMUNICATION',
 			actif: 'ACTIVE',
-			isFlexibleDispatcher: false,
 			profilId: commProfil.id
 		}
 	});
@@ -974,7 +971,6 @@ async function main() {
 						{ weight: 2, value: VOLUNTEER_ROLE[2] }
 					]),
 					actif,
-					isFlexibleDispatcher: false,
 					...(actif === 'BREAK' ? generateBreakDates() : { breakStart: null, breakEnd: null }),
 					profilId: profils[i].id
 				}

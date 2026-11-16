@@ -29,6 +29,7 @@ model Profil {
   host          Host?
   blacklists    BlacklistHistoric[]
   adoptions     Adoption[]
+  charterAcceptances CharterAcceptance[]
 }
 
 model Volunteer {
@@ -40,7 +41,6 @@ model Volunteer {
   actif                ColabActivity?
   profilId             String @unique @db.Uuid @map("profil_id")
   profil               Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
-  isFlexibleDispatcher Boolean @default(false)
 
   breakStart           DateTime? @map("break_start")
   breakEnd             DateTime? @map("break_end")
@@ -51,6 +51,7 @@ model Volunteer {
   cats                 CatVolunteer[]
   sessions             Session[]
   assignedForms        Form[] @relation("assignedForms")
+  createdInvitations   Invitation[] @relation("createdInvitations")
 }
 
 model Host {
@@ -286,6 +287,10 @@ model InfoDocument {
   createdAt   DateTime             @default(now()) @map("createdAt")
   updatedAt   DateTime             @updatedAt @map("updatedAt")
 
+  // Les acceptations de ce document (convention FA, manuel bénévole) : on ne peut plus
+  // le supprimer une fois accepté (onDelete: Restrict côté CharterAcceptance)
+  acceptances CharterAcceptance[]
+
   @@index([category])
 }
 
@@ -412,6 +417,39 @@ model Form {
   @@index([status])
   @@index([assignedToId])
   @@index([catId])
+}
+
+model Invitation {
+  id          String         @id @default(uuid()) @db.Uuid
+  kind        InvitationKind
+  email       String         @db.VarChar(100)
+  /// Les données du formulaire de création, déjà validées (createHostSchema / createVolunteerSchema)
+  data        Json
+  /// sha256 du jeton envoyé par email : le jeton lui-même n'est jamais stocké
+  tokenHash   String         @unique @map("token_hash") @db.VarChar(64)
+  expiresAt   DateTime       @map("expires_at")
+  /// La demande (formulaire public) à l'origine de la création, s'il y en a une
+  formId      String?        @map("form_id") @db.Uuid
+  createdById String?        @map("created_by_id") @db.Uuid
+  createdBy   Volunteer?     @relation("createdInvitations", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime       @default(now()) @map("createdAt")
+
+  @@index([kind])
+  @@index([email])
+}
+
+/// La preuve : telle personne a accepté tel document, à telle date
+model CharterAcceptance {
+  id         String       @id @default(uuid()) @db.Uuid
+  profilId   String       @map("profil_id") @db.Uuid
+  profil     Profil       @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  documentId String       @map("document_id") @db.Uuid
+  document   InfoDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  acceptedAt DateTime     @default(now()) @map("accepted_at")
+
+  @@unique([profilId, documentId])
+  @@index([documentId])
 }
 
 //////////////////////////
@@ -571,4 +609,11 @@ enum InfoDocumentCategory {
   HEALTH
   ADOPTION
   OTHER
+  FA_CHARTER        // Convention FA, à accepter avant la création d'une FA (le plus récent fait foi)
+  VOLUNTEER_CHARTER // Manuel de la gestionnaire, à accepter avant la création d'une bénévole
+}
+
+enum InvitationKind {
+  HOST
+  VOLUNTEER
 }
