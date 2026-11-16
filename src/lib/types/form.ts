@@ -79,6 +79,10 @@ export type HostFormData = {
 	numberOfCatsAtHome?: number;
 	numberOfDogsAtHome?: number;
 	otherAnimalsAtHome?: string;
+	adultsAtHome?: number | null;
+	teensAtHome?: number | null;
+	childrenAtHome?: number | null;
+	babiesAtHome?: number | null;
 	homeDescription: string;
 	type: string;
 	heal: string;

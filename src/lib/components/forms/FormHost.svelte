@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { HOUSEHOLD_FIELDS } from '#lib/hosts/household.ts';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { get } from 'svelte/store';
@@ -365,6 +366,27 @@
 				}
 			/>
 		{/if}
+
+		<!-- Composition du foyer (facultative) : les 4 champs viennent de HOUSEHOLD_FIELDS -->
+		<fieldset class="space-y-3">
+			<legend class="text-sm font-medium">Qui vit chez vous ?</legend>
+			<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+				{#each HOUSEHOLD_FIELDS as field (field.key)}
+					<InputField
+						id={field.key}
+						name={field.key}
+						label={`${field.label} (${field.hint})`}
+						type="number"
+						placeholder="0"
+						bind:value={
+							() => $formData[field.key] ?? '', (v) => ($formData[field.key] = toNullableNumber(v))
+						}
+						error={$errors[field.key]?.[0]}
+						size="sm"
+					/>
+				{/each}
+			</div>
+		</fieldset>
 	</div>
 
 	<!-- STEP 3 -->

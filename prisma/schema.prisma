@@ -69,6 +69,11 @@ model Host {
   numberOfCatsAtHome    Int? @map("number_of_cats_at_home")
   numberOfDogsAtHome    Int? @map("number_of_dogs_at_home")
   otherAnimalsAtHome    String? @map("other_animals_at_home")
+  // Composition du foyer (null = pas encore renseignée, ex : FA créées avant ce champ)
+  adultsAtHome          Int? @map("adults_at_home")
+  teensAtHome           Int? @map("teens_at_home")
+  childrenAtHome        Int? @map("children_at_home")
+  babiesAtHome          Int? @map("babies_at_home")
   space                 Int
   homeDescription       String @map("home_description") @db.Text
   presence              String @db.VarChar(255)

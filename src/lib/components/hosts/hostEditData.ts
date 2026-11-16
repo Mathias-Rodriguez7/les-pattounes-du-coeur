@@ -35,6 +35,11 @@ export function emptyHostEditData(): HostEditData {
 		numberOfCatsAtHome: 0,
 		numberOfDogsAtHome: 0,
 		otherAnimalsAtHome: '',
+		// Composition du foyer
+		adultsAtHome: null,
+		teensAtHome: null,
+		childrenAtHome: null,
+		babiesAtHome: null,
 		// Capacités
 		heal: 'NO' as Heal,
 		socialize: 'NO' as Socialize,
@@ -80,6 +85,11 @@ export function hostToEditData(host: HostFull): HostEditData {
 		numberOfCatsAtHome: host.numberOfCatsAtHome || 0,
 		numberOfDogsAtHome: host.numberOfDogsAtHome || 0,
 		otherAnimalsAtHome: host.otherAnimalsAtHome || '',
+
+		adultsAtHome: host.adultsAtHome,
+		teensAtHome: host.teensAtHome,
+		childrenAtHome: host.childrenAtHome,
+		babiesAtHome: host.babiesAtHome,
 
 		heal: host.heal,
 		socialize: host.socialize,

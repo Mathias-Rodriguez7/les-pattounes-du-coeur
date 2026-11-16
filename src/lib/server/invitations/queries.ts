@@ -64,7 +64,11 @@ export async function pendingHostInvitations() {
 						additionalInformation: parsed.data.additionalInformation ?? null,
 						numberOfCatsAtHome: parsed.data.numberOfCatsAtHome ?? null,
 						numberOfDogsAtHome: parsed.data.numberOfDogsAtHome ?? null,
-						otherAnimalsAtHome: parsed.data.otherAnimalsAtHome ?? null
+						otherAnimalsAtHome: parsed.data.otherAnimalsAtHome ?? null,
+						adultsAtHome: parsed.data.adultsAtHome ?? null,
+						teensAtHome: parsed.data.teensAtHome ?? null,
+						childrenAtHome: parsed.data.childrenAtHome ?? null,
+						babiesAtHome: parsed.data.babiesAtHome ?? null
 					}
 				: null
 		};

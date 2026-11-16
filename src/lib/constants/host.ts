@@ -1,4 +1,4 @@
-import type { HostType } from '@prisma/client';
+import type { BabyFeeding, Heal, HostType, Socialize } from '@prisma/client';
 import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
 
 /**
@@ -26,26 +26,69 @@ export const HOST_ACTIF_OPTIONS = [
 /** Pour les SelectField (filtres, formulaires) */
 export const HOST_TYPE_OPTIONS = hostTypeEntries.map(([value, { label }]) => ({ value, label }));
 
-export const HOST_HEAL_OPTIONS = [
-	{ value: 'NO', label: 'Non' },
-	{ value: 'LIGHT', label: 'Légé' },
-	{ value: 'HEAVY', label: 'Lourd' },
-	{ value: 'HEAVY_STING', label: 'Lourd avec seringue' }
-] satisfies Array<{ value: string; label: string }>;
+// =====================================================================
+// Soins, sociabilisation, biberonnage : chaque option écrite UNE fois.
+// label : formulaires, survol | short : badges | level : sa place sur l'échelle (0 à 3)
+// La couleur vient du NIVEAU, la même pour les trois : on lit l'échelle d'un coup d'œil.
+// Les options sont écrites dans l'ordre des niveaux : c'est l'ordre des listes déroulantes.
+// =====================================================================
 
-export const HOST_SOCIALIZE_OPTIONS = [
-	{ value: 'NO', label: 'Non' },
-	{ value: 'FEARFUL', label: 'Craintive' },
-	{ value: 'WITHOUT_EX', label: 'Sans xp' },
-	{ value: 'EXPERIENCED', label: 'Expérimenté' }
-] satisfies Array<{ value: string; label: string }>;
+export type HostLevel = 0 | 1 | 2 | 3;
 
-export const HOST_BABY_FEEDING_OPTIONS = [
-	{ value: 'NO', label: 'Non' },
-	{ value: 'WITHOUT_EX', label: 'Sans xp' },
-	{ value: 'EXPERIENCED', label: 'Expérimenté' },
-	{ value: 'RELAY', label: 'Relai' }
-] satisfies Array<{ value: string; label: string }>;
+/** L'échelle commune : 0 = non (gris, ce n'est pas une erreur), 3 = le plus fort (vert) */
+export const LEVEL_COLORS: Record<HostLevel, string> = {
+	0: 'bg-gray-100 text-gray-700',
+	1: 'bg-amber-100 text-amber-800',
+	2: 'bg-blue-100 text-blue-800',
+	3: 'bg-green-100 text-green-800'
+};
+
+type LevelInfo = { label: string; short: string; level: HostLevel };
+
+export const HOST_HEAL: Record<Heal, LevelInfo> = {
+	NO: { label: 'Pas de soins', short: 'Aucun', level: 0 },
+	LIGHT: { label: 'Soins légers : comprimés, collyre', short: 'Légers', level: 1 },
+	HEAVY: { label: 'Soins lourds : pansements, suivi quotidien', short: 'Lourds', level: 2 },
+	HEAVY_STING: { label: 'Soins lourds avec injections', short: 'Injections', level: 3 }
+};
+
+export const HOST_SOCIALIZE: Record<Socialize, LevelInfo> = {
+	NO: { label: 'Ne sociabilise pas', short: 'Non', level: 0 },
+	WITHOUT_EX: { label: 'Sans expérience', short: 'Débutante', level: 1 },
+	EXPERIENCED: { label: 'Expérimentée', short: 'Confirmée', level: 2 },
+	// Le plus fort : elle sait gérer les chats les plus difficiles
+	FEARFUL: { label: 'Spécialiste des craintifs', short: 'Craintifs', level: 3 }
+};
+
+export const HOST_BABY_FEEDING: Record<BabyFeeding, LevelInfo> = {
+	NO: { label: 'Pas de biberonnage', short: 'Non', level: 0 },
+	// Relais : seulement des relais courts, donc moins qu'une FA qui biberonne seule
+	RELAY: { label: 'En relais seulement', short: 'Relais', level: 1 },
+	WITHOUT_EX: { label: 'Sans expérience', short: 'Débutante', level: 2 },
+	EXPERIENCED: { label: 'Expérimentée', short: 'Confirmée', level: 3 }
+};
+
+/** La couleur du badge d'une option (gris si la valeur est inconnue) */
+export function levelColor(info: LevelInfo | undefined): string {
+	return LEVEL_COLORS[info?.level ?? 0];
+}
+
+/** Pour les SelectField (filtres, formulaires) : le libellé complet */
+const toOptions = <K extends string>(levels: Record<K, LevelInfo>) =>
+	(Object.entries(levels) as [K, LevelInfo][]).map(([value, { label }]) => ({ value, label }));
+
+/** Pour les badges des listes : le libellé court et la couleur du niveau */
+const toColors = <K extends string>(levels: Record<K, LevelInfo>) =>
+	Object.fromEntries(
+		(Object.entries(levels) as [K, LevelInfo][]).map(([value, info]) => [
+			value,
+			{ label: info.short, color: levelColor(info) }
+		])
+	) as Record<string, { label: string; color: string }>;
+
+export const HOST_HEAL_OPTIONS = toOptions(HOST_HEAL);
+export const HOST_SOCIALIZE_OPTIONS = toOptions(HOST_SOCIALIZE);
+export const HOST_BABY_FEEDING_OPTIONS = toOptions(HOST_BABY_FEEDING);
 
 export const HOST_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
@@ -54,6 +97,7 @@ export const HOST_SECTION_CONFIG = {
 	Experience: { icon: 'star', label: 'Expérience', color: 'amber' },
 	home: { icon: 'house', label: "Zone d'accueil", color: 'blue' },
 	animals: { icon: 'paw', label: 'Animaux', color: 'orange' },
+	household: { icon: 'users', label: 'Composition du foyer', color: 'teal' },
 	capacity: { icon: 'biceps', label: 'Capacités', color: 'indigo' },
 	cat: { icon: 'cat', label: 'Type de chats', color: 'fuchsia' },
 	homeDescription: { icon: 'house', label: 'Description du domicile', color: 'blue' },
@@ -73,21 +117,9 @@ export const typesColors: Record<string, { label: string; color: string }> = Obj
 	hostTypeEntries.map(([value, { short, color }]) => [value, { label: short, color }])
 );
 
-// Couleur pour les soins
-export const healColors: Record<string, { label: string; color: string }> = {
-	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
-	LIGHT: { label: 'Léger', color: 'bg-orange-100 text-orange-800' },
-	HEAVY: { label: 'Lourd', color: 'bg-green-100 text-green-800' },
-	HEAVY_STING: { label: 'Lourd+', color: 'bg-cyan-100 text-cyan-800' }
-};
+export const healColors = toColors(HOST_HEAL);
 
-// Couleur pour les socia
-export const socializeColors: Record<string, { label: string; color: string }> = {
-	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
-	FEARFUL: { label: 'Cra', color: 'bg-orange-100 text-orange-800' },
-	WITHOUT_EX: { label: 'XP-', color: 'bg-green-100 text-green-800' },
-	EXPERIENCED: { label: 'XP+', color: 'bg-cyan-100 text-cyan-800' }
-};
+export const socializeColors = toColors(HOST_SOCIALIZE);
 
 export const statusColors: Record<string, { label: string; color: string }> = {
 	ACTIVE: { label: 'Actif', color: 'bg-green-100 text-green-800' },
@@ -95,12 +127,7 @@ export const statusColors: Record<string, { label: string; color: string }> = {
 	STOP: { label: 'Arrêté', color: 'bg-red-100 text-red-800' }
 };
 
-export const babyFeedingColors: Record<string, { label: string; color: string }> = {
-	NO: { label: 'Non', color: 'bg-red-100 text-red-800' },
-	WITHOUT_EX: { label: 'Sans xp', color: 'bg-purple-100 text-purple-800' },
-	EXPERIENCED: { label: 'Expérimenté', color: 'bg-pink-100 text-pink-800' },
-	RELAY: { label: 'Relais', color: 'bg-blue-100 text-blue-800' }
-};
+export const babyFeedingColors = toColors(HOST_BABY_FEEDING);
 
 export const STATUS_CONFIG: Record<string, { label: string; icon: string; theme: string }> = {
 	ACTIVE: { label: 'En activité', icon: 'CirclePlay', theme: 'activ' },

@@ -1,6 +1,7 @@
 <script lang="ts">
+	import HostHouseholdView from './HostHouseholdView.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import { healLabel, socializeLabel, babyFeedingLabel } from '#lib/types/index.ts';
+	import { HOST_BABY_FEEDING, HOST_HEAL, HOST_SOCIALIZE, levelColor } from '#lib/constants/host.ts';
 	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
@@ -20,6 +21,10 @@
 			| 'numberOfCatsAtHome'
 			| 'numberOfDogsAtHome'
 			| 'otherAnimalsAtHome'
+			| 'adultsAtHome'
+			| 'teensAtHome'
+			| 'childrenAtHome'
+			| 'babiesAtHome'
 			| 'heal'
 			| 'socialize'
 			| 'babyFeeding'
@@ -102,6 +107,9 @@
 		</div>
 	</SectionCard>
 
+	<!-- Composition du foyer -->
+	<HostHouseholdView data={host} />
+
 	<!-- Capacités -->
 	<SectionCard
 		icon={HOST_SECTION_CONFIG.capacity.icon}
@@ -111,20 +119,29 @@
 		<div class="space-y-3">
 			<div class="flex items-center justify-between">
 				<p class="font-medium text-muted-foreground">Soins</p>
-				<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-					{healLabel[host.heal]}
+				<Badge
+					class="h-fit text-xs {levelColor(HOST_HEAL[host.heal])}"
+					title={HOST_HEAL[host.heal]?.label}
+				>
+					{HOST_HEAL[host.heal]?.short}
 				</Badge>
 			</div>
 			<div class="flex items-center justify-between">
 				<p class="font-medium text-muted-foreground">Socialisation</p>
-				<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-					{socializeLabel[host.socialize]}
+				<Badge
+					class="h-fit text-xs {levelColor(HOST_SOCIALIZE[host.socialize])}"
+					title={HOST_SOCIALIZE[host.socialize]?.label}
+				>
+					{HOST_SOCIALIZE[host.socialize]?.short}
 				</Badge>
 			</div>
 			<div class="flex items-center justify-between">
 				<p class="font-medium text-muted-foreground">Biberonnage</p>
-				<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-					{babyFeedingLabel[host.babyFeeding]}
+				<Badge
+					class="h-fit text-xs {levelColor(HOST_BABY_FEEDING[host.babyFeeding])}"
+					title={HOST_BABY_FEEDING[host.babyFeeding]?.label}
+				>
+					{HOST_BABY_FEEDING[host.babyFeeding]?.short}
 				</Badge>
 			</div>
 		</div>

@@ -6,7 +6,9 @@ import type {
 	Socialize,
 	BabyFeeding
 } from '@prisma/client';
-import { HOST_TYPES } from '#lib/constants/host.ts';
+import { HOST_BABY_FEEDING, HOST_HEAL, HOST_SOCIALIZE, HOST_TYPES } from '#lib/constants/host.ts';
+
+// Soins, sociabilisation, biberonnage : dérivés de constants/host.ts (libellé complet)
 
 // Dérivé de HOST_TYPES (constants/host.ts) : un seul endroit pour les libellés
 export const hostTypeLabel = Object.fromEntries(
@@ -19,26 +21,17 @@ export const colabActivityLabel: Record<ColabActivity, string> = {
 	STOP: 'Arrêté'
 };
 
-export const healLabel: Record<Heal, string> = {
-	NO: 'Non',
-	LIGHT: 'Léger',
-	HEAVY: 'Lourd',
-	HEAVY_STING: 'Seringue'
-};
+export const healLabel = Object.fromEntries(
+	Object.entries(HOST_HEAL).map(([value, { label }]) => [value, label])
+) as Record<Heal, string>;
 
-export const socializeLabel: Record<Socialize, string> = {
-	NO: 'Non',
-	FEARFUL: 'Craintif',
-	WITHOUT_EX: 'Sans XP',
-	EXPERIENCED: 'Avec XP'
-};
+export const socializeLabel = Object.fromEntries(
+	Object.entries(HOST_SOCIALIZE).map(([value, { label }]) => [value, label])
+) as Record<Socialize, string>;
 
-export const babyFeedingLabel: Record<BabyFeeding, string> = {
-	NO: 'Non',
-	WITHOUT_EX: 'Sans XP',
-	EXPERIENCED: 'Avec XP',
-	RELAY: 'Relais'
-};
+export const babyFeedingLabel = Object.fromEntries(
+	Object.entries(HOST_BABY_FEEDING).map(([value, { label }]) => [value, label])
+) as Record<BabyFeeding, string>;
 
 export const FORM_TYPE_CONFIG: Record<FormType, { icon: string; theme: string }> = {
 	ADOPTION_FLEXIBLE: { icon: 'heart', theme: 'adoptions' },

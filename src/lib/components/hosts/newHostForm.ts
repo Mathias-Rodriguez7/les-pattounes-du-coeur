@@ -27,6 +27,11 @@ export type NewHostForm = PersonForm & {
 	numberOfCatsAtHome: string;
 	numberOfDogsAtHome: string;
 	otherAnimalsAtHome: string;
+	// Composition du foyer
+	adultsAtHome: string;
+	teensAtHome: string;
+	childrenAtHome: string;
+	babiesAtHome: string;
 	// Capacités
 	heal: string;
 	socialize: string;
@@ -57,6 +62,10 @@ export function emptyNewHostForm(): NewHostForm {
 		numberOfCatsAtHome: '',
 		numberOfDogsAtHome: '',
 		otherAnimalsAtHome: '',
+		adultsAtHome: '',
+		teensAtHome: '',
+		childrenAtHome: '',
+		babiesAtHome: '',
 		heal: 'NO',
 		socialize: 'NO',
 		babyFeeding: 'NO',
@@ -99,6 +108,10 @@ export function newHostFormFrom(data: NewHostInitialData): NewHostForm {
 		numberOfCatsAtHome: text('numberOfCatsAtHome'),
 		numberOfDogsAtHome: text('numberOfDogsAtHome'),
 		otherAnimalsAtHome: text('otherAnimalsAtHome'),
+		adultsAtHome: text('adultsAtHome'),
+		teensAtHome: text('teensAtHome'),
+		childrenAtHome: text('childrenAtHome'),
+		babiesAtHome: text('babiesAtHome'),
 		heal: text('heal'),
 		socialize: text('socialize'),
 		babyFeeding: text('babyFeeding'),
@@ -128,6 +141,11 @@ export function toCreateHostInput(form: NewHostForm) {
 		numberOfCatsAtHome: int(form.numberOfCatsAtHome) ?? null,
 		numberOfDogsAtHome: int(form.numberOfDogsAtHome) ?? null,
 		otherAnimalsAtHome: form.otherAnimalsAtHome.trim() || undefined,
+		// Vide = pas renseigné (null), pas 0
+		adultsAtHome: int(form.adultsAtHome) ?? null,
+		teensAtHome: int(form.teensAtHome) ?? null,
+		childrenAtHome: int(form.childrenAtHome) ?? null,
+		babiesAtHome: int(form.babiesAtHome) ?? null,
 		heal: form.heal,
 		socialize: form.socialize,
 		babyFeeding: form.babyFeeding,

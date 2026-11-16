@@ -1,4 +1,5 @@
 <script lang="ts">
+	import HostHouseholdFields from '#lib/components/hosts/fields/HostHouseholdFields.svelte';
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
 	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
@@ -229,6 +230,9 @@
 
 				<!-- Animaux -->
 				<HostAnimalsFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
+
+				<!-- Composition du foyer -->
+				<HostHouseholdFields bind:data={form} errors={fieldErrors} disabled={isSubmitting} />
 
 				<!-- Capacités -->
 				<HostCapacityFields bind:data={form} disabled={isSubmitting} />

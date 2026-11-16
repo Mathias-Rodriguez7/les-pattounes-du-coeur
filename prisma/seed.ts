@@ -624,6 +624,16 @@ function someAnimals(maxCats: number, maxDogs: number) {
 	return animals;
 }
 
+/** Qui vit chez la FA : 1 ou 2 adultes, et parfois des ados, enfants ou bébés */
+function someHousehold() {
+	return {
+		adultsAtHome: int(1, 2),
+		teensAtHome: randomBool(0.25) ? int(1, 2) : 0,
+		childrenAtHome: randomBool(0.35) ? int(1, 3) : 0,
+		babiesAtHome: randomBool(0.15) ? 1 : 0
+	};
+}
+
 function generateBreakDates() {
 	return { breakStart: daysAgo(int(1, 60)), breakEnd: addDays(now, int(1, 90)) };
 }
@@ -655,6 +665,7 @@ function hostAnswers() {
 		numberOfCatsAtHome: animals?.cats ?? null,
 		numberOfDogsAtHome: animals?.dogs ?? null,
 		otherAnimalsAtHome: animals?.other ?? null,
+		...someHousehold(),
 		space: int(25, 180),
 		homeDescription: pick(HOME_DESCRIPTIONS),
 		presence: pick(PRESENCES),

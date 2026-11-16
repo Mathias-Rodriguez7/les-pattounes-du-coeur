@@ -213,12 +213,7 @@
 				<h3 class="text-sm font-semibold">Choisir une ou plusieurs familles d'accueil</h3>
 				<!-- Le tableau défile horizontalement s'il est trop large, sans élargir la fenêtre -->
 				<div class="overflow-x-auto">
-					<HostDataTable
-						{cat}
-						{hosts}
-						{selectedHostIds}
-						onSelectionChange={handleSelectionChange}
-					/>
+					<HostDataTable {hosts} {selectedHostIds} onSelectionChange={handleSelectionChange} />
 				</div>
 			</section>
 

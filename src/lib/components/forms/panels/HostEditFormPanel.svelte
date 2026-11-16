@@ -1,4 +1,5 @@
 <script lang="ts">
+	import HostHouseholdFields from '#lib/components/hosts/fields/HostHouseholdFields.svelte';
 	import PersonProfileFields from '#lib/components/person/PersonProfileFields.svelte';
 	import PersonContactFields from '#lib/components/person/PersonContactFields.svelte';
 	import PersonAddressFields from '#lib/components/person/PersonAddressFields.svelte';
@@ -140,6 +141,8 @@
 			<HostHomeFields bind:data={editData.data} errors={formErrors} withStockFeed={false} />
 
 			<HostAnimalsFields bind:data={editData.data} errors={formErrors} />
+
+			<HostHouseholdFields bind:data={editData.data} errors={formErrors} />
 
 			<HostCapacityFields bind:data={editData.data} withType />
 

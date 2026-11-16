@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { householdShape } from '#lib/hosts/household.ts';
 import { District, HostType, Heal, Socialize, BabyFeeding } from '@prisma/client';
 import { booleanField, emailField } from '#lib/schemas/fields.ts';
 
@@ -57,6 +58,8 @@ export const hostStep2Schema = z.object({
 	numberOfCatsAtHome: z.coerce.number().int().min(0).nullable().optional(),
 	numberOfDogsAtHome: z.coerce.number().int().min(0).nullable().optional(),
 	otherAnimalsAtHome: z.string().nullable().optional(),
+	// Composition du foyer (facultative)
+	...householdShape,
 	homeDescription: z.string().min(10, 'La description doit contenir au moins 10 caractères')
 });
 

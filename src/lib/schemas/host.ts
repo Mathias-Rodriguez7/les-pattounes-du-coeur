@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { householdShape } from '#lib/hosts/household.ts';
 import { District, HostType, Heal, Socialize, BabyFeeding, ColabActivity } from '@prisma/client';
 import { emailField } from '#lib/schemas/fields.ts';
 
@@ -67,6 +68,9 @@ export const createHostSchema = z.object({
 	numberOfCatsAtHome: z.coerce.number().int().min(0).nullable().optional(),
 	numberOfDogsAtHome: z.coerce.number().int().min(0).nullable().optional(),
 	otherAnimalsAtHome: z.string().nullable().optional(),
+
+	// Composition du foyer (facultative : null = pas renseignée)
+	...householdShape,
 
 	// Capacités
 	heal: healEnum,

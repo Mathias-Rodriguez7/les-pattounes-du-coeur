@@ -1,4 +1,5 @@
 <script lang="ts">
+	import HostHouseholdView from '#lib/components/hosts/panel/HostHouseholdView.svelte';
 	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
@@ -16,7 +17,7 @@
 	import { Pencil } from '@lucide/svelte';
 	import { HOST_SECTION_CONFIG, TYPE_COLORS } from '#lib/constants/host.ts';
 	import BooleanIcon from '#lib/components/icons/BooleanIcon.svelte';
-	import { healLabel, socializeLabel, babyFeedingLabel } from '#lib/types//index.ts';
+	import { HOST_BABY_FEEDING, HOST_HEAL, HOST_SOCIALIZE, levelColor } from '#lib/constants/host.ts';
 	import type { Heal, Socialize, BabyFeeding } from '@prisma/client';
 	import NewHostDialog from '#lib/components/hosts/NewHostDialog.svelte';
 	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
@@ -169,7 +170,7 @@
 					>
 						<div class="space-y-2 text-xs">
 							<div class="flex items-center justify-between border-b border-orange-100 pb-2">
-								<span class="font-medium text-muted-foreground">Animeaux dans le foyer</span>
+								<span class="font-medium text-muted-foreground">Animaux dans le foyer</span>
 								<BooleanIcon value={hostData.hasAnimalsAtHome} />
 							</div>
 
@@ -200,6 +201,9 @@
 						</div>
 					</SectionCard>
 
+					<!-- 👪 COMPOSITION DU FOYER -->
+					<HostHouseholdView data={hostData} />
+
 					<SectionCard
 						icon={HOST_SECTION_CONFIG.capacity.icon}
 						title={HOST_SECTION_CONFIG.capacity.label}
@@ -208,20 +212,33 @@
 						<div class="space-y-3">
 							<div class="flex items-center justify-between">
 								<p class="font-medium text-muted-foreground">Soins</p>
-								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{healLabel[hostData.heal as Heal]}
+								<Badge
+									class="h-fit text-xs {levelColor(HOST_HEAL[hostData.heal as Heal])}"
+									title={HOST_HEAL[hostData.heal as Heal]?.label}
+								>
+									{HOST_HEAL[hostData.heal as Heal]?.short}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
 								<p class="font-medium text-muted-foreground">Socialisation</p>
-								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{socializeLabel[hostData.socialize as Socialize]}
+								<Badge
+									class="h-fit text-xs {levelColor(
+										HOST_SOCIALIZE[hostData.socialize as Socialize]
+									)}"
+									title={HOST_SOCIALIZE[hostData.socialize as Socialize]?.label}
+								>
+									{HOST_SOCIALIZE[hostData.socialize as Socialize]?.short}
 								</Badge>
 							</div>
 							<div class="flex items-center justify-between">
 								<p class="font-medium text-muted-foreground">Biberonnage</p>
-								<Badge class="h-fit bg-indigo-100 text-xs text-indigo-800">
-									{babyFeedingLabel[hostData.babyFeeding as BabyFeeding]}
+								<Badge
+									class="h-fit text-xs {levelColor(
+										HOST_BABY_FEEDING[hostData.babyFeeding as BabyFeeding]
+									)}"
+									title={HOST_BABY_FEEDING[hostData.babyFeeding as BabyFeeding]?.label}
+								>
+									{HOST_BABY_FEEDING[hostData.babyFeeding as BabyFeeding]?.short}
 								</Badge>
 							</div>
 						</div>

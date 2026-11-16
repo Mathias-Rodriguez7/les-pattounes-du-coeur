@@ -1,19 +1,16 @@
 <script lang="ts">
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, Sparkles } from '@lucide/svelte';
+	import { ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 	import type { HostFull } from '#lib/types/host.ts';
-	import type { CatFull } from '#lib/types/cat.ts';
 	import { columns as defaultColumns, type ColumnDef } from './columns';
-	import { getHostCompatibility } from '#lib/utils/compatibility.ts';
 	import HostPlacementRow from './HostPlacementRow.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import InputField from '#lib/components/fields/InputField.svelte';
 
 	interface Props {
 		hosts: HostFull[];
-		cat?: CatFull;
 		selectedHostIds?: string[];
 		onSelectionChange?: (hostIds: string[]) => void;
 		columns?: ColumnDef[];
@@ -21,20 +18,17 @@
 
 	let {
 		hosts,
-		cat,
 		selectedHostIds = [],
 		onSelectionChange,
 		columns = defaultColumns
 	}: Props = $props();
 
-	const DEFAULT_FILTERS: Record<string, string> = { actif: 'ACTIVE' };
+	// Par défaut : les FA actives ET disponibles (deux filtres sans colonne, voir columns.ts)
+	const DEFAULT_FILTERS: Record<string, string> = { actif: 'ACTIVE', isAvailable: 'true' };
 
-	// Valeurs initiales voulues : la Dialog recrée le tableau à chaque ouverture,
-	// donc `cat` ne change pas pendant que le tableau est affiché.
-	// svelte-ignore state_referenced_locally
-	const DEFAULT_SORT_COLUMN = cat ? 'compatibility' : null;
-	// svelte-ignore state_referenced_locally
-	const DEFAULT_SORT_DIRECTION: 'asc' | 'desc' = cat ? 'desc' : 'asc';
+	// Pas de tri par défaut : l'ordre du serveur
+	const DEFAULT_SORT_COLUMN = null;
+	const DEFAULT_SORT_DIRECTION: 'asc' | 'desc' = 'asc';
 
 	// --- État global ---
 	let globalFilter = $state('');
@@ -54,33 +48,26 @@
 		{ value: 'false', label: 'Non' }
 	];
 
-	// --- Compatibilité : calculée une fois par FA ---
-	const compatibilityById = $derived(
-		cat ? new Map(hosts.map((h) => [h.id, getHostCompatibility(h, cat)])) : null
-	);
+	// Les colonnes affichées (une colonne « hidden » ne sert qu'aux filtres)
+	const visibleColumns = $derived(columns.filter((c) => !c.hidden));
 
-	// Colonne "Compat." insérée juste après "Nom"
-	const allColumns = $derived<ColumnDef[]>(
-		compatibilityById
-			? columns.flatMap((col) =>
-					col.id === 'name'
-						? [
-								col,
-								{
-									id: 'compatibility',
-									header: 'Compat.',
-									accessor: (row: HostFull) => compatibilityById?.get(row.id)?.score ?? 0,
-									sortable: true,
-									mobile: true
-								}
-							]
-						: [col]
-				)
-			: columns
-	);
+	// La ligne des sur-titres (Foyer, Capacités, Pratique) : une cellule par suite de colonnes
+	// du même groupe. La 1re cellule (vide) couvre la case à cocher et le nom.
+	const groupHeaders = $derived.by(() => {
+		const cells: { label: string; span: number }[] = [{ label: '', span: 2 }];
+		for (const col of visibleColumns.slice(1)) {
+			const label = col.group ?? '';
+			const last = cells.length > 1 ? cells[cells.length - 1] : null;
+			if (last && last.label === label) last.span++;
+			else cells.push({ label, span: 1 });
+		}
+		return cells;
+	});
+
+	// Raccourci au-dessus du tableau : « Disponibles seulement » (le filtre « Disponible »)
+	const onlyAvailable = $derived(columnFilters.isAvailable === 'true');
 
 	const activeFiltersCount = $derived(Object.values(columnFilters).filter(Boolean).length);
-	const isSortedByCompatibility = $derived(!!cat && sortColumn === 'compatibility');
 
 	function handleToggle(hostId: string, checked: boolean) {
 		if (checked) {
@@ -96,13 +83,8 @@
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
 			sortColumn = colId;
-			sortDirection = colId === 'compatibility' ? 'desc' : 'asc';
+			sortDirection = 'asc';
 		}
-	}
-
-	function sortByCompatibility() {
-		sortColumn = 'compatibility';
-		sortDirection = 'desc';
 	}
 
 	function setColumnFilter(colId: string, value: string) {
@@ -124,7 +106,7 @@
 		if (globalFilter.trim()) {
 			const q = globalFilter.trim().toLowerCase();
 			result = result.filter((host) =>
-				allColumns.some((col) =>
+				columns.some((col) =>
 					String(col.accessor(host) ?? '')
 						.toLowerCase()
 						.includes(q)
@@ -134,7 +116,7 @@
 
 		for (const [colId, value] of Object.entries(columnFilters)) {
 			if (!value) continue;
-			const col = allColumns.find((c) => c.id === colId);
+			const col = columns.find((c) => c.id === colId);
 			if (!col) continue;
 
 			result = result.filter((host) => {
@@ -157,7 +139,7 @@
 	// --- Tri ---
 	const sortedHosts = $derived.by(() => {
 		if (!sortColumn) return filteredHosts;
-		const col = allColumns.find((c) => c.id === sortColumn);
+		const col = columns.find((c) => c.id === sortColumn);
 		if (!col) return filteredHosts;
 
 		return [...filteredHosts].sort((a, b) => {
@@ -197,28 +179,15 @@
 	<div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
 		<div class="flex gap-4">
 			{@render filtersButton('hidden lg:inline-flex')}
-
-			<!-- Message de tri -->
-			<div class="flex min-h-8 items-center gap-2 text-sm text-muted-foreground">
-				{#if isSortedByCompatibility}
-					<Sparkles class="h-4 w-4 shrink-0 text-amber-500" />
-					<span>
-						Trié par compatibilité avec <strong class="text-foreground"
-							>{cat?.name ?? 'ce chat'}</strong
-						>
-						: les FA les plus adaptées sont en haut.
-					</span>
-				{:else if cat}
-					<button
-						type="button"
-						class="flex items-center gap-1 underline-offset-2 hover:underline"
-						onclick={sortByCompatibility}
-					>
-						<Sparkles class="h-4 w-4 shrink-0" />
-						Revenir au tri par compatibilité
-					</button>
-				{/if}
-			</div>
+			<Button
+				class="rounded-2xl"
+				variant={onlyAvailable ? 'secondary' : 'outline'}
+				size="sm"
+				aria-pressed={onlyAvailable}
+				onclick={() => setColumnFilter('isAvailable', onlyAvailable ? '' : 'true')}
+			>
+				Disponibles seulement
+			</Button>
 		</div>
 
 		<!-- Recherche + boutons -->
@@ -290,10 +259,26 @@
 	<div class="mt-2 h-[60dvh] min-h-80 overflow-auto rounded-md lg:h-[calc(100vh-24rem)]">
 		<Table.Root containerClass="overflow-visible">
 			<Table.Header class="sticky top-0 z-10 bg-background shadow-[0_1px_0_0_var(--border)]">
+				<!-- Sur-titres -->
+				<Table.Row class="border-none hover:bg-transparent">
+					{#each groupHeaders as cell, i (i)}
+						<Table.Head
+							colspan={cell.span}
+							class="h-6 text-xs font-normal text-muted-foreground {cell.label ? 'border-l' : ''}"
+						>
+							{cell.label}
+						</Table.Head>
+					{/each}
+				</Table.Row>
 				<Table.Row>
 					<Table.Head class="w-10"></Table.Head>
-					{#each allColumns as col (col.id)}
-						<Table.Head class={col.mobile ? '' : 'hidden lg:table-cell'}>
+					{#each visibleColumns as col, i (col.id)}
+						<Table.Head
+							title={col.title}
+							class="whitespace-nowrap {col.group && visibleColumns[i - 1]?.group !== col.group
+								? 'border-l'
+								: ''}"
+						>
 							{#if col.sortable}
 								<button
 									class="flex items-center gap-1 hover:underline"
@@ -321,7 +306,7 @@
 				{#if sortedHosts.length === 0}
 					<Table.Row>
 						<Table.Cell
-							colspan={allColumns.length + 1}
+							colspan={visibleColumns.length + 1}
 							class="py-8 text-center text-muted-foreground"
 						>
 							Aucun hôte ne correspond à ces critères.
@@ -331,8 +316,7 @@
 					{#each sortedHosts as host (host.id)}
 						<HostPlacementRow
 							{host}
-							columns={allColumns}
-							compatibility={compatibilityById?.get(host.id)}
+							columns={visibleColumns}
 							selected={internalSelected.includes(host.id)}
 							onToggle={handleToggle}
 						/>
