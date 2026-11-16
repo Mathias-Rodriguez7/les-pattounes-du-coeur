@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import PersonAddressView from '#lib/components/person/PersonAddressView.svelte';
@@ -87,7 +88,10 @@
 						<p>{formatDate(form.createdAt)}</p>
 						{#if form.assignedTo}
 							<p class="text-muted-foreground">
-								Assigné à: <span class="font-medium">{assignedName || 'N/A'}</span>
+								Assigné à:
+								<EntityLink kind="volunteer" id={form.assignedToId} class="font-medium">
+									{assignedName || 'N/A'}
+								</EntityLink>
 							</p>
 						{/if}
 						{#if isAdmin}

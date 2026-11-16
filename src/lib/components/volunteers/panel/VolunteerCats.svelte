@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import * as Pagination from '#lib/components/ui/pagination/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
@@ -28,6 +29,7 @@
 				hostFirstName: placement?.host.profil.firstName || null,
 				hostLastName: placement?.host.profil.lastName || null,
 				placementId: placement?.id || null,
+				hostId: placement?.hostId ?? null,
 				hasPlacement: !!placement
 			};
 		})
@@ -68,7 +70,9 @@
 				<Table.Body>
 					{#each paginatedCats as cat (cat.catId)}
 						<Table.Row>
-							<Table.Cell class="font-semibold text-gray-900">{cat.catName}</Table.Cell>
+							<Table.Cell class="font-semibold text-gray-900">
+								<EntityLink kind="cat" id={cat.catId}>{cat.catName}</EntityLink>
+							</Table.Cell>
 							<Table.Cell>
 								<Badge class={getBadgeClass(cat.catStatus)}>
 									{statusLabel[cat.catStatus] ?? cat.catStatus}
@@ -76,10 +80,10 @@
 							</Table.Cell>
 							<Table.Cell class="max-w-32 truncate">
 								{#if cat.hasPlacement}
-									<span class="font-semibold text-gray-900">
+									<EntityLink kind="host" id={cat.hostId} class="font-semibold text-gray-900">
 										{cat.hostFirstName}
 										{cat.hostLastName}
-									</span>
+									</EntityLink>
 								{:else}
 									<span class="text-gray-400">—</span>
 								{/if}

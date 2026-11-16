@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 	import Icon from '#lib/components/Icon.svelte';
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import CatVolunteerCreateForm from '#lib/components/catVolunteer/CatVolunteerCreateForm.svelte';
 	import CatVolunteerRemoveButton from '#lib/components/catVolunteer/CatVolunteerRemoveButton.svelte';
 	import { CAT_SECTION_CONFIG } from '#lib/constants/cat.ts';
@@ -45,8 +46,10 @@
 				<div class="grid min-w-0 gap-2 rounded-xl border border-sky-400 bg-sky-100 p-2">
 					<div class="flex items-center justify-between gap-2">
 						<p class="font-semibold">
-							{profil.firstName}
-							{truncate(profil.lastName, 1)}.
+							<EntityLink kind="volunteer" id={cv.volunteerId}>
+								{profil.firstName}
+								{truncate(profil.lastName, 1)}.
+							</EntityLink>
 						</p>
 						{#if isAdmin}
 							<CatVolunteerRemoveButton

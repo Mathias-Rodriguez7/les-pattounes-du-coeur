@@ -16,6 +16,9 @@
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { getAdoptionTone } from '#lib/utils/adoption.ts';
+	import { untrack } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
 
 	const { data } = $props();
 
@@ -29,6 +32,7 @@
 		if (selectedCatId && !selectedCat) {
 			selectedCatId = null;
 			mobilePanelOpen = false;
+			rememberSelection(null);
 		}
 	});
 
@@ -56,6 +60,7 @@
 
 	function resetView() {
 		selectedCatId = null;
+		rememberSelection(null);
 		sexFilter = '';
 		ageFilter = '';
 		searchQuery = '';
@@ -68,9 +73,37 @@
 		searchQuery = '';
 	}
 
-	function handleSelectCat(catId: string) {
+	function selectCat(catId: string) {
 		selectedCatId = catId;
 		if (!desktop.current) mobilePanelOpen = true;
+	}
+
+	// Clic sur une ligne : on garde aussi son id dans l'adresse (le bouton « Retour » la rouvrira)
+	function handleSelectCat(catId: string) {
+		selectCat(catId);
+		rememberSelection(catId);
+	}
+
+	// Arrivée par un nom cliquable (?id=…) : on ouvre son panneau
+	$effect(() => {
+		const id = linkedId();
+		if (id && id !== untrack(() => selectedCatId)) untrack(() => openFromLink(id));
+	});
+
+	function openFromLink(id: string) {
+		const cat = cats.find((c) => c.id === id);
+		// Une bénévole ne charge que SES chats : un autre chat n'est pas dans sa liste
+		if (!cat) {
+			toast.error(
+				data.isAdmin ? "Ce chat n'existe plus." : 'Ce chat ne fait pas partie de vos chats.'
+			);
+			return;
+		}
+		// L'admin est sur « Mes chats » et ce chat n'en fait pas partie : on passe sur « Tous »
+		if (data.isAdmin && !cat.isMine) showAll = true;
+		if (!filteredCats.some((c) => c.id === id)) clearFilters();
+		selectCat(id);
+		scrollToRow(id);
 	}
 
 	// ===== STATS : toujours cohérentes avec la portée =====

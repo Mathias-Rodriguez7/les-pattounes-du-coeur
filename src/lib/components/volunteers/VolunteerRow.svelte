@@ -31,6 +31,7 @@
 		? 'bg-accent hover:bg-accent'
 		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
+	data-row-id={volunteer.id}
 >
 	<!-- Nom : tronqué par le CSS (s'adapte à la largeur) plutôt qu'à 10 caractères fixes -->
 	<Table.Cell class="max-w-40 truncate font-semibold text-gray-900" title={fullName}>

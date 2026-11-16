@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import BlacklistBadge from '#lib/components/blacklist/BlacklistBadge.svelte';
@@ -78,9 +79,14 @@
 					{/if}
 
 					{#if host.profil.volunteer}
-						<div title="Cette FA est aussi bénévole">
+						<!-- L'étoile mène à sa fiche bénévole (admin) -->
+						<EntityLink
+							kind="volunteer"
+							id={host.profil.volunteer.id}
+							title="Cette FA est aussi bénévole : ouvrir sa fiche bénévole"
+						>
 							<Icon name="star" iconClass="h-6 w-6 text-amber-500 fill-amber-500" />
-						</div>
+						</EntityLink>
 					{/if}
 				</div>
 				{#if isAdmin && !host.profil.volunteer && !blacklist}

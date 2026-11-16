@@ -86,6 +86,7 @@ export type CatVolunteerWithRelations = {
 		status: string;
 		placements?: Array<{
 			id: string;
+			hostId: string;
 			host: {
 				profil: {
 					firstName: string;

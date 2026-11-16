@@ -37,6 +37,7 @@
 		? 'bg-accent hover:bg-accent'
 		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
+	data-row-id={cat.id}
 >
 	<Table.Cell>
 		<img

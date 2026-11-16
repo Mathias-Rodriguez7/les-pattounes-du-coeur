@@ -16,6 +16,7 @@
 		? 'bg-accent hover:bg-accent'
 		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
+	data-row-id={host.id}
 >
 	<Table.Cell class="max-w-36 truncate font-semibold text-gray-900" title={fullName}>
 		{fullName}

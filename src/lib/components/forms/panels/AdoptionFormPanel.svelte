@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import PersonAddressView from '#lib/components/person/PersonAddressView.svelte';
@@ -240,6 +241,11 @@
 				{#if form.type === 'ADOPTION_SPECIFIC' && catData}
 					<Separator />
 					<SectionCard title="Le chat demandé : {catData.name ?? 'sans nom'}" variant="plain">
+						{#snippet action()}
+							<EntityLink kind="cat" id={catData.id} class="text-sm text-muted-foreground">
+								Ouvrir sa fiche →
+							</EntityLink>
+						{/snippet}
 						<CatProfileSummary cat={catData} />
 					</SectionCard>
 				{/if}
@@ -260,9 +266,12 @@
 						<!-- Pas (encore) la sienne : elle se l'attribue d'abord -->
 						<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted p-3">
 							<p class="text-sm text-muted-foreground">
-								{assignedName
-									? `Demande suivie par ${assignedName}.`
-									: 'Personne ne suit cette demande.'}
+								{#if assignedName}
+									Demande suivie par
+									<EntityLink kind="volunteer" id={form.assignedToId}>{assignedName}</EntityLink>.
+								{:else}
+									Personne ne suit cette demande.
+								{/if}
 								{form.canTake ? 'Attribuez-la-vous pour la traiter.' : ''}
 							</p>
 							{#if form.canTake && currentUserId}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '#lib/components/Icon.svelte';
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import PlacementEditForm from '#lib/components/placements/PlacementEditForm.svelte';
 	import { PLACEMENT_TYPE_LABELS, getPlacementTypeClass } from '#lib/constants/placement.ts';
@@ -29,8 +30,10 @@
 >
 	<div class="flex items-center justify-between gap-2">
 		<p class="text-sm font-semibold">
-			{placement.host.profil.firstName}
-			{truncate(placement.host.profil.lastName, 1)}.
+			<EntityLink kind="host" id={placement.hostId}>
+				{placement.host.profil.firstName}
+				{truncate(placement.host.profil.lastName, 1)}.
+			</EntityLink>
 		</p>
 		{#if !isHistory && placement.status === 'BREAK'}
 			<Badge variant="outline" class="ml-1 text-xs">En pause</Badge>

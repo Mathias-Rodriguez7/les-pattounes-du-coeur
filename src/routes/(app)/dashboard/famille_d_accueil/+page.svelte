@@ -22,6 +22,9 @@
 	} from '#lib/constants/host.js';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import { untrack } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
 
 	const { data } = $props();
 
@@ -48,9 +51,35 @@
 	let babyFilter = $state('');
 	let searchQuery = $state('');
 
-	function handleSelectHost(hostId: string) {
+	function selectHost(hostId: string) {
 		selectedHostId = hostId;
 		if (!desktop.current) mobilePanelOpen = true;
+	}
+
+	// Clic sur une ligne : on garde aussi son id dans l'adresse (le bouton « Retour » la rouvrira)
+	function handleSelectHost(hostId: string) {
+		selectHost(hostId);
+		rememberSelection(hostId);
+	}
+
+	// Arrivée par un nom cliquable (?id=…) : on ouvre son panneau
+	$effect(() => {
+		const id = linkedId();
+		if (id && id !== untrack(() => selectedHostId)) untrack(() => openFromLink(id));
+	});
+
+	function openFromLink(id: string) {
+		if (!hosts.some((h) => h.id === id)) {
+			toast.error("Cette famille d'accueil n'est plus dans la liste.");
+			return;
+		}
+		// Cachée par un filtre (ex : en pause, alors que la liste montre « Actif ») : on les retire
+		if (!filteredHosts.some((h) => h.id === id)) {
+			clearFilters();
+			if (!filteredHosts.some((h) => h.id === id)) actifFilter = '';
+		}
+		selectHost(id);
+		scrollToRow(id);
 	}
 
 	function clearFilters() {

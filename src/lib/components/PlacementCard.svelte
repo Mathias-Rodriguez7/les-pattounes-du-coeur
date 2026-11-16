@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Cat, Placement } from '@prisma/client';
 	import { formatDateNum } from '#lib/utils/date.ts';
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import {
 		PLACEMENT_TYPE_COLORS,
 		PLACEMENT_TYPE_LABELS,
@@ -29,7 +30,9 @@
 	)} {isHistory ? 'opacity-70' : ''}"
 >
 	<div class="mb-2 flex items-start justify-between gap-2">
-		<p class="text-sm font-semibold text-gray-900">{displayName}</p>
+		<p class="text-sm font-semibold text-gray-900">
+			<EntityLink kind="cat" id={placement.catId}>{displayName}</EntityLink>
+		</p>
 		<div class="flex items-center gap-2">
 			<span class="inline-block rounded px-2 py-1 text-xs font-medium {colors.badge}">
 				{label}

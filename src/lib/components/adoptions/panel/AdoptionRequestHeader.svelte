@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -70,7 +71,10 @@
 			<p>{formatDate(form.createdAt)}</p>
 			{#if assignedName}
 				<p class="text-muted-foreground">
-					Assigné à: <span class="font-medium">{assignedName}</span>
+					Assigné à:
+					<EntityLink kind="volunteer" id={form.assignedToId} class="font-medium">
+						{assignedName}
+					</EntityLink>
 				</p>
 			{/if}
 			{#if form.type === 'ADOPTION_FLEXIBLE' && canReassign && volunteers.length > 0}

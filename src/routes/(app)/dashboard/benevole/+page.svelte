@@ -16,6 +16,9 @@
 	import { VOLUNTEER_ROLE_OPTIONS, VOLUNTEER_STATUS_OPTIONS } from '#lib/constants/volunteer.js';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import { untrack } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
 
 	const { data } = $props();
 
@@ -39,9 +42,35 @@
 	let roleFilter = $state('');
 	let newVolunteerOpen = $state(false);
 
-	function handleSelectVolunteer(volunteerId: string) {
+	function selectVolunteer(volunteerId: string) {
 		selectedVolunteerId = volunteerId;
 		if (!desktop.current) mobilePanelOpen = true;
+	}
+
+	// Clic sur une ligne : on garde aussi son id dans l'adresse (le bouton « Retour » la rouvrira)
+	function handleSelectVolunteer(volunteerId: string) {
+		selectVolunteer(volunteerId);
+		rememberSelection(volunteerId);
+	}
+
+	// Arrivée par un nom cliquable (?id=…) : on ouvre son panneau
+	$effect(() => {
+		const id = linkedId();
+		if (id && id !== untrack(() => selectedVolunteerId)) untrack(() => openFromLink(id));
+	});
+
+	function openFromLink(id: string) {
+		if (!volunteers.some((v) => v.id === id)) {
+			toast.error("Ce bénévole n'est plus dans la liste.");
+			return;
+		}
+		// Cachée par un filtre (ex : en pause, alors que la liste montre « Actif ») : on les retire
+		if (!filteredVolunteers.some((v) => v.id === id)) {
+			clearFilters();
+			if (!filteredVolunteers.some((v) => v.id === id)) actifFilter = '';
+		}
+		selectVolunteer(id);
+		scrollToRow(id);
 	}
 
 	function clearFilters() {
