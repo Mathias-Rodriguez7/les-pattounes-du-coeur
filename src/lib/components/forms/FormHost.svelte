@@ -370,7 +370,7 @@
 		<!-- Composition du foyer (facultative) : les 4 champs viennent de HOUSEHOLD_FIELDS -->
 		<fieldset class="space-y-3">
 			<legend class="text-sm font-medium">Qui vit chez vous ?</legend>
-			<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+			<div class="grid grid-cols-2 gap-4">
 				{#each HOUSEHOLD_FIELDS as field (field.key)}
 					<InputField
 						id={field.key}

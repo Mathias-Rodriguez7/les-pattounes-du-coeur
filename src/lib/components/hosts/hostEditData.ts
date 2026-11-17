@@ -37,9 +37,7 @@ export function emptyHostEditData(): HostEditData {
 		otherAnimalsAtHome: '',
 		// Composition du foyer
 		adultsAtHome: null,
-		teensAtHome: null,
 		childrenAtHome: null,
-		babiesAtHome: null,
 		// Capacités
 		heal: 'NO' as Heal,
 		socialize: 'NO' as Socialize,
@@ -87,9 +85,7 @@ export function hostToEditData(host: HostFull): HostEditData {
 		otherAnimalsAtHome: host.otherAnimalsAtHome || '',
 
 		adultsAtHome: host.adultsAtHome,
-		teensAtHome: host.teensAtHome,
 		childrenAtHome: host.childrenAtHome,
-		babiesAtHome: host.babiesAtHome,
 
 		heal: host.heal,
 		socialize: host.socialize,

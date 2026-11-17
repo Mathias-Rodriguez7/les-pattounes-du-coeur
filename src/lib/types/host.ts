@@ -60,9 +60,7 @@ export type HostEditData = {
 
 	// Composition du foyer (null = pas renseignée)
 	adultsAtHome: number | null;
-	teensAtHome: number | null;
 	childrenAtHome: number | null;
-	babiesAtHome: number | null;
 
 	// Capacités
 	heal: Heal;

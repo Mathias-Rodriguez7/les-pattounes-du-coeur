@@ -624,13 +624,11 @@ function someAnimals(maxCats: number, maxDogs: number) {
 	return animals;
 }
 
-/** Qui vit chez la FA : 1 ou 2 adultes, et parfois des ados, enfants ou bébés */
+/** Qui vit chez la FA : 1 ou 2 adultes, et parfois des enfants */
 function someHousehold() {
 	return {
 		adultsAtHome: int(1, 2),
-		teensAtHome: randomBool(0.25) ? int(1, 2) : 0,
-		childrenAtHome: randomBool(0.35) ? int(1, 3) : 0,
-		babiesAtHome: randomBool(0.15) ? 1 : 0
+		childrenAtHome: randomBool(0.35) ? int(1, 3) : 0
 	};
 }
 

@@ -14,15 +14,14 @@ describe('householdShape', () => {
 
 	it('refuse un nombre négatif ou décimal', () => {
 		expect(schema.safeParse({ adultsAtHome: '-1' }).success).toBe(false);
-		expect(schema.safeParse({ babiesAtHome: '1.5' }).success).toBe(false);
+		expect(schema.safeParse({ childrenAtHome: '1.5' }).success).toBe(false);
 	});
 });
 
 describe('householdSummary', () => {
 	it('omet les 0 et accorde au pluriel', () => {
-		expect(
-			householdSummary({ adultsAtHome: 2, teensAtHome: 0, childrenAtHome: 1, babiesAtHome: 2 })
-		).toBe('2 adultes · 1 enfant · 2 bébés');
+		expect(householdSummary({ adultsAtHome: 2, childrenAtHome: 0 })).toBe('2 adultes');
+		expect(householdSummary({ adultsAtHome: 1, childrenAtHome: 3 })).toBe('1 adulte · 3 enfants');
 	});
 
 	it('null si rien n’est renseigné, « Personne » si tout vaut 0', () => {

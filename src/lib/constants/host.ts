@@ -56,16 +56,14 @@ export const HOST_SOCIALIZE: Record<Socialize, LevelInfo> = {
 	NO: { label: 'Ne sociabilise pas', short: 'Non', level: 0 },
 	WITHOUT_EX: { label: 'Sans expérience', short: 'Débutante', level: 1 },
 	EXPERIENCED: { label: 'Expérimentée', short: 'Confirmée', level: 2 },
-	// Le plus fort : elle sait gérer les chats les plus difficiles
 	FEARFUL: { label: 'Spécialiste des craintifs', short: 'Craintifs', level: 3 }
 };
 
 export const HOST_BABY_FEEDING: Record<BabyFeeding, LevelInfo> = {
 	NO: { label: 'Pas de biberonnage', short: 'Non', level: 0 },
-	// Relais : seulement des relais courts, donc moins qu'une FA qui biberonne seule
-	RELAY: { label: 'En relais seulement', short: 'Relais', level: 1 },
-	WITHOUT_EX: { label: 'Sans expérience', short: 'Débutante', level: 2 },
-	EXPERIENCED: { label: 'Expérimentée', short: 'Confirmée', level: 3 }
+	WITHOUT_EX: { label: 'Sans expérience', short: 'Débutante', level: 1 },
+	EXPERIENCED: { label: 'Expérimentée', short: 'Confirmée', level: 2 },
+	RELAY: { label: 'En relais seulement', short: 'Relais', level: 3 }
 };
 
 /** La couleur du badge d'une option (gris si la valeur est inconnue) */

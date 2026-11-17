@@ -43,6 +43,6 @@
 		{/each}
 	</div>
 	<p class="mt-2 text-xs text-muted-foreground">
-		Adolescents : 12 à 17 ans · Enfants : 3 à 11 ans · Bébés : moins de 3 ans
+		Adultes : 18 ans et plus · Enfants : moins de 18 ans
 	</p>
 </SectionCard>

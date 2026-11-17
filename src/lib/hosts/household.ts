@@ -1,21 +1,25 @@
 import { z } from 'zod';
 
 // =====================================================================
-// La composition du foyer d'une FA : combien d'adultes, d'ados, d'enfants et de bébés.
+// La composition du foyer d'une FA : combien d'adultes et d'enfants.
 // Écrite UNE fois : schémas, formulaires, fiche et tableau lisent cette liste.
 // null = pas renseigné (les FA créées avant ce champ), 0 = personne.
 // =====================================================================
 
 export const HOUSEHOLD_FIELDS = [
 	{ key: 'adultsAtHome', label: 'Adultes', hint: '18 ans et plus', one: 'adulte', many: 'adultes' },
-	{ key: 'teensAtHome', label: 'Adolescents', hint: '12 à 17 ans', one: 'ado', many: 'ados' },
-	{ key: 'childrenAtHome', label: 'Enfants', hint: '3 à 11 ans', one: 'enfant', many: 'enfants' },
-	{ key: 'babiesAtHome', label: 'Bébés', hint: 'moins de 3 ans', one: 'bébé', many: 'bébés' }
+	{
+		key: 'childrenAtHome',
+		label: 'Enfants',
+		hint: 'moins de 18 ans',
+		one: 'enfant',
+		many: 'enfants'
+	}
 ] as const;
 
 export type HouseholdKey = (typeof HOUSEHOLD_FIELDS)[number]['key'];
 
-/** Les 4 nombres (texte dans un formulaire, nombre en base) */
+/** Les nombres (texte dans un formulaire, nombre en base) */
 export type HouseholdData = Partial<Record<HouseholdKey, string | number | null>>;
 
 /**
@@ -33,9 +37,7 @@ const optionalCount = z.coerce
 /** À ajouter aux schémas Zod d'une FA (création, modification, formulaire public) */
 export const householdShape = {
 	adultsAtHome: optionalCount,
-	teensAtHome: optionalCount,
-	childrenAtHome: optionalCount,
-	babiesAtHome: optionalCount
+	childrenAtHome: optionalCount
 };
 
 const count = (value: string | number | null | undefined) =>
@@ -47,7 +49,7 @@ export function isHouseholdUnknown(data: HouseholdData) {
 }
 
 /**
- * Le résumé du foyer : « 2 adultes · 1 enfant · 1 bébé » (les 0 sont omis).
+ * Le résumé du foyer : « 2 adultes · 1 enfant » (les 0 sont omis).
  * null si rien n'est renseigné.
  */
 export function householdSummary(data: HouseholdData): string | null {

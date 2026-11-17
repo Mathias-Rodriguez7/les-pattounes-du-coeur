@@ -8,7 +8,7 @@ import {
 } from '#lib/constants/host.ts';
 import { truncate } from '#lib/utils/string.ts';
 import { districtLabel } from '#lib/utils/districts.ts';
-import { householdSummary } from '#lib/hosts/household.ts';
+import { HOUSEHOLD_FIELDS } from '#lib/hosts/household.ts';
 
 // =====================================================================
 // Les colonnes du tableau « Proposer à des FA » (HostDataTable).
@@ -31,6 +31,19 @@ export type ColumnDef = {
 	sortable?: boolean;
 	/** Colonne non affichée : elle ne sert qu'au filtre (ex : Statut, Disponible) */
 	hidden?: boolean;
+	/**
+	 * Petite colonne de chiffres (foyer, chats acceptés) : centrée, flèche de tri seulement
+	 * quand on trie dessus. `count` : un nombre (-1 = non renseigné → « — », 0 → « · »).
+	 * `check` : oui / non (1 / 0) → l'icône oui/non. `other` : les « autres animaux » (texte libre)
+	 * → une patte quand il y en a, le texte au survol (ou à l'appui sur mobile).
+	 */
+	compact?: 'count' | 'check' | 'other';
+	/** Un trait vertical avant la colonne, à l'intérieur d'un groupe (ex : foyer | animaux) */
+	separatorBefore?: boolean;
+	/** Centrer la colonne (badges, icônes oui/non, places) : les cellules ne « flottent » plus */
+	center?: boolean;
+	/** Une icône à la place du texte de l'en-tête (le texte reste au survol, via `title`) */
+	headerIcon?: 'cat' | 'dog' | 'paw';
 	filter?: {
 		type: FilterType;
 		options?: { label: string; value: string }[];
@@ -59,15 +72,11 @@ export function animalsSummary(host: HostFull): string {
 	return parts.join(' · ') || 'Oui';
 }
 
-/** Les chats qu'elle accepte : « 2 adultes · 3 chatons · mère + petits » */
-export function catTypesSummary(host: HostFull): string {
-	const parts = [
-		host.catAdult ? `${host.catAdult} adulte${host.catAdult > 1 ? 's' : ''}` : null,
-		host.kitten ? `${host.kitten} chaton${host.kitten > 1 ? 's' : ''}` : null,
-		host.kittyAndKitten ? 'mère + petits' : null
-	].filter(Boolean);
-	return parts.join(' · ') || '—';
-}
+/** Les en-têtes courts des colonnes du foyer (le libellé complet s'affiche au survol) */
+const HOUSEHOLD_HEADERS: Record<(typeof HOUSEHOLD_FIELDS)[number]['key'], string> = {
+	adultsAtHome: 'Ad.',
+	childrenAtHome: 'Enf.'
+};
 
 /** Ses places : chats placés en ce moment / chats qu'elle accepte (adultes + chatons) */
 export function hostPlaces(host: HostFull) {
@@ -82,7 +91,7 @@ export const columns: ColumnDef[] = [
 	{
 		id: 'name',
 		header: 'Nom',
-		accessor: (row) => `${truncate(row.profil.firstName, 20)} ${truncate(row.profil.lastName, 1)}.`,
+		accessor: (row) => `${truncate(row.profil.firstName, 20)} ${truncate(row.profil.lastName, 1)}`,
 		sortable: true,
 		filter: { type: 'text' }
 	},
@@ -112,28 +121,90 @@ export const columns: ColumnDef[] = [
 	},
 
 	// --- Foyer ---
-	{
-		id: 'household',
-		header: 'Foyer',
+	// Une petite colonne par âge : « · » pour 0, « — » si le foyer n'est pas renseigné
+	...HOUSEHOLD_FIELDS.map((field): ColumnDef => ({
+		id: field.key,
+		header: HOUSEHOLD_HEADERS[field.key],
+		title: `${field.label} (${field.hint})`,
 		group: 'Foyer',
-		accessor: (row) => householdSummary(row) ?? '—'
+		compact: 'count',
+		accessor: (row) => row[field.key] ?? -1,
+		sortable: true
+	})),
+	// Les animaux qu'elle A (à ne pas confondre avec les chats qu'elle ACCUEILLE, plus loin) :
+	// des en-têtes en icônes, des chiffres dessous
+	{
+		id: 'catsAtHome',
+		header: 'Chats',
+		headerIcon: 'cat',
+		// Un trait sépare les personnes (Ad., Ado…) des animaux
+		separatorBefore: true,
+		title: 'Chats au foyer',
+		group: 'Foyer',
+		compact: 'count',
+		accessor: (row) => (row.hasAnimalsAtHome ? (row.numberOfCatsAtHome ?? 0) : 0),
+		sortable: true
 	},
 	{
-		id: 'animals',
-		header: 'Animaux',
+		id: 'dogsAtHome',
+		header: 'Chiens',
+		headerIcon: 'dog',
+		title: 'Chiens au foyer',
 		group: 'Foyer',
+		compact: 'count',
+		accessor: (row) => (row.hasAnimalsAtHome ? (row.numberOfDogsAtHome ?? 0) : 0),
+		sortable: true
+	},
+	{
+		id: 'otherAnimals',
+		header: 'Autres',
+		headerIcon: 'paw',
+		title: 'Autres animaux au foyer',
+		group: 'Foyer',
+		compact: 'other',
+		accessor: (row) => (row.hasAnimalsAtHome && row.otherAnimalsAtHome ? 1 : 0),
+		sortable: true
+	},
+	// La recherche « Rechercher un hôte… » trouve toujours « chien », « poules »… (non affichée)
+	{
+		id: 'animalsText',
+		header: 'Animaux',
+		hidden: true,
 		accessor: animalsSummary
 	},
 
 	// --- Capacités ---
+	// Les chats qu'elle accepte : adultes, chatons, mère avec ses petits
 	{
-		id: 'catTypes',
-		header: 'Accueille',
+		id: 'catAdult',
+		header: 'Chats',
+		title: 'Chats adultes acceptés',
 		group: 'Capacités',
-		accessor: catTypesSummary
+		compact: 'count',
+		accessor: (row) => row.catAdult ?? 0,
+		sortable: true
+	},
+	{
+		id: 'kitten',
+		header: 'Chatons',
+		title: 'Chatons acceptés',
+		group: 'Capacités',
+		compact: 'count',
+		accessor: (row) => row.kitten ?? 0,
+		sortable: true
+	},
+	{
+		id: 'kittyAndKitten',
+		header: 'M+P',
+		title: 'Accepte une mère avec ses petits',
+		group: 'Capacités',
+		compact: 'check',
+		accessor: (row) => (row.kittyAndKitten ? 1 : 0),
+		sortable: true
 	},
 	{
 		id: 'socialize',
+		center: true,
 		header: 'Socia.',
 		title: 'Sociabilisation',
 		group: 'Capacités',
@@ -142,6 +213,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'heal',
+		center: true,
 		header: 'Soins',
 		group: 'Capacités',
 		accessor: (row) => row.heal,
@@ -149,6 +221,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'babyFeeding',
+		center: true,
 		header: 'Biberon.',
 		title: 'Biberonnage',
 		group: 'Capacités',
@@ -159,6 +232,7 @@ export const columns: ColumnDef[] = [
 	// --- Pratique ---
 	{
 		id: 'type',
+		center: true,
 		header: 'Type',
 		title: "Type d'accueil",
 		group: 'Pratique',
@@ -167,6 +241,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'outside',
+		center: true,
 		header: 'Ext.',
 		title: 'Extérieur',
 		group: 'Pratique',
@@ -175,6 +250,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'car',
+		center: true,
 		header: 'Voiture',
 		group: 'Pratique',
 		accessor: (row) => row.car,
@@ -182,6 +258,7 @@ export const columns: ColumnDef[] = [
 	},
 	{
 		id: 'places',
+		center: true,
 		header: 'Places',
 		title: 'Chats placés / chats acceptés (trié par places libres)',
 		group: 'Pratique',
