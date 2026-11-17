@@ -18,6 +18,7 @@
 		? 'bg-accent hover:bg-accent'
 		: 'hover:bg-muted/50'} h-14 cursor-pointer transition-colors"
 	{onclick}
+	data-row-id={form.id}
 >
 	<Table.Cell>
 		<Badge class={typesLabels[form.type]?.color || 'bg-gray-100 text-gray-800'}>

@@ -14,6 +14,9 @@
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { resolve } from '$app/paths';
+	import { untrack } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
 
 	const { data } = $props();
 
@@ -60,6 +63,8 @@
 		selectedFormId = null;
 		// SK3 : page.url est en lecture seule → on travaille sur une COPIE modifiable
 		const url = new URL(page.url.href);
+		// Une autre liste : la demande ouverte n'y est peut-être pas
+		url.searchParams.delete('id');
 		if (checked) {
 			url.searchParams.set('scope', 'all');
 		} else {
@@ -131,8 +136,33 @@
 
 	const handleSelectForm = (formId: string) => {
 		selectedFormId = formId;
+		// Gardée dans l'adresse : le bouton « Retour » la rouvrira
+		rememberSelection(formId);
 		if (!desktop.current) mobilePanelOpen = true;
 	};
+
+	// Arrivée par un lien (?id=…, ex : une tâche du dashboard) : on ouvre la demande
+	$effect(() => {
+		const id = linkedId();
+		if (id && id !== untrack(() => selectedFormId)) untrack(() => openFromLink(id));
+	});
+
+	function openFromLink(id: string) {
+		const form = forms.find((f) => f.id === id);
+		if (!form) {
+			toast.error("Cette demande n'est plus dans la liste.");
+			return;
+		}
+		// Cachée par un filtre (type, statut, recherche) : on les règle sur elle
+		if (!filteredForms.some((f) => f.id === id)) {
+			typeFilter = '';
+			statusFilter = form.status;
+			searchQuery = '';
+		}
+		selectedFormId = id;
+		if (!desktop.current) mobilePanelOpen = true;
+		scrollToRow(id);
+	}
 
 	function clearFilters() {
 		typeFilter = '';

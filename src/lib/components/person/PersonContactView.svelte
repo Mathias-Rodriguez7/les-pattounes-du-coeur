@@ -20,7 +20,7 @@
 	color={PERSON_SECTION_CONFIG.contact.color}
 	class={className}
 >
-	<div class="ml-6 grid gap-4">
+	<div class="ml-6 grid min-w-0 gap-4">
 		<div>
 			<p class="font-medium text-muted-foreground">Tel</p>
 			<div class="flex items-center gap-2">
@@ -37,10 +37,14 @@
 
 		<div>
 			<p class="font-medium text-muted-foreground">Mail</p>
-			<div class="flex items-center gap-2">
-				<Icon name="mail" iconClass="h-4 w-4 text-muted-foreground" />
+			<!-- min-w-0 + break-all : un mail trop long passe à la ligne au lieu de sortir de la carte -->
+			<div class="flex min-w-0 items-center gap-2">
+				<Icon name="mail" iconClass="h-4 w-4 shrink-0 text-muted-foreground" />
 				{#if email}
-					<a href="mailto:{email}" class="text-xs text-blue-500 underline hover:text-primary">
+					<a
+						href="mailto:{email}"
+						class="min-w-0 text-xs break-all text-blue-500 underline hover:text-primary"
+					>
 						{email}
 					</a>
 				{:else}
