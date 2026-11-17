@@ -37,6 +37,8 @@ type SosAlert = {
 	phone: string;
 	email: string;
 	address: string;
+	city: string;
+	postalCode?: string;
 	description: string;
 };
 
@@ -47,16 +49,19 @@ export async function sendSosAlertEmail(alert: SosAlert) {
 
 	const type = SOS_ALERT_TYPES[alert.alertType];
 	const name = `${alert.firstName} ${alert.lastName}`;
+	const place = [alert.address, [alert.postalCode, alert.city].filter(Boolean).join(' ')].join(
+		', '
+	);
 
 	await transporter.sendMail({
 		from: SMTP_FROM,
 		to,
 		replyTo: alert.email,
-		subject: `🚨 SOS : ${type} (${alert.address})`,
+		subject: `🚨 SOS : ${type} (${place})`,
 		text: `Nouveau signalement SOS
 
 Type : ${type}
-Lieu : ${alert.address}
+Lieu : ${place}
 
 De : ${name}
 Téléphone : ${alert.phone}
@@ -67,7 +72,7 @@ ${alert.description}`,
 		html: `
 			<h2>🚨 Nouveau signalement SOS</h2>
 			<p><strong>Type :</strong> ${escapeHtml(type)}<br>
-			<strong>Lieu :</strong> ${escapeHtml(alert.address)}</p>
+			<strong>Lieu :</strong> ${escapeHtml(place)}</p>
 			<p><strong>De :</strong> ${escapeHtml(name)}<br>
 			<strong>Téléphone :</strong> ${escapeHtml(alert.phone)}<br>
 			<strong>E-mail :</strong> ${escapeHtml(alert.email)}</p>

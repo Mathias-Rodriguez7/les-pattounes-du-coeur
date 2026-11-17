@@ -15,6 +15,8 @@
 	import CatMediaGallery from './CatMediaGallery.svelte';
 	import CatDocuments from './CatDocuments.svelte';
 	import CatCares from './CatCares.svelte';
+	import CatSosCard from './panel/CatSosCard.svelte';
+	import type { LinkableSos } from '#lib/server/sos/queries.ts';
 	import type { VeterinarianOption } from '#lib/server/veterinarians/queries.ts';
 	import CatSicknesses from './panel/CatSicknesses.svelte';
 	import CatVolunteers from './panel/CatVolunteers.svelte';
@@ -34,10 +36,19 @@
 		volunteers?: VolunteerBasic[] | null;
 		/** La liste des vétérinaires, pour un nouveau soin */
 		veterinarians?: VeterinarianOption[];
+		/** Les SOS auxquels rattacher le chat (carte « Signalement ») */
+		linkableSos?: LinkableSos[];
 		isAdmin?: boolean;
 	}
 
-	const { cat, hosts = [], volunteers = [], veterinarians = [], isAdmin = false }: Props = $props();
+	const {
+		cat,
+		hosts = [],
+		volunteers = [],
+		veterinarians = [],
+		linkableSos = [],
+		isAdmin = false
+	}: Props = $props();
 
 	let isEditing = $state(false);
 	let editingImage = $state(false);
@@ -181,6 +192,9 @@
 
 						<!-- Familles d'accueil -->
 						<CatPlacements {cat} hosts={hosts ?? []} {isAdmin} />
+
+						<!-- Le SOS qui l'a fait entrer (ou le rattacher à un SOS saisi) -->
+						<CatSosCard {cat} canManage={canManageCat} {linkableSos} />
 					</section>
 
 					<Separator />

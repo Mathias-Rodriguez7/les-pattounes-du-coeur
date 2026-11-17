@@ -7,7 +7,7 @@ import { replaceState } from '$app/navigation';
 // ou de la FA, AVEC son panneau ouvert. L'élément voulu passe dans l'adresse : ?id=…
 // =====================================================================
 
-export type EntityKind = 'cat' | 'volunteer' | 'host';
+export type EntityKind = 'cat' | 'volunteer' | 'host' | 'sos';
 
 /** Le paramètre de l'adresse qui porte l'élément à ouvrir */
 export const ENTITY_PARAM = 'id';
@@ -16,7 +16,8 @@ export const ENTITY_PARAM = 'id';
 export const ENTITY_PAGES = {
 	cat: 'dashboard/chat',
 	volunteer: 'dashboard/benevole',
-	host: 'dashboard/famille_d_accueil'
+	host: 'dashboard/famille_d_accueil',
+	sos: 'dashboard/sos'
 } as const;
 
 /** L'élément demandé par l'adresse (?id=…), ou null */

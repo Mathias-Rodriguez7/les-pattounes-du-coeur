@@ -334,6 +334,7 @@
 					hosts={data.hosts}
 					volunteers={data.volunteers}
 					veterinarians={data.veterinarians}
+					linkableSos={data.linkableSos}
 					isAdmin={data.isAdmin}
 				/>
 			{/snippet}

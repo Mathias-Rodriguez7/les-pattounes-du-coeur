@@ -115,17 +115,38 @@
 		/>
 	</div>
 
-	<!-- LOCALISATION -->
+	<!-- LOCALISATION : la rue (ou un lieu-dit), la ville, le code postal -->
 	<InputField
 		id="address"
 		name="address"
 		label="Lieu du signalement"
-		placeholder="Adresse ou lieu"
+		placeholder="Rue ou lieu (ex : parking du Leclerc)"
 		bind:value={$formData.address}
 		error={$errors.address?.[0]}
 		required
 		size="sm"
 	/>
+	<div class="grid grid-cols-2 gap-4">
+		<InputField
+			id="city"
+			name="city"
+			label="Ville"
+			placeholder="Montpellier"
+			bind:value={$formData.city}
+			error={$errors.city?.[0]}
+			required
+			size="sm"
+		/>
+		<InputField
+			id="postalCode"
+			name="postalCode"
+			label="Code postal"
+			placeholder="34000"
+			bind:value={$formData.postalCode}
+			error={$errors.postalCode?.[0]}
+			size="sm"
+		/>
+	</div>
 
 	<!-- DESCRIPTION -->
 	<TextareaField

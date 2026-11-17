@@ -50,6 +50,7 @@ model Volunteer {
 
   cats                 CatVolunteer[]
   catHistory           CatVolunteerHistory[] // les chats qu'elle a suivis (liens terminés)
+  handledSos           Sos[] // les SOS qu'elle a pris en charge
   sessions             Session[]
   assignedForms        Form[] @relation("assignedForms")
   createdInvitations   Invitation[] @relation("createdInvitations")
@@ -124,6 +125,9 @@ model Cat {
   hairLength          HairLength? @map("hair_length")
   color               String? @db.VarChar(255)
   origin              String? @db.VarChar(255)
+  // Le SOS qui a fait entrer le chat à l'association (s'il y en a un)
+  sosId               String? @db.Uuid @map("sos_id")
+  sos                 Sos? @relation(fields: [sosId], references: [id], onDelete: SetNull)
   isSterilize         Boolean @default(false) @map("is_sterilize")
   isAlreadySterilized Boolean @default(false) @map("is_already_sterilized")
   vaccinate           Vaccinate?
@@ -152,6 +156,7 @@ model Cat {
   forms               Form[]
 
   @@index([isVisible, status, publishedAt])
+  @@index([sosId])
 }
 
 // État de santé : ce que le chat A (rempli à la main par la bénévole)
@@ -673,4 +678,82 @@ enum InfoDocumentCategory {
 enum InvitationKind {
   HOST
   VOLUNTEER
+}
+
+//////////////////////////
+// SOS : un signalement de chat(s) en détresse, suivi jusqu'à la prise en charge
+//////////////////////////
+
+/// Un SOS : reçu par le site (enregistré automatiquement) ou saisi à la main (téléphone, mail…).
+/// Il se termine par un ou plusieurs chats créés (CLOSED), ou sans suite (DISMISSED).
+model Sos {
+  id         String @id @default(uuid()) @db.Uuid
+  reportedAt DateTime @default(now()) @map("reported_at") // la date du SOS
+  source     SosSource @default(WEBSITE)
+  status     SosStatus @default(NEW)
+  // Choisie par la bénévole qui le traite (remplace le type choisi sur le site)
+  category   SosCategory?
+
+  // La personne qui signale : visible seulement par l'admin et la bénévole qui traite le SOS
+  reporterFirstName String  @map("reporter_first_name") @db.VarChar(100)
+  reporterLastName  String  @map("reporter_last_name") @db.VarChar(100)
+  reporterPhone     String? @map("reporter_phone") @db.VarChar(30)
+  reporterEmail     String? @map("reporter_email") @db.VarChar(255)
+
+  // Le lieu, comme l'adresse d'un profil : rue, ville, code postal, quartier (Montpellier),
+  // et la position GPS si on l'a
+  address    String? @db.VarChar(500) // la rue (ou un lieu-dit : « parking du Leclerc »)
+  city       String? @db.VarChar(100)
+  postalCode String? @map("postal_code") @db.VarChar(10)
+  district   District?
+  latitude   Float?
+  longitude  Float?
+
+  description String? @db.Text // la situation décrite
+
+  // La bénévole qui le traite
+  handledById String? @db.Uuid @map("handled_by_id")
+  handledBy   Volunteer? @relation(fields: [handledById], references: [id], onDelete: SetNull)
+  handledAt   DateTime? @map("handled_at")
+
+  // La fin : chat(s) créé(s), ou sans suite (avec la raison)
+  closedAt      DateTime? @map("closed_at")
+  dismissReason SosDismissReason? @map("dismiss_reason")
+  dismissNote   String? @map("dismiss_note") @db.Text
+
+  cats Cat[]
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
+
+  @@index([status])
+  @@index([handledById])
+}
+
+enum SosStatus {
+  NEW         // à traiter
+  IN_PROGRESS // une bénévole s'en occupe
+  CLOSED      // chat(s) créé(s)
+  DISMISSED   // sans suite
+}
+
+enum SosCategory {
+  GIVEN      // chat donné
+  FOUND      // chat trouvé
+  TREATED    // chat soigné
+  STERILIZED // chat stérilisé
+}
+
+enum SosSource {
+  WEBSITE
+  PHONE
+  EMAIL
+  OTHER
+}
+
+enum SosDismissReason {
+  DECEASED    // chat(s) décédé(s) avant la prise en charge
+  NOT_FOUND   // introuvable
+  FALSE_ALARM // fausse alerte
+  OTHER
 }

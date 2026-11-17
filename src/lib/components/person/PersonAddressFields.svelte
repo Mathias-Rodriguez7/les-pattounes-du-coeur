@@ -16,6 +16,14 @@
 		disabled?: boolean;
 		/** Largeur de la carte dans la grille du formulaire (ex : « @2xl:col-span-2 ») */
 		class?: string;
+		/** false : rue, ville et code postal facultatifs (ex : le lieu d'un SOS) */
+		required?: boolean;
+		/** Le titre de la carte (par défaut : « Adresse ») */
+		title?: string;
+		/** Libellé du champ rue (par défaut : « Rue ») */
+		streetLabel?: string;
+		/** Préfixe des id, quand deux formulaires d'adresse sont sur la même page */
+		idPrefix?: string;
 	}
 
 	let {
@@ -25,7 +33,11 @@
 		district = $bindable(),
 		errors = {},
 		disabled = false,
-		class: className = ''
+		class: className = '',
+		required = true,
+		title = PERSON_SECTION_CONFIG.address.label,
+		streetLabel = 'Rue',
+		idPrefix = ''
 	}: Props = $props();
 
 	// Les quartiers sont ceux de Montpellier : la liste n'a de sens que pour cette ville
@@ -34,7 +46,7 @@
 
 <SectionCard
 	icon={PERSON_SECTION_CONFIG.address.icon}
-	title={PERSON_SECTION_CONFIG.address.label}
+	{title}
 	color={PERSON_SECTION_CONFIG.address.color}
 	class={className}
 >
@@ -42,43 +54,43 @@
 		<div class="grid grid-cols-1 gap-4 @sm:grid-cols-2">
 			<div class="@sm:col-span-2">
 				<InputField
-					id="address"
+					id="{idPrefix}address"
 					name="address"
-					label="Rue"
+					label={streetLabel}
 					bind:value={address}
 					placeholder="12 rue de la Paix"
 					error={errors.address}
-					required
+					{required}
 					size="sm"
 					{disabled}
 				/>
 			</div>
 			<InputField
-				id="city"
+				id="{idPrefix}city"
 				name="city"
 				label="Ville"
 				bind:value={city}
 				placeholder="Montpellier"
 				error={errors.city}
-				required
+				{required}
 				size="sm"
 				{disabled}
 			/>
 			<InputField
-				id="postalCode"
+				id="{idPrefix}postalCode"
 				name="postalCode"
 				label="Code postal"
 				bind:value={postalCode}
 				placeholder="34000"
 				error={errors.postalCode}
-				required
+				{required}
 				size="sm"
 				{disabled}
 			/>
 			{#if isMontpellier}
 				<!-- '' dans la liste = « aucun quartier » ; null ou undefined dans les données -->
 				<SelectField
-					id="district"
+					id="{idPrefix}district"
 					name="district"
 					label="Quartier"
 					placeholder="Quartier"

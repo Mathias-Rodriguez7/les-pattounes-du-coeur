@@ -19,6 +19,8 @@ export function makeValidSosForm(override: FormOverride<SosFormData> = {}): SosF
 		description: 'Un chat semble abandonné depuis plusieurs jours.',
 
 		address: '10 rue de Paris',
+		city: 'Montpellier',
+		postalCode: '34000',
 
 		...override
 	} as SosFormData;

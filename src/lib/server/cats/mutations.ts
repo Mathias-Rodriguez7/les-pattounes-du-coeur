@@ -1,4 +1,5 @@
 import prisma from '#lib/server/prisma.ts';
+import { sosForNewCat } from '#lib/server/sos/actions.ts';
 import {
 	createCatSchema,
 	updateCatSchema,
@@ -84,6 +85,17 @@ export async function createCat({ request, locals }: { request: Request; locals:
 
 		const validatedData: CreateCatInput = result.data;
 
+		// 🚨 Créé depuis un SOS (page SOS) : il faut pouvoir traiter ce SOS
+		const sosId = typeof data.sosId === 'string' && data.sosId ? data.sosId : null;
+		let sosVolunteerId: string | null = null;
+		if (sosId) {
+			const parsedSosId = z.uuid().safeParse(sosId);
+			if (!parsedSosId.success) return { success: false, error: 'SOS invalide', errors: {} };
+			const check = await sosForNewCat(sosId, locals.user);
+			if (!check.ok) return { success: false, error: check.error, errors: {} };
+			sosVolunteerId = check.sos.handledById;
+		}
+
 		// 🔍 Unicité catNumber
 		const catNumberExists = await checkCatNumberUniqueness(validatedData.catNumber);
 		if (catNumberExists) {
@@ -106,32 +118,48 @@ export async function createCat({ request, locals }: { request: Request; locals:
 			}
 		}
 
-		const newCat = await prisma.cat.create({
-			data: {
-				catNumber: validatedData.catNumber,
-				name: validatedData.name,
-				sex: validatedData.sex,
-				birthDate: validatedData.birthDate,
-				status: validatedData.status,
-				color: validatedData.color,
-				hairLength: validatedData.hairLength,
-				origin: validatedData.origin,
-				isOkDog: validatedData.isOkDog,
-				isOkCat: validatedData.isOkCat,
-				isOkChild: validatedData.isOkChild,
-				isOutside: validatedData.isOutside,
-				vaccinate: validatedData.vaccinate,
-				isFivTest: validatedData.isFivTest,
-				isDeworming: validatedData.isDeworming,
-				isSterilize: validatedData.isSterilize,
-				isAlreadySterilized: validatedData.isAlreadySterilized,
-				isIdentify: validatedData.isIdentify,
-				chipId: validatedData.chipId,
-				isVisible: validatedData.isVisible,
-				publishedAt: validatedData.isVisible ? new Date() : null,
-				description: validatedData.description
-			}
-		});
+		const catData = {
+			catNumber: validatedData.catNumber,
+			name: validatedData.name,
+			sex: validatedData.sex,
+			birthDate: validatedData.birthDate,
+			status: validatedData.status,
+			color: validatedData.color,
+			hairLength: validatedData.hairLength,
+			origin: validatedData.origin,
+			isOkDog: validatedData.isOkDog,
+			isOkCat: validatedData.isOkCat,
+			isOkChild: validatedData.isOkChild,
+			isOutside: validatedData.isOutside,
+			vaccinate: validatedData.vaccinate,
+			isFivTest: validatedData.isFivTest,
+			isDeworming: validatedData.isDeworming,
+			isSterilize: validatedData.isSterilize,
+			isAlreadySterilized: validatedData.isAlreadySterilized,
+			isIdentify: validatedData.isIdentify,
+			chipId: validatedData.chipId,
+			isVisible: validatedData.isVisible,
+			publishedAt: validatedData.isVisible ? new Date() : null,
+			description: validatedData.description
+		};
+
+		// Depuis un SOS : le chat garde le lien, le SOS passe « clôturé », et la bénévole qui
+		// le traite devient sa référente. Tout ou rien (une transaction)
+		const newCat = sosId
+			? await prisma.$transaction(async (tx) => {
+					const cat = await tx.cat.create({ data: { ...catData, sosId } });
+					await tx.sos.update({
+						where: { id: sosId },
+						data: { status: 'CLOSED', closedAt: new Date() }
+					});
+					if (sosVolunteerId) {
+						await tx.catVolunteer.create({
+							data: { catId: cat.id, volunteerId: sosVolunteerId }
+						});
+					}
+					return cat;
+				})
+			: await prisma.cat.create({ data: catData });
 
 		return {
 			success: true,

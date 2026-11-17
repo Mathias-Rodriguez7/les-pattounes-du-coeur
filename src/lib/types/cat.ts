@@ -1,4 +1,5 @@
 // src/lib/types/cat.ts
+import type { SosView } from '#lib/server/sos/queries.ts';
 import type {
 	Prisma,
 	SexCat,
@@ -86,6 +87,8 @@ export type CatFull = Omit<Prisma.CatGetPayload<typeof catFullArgs>, 'forms'> & 
 	forms?: FormWithBlacklist[];
 	/** Blacklist active de l'adoptant de la dernière adoption (ajoutée par le load) */
 	adopterBlacklist?: BlacklistInfo | null;
+	/** Le SOS qui l'a fait entrer (carte « Signalement »), contact retiré si besoin (ajouté par le load) */
+	sos?: SosView | null;
 };
 
 // ✅ Select réutilisable pour la liste (source unique de vérité)

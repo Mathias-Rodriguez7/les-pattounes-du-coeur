@@ -19,6 +19,7 @@
 		ClipboardList,
 		FileQuestionMark,
 		Stethoscope,
+		Siren,
 		Ban
 	} from '@lucide/svelte';
 
@@ -56,6 +57,12 @@
 			label: 'Chats',
 			icon: Cat,
 			href: 'dashboard/chat',
+			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
+		},
+		{
+			label: 'SOS',
+			icon: Siren,
+			href: 'dashboard/sos',
 			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
 		},
 		{

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { createCatSchema } from '#lib/schemas/cat.ts';
 	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
 	import type { FlattenedErrors } from '#lib/utils/zodErrors.ts';
@@ -23,7 +24,16 @@
 	} from '#lib/constants/cat.ts';
 	import SaveCancelButtons from '../buttons/SaveCancelButtons.svelte';
 
-	let { open = $bindable(false), onCancel } = $props();
+	interface Props {
+		open?: boolean;
+		onCancel?: () => void;
+		/** Créé depuis un SOS (page SOS) : le chat y sera rattaché */
+		sosId?: string | null;
+		/** Le texte de départ du champ « Origine » (ex : le lieu du SOS) */
+		initialOrigin?: string;
+	}
+
+	let { open = $bindable(false), onCancel, sosId = null, initialOrigin = '' }: Props = $props();
 	let isSubmitting = $state(false);
 	let fieldErrors: FlattenedErrors = $state({});
 
@@ -129,9 +139,12 @@
 		fieldErrors = {};
 	}
 
-	// Vide le formulaire à chaque fermeture (Annuler, croix, Échap, clic à côté)
+	// Vide le formulaire à chaque fermeture (Annuler, croix, Échap, clic à côté).
+	// À l'ouverture depuis un SOS : l'origine reprend le lieu du SOS
 	$effect(() => {
 		if (!open) resetForm();
+		// untrack : seule l'ouverture déclenche ; vider le champ ne le re-remplit pas
+		else if (initialOrigin) untrack(() => (origin ||= initialOrigin));
 	});
 
 	const handleEnhance: SubmitFunction = ({ cancel }) => {
@@ -171,7 +184,7 @@
 <Dialog.Root bind:open>
 	<Dialog.Content size="xl" class="max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Créer un nouveau chat</Dialog.Title>
+			<Dialog.Title>{sosId ? 'Créer un chat depuis ce SOS' : 'Créer un nouveau chat'}</Dialog.Title>
 			<Dialog.Description>
 				Seul le numéro de suivi (*) est obligatoire, les autres champs peuvent être complétés plus
 				tard
@@ -179,6 +192,10 @@
 		</Dialog.Header>
 
 		<form method="POST" action="?/createCat" use:enhance={handleEnhance} class="space-y-6">
+			{#if sosId}
+				<!-- Le serveur rattache le chat au SOS, et donne le chat à la bénévole qui le traite -->
+				<input type="hidden" name="sosId" value={sosId} />
+			{/if}
 			<!-- Identité & Statut : PC 2 colonnes (comme avant) | Mobile empilés -->
 			<section class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				<SectionCard

@@ -16,6 +16,8 @@ import { catFullArgs } from '#lib/types/cat.ts';
 import { hostFullArgs } from '#lib/types/host.ts';
 import { createCare, deleteCare } from '#lib/server/cares/mutations.ts';
 import { activeVeterinarianOptions } from '#lib/server/veterinarians/queries.ts';
+import { linkableSosOptions, sosViewsByIds } from '#lib/server/sos/queries.ts';
+import { linkCatSosAction } from '#lib/server/sos/actions.ts';
 import {
 	addCatMedia,
 	setPrimaryCatMedia,
@@ -98,8 +100,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 				...(adopterEmail(cat) ? [adopterEmail(cat)!] : [])
 			])
 		);
+		// La carte « Signalement » : le SOS de chaque chat (contact retiré si on n'a pas le droit)
+		const sosById = await sosViewsByIds(
+			cats.flatMap((cat) => (cat.sosId ? [cat.sosId] : [])),
+			user
+		);
 		const catsWithOwnership = cats.map((cat) => ({
 			...cat,
+			sos: cat.sosId ? (sosById.get(cat.sosId) ?? null) : null,
 			forms: cat.forms.map((form) => attachBlacklist(form, blacklists)),
 			adopterBlacklist: blacklists.get(adopterEmail(cat)?.trim().toLowerCase() ?? '') ?? null,
 			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
@@ -118,6 +126,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			volunteers,
 			// La liste « Vétérinaire » d'un nouveau soin
 			veterinarians: await activeVeterinarianOptions(),
+			// « Rattacher à un SOS » (carte Signalement d'un chat sans SOS)
+			linkableSos: await linkableSosOptions(user),
 			isAdmin
 		};
 	} catch (error) {
@@ -127,6 +137,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
+	// Carte « Signalement » : rattacher le chat à un SOS (ou l'en détacher)
+	linkCatSos: linkCatSosAction,
+
 	// ==========================================
 	// ACTION: Cat
 	// ==========================================

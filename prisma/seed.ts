@@ -845,6 +845,7 @@ async function main() {
 	await prisma.news.deleteMany();
 	await prisma.media.deleteMany({ where: { infoDocument: null } });
 	await prisma.cat.deleteMany();
+	await prisma.sos.deleteMany();
 	await prisma.volunteer.deleteMany();
 	await prisma.host.deleteMany();
 	await prisma.blacklistHistoric.deleteMany();
@@ -1940,6 +1941,65 @@ async function main() {
 				assignedToId: randomBool(0.7) ? pick(activeVolunteers).id : null
 			}
 		});
+	}
+
+	// ---------------------
+	// 🚨 SOS (16) : à traiter, en cours, clôturés (avec leurs chats), sans suite
+	// ---------------------
+	console.log('  → 16 SOS...');
+	const SOS_SITUATIONS = [
+		'Une chatte et ses chatons sous une voiture depuis 2 jours, la mère semble maigre.',
+		'Un chat blessé à la patte traîne dans la cour de la résidence.',
+		'Ma voisine part en EHPAD, elle ne peut pas garder son chat.',
+		'Plusieurs chats errants non stérilisés près des poubelles du parking.',
+		'Un chaton seul qui miaule dans un buisson depuis ce matin.',
+		'Un chat très sociable sans collier vient tous les jours chez nous.'
+	];
+	const CATEGORIES = ['GIVEN', 'FOUND', 'TREATED', 'STERILIZED'] as const;
+	const sosPlan = [
+		...Array(4).fill('NEW'),
+		...Array(3).fill('IN_PROGRESS'),
+		...Array(7).fill('CLOSED'),
+		...Array(2).fill('DISMISSED')
+	] as ('NEW' | 'IN_PROGRESS' | 'CLOSED' | 'DISMISSED')[];
+	// Les chats rattachés aux SOS clôturés : pris au hasard, une fois chacun
+	const catsForSos = faker.helpers.shuffle(await prisma.cat.findMany({ select: { id: true } }));
+	for (const [index, status] of sosPlan.entries()) {
+		const place = pick(NEARBY_CITIES);
+		const handler = status === 'NEW' ? null : pick(activeVolunteers);
+		const reportedAt = status === 'NEW' ? daysAgo(int(0, 3)) : daysAgo(int(5, 300));
+		const hasGps = randomBool(0.6);
+		const sos = await prisma.sos.create({
+			data: {
+				reportedAt,
+				source: status === 'NEW' || randomBool(0.5) ? 'WEBSITE' : pick(['PHONE', 'EMAIL'] as const),
+				status,
+				category: status === 'NEW' ? null : pick(CATEGORIES),
+				reporterFirstName: faker.person.firstName(),
+				reporterLastName: faker.person.lastName(),
+				reporterPhone: frenchMobile(),
+				reporterEmail: randomBool(0.7) ? faker.internet.email().toLowerCase() : null,
+				address: faker.location.streetAddress().slice(0, 500),
+				city: place.city,
+				postalCode: place.postalCode,
+				latitude: hasGps ? 43.55 + Math.random() * 0.1 : null,
+				longitude: hasGps ? 3.82 + Math.random() * 0.12 : null,
+				description: SOS_SITUATIONS[index % SOS_SITUATIONS.length],
+				handledById: handler?.id ?? null,
+				handledAt: handler ? addDays(reportedAt, 1) : null,
+				closedAt: status === 'CLOSED' || status === 'DISMISSED' ? addDays(reportedAt, 3) : null,
+				dismissReason:
+					status === 'DISMISSED' ? pick(['DECEASED', 'NOT_FOUND', 'FALSE_ALARM'] as const) : null
+			}
+		});
+		// Un SOS clôturé a fait entrer 1 à 3 chats
+		if (status === 'CLOSED') {
+			const linked = catsForSos.splice(0, int(1, 3));
+			await prisma.cat.updateMany({
+				where: { id: { in: linked.map((c) => c.id) } },
+				data: { sosId: sos.id }
+			});
+		}
 	}
 
 	// ---------------------

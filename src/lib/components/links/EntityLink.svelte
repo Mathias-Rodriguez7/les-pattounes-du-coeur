@@ -18,10 +18,11 @@
 	let { kind, id, class: className = '', title = 'Ouvrir sa fiche', children }: Props = $props();
 
 	// Les pages Bénévoles et FA sont réservées à l'admin : pour les autres, le nom reste du texte.
+	// Les pages Chats et SOS sont ouvertes à toutes.
 	// (Le serveur protège déjà ces pages : ici, on évite juste un lien qui ne mènerait nulle part.)
 	const isAdmin = $derived(page.data.user?.role === 'ADMIN');
 	const href = $derived(
-		id && (kind === 'cat' || isAdmin)
+		id && (kind === 'cat' || kind === 'sos' || isAdmin)
 			? resolve(`${ENTITY_PAGES[kind]}?${ENTITY_PARAM}=${encodeURIComponent(id)}`)
 			: null
 	);
