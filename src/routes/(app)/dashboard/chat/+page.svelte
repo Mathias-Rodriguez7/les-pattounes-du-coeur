@@ -10,9 +10,12 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import { getAgeBadge } from '#lib/utils/age.ts';
 	import NewCatDialog from '#lib/components/cats/NewCatDialog.svelte';
+	import NewCatKindDialog from '#lib/components/cats/free/NewCatKindDialog.svelte';
+	import NewFreeCatDialog from '#lib/components/cats/free/NewFreeCatDialog.svelte';
+	import { catDisplayName } from '#lib/utils/catHelpers.ts';
 	import CatPanel from '#lib/components/cats/CatPanel.svelte';
 	import CatRow from '#lib/components/cats/CatRow.svelte';
-	import { CAT_AGE, CAT_SEX, CAT_STATUS } from '#lib/constants/cat.js';
+	import { ASSO_CAT_STATUS, CAT_AGE, CAT_SEX } from '#lib/constants/cat.js';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { getAdoptionTone } from '#lib/utils/adoption.ts';
@@ -36,12 +39,23 @@
 		}
 	});
 
-	const selectedCatName = $derived(
-		selectedCat ? (selectedCat.name ?? selectedCat.catNumber) : 'Détail du chat'
-	);
+	const selectedCatName = $derived(selectedCat ? catDisplayName(selectedCat) : 'Détail du chat');
 
 	let mobilePanelOpen = $state(false);
 	let newCatOpen = $state(false);
+	// « Nouveau chat » demande d'abord le type : chat asso ou chat libre
+	let newCatKindOpen = $state(false);
+	let newFreeCatOpen = $state(false);
+
+	// ===== TYPE : chats asso (par défaut) ou chats libres =====
+	// Les chats libres ne se mélangent pas aux autres : leur fiche, leurs infos sont différentes
+	type CatKind = 'ASSO' | 'FREE';
+	let kindFilter = $state<string>('ASSO');
+	const KIND_OPTIONS = [
+		{ value: 'ASSO', label: 'Chats asso' },
+		{ value: 'FREE', label: 'Chats libres' }
+	];
+	const kindOf = (cat: { status: string }): CatKind => (cat.status === 'FREE' ? 'FREE' : 'ASSO');
 
 	// ===== FILTRES (valeur '' = pas de filtre) =====
 	let statusFilter = $state('');
@@ -57,12 +71,17 @@
 
 	// « À finaliser » n'est pas un statut de chat : une valeur à part, ajoutée aux statuts
 	const ADOPTION_DUE = 'ADOPTION_DUE';
-	const statusOptions = [...CAT_STATUS, { value: ADOPTION_DUE, label: 'Adoption à finaliser' }];
+	const statusOptions = [
+		...ASSO_CAT_STATUS,
+		{ value: ADOPTION_DUE, label: 'Adoption à finaliser' }
+	];
 
 	// ===== PORTÉE : admin = interrupteur, autres = toujours « mes chats » =====
 	let showAll = $state(false);
 	const effectiveShowAll = $derived(data.isAdmin && showAll);
 	const scopedCats = $derived(effectiveShowAll ? cats : cats.filter((c) => c.isMine));
+	// Les statistiques ne parlent que des chats asso
+	const scopedAssoCats = $derived(scopedCats.filter((c) => kindOf(c) === 'ASSO'));
 
 	function resetView() {
 		selectedCatId = null;
@@ -74,6 +93,7 @@
 	}
 
 	function clearFilters() {
+		kindFilter = 'ASSO';
 		statusFilter = '';
 		sexFilter = '';
 		ageFilter = '';
@@ -110,6 +130,8 @@
 		// L'admin est sur « Mes chats » et ce chat n'en fait pas partie : on passe sur « Tous »
 		if (data.isAdmin && !cat.isMine) showAll = true;
 		if (!filteredCats.some((c) => c.id === id)) clearFilters();
+		// Un chat libre : on passe sur « Chats libres »
+		kindFilter = kindOf(cat);
 		selectCat(id);
 		scrollToRow(id);
 	}
@@ -119,11 +141,12 @@
 		const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
 		return {
-			managedByUser: cats.filter((c) => c.isMine).length,
-			incompleteProfiles: scopedCats.filter((c) => !c.isOkCat || !c.isOkDog || !c.isOutside).length,
-			visibleCats: scopedCats.filter((c) => c.isVisible).length,
-			socializingCats: scopedCats.filter((c) => c.status === 'SOCIALIZE').length,
-			adoptedThisYear: scopedCats.filter(
+			managedByUser: cats.filter((c) => c.isMine && kindOf(c) === 'ASSO').length,
+			incompleteProfiles: scopedAssoCats.filter((c) => !c.isOkCat || !c.isOkDog || !c.isOutside)
+				.length,
+			visibleCats: scopedAssoCats.filter((c) => c.isVisible).length,
+			socializingCats: scopedAssoCats.filter((c) => c.status === 'SOCIALIZE').length,
+			adoptedThisYear: scopedAssoCats.filter(
 				(c) => c.status === 'ADOPTED' && new Date(c.updatedAt) >= yearStart
 			).length
 		};
@@ -132,7 +155,7 @@
 	const statCards = $derived([
 		{
 			label: effectiveShowAll ? 'Chats (tous)' : 'Chats sous ma gestion',
-			value: effectiveShowAll ? scopedCats.length : stats.managedByUser,
+			value: effectiveShowAll ? scopedAssoCats.length : stats.managedByUser,
 			icon: 'cat',
 			theme: 'cats'
 		},
@@ -154,11 +177,12 @@
 
 	// ===== FILTRAGE : portée → statut → sexe → âge → recherche =====
 	const filteredCats = $derived.by(() => {
-		let filtered = scopedCats;
+		let filtered = scopedCats.filter((c) => kindOf(c) === kindFilter);
 
-		if (statusFilter === ADOPTION_DUE) {
+		// Le statut n'a de sens que pour les chats asso (un chat libre est toujours « Libre »)
+		if (kindFilter === 'ASSO' && statusFilter === ADOPTION_DUE) {
 			filtered = filtered.filter((c) => getAdoptionTone(c) === 'DUE');
-		} else if (statusFilter) {
+		} else if (kindFilter === 'ASSO' && statusFilter) {
 			filtered = filtered.filter((c) => c.status === statusFilter);
 		}
 		if (sexFilter) filtered = filtered.filter((c) => c.sex === sexFilter);
@@ -173,7 +197,10 @@
 		if (query) {
 			filtered = filtered.filter(
 				(c) =>
-					(c.name ?? '').toLowerCase().includes(query) || c.catNumber.toLowerCase().includes(query)
+					(c.name ?? '').toLowerCase().includes(query) ||
+					(c.catNumber ?? '').toLowerCase().includes(query) ||
+					// Un chat libre se retrouve aussi par la ville de son relâchage
+					(c.freeInfo?.city ?? '').toLowerCase().includes(query)
 			);
 		}
 
@@ -182,7 +209,8 @@
 
 	// Inclut le statut : sinon « Aucun chat » s'affichait alors qu'un filtre était actif
 	const hasActiveFilters = $derived(
-		statusFilter !== '' ||
+		kindFilter !== 'ASSO' ||
+			statusFilter !== '' ||
 			!!sexFilter ||
 			!!ageFilter ||
 			!!searchQuery.trim() ||
@@ -210,7 +238,9 @@
 						>
 							<div class="flex items-center gap-3">
 								<Card.Title class="text-xl font-bold sm:text-2xl">
-									{effectiveShowAll ? 'Tous les chats' : 'Mes chats'}
+									{effectiveShowAll ? 'Tous les chats' : 'Mes chats'}{kindFilter === 'FREE'
+										? ' libres'
+										: ''}
 									<span class="text-base font-normal text-muted-foreground">
 										({filteredCats.length})
 									</span>
@@ -225,7 +255,7 @@
 								{/if}
 							</div>
 
-							<Button class="rounded-2xl" size="sm" onclick={() => (newCatOpen = true)}>
+							<Button class="rounded-2xl" size="sm" onclick={() => (newCatKindOpen = true)}>
 								<Icon name="plus" class="h-4 w-4" />
 								<span class="hidden sm:inline">Nouveau chat</span>
 								<span class="sm:hidden">Ajouter</span>
@@ -242,13 +272,22 @@
 							>
 								{#snippet filters()}
 									<SelectField
-										id="cat-filter-status"
+										id="cat-filter-kind"
 										label=""
-										options={statusOptions}
-										bind:value={statusFilter}
-										placeholder="Statut"
-										class="w-full sm:w-32"
+										options={KIND_OPTIONS}
+										bind:value={kindFilter}
+										class="w-full sm:w-36"
 									/>
+									{#if kindFilter === 'ASSO'}
+										<SelectField
+											id="cat-filter-status"
+											label=""
+											options={statusOptions}
+											bind:value={statusFilter}
+											placeholder="Statut"
+											class="w-full sm:w-32"
+										/>
+									{/if}
 									<SelectField
 										id="cat-filter-sex"
 										label=""
@@ -341,6 +380,26 @@
 		</ListDetailLayout>
 	</div>
 </main>
+
+<NewCatKindDialog
+	bind:open={newCatKindOpen}
+	onChoose={(kind) => {
+		if (kind === 'ASSO') newCatOpen = true;
+		else newFreeCatOpen = true;
+	}}
+/>
+
+<NewFreeCatDialog
+	bind:open={newFreeCatOpen}
+	volunteers={data.volunteers}
+	veterinarians={data.veterinarians}
+	isAdmin={data.isAdmin}
+	onCreated={(catId) => {
+		kindFilter = 'FREE';
+		handleSelectCat(catId);
+		scrollToRow(catId);
+	}}
+/>
 
 <NewCatDialog
 	bind:open={newCatOpen}

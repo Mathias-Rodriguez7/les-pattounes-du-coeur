@@ -5,7 +5,14 @@ export async function activeVeterinarianOptions() {
 	return prisma.veterinarian.findMany({
 		where: { isActive: true },
 		orderBy: [{ category: 'asc' }, { name: 'asc' }],
-		select: { id: true, name: true, area: true, category: true, specialty: true }
+		select: {
+			id: true,
+			name: true,
+			area: true,
+			category: true,
+			specialty: true,
+			isCityPartner: true
+		}
 	});
 }
 

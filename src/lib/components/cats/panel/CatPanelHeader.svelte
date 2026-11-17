@@ -5,7 +5,13 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Camera, HeartHandshake } from '@lucide/svelte';
 	import CatAdopterCard from './CatAdopterCard.svelte';
-	import { statusLabel, getSexIcon, focalPointStyle } from '#lib/utils/catHelpers.ts';
+	import {
+		statusLabel,
+		getSexIcon,
+		focalPointStyle,
+		catAltText,
+		catDisplayName
+	} from '#lib/utils/catHelpers.ts';
 	import { getAgeBadge } from '#lib/utils/age.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
 	import { getTrialInfo } from '#lib/utils/adoption.ts';
@@ -55,7 +61,7 @@
 		{#if primaryMedia}
 			<img
 				src={publicMediaUrl(primaryMedia.file.storageKey)}
-				alt={cat.name ?? cat.catNumber}
+				alt={catAltText(cat)}
 				class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 pointer-fine:group-hover:scale-105"
 				style={primaryStyle}
 			/>
@@ -83,7 +89,7 @@
 	<!-- Infos : qui est ce chat, et où en est-il ? -->
 	<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 pr-6 lg:flex-initial">
 		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-			<Card.Title class="text-xl sm:text-2xl">{cat.name ?? 'Sans nom'}</Card.Title>
+			<Card.Title class="text-xl sm:text-2xl">{catDisplayName(cat)}</Card.Title>
 			<span class="text-sm text-muted-foreground">{getAgeBadge(cat.birthDate)}</span>
 			{#if sexIcon}
 				<p class="flex items-center gap-1.5 font-medium">
@@ -94,16 +100,17 @@
 		</div>
 
 		<p class="text-sm text-muted-foreground">
-			N° de suivi : <span class="font-medium text-foreground">{cat.catNumber}</span>
+			N° de suivi : <span class="font-medium text-foreground">{cat.catNumber ?? '—'}</span>
 		</p>
 
 		<div class="flex flex-wrap gap-2">
 			<Badge variant="outline" class="text-sm">
 				{statusLabel[cat.status] ?? cat.status}
 			</Badge>
-			{#if cat.isVisible}
+			<!-- Un chat libre n'est jamais sur le site : pas de badge Visible / Masqué -->
+			{#if cat.status !== 'FREE' && cat.isVisible}
 				<Badge class="bg-green-100 text-sm text-green-700">Visible</Badge>
-			{:else}
+			{:else if cat.status !== 'FREE'}
 				<Badge class="bg-red-100 text-sm text-red-700">Masqué</Badge>
 			{/if}
 		</div>

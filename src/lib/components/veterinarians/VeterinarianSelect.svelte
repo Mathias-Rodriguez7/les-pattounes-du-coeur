@@ -2,6 +2,8 @@
 	import * as Select from '#lib/components/ui/select/index.js';
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import {
+		CITY_PARTNER_COLOR,
+		CITY_PARTNER_LABEL,
 		OTHER_VETERINARIAN,
 		VETERINARIAN_CATEGORY,
 		VETERINARIAN_CATEGORY_ORDER
@@ -20,6 +22,12 @@
 		other: string;
 		disabled?: boolean;
 		error?: string;
+		/** Obligatoire : pas de « Non précisé » (la stérilisation d'un chat libre) */
+		required?: boolean;
+		/** L'id du champ : à changer si deux listes sont sur la même page */
+		id?: string;
+		/** L'erreur du choix lui-même (« Choisissez un vétérinaire ») */
+		choiceError?: string;
 	}
 
 	let {
@@ -27,7 +35,10 @@
 		choice = $bindable(''),
 		other = $bindable(''),
 		disabled = false,
-		error
+		error,
+		required = false,
+		id = 'care-veterinarian',
+		choiceError
 	}: Props = $props();
 
 	const groups = $derived(
@@ -41,7 +52,8 @@
 	const selectedVet = $derived(veterinarians.find((vet) => vet.id === choice));
 
 	// Le bouton fermé : juste le nom (le détail est dans la liste)
-	const triggerLabel = $derived(selectedVet?.name ?? (isOther ? 'Autre…' : 'Non précisé'));
+	const emptyLabel = $derived(required ? 'Choisir un vétérinaire' : 'Non précisé');
+	const triggerLabel = $derived(selectedVet?.name ?? (isOther ? 'Autre…' : emptyLabel));
 
 	/** La 2e ligne d'une option : « Montpellier / Corum · ophtalmologie » */
 	const details = (vet: VeterinarianOption) =>
@@ -49,11 +61,11 @@
 </script>
 
 <div class="grid gap-2">
-	<label for="care-veterinarian" class="text-xs font-medium text-gray-700">
-		Vétérinaire (facultatif)
+	<label for={id} class="text-xs font-medium text-gray-700">
+		Vétérinaire{required ? '' : ' (facultatif)'}
 	</label>
 	<Select.Root type="single" bind:value={choice} {disabled}>
-		<Select.Trigger id="care-veterinarian" class="w-full">
+		<Select.Trigger {id} class="w-full" aria-invalid={choiceError ? true : undefined}>
 			<span
 				class="min-w-0 flex-1 truncate text-left {selectedVet || isOther
 					? ''
@@ -64,12 +76,14 @@
 		</Select.Trigger>
 		<!-- Aussi large que le champ, et pas plus haute que 20rem : on fait défiler -->
 		<Select.Content class="max-h-80 w-(--bits-select-anchor-width)">
-			<Select.Item value="" label="Non précisé">
-				<span class="text-muted-foreground">Non précisé</span>
-			</Select.Item>
+			{#if !required}
+				<Select.Item value="" label="Non précisé">
+					<span class="text-muted-foreground">Non précisé</span>
+				</Select.Item>
+			{/if}
 
-			{#each groups as group (group.category)}
-				<Select.Separator />
+			{#each groups as group, index (group.category)}
+				{#if !required || index > 0}<Select.Separator />{/if}
 				<Select.Group>
 					<Select.GroupHeading class="font-semibold">
 						{VETERINARIAN_CATEGORY[group.category].label}
@@ -81,7 +95,16 @@
 						<Select.Item value={vet.id} label={vet.name}>
 							<!-- div (pas span) : le style de Select.Item met le dernier span en ligne -->
 							<div class="grid min-w-0 gap-0.5">
-								<span class="truncate">{vet.name}</span>
+								<span class="flex min-w-0 items-center gap-1.5">
+									<span class="truncate">{vet.name}</span>
+									{#if vet.isCityPartner}
+										<span
+											class="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] leading-none {CITY_PARTNER_COLOR}"
+										>
+											{CITY_PARTNER_LABEL}
+										</span>
+									{/if}
+								</span>
 								{#if details(vet)}
 									<span class="truncate text-xs text-muted-foreground">{details(vet)}</span>
 								{/if}
@@ -100,9 +123,12 @@
 
 	<!-- Ce que reçoit le serveur : l'id (pas « OTHER ») et, pour « Autre… », le nom saisi -->
 	<input type="hidden" name="veterinarianId" value={isOther ? '' : choice} />
+	{#if choiceError}
+		<p class="text-xs text-destructive">{choiceError}</p>
+	{/if}
 	{#if isOther}
 		<InputField
-			id="care-veterinary"
+			id="{id}-other"
 			name="veterinary"
 			label="Nom du vétérinaire"
 			placeholder="Nom de la clinique ou du véto"

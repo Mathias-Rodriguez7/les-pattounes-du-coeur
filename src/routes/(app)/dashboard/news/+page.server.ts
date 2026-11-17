@@ -26,6 +26,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		// et seulement les champs utiles (tout ce que renvoie le load part au navigateur)
 		canManage
 			? prisma.cat.findMany({
+					// Les chats libres n'ont pas de News
+					where: { status: { not: 'FREE' } },
 					select: { id: true, name: true, catNumber: true },
 					orderBy: { catNumber: 'asc' }
 				})

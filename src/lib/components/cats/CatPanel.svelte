@@ -29,6 +29,8 @@
 	import AdoptionFormPanel from '../forms/panels/AdoptionFormPanel.svelte';
 	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
 	import CatHealthCard from './profile/CatHealthCard.svelte';
+	import FreeCatCards from './free/FreeCatCards.svelte';
+	import FreeCatConvertDialog from './free/FreeCatConvertDialog.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -82,7 +84,7 @@
 		if (!cat) return;
 
 		editData = {
-			catNumber: cat.catNumber,
+			catNumber: cat.catNumber ?? '',
 			name: cat.name,
 			sex: cat.sex,
 			birthDate: cat.birthDate ? new Date(cat.birthDate) : new Date(),
@@ -143,7 +145,9 @@
 		canManageCat && !!cat && ADOPTABLE_STATUSES.includes(cat.status) && !isAdopted
 	);
 
-	// ===== DÉRIVÉS =====
+	// ===== CHAT LIBRE =====
+	// Attrapé, stérilisé, relâché : sa fiche se limite à ses infos, ses soins et ses documents
+	const isFree = $derived(cat?.status === 'FREE');
 </script>
 
 {#if cat}
@@ -172,126 +176,150 @@
 					onAdopt={() => (showAdoptDialog = true)}
 				/>
 
-				<Card.Content class="flex flex-col gap-4 text-sm">
-					<Separator />
-
-					<!-- ============================================================ -->
-					<!-- 2. QUI S'EN OCCUPE : bénévoles + placements (ou adoption)      -->
-					<!-- ============================================================ -->
-					<section class="grid gap-4">
-						<!-- Bénévoles référents (toujours affichés, même après adoption) -->
-						<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
-
-						<!-- Demandes d'adoption en attente pour ce chat (tant qu'il n'est pas adopté) -->
-						{#if !isAdopted}
-							<CatAdoptionRequests
-								requests={pendingRequests}
-								onOpen={(formId) => (openRequestId = formId)}
-							/>
-						{/if}
-
-						<!-- Familles d'accueil -->
-						<CatPlacements {cat} hosts={hosts ?? []} {isAdmin} />
-
-						<!-- Le SOS qui l'a fait entrer (ou le rattacher à un SOS saisi) -->
-						<CatSosCard {cat} canManage={canManageCat} {linkableSos} />
-					</section>
-
-					<Separator />
-
-					<!-- ============================================================ -->
-					<!-- 3. PROFIL DU CHAT : comment est-il ?                           -->
-					<!-- ============================================================ -->
-					<SectionCard title="Profil du chat" variant="plain">
-						{#snippet action()}
-							<Button
-								variant="ghost"
-								size="icon"
-								onclick={startEditing}
-								aria-label="Modifier le chat"
-							>
-								<Pencil class="h-5 w-5" />
-							</Button>
-						{/snippet}
-						<div class="grid gap-4">
-							<!-- PC : 1 + 1 + 2 | Tablette : 2 colonnes | Mobile : 1 -->
-							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-								<SectionCard
-									icon={CAT_SECTION_CONFIG.profile.icon}
-									title={CAT_SECTION_CONFIG.profile.label}
-									color={CAT_SECTION_CONFIG.profile.color}
-									class="lg:col-span-1"
-								>
-									<div class="ml-6 space-y-1">
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Âge</span>
-											<span>{formatAge(cat.birthDate)}</span>
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Couleur</span>
-											<span>{cat.color ?? '—'}</span>
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Poil</span>
-											<span>{getLabel(hairLabel, cat.hairLength)}</span>
-										</div>
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground">Origine</span>
-											<span>{cat.origin ?? '—'}</span>
-										</div>
-									</div>
-								</SectionCard>
-
-								<!-- Les mêmes cartes que le panneau d'une demande d'adoption -->
-								<CatCompatibilityCard {cat} class="lg:col-span-1" />
-								<CatHealthCard {cat} class="sm:col-span-2" />
-							</div>
-
-							{#if cat.description}
-								<SectionCard
-									icon={CAT_SECTION_CONFIG.description.icon}
-									title={CAT_SECTION_CONFIG.description.label}
-									color={CAT_SECTION_CONFIG.description.color}
-								>
-									<p class="ml-6 text-xs whitespace-pre-line text-muted-foreground">
-										{cat.description}
-									</p>
-								</SectionCard>
+				{#if isFree}
+					<Card.Content class="flex flex-col gap-4 text-sm">
+						<Separator />
+						<section class="grid gap-4">
+							{#if canManageCat}
+								<div class="flex justify-end">
+									<FreeCatConvertDialog {cat} />
+								</div>
 							{/if}
-						</div>
-					</SectionCard>
+							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
+							<FreeCatCards {cat} canManage={canManageCat} {isAdmin} />
+						</section>
+						<Separator />
+						<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						<Separator />
+						<CatDocuments {cat} canManage={canManageCat} />
+					</Card.Content>
+				{:else}
+					<Card.Content class="flex flex-col gap-4 text-sm">
+						<Separator />
 
-					<Separator />
+						<!-- ============================================================ -->
+						<!-- 2. QUI S'EN OCCUPE : bénévoles + placements (ou adoption)      -->
+						<!-- ============================================================ -->
+						<section class="grid gap-4">
+							<!-- Bénévoles référents (toujours affichés, même après adoption) -->
+							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 
-					<!-- ============================================================ -->
-					<!-- 4. MALADIES                                                   -->
-					<!-- ============================================================ -->
-					<!-- Même règle que les documents et les soins : admin, ou bénévole associée au chat -->
-					<CatSicknesses {cat} canManage={canManageCat} />
+							<!-- Demandes d'adoption en attente pour ce chat (tant qu'il n'est pas adopté) -->
+							{#if !isAdopted}
+								<CatAdoptionRequests
+									requests={pendingRequests}
+									onOpen={(formId) => (openRequestId = formId)}
+								/>
+							{/if}
 
-					<Separator />
+							<!-- Familles d'accueil -->
+							<CatPlacements {cat} hosts={hosts ?? []} {isAdmin} />
 
-					<!-- ============================================================ -->
-					<!-- 5. DOCUMENTS                                                  -->
-					<!-- ============================================================ -->
-					<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-					<CatDocuments {cat} canManage={canManageCat} />
+							<!-- Le SOS qui l'a fait entrer (ou le rattacher à un SOS saisi) -->
+							<CatSosCard {cat} canManage={canManageCat} {linkableSos} />
 
-					<Separator />
+							<!-- Un ancien chat libre : d'où il vient (stérilisation, relâchage, nourrisseur) -->
+							{#if cat.freeInfo}
+								<FreeCatCards {cat} canManage={canManageCat} {isAdmin} />
+							{/if}
+						</section>
 
-					<!-- ============================================================ -->
-					<!-- 6. SOINS VÉTÉRINAIRES                                         -->
-					<!-- ============================================================ -->
-					<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-					<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						<Separator />
 
-					<Separator />
+						<!-- ============================================================ -->
+						<!-- 3. PROFIL DU CHAT : comment est-il ?                           -->
+						<!-- ============================================================ -->
+						<SectionCard title="Profil du chat" variant="plain">
+							{#snippet action()}
+								<Button
+									variant="ghost"
+									size="icon"
+									onclick={startEditing}
+									aria-label="Modifier le chat"
+								>
+									<Pencil class="h-5 w-5" />
+								</Button>
+							{/snippet}
+							<div class="grid gap-4">
+								<!-- PC : 1 + 1 + 2 | Tablette : 2 colonnes | Mobile : 1 -->
+								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+									<SectionCard
+										icon={CAT_SECTION_CONFIG.profile.icon}
+										title={CAT_SECTION_CONFIG.profile.label}
+										color={CAT_SECTION_CONFIG.profile.color}
+										class="lg:col-span-1"
+									>
+										<div class="ml-6 space-y-1">
+											<div class="flex items-center justify-between gap-2">
+												<span class="text-muted-foreground">Âge</span>
+												<span>{formatAge(cat.birthDate)}</span>
+											</div>
+											<div class="flex items-center justify-between gap-2">
+												<span class="text-muted-foreground">Couleur</span>
+												<span>{cat.color ?? '—'}</span>
+											</div>
+											<div class="flex items-center justify-between gap-2">
+												<span class="text-muted-foreground">Poil</span>
+												<span>{getLabel(hairLabel, cat.hairLength)}</span>
+											</div>
+											<div class="flex items-center justify-between gap-2">
+												<span class="text-muted-foreground">Origine</span>
+												<span>{cat.origin ?? '—'}</span>
+											</div>
+										</div>
+									</SectionCard>
 
-					<!-- ============================================================ -->
-					<!-- 7. HISTORIQUE                                                 -->
-					<!-- ============================================================ -->
-					<CatPlacementHistory {cat} />
-				</Card.Content>
+									<!-- Les mêmes cartes que le panneau d'une demande d'adoption -->
+									<CatCompatibilityCard {cat} class="lg:col-span-1" />
+									<CatHealthCard {cat} class="sm:col-span-2" />
+								</div>
+
+								{#if cat.description}
+									<SectionCard
+										icon={CAT_SECTION_CONFIG.description.icon}
+										title={CAT_SECTION_CONFIG.description.label}
+										color={CAT_SECTION_CONFIG.description.color}
+									>
+										<p class="ml-6 text-xs whitespace-pre-line text-muted-foreground">
+											{cat.description}
+										</p>
+									</SectionCard>
+								{/if}
+							</div>
+						</SectionCard>
+
+						<Separator />
+
+						<!-- ============================================================ -->
+						<!-- 4. MALADIES                                                   -->
+						<!-- ============================================================ -->
+						<!-- Même règle que les documents et les soins : admin, ou bénévole associée au chat -->
+						<CatSicknesses {cat} canManage={canManageCat} />
+
+						<Separator />
+
+						<!-- ============================================================ -->
+						<!-- 5. DOCUMENTS                                                  -->
+						<!-- ============================================================ -->
+						<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
+						<CatDocuments {cat} canManage={canManageCat} />
+
+						<Separator />
+
+						<!-- ============================================================ -->
+						<!-- 6. SOINS VÉTÉRINAIRES                                         -->
+						<!-- ============================================================ -->
+						<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
+						<CatCares {cat} canManage={canManageCat} {veterinarians} />
+
+						<Separator />
+
+						<!-- ============================================================ -->
+						<!-- 7. HISTORIQUE                                                 -->
+						<!-- ============================================================ -->
+						<CatPlacementHistory {cat} />
+					</Card.Content>
+				{/if}
 			{:else if editingImage}
 				<Card.Content>
 					<CatMediaGallery {cat} onClose={handleCloseImageEditor} />

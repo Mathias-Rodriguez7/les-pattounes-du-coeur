@@ -85,6 +85,15 @@ export async function createCat({ request, locals }: { request: Request; locals:
 
 		const validatedData: CreateCatInput = result.data;
 
+		// « Libre » est réservé aux chats libres : ils ont leur propre formulaire
+		if (validatedData.status === 'FREE') {
+			return {
+				success: false,
+				error: 'Pour un chat libre, utilisez « Nouveau chat libre »',
+				errors: { status: ['Statut réservé aux chats libres'] }
+			};
+		}
+
 		// 🚨 Créé depuis un SOS (page SOS) : il faut pouvoir traiter ce SOS
 		const sosId = typeof data.sosId === 'string' && data.sosId ? data.sosId : null;
 		let sosVolunteerId: string | null = null;
@@ -204,6 +213,21 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 			return { success: false, error: 'Chat non trouvé', errors: {} };
 		}
 
+		// On n'entre dans « Libre » (et on n'en sort) que par les actions des chats libres
+		if (
+			validatedData.status &&
+			(validatedData.status === 'FREE') !== (existingCat.status === 'FREE')
+		) {
+			return {
+				success: false,
+				error:
+					existingCat.status === 'FREE'
+						? 'Utilisez « Passer en chat asso »'
+						: 'Un chat asso ne peut pas devenir un chat libre',
+				errors: { status: ['Statut réservé aux chats libres'] }
+			};
+		}
+
 		// 🔍 Unicités seulement si modifiées
 		const catNumberChanged =
 			validatedData.catNumber && validatedData.catNumber !== existingCat.catNumber;
@@ -235,6 +259,8 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 		}
 
 		const catData = buildCatData(validatedData);
+		// Un chat libre n'est jamais sur le site public
+		if (existingCat.status === 'FREE') catData.isVisible = false;
 		// catNumber toujours inclus (obligatoire en update)
 		catData.catNumber = validatedData.catNumber;
 

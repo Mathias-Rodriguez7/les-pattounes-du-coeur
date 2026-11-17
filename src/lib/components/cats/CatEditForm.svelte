@@ -3,7 +3,7 @@
 	import type { CatEditData } from '#lib/types/cat.ts';
 	import {
 		CAT_SEX,
-		CAT_STATUS,
+		ASSO_CAT_STATUS,
 		CAT_HAIR_LENGTH,
 		CAT_VACCINATE,
 		CAT_SECTION_CONFIG
@@ -104,7 +104,7 @@
 					name="status"
 					label="Statut"
 					bind:value={editData.status}
-					options={CAT_STATUS}
+					options={ASSO_CAT_STATUS}
 					size="sm"
 					required
 				/>

@@ -19,7 +19,7 @@
 	import { toast } from 'svelte-sonner';
 	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
 
-	type CatOption = { id: string; name: string | null; catNumber: string };
+	type CatOption = { id: string; name: string | null; catNumber: string | null };
 
 	interface Props {
 		editData: NewsEditData;
@@ -59,7 +59,7 @@
 	const isCatsNews = $derived(editData.type === 'NEWSCATS');
 
 	const catLabel = (cat: CatOption) =>
-		cat.name ? `${cat.name} · ${cat.catNumber}` : cat.catNumber;
+		[cat.name, cat.catNumber].filter(Boolean).join(' · ') || 'Sans nom';
 
 	const selectedCats = $derived(cats.filter((cat) => editData.catIds.includes(cat.id)));
 
@@ -67,7 +67,8 @@
 		const q = catSearch.trim().toLowerCase();
 		if (!q) return cats;
 		return cats.filter(
-			(cat) => cat.catNumber.toLowerCase().includes(q) || cat.name?.toLowerCase().includes(q)
+			(cat) =>
+				(cat.catNumber ?? '').toLowerCase().includes(q) || cat.name?.toLowerCase().includes(q)
 		);
 	});
 

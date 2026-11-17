@@ -16,7 +16,7 @@
 
 	interface Props {
 		news: NewsFull | null;
-		cats?: { id: string; name: string | null; catNumber: string }[];
+		cats?: { id: string; name: string | null; catNumber: string | null }[];
 		canEdit?: boolean;
 		canDelete?: boolean;
 	}

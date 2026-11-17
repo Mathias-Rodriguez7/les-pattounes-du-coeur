@@ -112,7 +112,9 @@ model BlacklistHistoric {
 
 model Cat {
   id                  String @id @default(uuid()) @db.Uuid
-  catNumber           String @unique @db.VarChar(8) @map("cat_number")
+  // Le N° Pattounes : toujours là pour un chat asso ; un chat libre n'en a que si l'asso
+  // a payé sa stérilisation (plusieurs NULL ne gênent pas l'unicité)
+  catNumber           String? @unique @db.VarChar(8) @map("cat_number")
   name                String? @db.VarChar(255)
   sex                 SexCat
   birthDate           DateTime? @map("birth_date") @db.Date
@@ -138,6 +140,9 @@ model Cat {
   isOutside           Boolean? @default(false) @map("is_outside")
   isIdentify          Boolean @default(false) @map("is_identify")
   chipId              String? @unique @db.VarChar(255) @map("chip_id")
+  tattooId            String? @unique @db.VarChar(50) @map("tattoo_id")
+  // Chat libre (statut FREE) : attrapé, stérilisé, relâché. Gardé s'il devient un chat asso
+  freeInfo            FreeCatInfo?
 
   createdAt           DateTime @default(now()) @map("createdAt")
   updatedAt           DateTime @default(now()) @updatedAt @map("updatedAt")
@@ -155,6 +160,48 @@ model Cat {
 
   @@index([isVisible, status, publishedAt])
   @@index([sosId])
+}
+
+/// Un chat libre : attrapé par une bénévole, stérilisé, puis relâché sur son lieu de vie.
+/// La stérilisation elle-même est un soin (Care STERILIZE) ; la gestionnaire, un CatVolunteer.
+/// Le contact du nourrisseur : visible seulement par l'admin et la bénévole du chat.
+model FreeCatInfo {
+  catId      String @id @db.Uuid @map("cat_id")
+  cat        Cat    @relation(fields: [catId], references: [id], onDelete: Cascade)
+
+  // Qui paye la stérilisation (« Autre » : le nom dans payerOther)
+  payer      SterilizationPayer
+  payerOther String? @map("payer_other") @db.VarChar(255)
+
+  // Le lieu de relâchage, comme le lieu d'un SOS
+  address    String  @db.VarChar(500)
+  city       String  @db.VarChar(100)
+  postalCode String? @map("postal_code") @db.VarChar(10)
+  district   District?
+  latitude   Float?
+  longitude  Float?
+
+  // Le nourrisseur (ou le contact sur place)
+  feederName    String @map("feeder_name") @db.VarChar(255)
+  feederContact String @map("feeder_contact") @db.VarChar(255)
+
+  notes      String? @db.Text
+
+  // Passé en chat asso (les infos restent : la carte « Origine : chat libre »)
+  convertedAt DateTime? @map("converted_at")
+
+  createdAt  DateTime @default(now()) @map("createdAt")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updatedAt")
+}
+
+enum SterilizationPayer {
+  ASSO
+  MONTPELLIER
+  JUVIGNAC
+  LATTES
+  SAINT_CLEMENT_DE_RIVIERE
+  SAINT_JEAN_DE_VEDAS
+  OTHER
 }
 
 // État de santé : ce que le chat A (rempli à la main par la bénévole)
@@ -223,6 +270,8 @@ model Veterinarian {
   notes     String? @db.Text
   // Retiré de la liste : il n'est plus proposé, mais les soins passés gardent son nom
   isActive  Boolean @default(true) @map("is_active")
+  // Partenaire de la mairie de Montpellier (stérilisation des chats libres)
+  isCityPartner Boolean @default(false) @map("is_city_partner")
 
   cares     Care[]
 

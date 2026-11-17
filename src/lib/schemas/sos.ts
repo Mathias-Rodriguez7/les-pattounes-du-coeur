@@ -1,31 +1,13 @@
 import { z } from 'zod';
-import { District, SosCategory, SosDismissReason } from '@prisma/client';
+import { SosCategory, SosDismissReason } from '@prisma/client';
 import { emailField } from '#lib/schemas/fields.ts';
-
-// Un champ vide envoyé par un formulaire ('') devient null
-const emptyToNull = (value: unknown) => (value === '' ? null : value);
-const optionalText = (max: number) =>
-	z.preprocess(emptyToNull, z.string().trim().max(max, `Max ${max} caractères`).nullish());
-const optionalNumber = (min: number, max: number) =>
-	z.preprocess(emptyToNull, z.coerce.number().min(min).max(max).nullish());
-
-/** Le lieu, comme une adresse de profil (rue, ville, code postal, quartier), et le GPS */
-const placeShape = {
-	address: optionalText(500),
-	city: optionalText(100),
-	postalCode: optionalText(10),
-	district: z.preprocess(emptyToNull, z.enum(District).nullish()),
-	latitude: optionalNumber(-90, 90),
-	longitude: optionalNumber(-180, 180)
-};
-
-const withBothCoordinates = <T extends { latitude?: number | null; longitude?: number | null }>(
-	data: T
-) => (data.latitude == null) === (data.longitude == null);
-const coordinatesMessage = {
-	message: 'Position GPS incomplète',
-	path: ['latitude']
-};
+import {
+	coordinatesMessage,
+	emptyToNull,
+	optionalText,
+	placeShape,
+	withBothCoordinates
+} from '#lib/schemas/place.ts';
 
 /** La personne qui signale, et la date du SOS : à la création comme à la modification */
 const reporterShape = {

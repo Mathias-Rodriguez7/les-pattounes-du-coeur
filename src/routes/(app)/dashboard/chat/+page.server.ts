@@ -19,6 +19,11 @@ import { activeVeterinarianOptions } from '#lib/server/veterinarians/queries.ts'
 import { linkableSosOptions, sosViewsByIds } from '#lib/server/sos/queries.ts';
 import { linkCatSosAction } from '#lib/server/sos/actions.ts';
 import {
+	convertFreeCatAction,
+	createFreeCatAction,
+	updateFreeCatAction
+} from '#lib/server/cats/freeCat.ts';
+import {
 	addCatMedia,
 	setPrimaryCatMedia,
 	deleteCatMedia,
@@ -139,6 +144,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	// Carte « Signalement » : rattacher le chat à un SOS (ou l'en détacher)
 	linkCatSos: linkCatSosAction,
+
+	// Chats libres : créer, modifier, passer en chat asso
+	createFreeCat: createFreeCatAction,
+	updateFreeCat: updateFreeCatAction,
+	convertFreeCat: convertFreeCatAction,
 
 	// ==========================================
 	// ACTION: Cat

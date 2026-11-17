@@ -2,7 +2,12 @@
 	import * as Table from '#lib/components/ui/table/index.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import type { CatFull } from '#lib/types/cat.ts';
-	import { focalPointStyle, getSexIcon } from '#lib/utils/catHelpers.ts';
+	import {
+		catAltText,
+		catDisplayName,
+		focalPointStyle,
+		getSexIcon
+	} from '#lib/utils/catHelpers.ts';
 	import { getAgeBadge } from '#lib/utils/age.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { ChevronRight } from '@lucide/svelte';
@@ -42,7 +47,7 @@
 	<Table.Cell>
 		<img
 			src={imageSrc}
-			alt={cat.name ?? cat.catNumber}
+			alt={catAltText(cat)}
 			loading="lazy"
 			class="size-9 rounded-full object-cover sm:size-12"
 			style={imageStyle}
@@ -50,11 +55,17 @@
 	</Table.Cell>
 
 	<!-- Num : sa propre colonne à partir de 640 px -->
-	<Table.Cell class="hidden text-xs sm:table-cell">{cat.catNumber}</Table.Cell>
+	<Table.Cell class="hidden text-xs sm:table-cell">{cat.catNumber ?? '—'}</Table.Cell>
 
 	<!-- Nom (+ numéro dessous sur mobile) -->
 	<Table.Cell class="max-w-28 font-medium sm:max-w-40" title={tone?.label}>
-		<span class="block truncate {tone?.textClass ?? ''}">{cat.name ?? 'Sans nom'}</span>
+		<span class="block truncate {tone?.textClass ?? ''}">{catDisplayName(cat)}</span>
+		<!-- Chat libre : la ville de son relâchage, pour le retrouver -->
+		{#if cat.status === 'FREE' && cat.freeInfo}
+			<span class="block truncate text-xs font-normal text-muted-foreground">
+				{cat.freeInfo.city}
+			</span>
+		{/if}
 		{#if tone}
 			<span class="sr-only">({tone.label})</span>
 		{/if}

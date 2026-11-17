@@ -36,6 +36,10 @@ export const VETERINARIAN_CATEGORY_OPTIONS = VETERINARIAN_CATEGORY_ORDER.map((va
 	label: VETERINARIAN_CATEGORY[value].one
 }));
 
+/** Le badge des vétérinaires partenaires de la mairie (stérilisation des chats libres) */
+export const CITY_PARTNER_LABEL = 'Partenaire mairie MPL';
+export const CITY_PARTNER_COLOR = 'bg-sky-100 text-sky-800';
+
 /** Le choix « Autre… » de la liste d'un soin : le nom est alors saisi à la main */
 export const OTHER_VETERINARIAN = 'OTHER';
 

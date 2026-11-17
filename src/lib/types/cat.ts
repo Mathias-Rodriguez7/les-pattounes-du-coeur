@@ -34,6 +34,10 @@ export const catFullArgs = {
 	include: {
 		media: catGalleryArgs,
 		sicknesses: true,
+		// Chat libre (ou ancien chat libre) : payeur, relâchage, nourrisseur.
+		// La page Chats ne charge que les chats de la bénévole (tous pour l'admin) : le contact
+		// du nourrisseur n'est vu que par l'admin et la bénévole du chat
+		freeInfo: true,
 		placements: {
 			include: { host: { include: { profil: true } } }
 		},

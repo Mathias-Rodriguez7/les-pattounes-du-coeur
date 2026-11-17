@@ -6,7 +6,11 @@
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
 	import VeterinarianDialog from './VeterinarianDialog.svelte';
 	import { Clock, Globe, MapPin, Phone, Stethoscope, TriangleAlert } from '@lucide/svelte';
-	import { VETERINARIAN_CATEGORY } from '#lib/constants/veterinarian.ts';
+	import {
+		CITY_PARTNER_COLOR,
+		CITY_PARTNER_LABEL,
+		VETERINARIAN_CATEGORY
+	} from '#lib/constants/veterinarian.ts';
 	import { mapsAddressUrl } from '#lib/utils/geo.ts';
 	import type { VeterinarianRow } from '#lib/server/veterinarians/queries.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
@@ -41,6 +45,9 @@
 				<div class="min-w-0">
 					<div class="flex flex-wrap items-center gap-2">
 						<Badge class={category.color}>{category.one}</Badge>
+						{#if vet.isCityPartner}
+							<Badge class={CITY_PARTNER_COLOR}>{CITY_PARTNER_LABEL}</Badge>
+						{/if}
 						{#if !vet.isActive}
 							<Badge variant="outline">Retiré de la liste</Badge>
 						{/if}

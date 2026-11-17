@@ -60,3 +60,16 @@ export const getSexIcon = (sex: string | null | undefined): SexIconInfo => {
 			return { icon: 'CircleQuestionMark', color: 'text-gray-500', label: 'Inconnu' };
 	}
 };
+
+/**
+ * Le nom d'un chat dans une liste : son nom, sinon « Chat libre » (un chat libre n'a souvent
+ * ni nom ni N° Pattounes), sinon « Sans nom »
+ */
+export function catDisplayName(cat: { name: string | null; status: string }): string {
+	return cat.name ?? (cat.status === 'FREE' ? 'Chat libre' : 'Sans nom');
+}
+
+/** Le texte alternatif d'une photo : le nom, sinon le N° Pattounes, sinon « Chat » */
+export function catAltText(cat: { name: string | null; catNumber: string | null }): string {
+	return cat.name ?? cat.catNumber ?? 'Chat';
+}

@@ -9,7 +9,7 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 
-	type CatOption = { id: string; name: string | null; catNumber: string };
+	type CatOption = { id: string; name: string | null; catNumber: string | null };
 
 	interface Props {
 		open?: boolean;
@@ -39,7 +39,8 @@
 	});
 
 	const catById = $derived(new Map(cats.map((cat) => [cat.id, cat])));
-	const label = (cat: CatOption) => (cat.name ? `${cat.name} · ${cat.catNumber}` : cat.catNumber);
+	const label = (cat: CatOption) =>
+		[cat.name, cat.catNumber].filter(Boolean).join(' · ') || 'Sans nom';
 
 	// Les lignes à cocher : les candidats, puis les chats ajoutés à la main
 	const rows = $derived(

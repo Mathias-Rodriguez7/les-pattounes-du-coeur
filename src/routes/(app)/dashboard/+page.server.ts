@@ -319,13 +319,14 @@ async function getManagerTasks(volunteerId: string) {
 		await Promise.all([
 			// 1️⃣ TOTAL DE CHATS EN GESTION
 			// Compte tous les chats assignés à ce bénévole
-			prisma.catVolunteer.count({ where: { volunteerId } }),
+			prisma.catVolunteer.count({ where: { volunteerId, cat: { status: { not: 'FREE' } } } }),
 
 			// 2️⃣ FICHES DE CHATS INCOMPLÈTES
 			// CHATS - Fiches incomplètes assignées À CE BÉNÉVOLE
 			prisma.cat.count({
 				where: {
 					volunteers: { some: { volunteerId } },
+					status: { not: 'FREE' },
 					OR: [
 						{ name: null },
 						{ birthDate: null },
@@ -422,12 +423,13 @@ async function getCommunicationTasks(volunteerId: string) {
 		newslettersThisMonth
 	] = await Promise.all([
 		// 1️⃣ TOTAL DE CHATS EN GESTION
-		prisma.catVolunteer.count({ where: { volunteerId } }),
+		prisma.catVolunteer.count({ where: { volunteerId, cat: { status: { not: 'FREE' } } } }),
 
 		// 2️⃣ FICHES DE CHATS INCOMPLÈTES
 		prisma.cat.count({
 			where: {
 				volunteers: { some: { volunteerId } },
+				status: { not: 'FREE' },
 				OR: [
 					{ name: null },
 					{ birthDate: null },
@@ -586,11 +588,11 @@ async function getVolunteerStats(volunteerId: string) {
 		totalApplicationsThisYear,
 		applicationsAssignedToVolunteerNonPending
 	] = await Promise.all([
-		// 1️⃣ TOTAL CHATS DANS L'ASSO
-		prisma.cat.count({}),
+		// 1️⃣ TOTAL CHATS DANS L'ASSO (les chats libres ne sont pas des chats de l'asso)
+		prisma.cat.count({ where: { status: { not: 'FREE' } } }),
 
 		// 1️⃣ TOTAL CHATS GÉRÉS PAR LE BÉNÉVOLE
-		prisma.catVolunteer.count({ where: { volunteerId } }),
+		prisma.catVolunteer.count({ where: { volunteerId, cat: { status: { not: 'FREE' } } } }),
 
 		// 2️⃣ TOTAL ADOPTIONS CETTE ANNÉE DANS L'ASSO
 		prisma.adoption.count({

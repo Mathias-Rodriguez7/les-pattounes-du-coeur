@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { VeterinarianCategory } from '@prisma/client';
+import { booleanField } from '#lib/schemas/fields.ts';
 
 // Un champ vide envoyé par un formulaire ('') devient null
 const emptyToNull = (value: unknown) => (value === '' ? null : value);
@@ -16,7 +17,9 @@ export const veterinarianSchema = z.object({
 	phone: optionalText(30),
 	website: z.preprocess(emptyToNull, z.url('Adresse web invalide').max(255).nullish()),
 	hours: optionalText(2000),
-	notes: optionalText(2000)
+	notes: optionalText(2000),
+	// Partenaire de la mairie de Montpellier (stérilisation des chats libres)
+	isCityPartner: booleanField().default(false)
 });
 
 export const updateVeterinarianSchema = veterinarianSchema.extend({

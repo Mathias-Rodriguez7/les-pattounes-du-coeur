@@ -14,6 +14,9 @@ export const CAT_STATUS = [
 	{ value: 'DEAD', label: 'Décédé' }
 ] satisfies Array<{ value: string; label: string }>;
 
+/** Les statuts d'un chat asso : « Libre » est réservé aux chats libres (leur propre formulaire) */
+export const ASSO_CAT_STATUS = CAT_STATUS.filter((status) => status.value !== 'FREE');
+
 export const CAT_HAIR_LENGTH = [
 	{ value: 'SHORT', label: 'Court' },
 	{ value: 'MEDIUM', label: 'Moyen' },

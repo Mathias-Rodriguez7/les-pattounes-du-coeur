@@ -5,6 +5,7 @@
 	import InputField from '#lib/components/fields/InputField.svelte';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import TextareaField from '#lib/components/fields/TextareaField.svelte';
+	import CheckboxField from '#lib/components/fields/CheckboxField.svelte';
 	import { VETERINARIAN_CATEGORY_OPTIONS } from '#lib/constants/veterinarian.ts';
 	import type { VeterinarianRow } from '#lib/server/veterinarians/queries.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
@@ -30,6 +31,7 @@
 		website: string;
 		hours: string;
 		notes: string;
+		isCityPartner: boolean;
 	};
 
 	const fromVet = (v: VeterinarianRow | undefined): Fields => ({
@@ -42,7 +44,8 @@
 		phone: v?.phone ?? '',
 		website: v?.website ?? '',
 		hours: v?.hours ?? '',
-		notes: v?.notes ?? ''
+		notes: v?.notes ?? '',
+		isCityPartner: v?.isCityPartner ?? false
 	});
 
 	let open = $state(false);
@@ -164,6 +167,16 @@
 					disabled={submitting}
 				/>
 			</div>
+
+			<CheckboxField
+				id="vet-city-partner"
+				name="isCityPartner"
+				label="Partenaire mairie MPL"
+				description="Stérilise les chats libres pour la mairie de Montpellier."
+				checked={fields.isCityPartner}
+				onChange={(checked) => (fields.isCityPartner = checked)}
+				disabled={submitting}
+			/>
 
 			<InputField
 				id="vet-address"

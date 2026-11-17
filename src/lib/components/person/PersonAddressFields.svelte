@@ -18,6 +18,8 @@
 		class?: string;
 		/** false : rue, ville et code postal facultatifs (ex : le lieu d'un SOS) */
 		required?: boolean;
+		/** Le code postal, lui, peut rester facultatif (ex : le relâchage d'un chat libre) */
+		postalCodeRequired?: boolean;
 		/** Le titre de la carte (par défaut : « Adresse ») */
 		title?: string;
 		/** Libellé du champ rue (par défaut : « Rue ») */
@@ -35,6 +37,7 @@
 		disabled = false,
 		class: className = '',
 		required = true,
+		postalCodeRequired = required,
 		title = PERSON_SECTION_CONFIG.address.label,
 		streetLabel = 'Rue',
 		idPrefix = ''
@@ -83,7 +86,7 @@
 				bind:value={postalCode}
 				placeholder="34000"
 				error={errors.postalCode}
-				{required}
+				required={postalCodeRequired}
 				size="sm"
 				{disabled}
 			/>

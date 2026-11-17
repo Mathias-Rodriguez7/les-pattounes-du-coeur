@@ -10,7 +10,7 @@
 	import FocusPointDialog from './FocusPointDialog.svelte';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { uploadFile, fileKey, UploadError } from '#lib/media/upload.ts';
-	import { focalPointStyle } from '#lib/utils/catHelpers.ts';
+	import { catDisplayName, focalPointStyle } from '#lib/utils/catHelpers.ts';
 	import type { CatFull } from '#lib/types/cat.ts';
 
 	type GalleryItem = CatFull['media'][number];
@@ -23,7 +23,7 @@
 	let { cat, onClose }: Props = $props();
 
 	const MAX_FILES = 10;
-	const catLabel = $derived(cat.name ?? cat.catNumber);
+	const catLabel = $derived(catDisplayName(cat));
 
 	// La requête trie déjà : photo principale d'abord, puis par ordre d'ajout
 	const images = $derived(cat.media.filter((m) => m.file.type === 'IMAGE'));

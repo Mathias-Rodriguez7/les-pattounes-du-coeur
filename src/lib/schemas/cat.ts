@@ -19,7 +19,9 @@ const vaccinateEnum = z
 	.transform((val) => val as Vaccinate);
 
 // ✅ Validation stricte du catNumber : C + AA(01-99) + MM(01-12) + NNN(001-999)
-const catNumberRegex = /^C([0-9][1-9]|[1-9]0)(0[1-9]|1[0-2])(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$/;
+export const catNumberRegex =
+	/^C([0-9][1-9]|[1-9]0)(0[1-9]|1[0-2])(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$/;
+export const CAT_NUMBER_FORMAT_MESSAGE = 'Format attendu: C + JJ + MM + NNN (ex: C2509026)';
 
 // ✅ Convertir les strings en dates
 const stringToDate = z.string().pipe(z.coerce.date()).nullable().optional();
@@ -31,7 +33,7 @@ export const createCatSchema = z.object({
 	catNumber: z
 		.string()
 		.min(1, 'Le numéro de suivi est obligatoire')
-		.regex(catNumberRegex, 'Format attendu: C + JJ + MM + NNN (ex: C2509026)'),
+		.regex(catNumberRegex, CAT_NUMBER_FORMAT_MESSAGE),
 
 	name: z.string().trim().optional().nullable(),
 	sex: sexEnum,
