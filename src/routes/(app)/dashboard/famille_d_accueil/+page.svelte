@@ -36,7 +36,13 @@
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
+	import {
+		linkedId,
+		rememberSelection,
+		scrollToRow,
+		takeNewParam
+	} from '#lib/navigation/entityLink.ts';
+	import { afterNavigate } from '$app/navigation';
 
 	const { data } = $props();
 
@@ -57,6 +63,11 @@
 
 	let mobilePanelOpen = $state(false);
 	let newHostOpen = $state(false);
+
+	// « Créer » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
+	afterNavigate(() => {
+		if (takeNewParam()) newHostOpen = true;
+	});
 
 	// Filtres
 	let typeFilter = $state('');

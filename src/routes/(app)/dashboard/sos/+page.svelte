@@ -20,13 +20,24 @@
 		SOS_STATUS_ORDER
 	} from '#lib/constants/sos.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
-	import { districtLabel } from '#lib/utils/districts.ts';
 	import { formatAddress } from '#lib/utils/geo.ts';
 	import { desktop } from '#lib/utils/media.svelte.ts';
-	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
+	import {
+		linkedId,
+		rememberSelection,
+		scrollToRow,
+		takeNewParam
+	} from '#lib/navigation/entityLink.ts';
+	import { afterNavigate } from '$app/navigation';
 	import type { SosView } from '#lib/server/sos/queries.ts';
 
 	let { data } = $props();
+
+	// « + SOS » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
+	let newSosOpen = $state(false);
+	afterNavigate(() => {
+		if (takeNewParam()) newSosOpen = true;
+	});
 
 	const sosList = $derived(data.sosList);
 
@@ -164,10 +175,6 @@
 		newCatOpen = true;
 	}
 
-	/** La colonne Lieu : le quartier à Montpellier, sinon la ville */
-	const placeShort = (sos: SosView) =>
-		districtLabel(sos.district) ?? sos.city ?? sos.address ?? '—';
-
 	const panelTitle = $derived(
 		selected ? `SOS · ${selected.reporterFirstName} ${selected.reporterLastName}` : 'Détail du SOS'
 	);
@@ -194,7 +201,7 @@
 								SOS
 								<span class="text-base font-normal text-muted-foreground">({filtered.length})</span>
 							</Card.Title>
-							<SosCreateDialog onCreated={openCreated} />
+							<SosCreateDialog bind:open={newSosOpen} onCreated={openCreated} />
 						</Card.Header>
 
 						<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">

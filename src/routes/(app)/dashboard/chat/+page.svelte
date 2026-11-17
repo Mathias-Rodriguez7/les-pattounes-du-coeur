@@ -21,7 +21,13 @@
 	import { getAdoptionTone } from '#lib/utils/adoption.ts';
 	import { untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
+	import {
+		linkedId,
+		rememberSelection,
+		scrollToRow,
+		takeNewParam
+	} from '#lib/navigation/entityLink.ts';
+	import { afterNavigate } from '$app/navigation';
 
 	const { data } = $props();
 
@@ -45,6 +51,11 @@
 	let newCatOpen = $state(false);
 	// « Nouveau chat » demande d'abord le type : chat asso ou chat libre
 	let newCatKindOpen = $state(false);
+
+	// « Créer » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
+	afterNavigate(() => {
+		if (takeNewParam()) newCatKindOpen = true;
+	});
 	let newFreeCatOpen = $state(false);
 
 	// ===== TYPE : chats asso (par défaut) ou chats libres =====

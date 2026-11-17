@@ -3,6 +3,7 @@
 	import { ArrowRight, HeartHandshake, ShieldCheck } from '@lucide/svelte';
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
+	import QuickCreate from '#lib/components/dashboard/shared/QuickCreate.svelte';
 	import StatsOverview from '#lib/components/dashboard/shared/StatsOverview.svelte';
 	import { TASK_URGENCY, type TaskBoardKind } from '#lib/constants/tasks.ts';
 	import { countByUrgency, tasksByVolunteer } from '#lib/tasks/board.ts';
@@ -73,36 +74,39 @@
 	</header>
 
 	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">
-		<!-- COLONNE GAUCHE : ce qu'il y a à faire -->
-		{#key view}
-			{#if view === 'ADMIN'}
-				<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="À traiter">
-					{#snippet footer()}
-						{#if lateVolunteers > 0}
-							<a
-								href={resolve('dashboard/benevole?taches=URGENT')}
-								class="flex items-center gap-2 self-start rounded-xl border border-border bg-card px-4 py-2.5 text-sm transition-colors hover:bg-muted"
-							>
-								<span class="rounded-md px-1.5 font-semibold {TASK_URGENCY.URGENT.color}">
-									{lateVolunteers}
-								</span>
-								bénévole{lateVolunteers > 1 ? 's ont' : ' a'} des tâches urgentes
-								<span class="font-medium text-primary">Voir le suivi</span>
-								<ArrowRight class="size-4 text-primary" />
-							</a>
-						{/if}
-					{/snippet}
-				</TaskBoard>
-			{:else}
-				<TaskBoard
-					tasks={forMe}
-					kind="VOLUNTEER"
-					role={data.user?.role}
-					isAdmin
-					title="Mes tâches de bénévole"
-				/>
+		<!-- Les actions rapides (au niveau de « Vue d'ensemble »), puis ce qu'il y a à faire -->
+		<div class="flex min-w-0 flex-col gap-6">
+			{#if data.user}
+				<QuickCreate role={data.user.role} />
 			{/if}
-		{/key}
+			{#key view}
+				{#if view === 'ADMIN'}
+					<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="À faire">
+						{#snippet headerExtra()}
+							{#if lateVolunteers > 0}
+								<a
+									href={resolve('dashboard/benevole?taches=URGENT')}
+									class="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-0.5 text-sm transition-colors hover:bg-muted"
+								>
+									<span class="font-semibold text-red-700">{lateVolunteers}</span>
+									bénévole{lateVolunteers > 1 ? 's' : ''} avec des tâches urgentes
+									<span class="font-medium text-primary">Voir le suivi</span>
+									<ArrowRight class="size-3.5 text-primary" />
+								</a>
+							{/if}
+						{/snippet}
+					</TaskBoard>
+				{:else}
+					<TaskBoard
+						tasks={forMe}
+						kind="VOLUNTEER"
+						role={data.user?.role}
+						isAdmin
+						title="Mes tâches de bénévole"
+					/>
+				{/if}
+			{/key}
+		</div>
 
 		<!-- COLONNE DROITE - STATS -->
 		<aside class="sticky top-8 flex flex-col gap-4 self-start">

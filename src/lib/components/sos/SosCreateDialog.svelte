@@ -18,11 +18,11 @@
 	interface Props {
 		/** Le nouveau SOS est créé : la page l'ouvre */
 		onCreated?: (sosId: string) => void;
+		/** Ouvert depuis l'extérieur (« + SOS » du dashboard) */
+		open?: boolean;
 	}
 
-	let { onCreated }: Props = $props();
-
-	let open = $state(false);
+	let { onCreated, open = $bindable(false) }: Props = $props();
 	let submitting = $state(false);
 	let errors = $state<Record<string, string[] | undefined>>({});
 	const error = (key: string) => errors[key]?.[0];

@@ -20,9 +20,10 @@
 		type TaskUrgency
 	} from '#lib/constants/tasks.ts';
 	import { buildBoard, countByUrgency } from '#lib/tasks/board.ts';
+	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import type { Task, TaskLink } from '#lib/tasks/tasks.ts';
 
-	// « À traiter » : une carte par sujet, une ligne par sorte de tâche, avec une pastille
+	// « À faire » : une carte par sujet, une ligne par sorte de tâche, avec une pastille
 	// colorée selon l'urgence. Un clic sur une ligne la déplie : chaque tâche mène à sa fiche.
 	// Les tâches arrivent déjà choisies (adminTasks, volunteerTasks, tasksOf).
 	interface Props {
@@ -36,8 +37,8 @@
 		title?: string;
 		/** Sans les lignes vides : le panneau d'une bénévole */
 		hideEmpty?: boolean;
-		/** Sous les cartes (ex : le lien vers le suivi des bénévoles) */
-		footer?: Snippet;
+		/** Dans l'en-tête, après les compteurs (ex : le lien vers le suivi des bénévoles) */
+		headerExtra?: Snippet;
 	}
 
 	let {
@@ -45,24 +46,28 @@
 		kind,
 		role,
 		isAdmin = false,
-		title = 'À traiter',
+		title = 'Mes tâches de bénévole',
 		hideEmpty = false,
-		footer
+		headerExtra
 	}: Props = $props();
 
 	const board = $derived(buildBoard(tasks, kind, { role, hideEmpty }));
 	const counts = $derived(countByUrgency(tasks));
 
+	// Les icônes et les nombres : le même dégradé que la « Vue d'ensemble » (getGradientStyle)
 	const CARD_STYLE = {
-		sos: { icon: Siren, class: 'bg-red-100 text-red-700' },
-		cats: { icon: Cat, class: 'bg-blue-100 text-blue-700' },
-		adoptions: { icon: HeartHandshake, class: 'bg-pink-100 text-pink-700' },
-		applications: { icon: IdCard, class: 'bg-amber-100 text-amber-700' }
-	} satisfies Record<TaskBoardCard['key'], { icon: typeof Cat; class: string }>;
+		sos: { icon: Siren, theme: 'dog' },
+		cats: { icon: Cat, theme: 'cats' },
+		adoptions: { icon: HeartHandshake, theme: 'adoptions' },
+		applications: { icon: IdCard, theme: 'pending' }
+	} satisfies Record<TaskBoardCard['key'], { icon: typeof Cat; theme: string }>;
 
-	// La couleur d'une pastille : celle de l'urgence, gris quand il n'y a rien
-	const pillClass = (urgency: TaskUrgency | null) =>
-		urgency ? TASK_URGENCY[urgency].color : 'bg-muted text-muted-foreground';
+	// Le dégradé d'un nombre : celui de l'urgence (rouge, orange, gris)
+	const URGENCY_THEME = {
+		URGENT: 'urgent',
+		WEEK: 'soon',
+		WATCH: 'other'
+	} satisfies Record<TaskUrgency, string>;
 
 	// Les lignes ouvertes (tout est replié au chargement)
 	let openRows = $state<string[]>([]);
@@ -100,6 +105,7 @@
 				<PartyPopper class="size-4" /> Tout est à jour
 			</span>
 		{/if}
+		{@render headerExtra?.()}
 	</div>
 
 	<!-- Les cartes sur une ligne quand il y a la place (2 sur tablette, 1 sur téléphone) -->
@@ -109,7 +115,10 @@
 				{@const style = CARD_STYLE[card.key]}
 				<div class="flex flex-col rounded-2xl border border-border bg-card p-4">
 					<div class="mb-2 flex items-center gap-3">
-						<span class="flex size-9 items-center justify-center rounded-xl {style.class}">
+						<span
+							class="flex size-10 items-center justify-center rounded-2xl text-white shadow-lg"
+							style="background: {getGradientStyle(style.theme)}"
+						>
 							<style.icon class="size-5" />
 						</span>
 						<h3 class="font-semibold">{card.title}</h3>
@@ -134,13 +143,21 @@
 											: 'Rien à signaler'}
 									</span>
 								</span>
-								<span
-									class="flex h-6 min-w-6 items-center justify-center rounded-lg px-1.5 text-sm font-semibold {pillClass(
-										row.urgency
-									)}"
-								>
-									{row.tasks.length}
-								</span>
+								<!-- Le nombre : comme la « Vue d'ensemble » (dégradé, blanc, gras) ; gris si rien -->
+								{#if row.urgency}
+									<span
+										class="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg px-1.5 text-sm font-bold text-white"
+										style="background: {getGradientStyle(URGENCY_THEME[row.urgency])}"
+									>
+										{row.tasks.length}
+									</span>
+								{:else}
+									<span
+										class="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-bold text-muted-foreground"
+									>
+										0
+									</span>
+								{/if}
 								<ChevronRight
 									class="size-4 shrink-0 text-muted-foreground transition-transform {isOpen
 										? 'rotate-90'
@@ -182,5 +199,4 @@
 			{/each}
 		</div>
 	</div>
-	{@render footer?.()}
 </section>

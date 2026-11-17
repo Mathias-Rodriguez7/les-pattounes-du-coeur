@@ -1,5 +1,7 @@
 <!-- app/dashboard/news/+page.svelte -->
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
+	import { takeNewParam } from '#lib/navigation/entityLink.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
@@ -27,6 +29,11 @@
 
 	let mobilePanelOpen = $state(false);
 	let newsCreateOpen = $state(false);
+
+	// « Créer » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
+	afterNavigate(() => {
+		if (takeNewParam()) newsCreateOpen = true;
+	});
 	let newsCatsOpen = $state(false);
 
 	// ===== FILTRES =====

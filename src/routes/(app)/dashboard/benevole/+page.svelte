@@ -37,7 +37,13 @@
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { linkedId, rememberSelection, scrollToRow } from '#lib/navigation/entityLink.ts';
+	import {
+		linkedId,
+		rememberSelection,
+		scrollToRow,
+		takeNewParam
+	} from '#lib/navigation/entityLink.ts';
+	import { afterNavigate } from '$app/navigation';
 
 	const { data } = $props();
 
@@ -64,6 +70,11 @@
 	let blacklistFilter = $state('');
 	let roleFilter = $state('');
 	let newVolunteerOpen = $state(false);
+
+	// « Créer » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
+	afterNavigate(() => {
+		if (takeNewParam()) newVolunteerOpen = true;
+	});
 
 	// ===== TÂCHES : ce que chaque bénévole a à faire (calculé par le serveur) =====
 	const NO_TASKS: Task[] = [];

@@ -36,6 +36,10 @@ export function getGradientStyle(theme: string): string {
 		stop: 'linear-gradient(135deg, hsl(0 100% 50%), hsl(0 100% 35%))',
 		break: 'linear-gradient(135deg, hsl(116 20.3% 81%), hsl(116 8.1% 81%)',
 
+		// ===== URGENCE DES TÂCHES (plus doux que « stop » : on les voit sans agresser) =====
+		urgent: 'linear-gradient(135deg, hsl(0 80% 72%), hsl(0 65% 58%))',
+		soon: 'linear-gradient(135deg, hsl(38 92% 68%), hsl(32 85% 54%))',
+
 		// ===== CONTENU =====
 		news: 'linear-gradient(135deg, hsl(237 74% 90%), hsl(237 74% 70%))'
 	};

@@ -48,3 +48,25 @@ export async function scrollToRow(id: string) {
 		.querySelector(`[data-row-id="${CSS.escape(id)}"]`)
 		?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
+
+// =====================================================================
+// « Créer » depuis le dashboard : la page s'ouvre avec son formulaire de création (?nouveau=1)
+// =====================================================================
+
+/** Le paramètre qui demande d'ouvrir le formulaire de création */
+export const NEW_PARAM = 'nouveau';
+
+/**
+ * L'adresse demande-t-elle d'ouvrir le formulaire de création ? Si oui, on retire le
+ * paramètre (un rechargement de la page ne le rouvrira pas). À appeler dans afterNavigate :
+ * replaceState n'est pas permis avant la fin du premier chargement.
+ */
+export function takeNewParam(): boolean {
+	if (!page.url.searchParams.has(NEW_PARAM)) return false;
+	const url = new URL(page.url.href);
+	url.searchParams.delete(NEW_PARAM);
+	// Même page, seul le paramètre change : resolve() n'a rien à vérifier ici
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
+	replaceState(url, page.state);
+	return true;
+}
