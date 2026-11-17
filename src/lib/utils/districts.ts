@@ -23,3 +23,18 @@ export const DISTRICT_OPTIONS = Object.entries(DISTRICT_LABELS).map(([value, lab
 export function districtLabel(district: string | null | undefined): string | null {
 	return district && district in DISTRICT_LABELS ? DISTRICT_LABELS[district as District] : null;
 }
+
+/**
+ * Le lieu court d'une personne ou d'un SOS : le quartier à Montpellier, sinon la ville.
+ * `isCity` : c'est une ville (affichée en italique, pour la distinguer d'un quartier).
+ */
+export function placeLabel(place: { city?: string | null; district?: string | null }): {
+	label: string;
+	isCity: boolean;
+} {
+	const isMontpellier = place.city?.trim().toLowerCase() === 'montpellier';
+	const district = isMontpellier || !place.city ? districtLabel(place.district) : null;
+	if (district) return { label: district, isCity: false };
+	if (place.city) return { label: place.city, isCity: true };
+	return { label: '—', isCity: false };
+}

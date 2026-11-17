@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PlaceName from '#lib/components/places/PlaceName.svelte';
 	import type { Snippet } from 'svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -57,7 +58,7 @@
 		{
 			title: 'En bref',
 			rows: [
-				{ label: 'Lieu', key: hostLocation },
+				{ label: 'Lieu', key: hostLocation, cell: placeCell },
 				{ label: 'Type', key: (h) => (h.type ? HOST_TYPES[h.type].label : '—') },
 				{
 					label: 'Places',
@@ -131,6 +132,10 @@
 			.filter((section) => section.rows.length > 0)
 	);
 </script>
+
+{#snippet placeCell(host: HostFull)}
+	<PlaceName city={host.profil.city} district={host.profil.district} />
+{/snippet}
 
 {#snippet placesCell(host: HostFull)}
 	{@const p = hostPlaces(host)}

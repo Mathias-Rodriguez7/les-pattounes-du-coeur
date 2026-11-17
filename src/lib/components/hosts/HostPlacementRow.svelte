@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PlaceName from '#lib/components/places/PlaceName.svelte';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import type { HostFull } from '#lib/types/host.ts';
 	import { hostPlaces, type ColumnDef } from './columns';
@@ -116,6 +117,9 @@
 				</button>
 				{#if unavailable}<span class="text-xs font-normal text-muted-foreground">· indispo</span
 					>{/if}
+			{:else if col.id === 'location'}
+				<!-- La ville en italique, le quartier en droit -->
+				<PlaceName city={host.profil.city} district={host.profil.district} />
 			{:else if col.id === 'type'}
 				{@const type = host.type ? HOST_TYPES[host.type] : null}
 				<Badge class={type?.color ?? NEUTRAL} title={type?.label}>{type?.short ?? '—'}</Badge>

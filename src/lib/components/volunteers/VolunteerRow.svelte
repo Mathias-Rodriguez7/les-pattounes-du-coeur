@@ -45,7 +45,8 @@
 	</Table.Cell>
 
 	<Table.Cell class="hidden text-sm text-gray-600 sm:table-cell" title={location}>
-		<Badge class={locationBadgeClass} title={locationLabel}>
+		<!-- La ville en italique (en plus de sa couleur), le quartier en droit -->
+		<Badge class="{locationBadgeClass} {isDistrict ? '' : 'italic'}" title={locationLabel}>
 			{truncate(location, 6)}
 		</Badge>
 	</Table.Cell>

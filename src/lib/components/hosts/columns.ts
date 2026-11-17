@@ -7,7 +7,7 @@ import {
 	HOST_BABY_FEEDING_OPTIONS
 } from '#lib/constants/host.ts';
 import { truncate } from '#lib/utils/string.ts';
-import { districtLabel } from '#lib/utils/districts.ts';
+import { placeLabel } from '#lib/utils/districts.ts';
 import { HOUSEHOLD_FIELDS } from '#lib/hosts/household.ts';
 
 // =====================================================================
@@ -52,8 +52,7 @@ export type ColumnDef = {
 
 /** Le lieu : le quartier pour Montpellier (« Port-Marianne »), sinon la ville (« Lattes ») */
 export function hostLocation(host: HostFull): string {
-	const isMontpellier = host.profil.city?.trim().toLowerCase() === 'montpellier';
-	return (isMontpellier && districtLabel(host.profil.district)) || host.profil.city || '—';
+	return placeLabel(host.profil).label;
 }
 
 /**

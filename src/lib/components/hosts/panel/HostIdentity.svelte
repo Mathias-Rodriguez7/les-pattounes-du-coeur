@@ -1,8 +1,8 @@
 <script lang="ts">
+	import PlaceName from '#lib/components/places/PlaceName.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
-	import { districtLabel } from '#lib/utils/districts.ts';
 	import { HOST_SECTION_CONFIG } from '#lib/constants/host.ts';
 	import type { HostFull } from '#lib/types/host.ts';
 
@@ -13,9 +13,6 @@
 
 	let { host }: Props = $props();
 
-	const location = $derived(
-		host.profil.district ? districtLabel(host.profil.district) : host.profil.city || '—'
-	);
 	const placementStats = $derived(host.placementStats || { long: 0, short: 0, total: 0 });
 </script>
 
@@ -62,7 +59,9 @@
 					</div>
 					<div>
 						<p class="font-medium text-muted-foreground">Quartier</p>
-						<Badge variant="secondary" class="mt-1 h-fit text-xs">{location}</Badge>
+						<Badge variant="secondary" class="mt-1 h-fit text-xs">
+							<PlaceName city={host.profil.city} district={host.profil.district} />
+						</Badge>
 					</div>
 				</div>
 			</div>

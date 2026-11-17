@@ -1,8 +1,8 @@
 <script lang="ts">
+	import PlaceName from '#lib/components/places/PlaceName.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import Icon from '#lib/components/Icon.svelte';
 	import SectionCard from '#lib/components/cards/SectionCard.svelte';
-	import { districtLabel } from '#lib/utils/districts.ts';
 	import { VOLUNTEER_SECTION_CONFIG } from '#lib/constants/volunteer.ts';
 	import type { VolunteerWithRelations } from '#lib/types/volunteer.ts';
 
@@ -13,11 +13,6 @@
 
 	let { volunteer }: Props = $props();
 
-	const location = $derived(
-		volunteer.profil.district
-			? districtLabel(volunteer.profil.district)
-			: volunteer.profil.city || '—'
-	);
 	const adoptedCatsCount = $derived(
 		volunteer.cats.filter((catVolunteer) => catVolunteer.cat.status === 'ADOPTED').length
 	);
@@ -100,7 +95,9 @@
 				</div>
 				<div>
 					<p class="font-medium text-muted-foreground">Quartier</p>
-					<Badge variant="secondary" class="mt-1 text-xs">{location}</Badge>
+					<Badge variant="secondary" class="mt-1 text-xs">
+						<PlaceName city={volunteer.profil.city} district={volunteer.profil.district} />
+					</Badge>
 				</div>
 			</div>
 		</div>
