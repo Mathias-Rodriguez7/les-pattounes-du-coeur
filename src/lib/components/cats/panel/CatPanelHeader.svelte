@@ -5,6 +5,7 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Camera, HeartHandshake } from '@lucide/svelte';
 	import CatAdopterCard from './CatAdopterCard.svelte';
+	import FreeCatConvertDialog from '../free/FreeCatConvertDialog.svelte';
 	import {
 		statusLabel,
 		getSexIcon,
@@ -153,6 +154,11 @@
 	{#if isAdopted && adoption}
 		<div class="w-full min-w-0 lg:w-auto lg:flex-1 lg:pt-6">
 			<CatAdopterCard {cat} {adoption} {isAdmin} {canManage} />
+		</div>
+	{:else if cat.status === 'FREE' && canManage}
+		<!-- Chat libre : l'action du moment, le faire entrer dans le parcours de l'asso -->
+		<div class="ml-auto self-start pt-6 pr-6">
+			<FreeCatConvertDialog {cat} />
 		</div>
 	{:else if canAdopt}
 		<!-- Pas encore adopté : l'action à la place de la carte Adoptant.

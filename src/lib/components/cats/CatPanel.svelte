@@ -30,7 +30,6 @@
 	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
 	import CatHealthCard from './profile/CatHealthCard.svelte';
 	import FreeCatCards from './free/FreeCatCards.svelte';
-	import FreeCatConvertDialog from './free/FreeCatConvertDialog.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -180,11 +179,6 @@
 					<Card.Content class="flex flex-col gap-4 text-sm">
 						<Separator />
 						<section class="grid gap-4">
-							{#if canManageCat}
-								<div class="flex justify-end">
-									<FreeCatConvertDialog {cat} />
-								</div>
-							{/if}
 							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 							<FreeCatCards {cat} canManage={canManageCat} {isAdmin} />
 						</section>

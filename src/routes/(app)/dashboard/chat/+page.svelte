@@ -326,7 +326,6 @@
 									>
 										<Table.Row>
 											<Table.Head class="w-12 sm:w-16">Photo</Table.Head>
-											<Table.Head class="hidden sm:table-cell">Num</Table.Head>
 											<Table.Head>Nom</Table.Head>
 											<Table.Head class="text-center">Sexe</Table.Head>
 											<Table.Head>Âge</Table.Head>
@@ -334,6 +333,7 @@
 												<span class="sm:hidden" title="Maladies">Mal.</span>
 												<span class="hidden sm:inline">Maladie</span>
 											</Table.Head>
+											<Table.Head class="hidden md:table-cell">Bénévole</Table.Head>
 											<Table.Head class="w-6 px-0 sm:hidden"
 												><span class="sr-only">Ouvrir</span></Table.Head
 											>

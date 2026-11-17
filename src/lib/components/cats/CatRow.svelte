@@ -32,6 +32,11 @@
 	// Chat adopté : le nom prend la couleur de l'état de l'adoption (essai, à finaliser, définitive)
 	const adoptionTone = $derived(getAdoptionTone(cat));
 	const tone = $derived(adoptionTone ? ADOPTION_TONE[adoptionTone] : null);
+	const volunteerNames = $derived(
+		cat.volunteers
+			.map((cv) => `${cv.volunteer.profil.firstName} ${cv.volunteer.profil.lastName.charAt(0)}.`)
+			.join(', ')
+	);
 	const activeSicknessesCount = $derived(
 		cat.sicknesses.filter((s) => s.status !== 'RESOLVED').length
 	);
@@ -54,18 +59,14 @@
 		/>
 	</Table.Cell>
 
-	<!-- Num : sa propre colonne à partir de 640 px -->
-	<Table.Cell class="hidden text-xs sm:table-cell">{cat.catNumber ?? '—'}</Table.Cell>
-
-	<!-- Nom (+ numéro dessous sur mobile) -->
-	<Table.Cell class="max-w-28 font-medium sm:max-w-40" title={tone?.label}>
-		<span class="block truncate {tone?.textClass ?? ''}">{catDisplayName(cat)}</span>
-		<!-- Chat libre : la ville de son relâchage, pour le retrouver -->
-		{#if cat.status === 'FREE' && cat.freeInfo}
-			<span class="block truncate text-xs font-normal text-muted-foreground">
-				{cat.freeInfo.city}
-			</span>
-		{/if}
+	<!-- Nom, et dessous le N° (et la ville du relâchage pour un chat libre) -->
+	<Table.Cell class="max-w-32 sm:max-w-44" title={tone?.label}>
+		<span class="block truncate font-medium {tone?.textClass ?? ''}">{catDisplayName(cat)}</span>
+		<span class="block truncate text-xs text-muted-foreground">
+			{[cat.catNumber, cat.status === 'FREE' ? cat.freeInfo?.city : null]
+				.filter(Boolean)
+				.join(' · ') || '—'}
+		</span>
 		{#if tone}
 			<span class="sr-only">({tone.label})</span>
 		{/if}
@@ -87,6 +88,15 @@
 				<span class="sm:hidden">—</span>
 				<span class="hidden sm:inline">Aucune</span>
 			</span>
+		{/if}
+	</Table.Cell>
+
+	<!-- La ou les bénévoles associées : « Julie M. » -->
+	<Table.Cell class="hidden max-w-32 text-xs md:table-cell">
+		{#if volunteerNames}
+			<span class="block truncate" title={volunteerNames}>{volunteerNames}</span>
+		{:else}
+			<span class="text-muted-foreground">—</span>
 		{/if}
 	</Table.Cell>
 
