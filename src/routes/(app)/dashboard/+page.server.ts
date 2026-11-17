@@ -2,7 +2,6 @@ import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import prisma from '#lib/server/prisma.ts';
 import { tasksFor } from '#lib/server/tasks.ts';
-import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -12,28 +11,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 	try {
 		const user = locals.user;
 
-		// Récupérer les stats ET les tâches en parallèle
-		const [stats, volunteerStats, myTasks, taskVolunteers] = await Promise.all([
+		// Les stats ET les tâches, en parallèle
+		const [stats, volunteerStats, myTasks] = await Promise.all([
 			getAssociationStats(),
 			getVolunteerStats(user.id),
-			// « Mes tâches » : ce qu'il y a à faire, calculé à partir des données
-			tasksFor(user),
-			// L'admin peut afficher les tâches d'une bénévole : la liste du filtre
-			hasAdminRole(user)
-				? prisma.volunteer.findMany({
-						select: { id: true, profil: { select: { firstName: true, lastName: true } } },
-						orderBy: { profil: { firstName: 'asc' } }
-					})
-				: Promise.resolve([])
+			// « À traiter » : ce qu'il y a à faire, calculé à partir des données
+			tasksFor(user)
 		]);
 
 		return {
 			user,
 			myTasks,
-			taskVolunteers: taskVolunteers.map((v) => ({
-				id: v.id,
-				name: `${v.profil.firstName} ${v.profil.lastName}`
-			})),
 			stats,
 			volunteerStats
 		};

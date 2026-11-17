@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import type { VolunteerRole } from '@prisma/client';
 	import { resolve } from '$app/paths';
 	import { slide } from 'svelte/transition';
 	import {
@@ -11,33 +13,45 @@
 		Siren
 	} from '@lucide/svelte';
 	import { ENTITY_PAGES, ENTITY_PARAM } from '#lib/navigation/entityLink.ts';
-	import { TASK_URGENCY, type TaskBoardCard, type TaskUrgency } from '#lib/constants/tasks.ts';
-	import { buildBoard, countByUrgency } from '#lib/tasks/board.ts';
 	import {
-		visibleTasks,
-		type Task,
-		type TaskFocus,
-		type TaskLink,
-		type TaskViewer
-	} from '#lib/tasks/tasks.ts';
+		TASK_URGENCY,
+		type TaskBoardCard,
+		type TaskBoardKind,
+		type TaskUrgency
+	} from '#lib/constants/tasks.ts';
+	import { buildBoard, countByUrgency } from '#lib/tasks/board.ts';
+	import type { Task, TaskLink } from '#lib/tasks/tasks.ts';
 
 	// « À traiter » : une carte par sujet, une ligne par sorte de tâche, avec une pastille
 	// colorée selon l'urgence. Un clic sur une ligne la déplie : chaque tâche mène à sa fiche.
+	// Les tâches arrivent déjà choisies (adminTasks, volunteerTasks, tasksOf).
 	interface Props {
 		tasks: Task[];
-		viewer: TaskViewer;
-		/** La vue de l'admin (ses tâches, toutes, celles d'une bénévole) */
-		focus?: TaskFocus;
-		/** Pour dire à qui est une tâche, quand l'admin regarde celles des autres */
-		volunteers?: { id: string; name: string }[];
+		/** Le tableau des actions d'administration, ou celui d'une bénévole */
+		kind: TaskBoardKind;
+		/** Le rôle de la personne dont ce sont les tâches */
+		role?: VolunteerRole;
+		/** Qui regarde : l'admin voit toutes les demandes (lien vers la page Formulaires) */
+		isAdmin?: boolean;
+		title?: string;
+		/** Sans les lignes vides : le panneau d'une bénévole */
+		hideEmpty?: boolean;
+		/** Sous les cartes (ex : le lien vers le suivi des bénévoles) */
+		footer?: Snippet;
 	}
 
-	let { tasks, viewer, focus = { kind: 'MINE' }, volunteers = [] }: Props = $props();
+	let {
+		tasks,
+		kind,
+		role,
+		isAdmin = false,
+		title = 'À traiter',
+		hideEmpty = false,
+		footer
+	}: Props = $props();
 
-	const isAdmin = $derived(viewer.role === 'ADMIN');
-	const shown = $derived(visibleTasks(tasks, viewer, focus));
-	const board = $derived(buildBoard(shown, viewer.role, focus));
-	const counts = $derived(countByUrgency(shown));
+	const board = $derived(buildBoard(tasks, kind, { role, hideEmpty }));
+	const counts = $derived(countByUrgency(tasks));
 
 	const CARD_STYLE = {
 		sos: { icon: Siren, class: 'bg-red-100 text-red-700' },
@@ -56,13 +70,6 @@
 		openRows = openRows.includes(key) ? openRows.filter((k) => k !== key) : [...openRows, key];
 	}
 
-	// Quand l'admin regarde les tâches des autres : à qui est chacune
-	const nameById = $derived(new Map(volunteers.map((v) => [v.id, v.name])));
-	function owner(task: Task) {
-		if (!isAdmin || focus.kind === 'MINE' || task.audience.kind !== 'VOLUNTEERS') return null;
-		return task.audience.ids.map((id) => nameById.get(id) ?? '?').join(', ');
-	}
-
 	/** Le lien d'une tâche : la fiche, panneau ouvert. L'admin voit toutes les demandes */
 	function taskHref(link: TaskLink) {
 		const id = encodeURIComponent(link.id);
@@ -77,7 +84,7 @@
 
 <section class="flex flex-col gap-4">
 	<div class="flex flex-wrap items-center gap-2">
-		<h2 class="text-xl font-bold tracking-tight">À traiter</h2>
+		<h2 class="text-xl font-bold tracking-tight">{title}</h2>
 		{#if counts.URGENT > 0}
 			<span class="rounded-full px-2.5 py-0.5 text-sm font-medium {TASK_URGENCY.URGENT.color}">
 				{counts.URGENT} urgente{counts.URGENT > 1 ? 's' : ''}
@@ -88,7 +95,7 @@
 				{counts.WEEK} cette semaine
 			</span>
 		{/if}
-		{#if shown.length === 0}
+		{#if tasks.length === 0}
 			<span class="flex items-center gap-1.5 text-sm text-muted-foreground">
 				<PartyPopper class="size-4" /> Tout est à jour
 			</span>
@@ -97,7 +104,7 @@
 
 	<!-- Les cartes sur une ligne quand il y a la place (2 sur tablette, 1 sur téléphone) -->
 	<div class="@container">
-		<div class="grid gap-4 @xl:grid-cols-2 @5xl:grid-cols-4">
+		<div class="grid gap-4 @xl:grid-cols-2 @3xl:grid-cols-3">
 			{#each board as card (card.key)}
 				{@const style = CARD_STYLE[card.key]}
 				<div class="flex flex-col rounded-2xl border border-border bg-card p-4">
@@ -147,7 +154,6 @@
 									class="mb-2 grid max-h-64 gap-0.5 overflow-y-auto"
 								>
 									{#each row.tasks as task (task.id)}
-										{@const who = owner(task)}
 										<li>
 											<a
 												href={taskHref(task.link)}
@@ -162,9 +168,7 @@
 													{task.badge ?? '•'}
 												</span>
 												<span class="min-w-0 flex-1 truncate">
-													{task.short}{#if who}<span class="text-muted-foreground">
-															· {who}</span
-														>{/if}
+													{task.short}
 												</span>
 												<ArrowRight class="size-3.5 shrink-0 text-muted-foreground" />
 											</a>
@@ -178,4 +182,5 @@
 			{/each}
 		</div>
 	</div>
+	{@render footer?.()}
 </section>

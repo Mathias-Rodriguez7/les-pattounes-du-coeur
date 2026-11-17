@@ -10,6 +10,8 @@ import { pendingVolunteerInvitations } from '#lib/server/invitations/queries.ts'
 import { cancelInvitationAction, resendInvitationAction } from '#lib/server/invitations/actions.ts';
 import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
+import { allTasks } from '#lib/server/tasks.ts';
+import { tasksByVolunteer } from '#lib/tasks/board.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Page réservée à l'admin (avant le try : redirect() lance une exception)
@@ -142,6 +144,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 		return {
 			volunteers,
+			// Ce que chaque bénévole a à faire : colonne « À faire », filtre « Tâches », son panneau
+			tasksByVolunteer: tasksByVolunteer(await allTasks()),
 			// Les candidatures (invitations pas encore acceptées) : affichées dans la liste, filtre « En attente »
 			invitations: await pendingVolunteerInvitations(),
 			stats: {

@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+	import { ArrowRight, HeartHandshake, ShieldCheck } from '@lucide/svelte';
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
 	import StatsOverview from '#lib/components/dashboard/shared/StatsOverview.svelte';
-	import SelectField from '#lib/components/fields/SelectField.svelte';
-	import type { TaskFocus } from '#lib/tasks/tasks.ts';
+	import { TASK_URGENCY, type TaskBoardKind } from '#lib/constants/tasks.ts';
+	import { countByUrgency, tasksByVolunteer } from '#lib/tasks/board.ts';
+	import { adminTasks, volunteerTasks } from '#lib/tasks/tasks.ts';
 	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
 	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 
@@ -13,19 +16,28 @@
 
 	let { data }: Props = $props();
 
-	// La vue de l'admin : ses tâches, toutes, ou celles d'une bénévole (pour l'aider, répartir…)
-	let view = $state('MINE');
-	const viewOptions = $derived([
-		{ value: 'MINE', label: 'Mes tâches' },
-		{ value: 'ALL', label: 'Toutes les tâches' },
-		...data.taskVolunteers.map((v) => ({ value: v.id, label: `Tâches de ${v.name}` }))
+	// Deux vues : les actions d'administration, et ses propres tâches de bénévole
+	let view = $state<TaskBoardKind>('ADMIN');
+
+	const forAdmin = $derived(adminTasks(data.myTasks));
+	const forMe = $derived(data.user ? volunteerTasks(data.myTasks, data.user) : []);
+
+	const tabs = $derived([
+		{ kind: 'ADMIN' as const, label: 'Admin', icon: ShieldCheck, tasks: forAdmin },
+		{ kind: 'VOLUNTEER' as const, label: 'Bénévole', icon: HeartHandshake, tasks: forMe }
 	]);
-	const focus = $derived<TaskFocus>(
-		view === 'MINE'
-			? { kind: 'MINE' }
-			: view === 'ALL'
-				? { kind: 'ALL' }
-				: { kind: 'VOLUNTEER', id: view }
+
+	/** La pastille d'un onglet : le nombre de tâches, en rouge s'il y en a d'urgentes */
+	function tabBadge(tasks: typeof forAdmin) {
+		const counts = countByUrgency(tasks);
+		return counts.URGENT > 0 ? TASK_URGENCY.URGENT.color : TASK_URGENCY.WEEK.color;
+	}
+
+	// Les bénévoles qui ont des tâches urgentes : un lien vers leur suivi (page Bénévoles)
+	const lateVolunteers = $derived(
+		Object.values(tasksByVolunteer(data.myTasks)).filter((list) =>
+			list.some((task) => task.urgency === 'URGENT')
+		).length
 	);
 </script>
 
@@ -34,21 +46,63 @@
 		<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
 			Bonjour {data.user?.profil.firstName} 👋
 		</h1>
-		<SelectField
-			id="tasks-view"
-			label=""
-			options={viewOptions}
-			bind:value={view}
-			class="w-full sm:w-72"
-			wrapperClass="w-full sm:w-auto"
-		/>
+
+		<!-- Les deux vues, avec le nombre de tâches de chacune -->
+		<div role="tablist" class="inline-flex gap-1 rounded-2xl border border-border bg-card p-1">
+			{#each tabs as tab (tab.kind)}
+				{@const active = view === tab.kind}
+				<button
+					type="button"
+					role="tab"
+					aria-selected={active}
+					onclick={() => (view = tab.kind)}
+					class="flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition-colors {active
+						? 'bg-primary text-primary-foreground shadow-sm'
+						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+				>
+					<tab.icon class="size-4" />
+					{tab.label}
+					{#if tab.tasks.length > 0}
+						<span class="rounded-md px-1.5 text-xs font-semibold {tabBadge(tab.tasks)}">
+							{tab.tasks.length}
+						</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
 	</header>
 
 	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">
 		<!-- COLONNE GAUCHE : ce qu'il y a à faire -->
-		{#if data.user}
-			<TaskBoard tasks={data.myTasks} viewer={data.user} {focus} volunteers={data.taskVolunteers} />
-		{/if}
+		{#key view}
+			{#if view === 'ADMIN'}
+				<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="À traiter">
+					{#snippet footer()}
+						{#if lateVolunteers > 0}
+							<a
+								href={resolve('dashboard/benevole?taches=URGENT')}
+								class="flex items-center gap-2 self-start rounded-xl border border-border bg-card px-4 py-2.5 text-sm transition-colors hover:bg-muted"
+							>
+								<span class="rounded-md px-1.5 font-semibold {TASK_URGENCY.URGENT.color}">
+									{lateVolunteers}
+								</span>
+								bénévole{lateVolunteers > 1 ? 's ont' : ' a'} des tâches urgentes
+								<span class="font-medium text-primary">Voir le suivi</span>
+								<ArrowRight class="size-4 text-primary" />
+							</a>
+						{/if}
+					{/snippet}
+				</TaskBoard>
+			{:else}
+				<TaskBoard
+					tasks={forMe}
+					kind="VOLUNTEER"
+					role={data.user?.role}
+					isAdmin
+					title="Mes tâches de bénévole"
+				/>
+			{/if}
+		{/key}
 
 		<!-- COLONNE DROITE - STATS -->
 		<aside class="sticky top-8 flex flex-col gap-4 self-start">

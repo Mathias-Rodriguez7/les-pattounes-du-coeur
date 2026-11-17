@@ -1,7 +1,7 @@
 import prisma from '#lib/server/prisma.ts';
 import type { AppUser } from '#lib/types/user.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
-import { buildTasks, visibleTasks, type TaskSources } from '#lib/tasks/tasks.ts';
+import { buildTasks, volunteerTasks, type TaskSources } from '#lib/tasks/tasks.ts';
 
 // =====================================================================
 // Les tâches de l'asso : lues en base ICI, calculées dans lib/tasks/tasks.ts.
@@ -149,12 +149,17 @@ async function loadTaskSources(): Promise<TaskSources> {
 	};
 }
 
+/** Toutes les tâches de l'asso, maintenant */
+export async function allTasks() {
+	return buildTasks(await loadTaskSources(), new Date());
+}
+
 /**
  * Les tâches envoyées au navigateur.
  * Une bénévole : seulement les siennes (et celles de l'asso).
- * L'admin : toutes ; elle choisit sa vue sur la page (visibleTasks), sans recharger.
+ * L'admin : toutes ; la page les range en vues « Admin » et « Bénévole ».
  */
 export async function tasksFor(user: AppUser) {
-	const tasks = buildTasks(await loadTaskSources(), new Date());
-	return hasAdminRole(user) ? tasks : visibleTasks(tasks, user);
+	const tasks = await allTasks();
+	return hasAdminRole(user) ? tasks : volunteerTasks(tasks, user);
 }

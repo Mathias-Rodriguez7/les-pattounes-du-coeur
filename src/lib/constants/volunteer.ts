@@ -12,6 +12,23 @@ export const VOLUNTEER_ROLE_OPTIONS = [
 	{ value: 'COMMUNICATION', label: 'Communication' }
 ] satisfies Array<{ value: string; label: string }>;
 
+/** Filtre « Tâches » de la page Bénévoles (le dashboard y mène avec ?taches=URGENT) */
+export const VOLUNTEER_TASKS_FILTER_OPTIONS = [
+	{ value: 'URGENT', label: 'Tâches urgentes' },
+	{ value: 'ANY', label: 'Avec des tâches' },
+	{ value: 'NONE', label: 'À jour' }
+] satisfies Array<{ value: string; label: string }>;
+
+/** Tri de la liste des bénévoles */
+export const VOLUNTEER_SORT_OPTIONS = [
+	{ value: 'RECENT', label: 'Plus récentes' },
+	{ value: 'TASKS', label: 'Plus de tâches' },
+	{ value: 'NAME', label: 'Nom (A → Z)' }
+] satisfies Array<{ value: string; label: string }>;
+
+/** Filtre « Lieu » : un quartier de Montpellier, ou les autres villes */
+export const OUTSIDE_MONTPELLIER = 'OUTSIDE';
+
 export const VOLUNTEER_SECTION_CONFIG = {
 	statuts: { icon: 'Eye', label: 'Statuts', color: 'cyan' },
 	...PERSON_SECTION_CONFIG,

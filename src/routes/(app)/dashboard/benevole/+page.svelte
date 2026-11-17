@@ -22,10 +22,17 @@
 	import { BLACKLIST_FILTER_OPTIONS, matchesBlacklistFilter } from '#lib/constants/blacklist.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import {
+		OUTSIDE_MONTPELLIER,
 		VOLUNTEER_ROLE_OPTIONS,
+		VOLUNTEER_SORT_OPTIONS,
 		VOLUNTEER_STATUS_OPTIONS,
+		VOLUNTEER_TASKS_FILTER_OPTIONS,
 		roleColors
 	} from '#lib/constants/volunteer.js';
+	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
+	import { countByUrgency } from '#lib/tasks/board.ts';
+	import type { Task } from '#lib/tasks/tasks.ts';
+	import { page } from '$app/state';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { untrack } from 'svelte';
@@ -57,6 +64,22 @@
 	let blacklistFilter = $state('');
 	let roleFilter = $state('');
 	let newVolunteerOpen = $state(false);
+
+	// ===== TÂCHES : ce que chaque bénévole a à faire (calculé par le serveur) =====
+	const NO_TASKS: Task[] = [];
+	const tasksOf = (id: string) => data.tasksByVolunteer[id] ?? NO_TASKS;
+	const urgentCount = (id: string) => countByUrgency(tasksOf(id)).URGENT;
+
+	// Le dashboard y mène avec ?taches=URGENT : on part de ce filtre, triées par tâches
+	const initialTasksFilter = page.url.searchParams.get('taches') ?? '';
+	let tasksFilter = $state(initialTasksFilter);
+	let sortBy = $state(initialTasksFilter ? 'TASKS' : 'RECENT');
+	// Le lieu : un quartier de Montpellier, ou « Autres villes »
+	let placeFilter = $state('');
+	const placeOptions = [
+		...DISTRICT_OPTIONS,
+		{ value: OUTSIDE_MONTPELLIER, label: 'Autres villes' }
+	];
 
 	// Le filtre « Statut » propose aussi « En attente de validation » : les candidatures seules
 	const statusOptions = [...VOLUNTEER_STATUS_OPTIONS, PENDING_FILTER_OPTION];
@@ -126,6 +149,9 @@
 		blacklistFilter = '';
 		roleFilter = '';
 		searchQuery = '';
+		tasksFilter = '';
+		placeFilter = '';
+		sortBy = 'RECENT';
 	}
 
 	const statCards = $derived([
@@ -155,6 +181,14 @@
 				matchesBlacklistFilter(blacklistFilter, v.profil.blacklists)
 			);
 		if (roleFilter) filtered = filtered.filter((v) => v.role === roleFilter);
+		if (tasksFilter === 'URGENT') filtered = filtered.filter((v) => urgentCount(v.id) > 0);
+		if (tasksFilter === 'ANY') filtered = filtered.filter((v) => tasksOf(v.id).length > 0);
+		if (tasksFilter === 'NONE') filtered = filtered.filter((v) => tasksOf(v.id).length === 0);
+		if (placeFilter === OUTSIDE_MONTPELLIER) {
+			filtered = filtered.filter((v) => v.profil.city?.trim().toLowerCase() !== 'montpellier');
+		} else if (placeFilter) {
+			filtered = filtered.filter((v) => v.profil.district === placeFilter);
+		}
 
 		const query = searchQuery.trim().toLowerCase();
 		if (query) {
@@ -162,6 +196,21 @@
 				const fullName = `${v.profil.firstName ?? ''} ${v.profil.lastName ?? ''}`.toLowerCase();
 				return fullName.includes(query);
 			});
+		}
+
+		// Le tri : les plus récentes (ordre du serveur), le plus de tâches (urgentes d'abord), le nom
+		if (sortBy === 'TASKS') {
+			filtered = [...filtered].sort(
+				(a, b) =>
+					urgentCount(b.id) - urgentCount(a.id) || tasksOf(b.id).length - tasksOf(a.id).length
+			);
+		} else if (sortBy === 'NAME') {
+			filtered = [...filtered].sort((a, b) =>
+				`${a.profil.firstName} ${a.profil.lastName}`.localeCompare(
+					`${b.profil.firstName} ${b.profil.lastName}`,
+					'fr'
+				)
+			);
 		}
 
 		return filtered;
@@ -231,6 +280,30 @@
 										class="w-32"
 									/>
 									<SelectField
+										id="volunteer-tasks-filter"
+										label=""
+										options={VOLUNTEER_TASKS_FILTER_OPTIONS}
+										bind:value={tasksFilter}
+										placeholder="Tâches"
+										class="w-40"
+									/>
+									<SelectField
+										id="volunteer-place-filter"
+										label=""
+										options={placeOptions}
+										bind:value={placeFilter}
+										placeholder="Lieu"
+										class="w-40"
+									/>
+									<SelectField
+										id="volunteer-sort"
+										label=""
+										options={VOLUNTEER_SORT_OPTIONS}
+										bind:value={sortBy}
+										placeholder="Tri"
+										class="w-40"
+									/>
+									<SelectField
 										id="volunteer-blacklist-filter"
 										label=""
 										options={BLACKLIST_FILTER_OPTIONS}
@@ -272,6 +345,7 @@
 													</div>
 												</Table.Head>
 											{/each}
+											<Table.Head class="text-center">À faire</Table.Head>
 											<!-- Colonne de la flèche : mobile uniquement -->
 											<Table.Head class="w-8 sm:hidden">
 												<span class="sr-only">Ouvrir</span>
@@ -283,13 +357,13 @@
 											{#each filteredCandidates as candidate (candidate.id)}
 												<CandidateRow
 													{candidate}
-													columns={6}
+													columns={7}
 													onclick={() => handleSelectVolunteer(candidate.id)}
 													isSelected={selectedVolunteerId === candidate.id}
 												/>
 											{:else}
 												<Table.Row>
-													<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
+													<Table.Cell colspan={7} class="text-muted-foreground py-10 text-center">
 														Aucune candidature en attente.
 													</Table.Cell>
 												</Table.Row>
@@ -298,12 +372,13 @@
 											{#each filteredVolunteers as volunteer (volunteer.id)}
 												<VolunteerRow
 													{volunteer}
+													tasks={tasksOf(volunteer.id)}
 													onclick={() => handleSelectVolunteer(volunteer.id)}
 													isSelected={selectedVolunteerId === volunteer.id}
 												/>
 											{:else}
 												<Table.Row>
-													<Table.Cell colspan={6} class="text-muted-foreground py-10 text-center">
+													<Table.Cell colspan={7} class="text-muted-foreground py-10 text-center">
 														Aucun bénévole ne correspond à ces filtres.
 													</Table.Cell>
 												</Table.Row>
@@ -337,7 +412,11 @@
 						{/snippet}
 					</CandidatePanel>
 				{:else}
-					<VolunteerPanel volunteer={selectedVolunteer} isAdmin={data.isAdmin} />
+					<VolunteerPanel
+						volunteer={selectedVolunteer}
+						isAdmin={data.isAdmin}
+						tasks={selectedVolunteer ? tasksOf(selectedVolunteer.id) : []}
+					/>
 				{/if}
 			{/snippet}
 		</ListDetailLayout>

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+	adminTasks,
 	buildTasks,
 	formatDuration,
-	groupByUrgency,
-	visibleTasks,
+	formatShort,
+	tasksOf,
+	volunteerTasks,
 	type TaskCat,
 	type TaskSources
 } from './tasks.ts';
@@ -48,6 +50,8 @@ describe('formatDuration', () => {
 	it('en heures sous 2 jours, en jours au-delà', () => {
 		expect(formatDuration(26 * HOUR)).toBe('26 h');
 		expect(formatDuration(3 * DAY)).toBe('3 jours');
+		expect(formatShort(7 * HOUR)).toBe('7 h');
+		expect(formatShort(3 * DAY)).toBe('3 j');
 	});
 });
 
@@ -176,7 +180,7 @@ describe('Invitations et surcharge', () => {
 	});
 });
 
-describe('visibleTasks', () => {
+describe('qui voit quoi', () => {
 	const sources: TaskSources = {
 		...empty(),
 		sos: [
@@ -200,34 +204,20 @@ describe('visibleTasks', () => {
 	const ids = (list: { rule: string }[]) => list.map((t) => t.rule).sort();
 
 	it("une bénévole : ses tâches et celles de l'asso", () => {
-		expect(ids(visibleTasks(tasks, { id: 'julie', role: 'MANAGER' }))).toEqual(['A1', 'S1']);
-		expect(ids(visibleTasks(tasks, { id: 'paul', role: 'MANAGER' }))).toEqual(['S1']);
+		expect(ids(volunteerTasks(tasks, { id: 'julie', role: 'MANAGER' }))).toEqual(['A1', 'S1']);
+		expect(ids(volunteerTasks(tasks, { id: 'paul', role: 'MANAGER' }))).toEqual(['S1']);
 	});
 
 	it('une bénévole communication voit aussi « Mettre en avant »', () => {
-		expect(ids(visibleTasks(tasks, { id: 'paul', role: 'COMMUNICATION' }))).toEqual(['C6', 'S1']);
+		expect(ids(volunteerTasks(tasks, { id: 'paul', role: 'COMMUNICATION' }))).toEqual(['C6', 'S1']);
 	});
 
-	it("l'admin : les siennes, toutes, ou celles d'une bénévole", () => {
-		const admin = { id: 'admin', role: 'ADMIN' as const };
-		expect(ids(visibleTasks(tasks, admin))).toEqual(['C1', 'C6', 'S1']);
-		expect(visibleTasks(tasks, admin, { kind: 'ALL' })).toHaveLength(tasks.length);
-		expect(ids(visibleTasks(tasks, admin, { kind: 'VOLUNTEER', id: 'julie' }))).toEqual(['A1']);
+	it("les actions d'administration : tout ce qui n'est pas à une bénévole", () => {
+		expect(ids(adminTasks(tasks))).toEqual(['C1', 'C6', 'S1']);
 	});
-});
 
-describe('groupByUrgency', () => {
-	it("urgent d'abord, la situation la plus ancienne en premier", () => {
-		const sos = [3, 30].map((hours, i) => ({
-			id: `s${i}`,
-			reportedAt: ago(hours * HOUR),
-			updatedAt: ago(hours * HOUR),
-			status: 'NEW' as const,
-			handledById: null,
-			city: null,
-			catCount: 0
-		}));
-		const groups = groupByUrgency(buildTasks({ ...empty(), sos }, NOW));
-		expect(groups.map((g) => g.urgency)).toEqual(['URGENT', 'WEEK']);
+	it("les tâches d'une bénévole, et seulement les siennes", () => {
+		expect(ids(tasksOf(tasks, 'julie'))).toEqual(['A1']);
+		expect(tasksOf(tasks, 'paul')).toEqual([]);
 	});
 });

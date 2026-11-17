@@ -11,7 +11,6 @@ import {
 	PROFILE_REQUIRED_FIELDS,
 	TASK_DELAYS,
 	TASK_OVERLOAD_THRESHOLD,
-	TASK_URGENCY_ORDER,
 	type TaskRule,
 	type TaskUrgency
 } from '#lib/constants/tasks.ts';
@@ -444,7 +443,7 @@ function overloadTasks(tasks: Task[], volunteers: TaskSources['volunteers']): Ta
 		}));
 }
 
-/** TOUTES les tâches de l'asso. Qui voit quoi : visibleTasks */
+/** TOUTES les tâches de l'asso. Qui voit quoi : adminTasks, volunteerTasks, tasksOf */
 export function buildTasks(sources: TaskSources, now: Date): Task[] {
 	const tasks = [
 		...sosTasks(sources.sos, now),
@@ -460,27 +459,19 @@ export function buildTasks(sources: TaskSources, now: Date): Task[] {
 
 export type TaskViewer = { id: string; role: VolunteerRole };
 
-/** La vue de l'admin : ses tâches (+ asso + admin), toutes, ou celles d'une bénévole */
-export type TaskFocus = { kind: 'MINE' } | { kind: 'ALL' } | { kind: 'VOLUNTEER'; id: string };
-
 const concerns = (task: Task, volunteerId: string) =>
 	task.audience.kind === 'VOLUNTEERS' && task.audience.ids.includes(volunteerId);
 
+/** Les actions d'administration : tout ce qui n'est pas à une bénévole précise */
+export function adminTasks(tasks: Task[]) {
+	return tasks.filter((task) => task.audience.kind !== 'VOLUNTEERS');
+}
+
 /**
- * Une bénévole : ses tâches, celles de l'asso, et (COMMUNICATION) les siennes de rôle.
- * L'admin : par défaut ses tâches + celles de l'asso + celles de l'admin ;
- * « Toutes » ; ou les tâches d'une bénévole (pour l'aider, ou répartir).
+ * Le dashboard d'une bénévole (et la vue « Bénévole » de l'admin) : ses tâches, celles de
+ * l'asso (un SOS à prendre), et pour une bénévole COMMUNICATION, « Mettre en avant ».
  */
-export function visibleTasks(
-	tasks: Task[],
-	viewer: TaskViewer,
-	focus: TaskFocus = { kind: 'MINE' }
-) {
-	if (viewer.role === 'ADMIN') {
-		if (focus.kind === 'ALL') return tasks;
-		if (focus.kind === 'VOLUNTEER') return tasks.filter((task) => concerns(task, focus.id));
-		return tasks.filter((task) => task.audience.kind !== 'VOLUNTEERS' || concerns(task, viewer.id));
-	}
+export function volunteerTasks(tasks: Task[], viewer: TaskViewer) {
 	return tasks.filter(
 		(task) =>
 			concerns(task, viewer.id) ||
@@ -489,12 +480,7 @@ export function visibleTasks(
 	);
 }
 
-/** Groupées par urgence (urgent d'abord), la situation la plus ancienne en premier */
-export function groupByUrgency(tasks: Task[]) {
-	return TASK_URGENCY_ORDER.map((urgency) => ({
-		urgency,
-		tasks: tasks
-			.filter((task) => task.urgency === urgency)
-			.sort((a, b) => a.since.getTime() - b.since.getTime())
-	})).filter((group) => group.tasks.length > 0);
+/** Les tâches d'une bénévole, et seulement les siennes (le panneau de la page Bénévoles) */
+export function tasksOf(tasks: Task[], volunteerId: string) {
+	return tasks.filter((task) => concerns(task, volunteerId));
 }

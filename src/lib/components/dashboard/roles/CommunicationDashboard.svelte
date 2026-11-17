@@ -22,7 +22,7 @@
 	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">
 		<!-- COLONNE GAUCHE : ce qu'il y a à faire -->
 		{#if data.user}
-			<TaskBoard tasks={data.myTasks} viewer={data.user} />
+			<TaskBoard tasks={data.myTasks} kind="VOLUNTEER" role={data.user.role} />
 		{/if}
 
 		<!-- COLONNE DROITE - STATS -->

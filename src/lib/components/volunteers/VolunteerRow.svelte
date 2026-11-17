@@ -5,8 +5,25 @@
 	import { truncate } from '#lib/utils/string.ts';
 	import { roleColors } from '#lib/constants/volunteer.ts';
 	import { ChevronRight } from '@lucide/svelte';
+	import { TASK_URGENCY } from '#lib/constants/tasks.ts';
+	import { countByUrgency } from '#lib/tasks/board.ts';
+	import type { Task } from '#lib/tasks/tasks.ts';
+	import type { VolunteerWithRelations } from '#lib/types/volunteer.ts';
 
-	const { volunteer, isSelected = false, onclick } = $props();
+	const {
+		volunteer,
+		isSelected = false,
+		onclick,
+		tasks = []
+	}: {
+		volunteer: VolunteerWithRelations;
+		isSelected?: boolean;
+		onclick: () => void;
+		/** Ce qu'elle a à faire (colonne « À faire ») */
+		tasks?: Task[];
+	} = $props();
+
+	const taskCounts = $derived(countByUrgency(tasks));
 
 	const fullName = $derived(`${volunteer.profil.firstName} ${volunteer.profil.lastName}`);
 	const catsCount = $derived(volunteer.cats.length);
@@ -53,6 +70,28 @@
 
 	<Table.Cell class="hidden text-center sm:table-cell">{catsCount}</Table.Cell>
 	<Table.Cell class="hidden text-center sm:table-cell">{formsCount}</Table.Cell>
+
+	<!-- À faire : ses tâches urgentes (rouge) et de la semaine (orange) -->
+	<Table.Cell class="text-center">
+		<div
+			class="flex justify-center gap-1"
+			title="{tasks.length} tâche{tasks.length > 1 ? 's' : ''}"
+		>
+			{#if taskCounts.URGENT > 0}
+				<span class="rounded-md px-1.5 text-xs font-semibold {TASK_URGENCY.URGENT.color}">
+					{taskCounts.URGENT}
+				</span>
+			{/if}
+			{#if taskCounts.WEEK + taskCounts.WATCH > 0}
+				<span class="rounded-md px-1.5 text-xs font-semibold {TASK_URGENCY.WEEK.color}">
+					{taskCounts.WEEK + taskCounts.WATCH}
+				</span>
+			{/if}
+			{#if tasks.length === 0}
+				<span class="text-xs text-muted-foreground">—</span>
+			{/if}
+		</div>
+	</Table.Cell>
 
 	<!-- Flèche : indique sur mobile qu'on peut toucher la ligne -->
 	<Table.Cell class="w-8 text-muted-foreground sm:hidden">

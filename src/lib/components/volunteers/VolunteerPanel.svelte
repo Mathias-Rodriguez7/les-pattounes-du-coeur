@@ -10,11 +10,20 @@
 	import VolunteerCats from './panel/VolunteerCats.svelte';
 	import VolunteerCatHistory from './panel/VolunteerCatHistory.svelte';
 	import VolunteerAssignedForms from './panel/VolunteerAssignedForms.svelte';
+	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
+	import { CircleCheck } from '@lucide/svelte';
+	import type { Task } from '#lib/tasks/tasks.ts';
 
 	const {
 		volunteer,
-		isAdmin = false
-	}: { volunteer: VolunteerWithRelations | null; isAdmin?: boolean } = $props();
+		isAdmin = false,
+		tasks = []
+	}: {
+		volunteer: VolunteerWithRelations | null;
+		isAdmin?: boolean;
+		/** Ce qu'elle a à faire : rangé comme son dashboard (seulement les lignes non vides) */
+		tasks?: Task[];
+	} = $props();
 
 	// Sa blacklist active (0 ou 1), chargée par la page Bénévoles
 	const blacklist = $derived(volunteer?.profil.blacklists?.[0] ?? null);
@@ -48,6 +57,24 @@
 			<VolunteerPanelHeader {volunteer} {isAdmin} onEdit={startEditing} />
 
 			<Card.Content class="grid grid-cols-1 gap-6">
+				<Separator />
+
+				<!-- Ses tâches : ce qui l'attend, en premier (un clic ouvre la fiche concernée) -->
+				{#if tasks.length > 0}
+					<TaskBoard
+						{tasks}
+						kind="VOLUNTEER"
+						role={volunteer.role}
+						{isAdmin}
+						hideEmpty
+						title="Ses tâches"
+					/>
+				{:else}
+					<p class="flex items-center gap-2 text-sm text-muted-foreground">
+						<CircleCheck class="size-4 text-green-600" /> Aucune tâche en attente
+					</p>
+				{/if}
+
 				<Separator />
 				<VolunteerIdentity {volunteer} />
 				<Separator />
