@@ -73,16 +73,24 @@ async function loadTaskSources(): Promise<TaskSources> {
 				createdAt: true,
 				isVisible: true,
 				publishedAt: true,
+				birthDate: true,
 				sex: true,
+				color: true,
+				hairLength: true,
 				origin: true,
 				description: true,
 				vaccinate: true,
+				isSterilize: true,
+				isAlreadySterilized: true,
+				isIdentify: true,
+				chipId: true,
+				tattooId: true,
 				volunteers: { select: { volunteerId: true } },
 				placements: {
 					where: { status: { in: ['ACTIVE', 'BREAK'] } },
 					select: { type: true, status: true, createdAt: true }
 				},
-				_count: { select: { forms: { where: { status: 'PENDING' } } } }
+				_count: { select: { forms: { where: { status: 'PENDING' } }, media: true } }
 			}
 		}),
 		prisma.invitation.findMany({
@@ -119,10 +127,18 @@ async function loadTaskSources(): Promise<TaskSources> {
 			createdAt: cat.createdAt,
 			isVisible: cat.isVisible,
 			publishedAt: cat.publishedAt,
+			realName: cat.name,
+			hasPhoto: cat._count.media > 0,
+			birthDate: cat.birthDate,
 			sex: cat.sex,
+			color: cat.color,
+			hairLength: cat.hairLength,
 			origin: cat.origin,
 			description: cat.description,
 			vaccinate: cat.vaccinate,
+			isSterilized: cat.isSterilize || cat.isAlreadySterilized,
+			// Identifié : la case, ou un numéro de puce / tatouage saisi
+			isIdentified: cat.isIdentify || !!cat.chipId || !!cat.tattooId,
 			volunteerIds: cat.volunteers.map((cv) => cv.volunteerId),
 			// Dans une FA : un placement long (actif ou en pause), court ou transfert actif
 			hasHome: cat.placements.some(

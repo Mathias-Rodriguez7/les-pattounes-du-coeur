@@ -81,12 +81,12 @@
 			{/if}
 			{#key view}
 				{#if view === 'ADMIN'}
-					<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="À faire">
+					<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="Mes tâches d’admin">
 						{#snippet headerExtra()}
 							{#if lateVolunteers > 0}
 								<a
 									href={resolve('dashboard/benevole?taches=URGENT')}
-									class="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-0.5 text-sm transition-colors hover:bg-muted"
+									class="ml-auto flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-0.5 text-sm transition-colors hover:bg-muted"
 								>
 									<span class="font-semibold text-red-700">{lateVolunteers}</span>
 									bénévole{lateVolunteers > 1 ? 's' : ''} avec des tâches urgentes

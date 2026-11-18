@@ -10,7 +10,8 @@
 		HeartHandshake,
 		IdCard,
 		PartyPopper,
-		Siren
+		Siren,
+		Stethoscope
 	} from '@lucide/svelte';
 	import { ENTITY_PAGES, ENTITY_PARAM } from '#lib/navigation/entityLink.ts';
 	import {
@@ -59,6 +60,7 @@
 		sos: { icon: Siren, theme: 'dog' },
 		cats: { icon: Cat, theme: 'cats' },
 		adoptions: { icon: HeartHandshake, theme: 'adoptions' },
+		health: { icon: Stethoscope, theme: 'colab' },
 		applications: { icon: IdCard, theme: 'pending' }
 	} satisfies Record<TaskBoardCard['key'], { icon: typeof Cat; theme: string }>;
 

@@ -1,6 +1,7 @@
 import type {
 	CatStatus,
 	FormType,
+	HairLength,
 	InvitationKind,
 	SexCat,
 	SosStatus,
@@ -89,10 +90,19 @@ export type TaskCat = {
 	createdAt: Date;
 	isVisible: boolean;
 	publishedAt: Date | null;
+	/** Le vrai nom (null si le chat n'en a pas encore) ; `name` sert à l'affichage */
+	realName: string | null;
+	hasPhoto: boolean;
+	birthDate: Date | null;
 	sex: SexCat;
+	color: string | null;
+	hairLength: HairLength | null;
 	origin: string | null;
 	description: string | null;
 	vaccinate: Vaccinate | null;
+	/** Stérilisé (par l'asso, ou déjà stérilisé à son arrivée) */
+	isSterilized: boolean;
+	isIdentified: boolean;
 	volunteerIds: string[];
 	/** Dans une FA en ce moment (placement long, court ou transfert actif) */
 	hasHome: boolean;
@@ -208,7 +218,7 @@ function adoptionTasks(list: TaskAdoption[], now: Date): Task[] {
 				detail: `Essai terminé depuis ${formatDuration(-left)}`,
 				short: adoption.catName,
 				badge: formatShort(-left),
-				urgency: 'URGENT',
+				urgency: 'WEEK',
 				audience: catAudience(adoption.volunteerIds),
 				link: { kind: 'cat', id: adoption.catId },
 				action: 'Finaliser',
@@ -256,19 +266,44 @@ function formTasks(list: TaskForm[], now: Date): Task[] {
 				since: form.createdAt
 			});
 		}
-		// F1, B1 : une candidature FA ou bénévole à étudier
-		if (form.type === 'HOST' || form.type === 'VOLUNTEER') {
-			const isHost = form.type === 'HOST';
+		// F4 : une candidature FA que personne n'a en charge : l'admin la confie à une bénévole
+		if (form.type === 'HOST' && !form.assignedToId) {
 			tasks.push({
-				id: `${isHost ? 'F1' : 'B1'}:${form.id}`,
-				rule: isHost ? 'F1' : 'B1',
-				title: `Étudier la candidature ${isHost ? 'FA' : 'bénévole'} de ${form.personName}`,
+				id: `F4:${form.id}`,
+				rule: 'F4',
+				title: `Confier la candidature FA de ${form.personName} à une bénévole`,
+				detail: `Candidature ${received}, personne n'en est chargée`,
+				short: form.personName,
+				badge: formatShort(waited),
+				urgency: 'WEEK',
+				audience: { kind: 'ADMIN' },
+				link: { kind: 'form', id: form.id, allForms: true },
+				action: 'Confier',
+				since: form.createdAt
+			});
+		}
+		// F1 : la bénévole en charge étudie la candidature FA ; B1 : l'admin, la candidature bénévole
+		const studied =
+			form.type === 'HOST' && form.assignedToId
+				? {
+						rule: 'F1' as const,
+						what: 'FA',
+						audience: { kind: 'VOLUNTEERS' as const, ids: [form.assignedToId] }
+					}
+				: form.type === 'VOLUNTEER'
+					? { rule: 'B1' as const, what: 'bénévole', audience: { kind: 'ADMIN' as const } }
+					: null;
+		if (studied) {
+			tasks.push({
+				id: `${studied.rule}:${form.id}`,
+				rule: studied.rule,
+				title: `Étudier la candidature ${studied.what} de ${form.personName}`,
 				detail: `Candidature ${received}`,
 				short: form.personName,
 				badge: formatShort(waited),
 				urgency: waited >= TASK_DELAYS.applicationUrgent ? 'URGENT' : 'WEEK',
-				audience: { kind: 'ADMIN' },
-				link: { kind: 'form', id: form.id, allForms: true },
+				audience: studied.audience,
+				link: { kind: 'form', id: form.id, allForms: studied.rule === 'B1' },
 				action: 'Étudier',
 				since: form.createdAt
 			});
@@ -279,12 +314,18 @@ function formTasks(list: TaskForm[], now: Date): Task[] {
 
 /** C4 : les champs manquants d'une fiche (« sexe, origine ») */
 export function missingProfileFields(cat: TaskCat): string[] {
-	const missing: string[] = [];
-	if (cat.sex === 'UNKNOWN') missing.push(PROFILE_REQUIRED_FIELDS.sex);
-	if (!cat.origin?.trim()) missing.push(PROFILE_REQUIRED_FIELDS.origin);
-	if (!cat.description?.trim()) missing.push(PROFILE_REQUIRED_FIELDS.description);
-	if (!cat.vaccinate) missing.push(PROFILE_REQUIRED_FIELDS.vaccinate);
-	return missing;
+	const checks: [boolean, string][] = [
+		[!cat.realName?.trim(), PROFILE_REQUIRED_FIELDS.name],
+		[!cat.hasPhoto, PROFILE_REQUIRED_FIELDS.photo],
+		[cat.sex === 'UNKNOWN', PROFILE_REQUIRED_FIELDS.sex],
+		[!cat.birthDate, PROFILE_REQUIRED_FIELDS.birthDate],
+		[!cat.color?.trim(), PROFILE_REQUIRED_FIELDS.color],
+		[!cat.hairLength, PROFILE_REQUIRED_FIELDS.hairLength],
+		[!cat.origin?.trim(), PROFILE_REQUIRED_FIELDS.origin],
+		[!cat.description?.trim(), PROFILE_REQUIRED_FIELDS.description],
+		[!cat.vaccinate, PROFILE_REQUIRED_FIELDS.vaccinate]
+	];
+	return checks.filter(([isMissing]) => isMissing).map(([, label]) => label);
 }
 
 function catTasks(list: TaskCat[], now: Date): Task[] {
@@ -324,7 +365,7 @@ function catTasks(list: TaskCat[], now: Date): Task[] {
 			tasks.push({
 				id: `C2:${cat.id}`,
 				rule: 'C2',
-				title: `Relancer les FA contactées pour ${cat.name}`,
+				title: `Relancer ou annuler les FA contactées pour ${cat.name}`,
 				detail: `${count} FA sans réponse depuis ${formatDuration(now.getTime() - oldest.getTime())}`,
 				short: `${cat.name} · ${count} FA`,
 				badge: formatShort(now.getTime() - oldest.getTime()),
@@ -394,21 +435,74 @@ function catTasks(list: TaskCat[], now: Date): Task[] {
 				since: cat.publishedAt
 			});
 		}
+
+		// L'âge du chat (null : date de naissance inconnue)
+		const born = cat.birthDate ? now.getTime() - cat.birthDate.getTime() : null;
+
+		// V2 : stérilisation. Un chaton : 3 semaines avant ses 6 mois ; un adulte (ou un âge
+		// inconnu) : tout de suite
+		const sterilizeFrom = TASK_DELAYS.sterilizationAge - TASK_DELAYS.sterilizationNotice;
+		if (!cat.isSterilized && (born === null || born >= sterilizeFrom)) {
+			const dueAt =
+				cat.birthDate && born! < TASK_DELAYS.sterilizationAge
+					? new Date(cat.birthDate.getTime() + TASK_DELAYS.sterilizationAge)
+					: null;
+			tasks.push({
+				id: `V2:${cat.id}`,
+				rule: 'V2',
+				title: `Prévoir la stérilisation de ${cat.name}`,
+				detail: dueAt ? `Aura 6 mois le ${formatDay(dueAt)}` : 'Pas encore stérilisé',
+				short: cat.name,
+				badge: dueAt ? formatDay(dueAt) : null,
+				urgency: 'WEEK',
+				audience: catAudience(cat.volunteerIds),
+				link,
+				action: 'Ouvrir',
+				since: dueAt ?? cat.createdAt
+			});
+		}
+
+		// V4 : identification, à partir de 6 semaines (ou âge inconnu)
+		if (!cat.isIdentified && (born === null || born >= TASK_DELAYS.identificationAge)) {
+			tasks.push({
+				id: `V4:${cat.id}`,
+				rule: 'V4',
+				title: `Faire identifier ${cat.name}`,
+				detail: 'Pas encore pucé ni tatoué',
+				short: cat.name,
+				badge: null,
+				urgency: 'WEEK',
+				audience: catAudience(cat.volunteerIds),
+				link,
+				action: 'Ouvrir',
+				since: cat.createdAt
+			});
+		}
 	}
 	return tasks;
 }
 
 function invitationTasks(list: TaskInvitation[], now: Date): Task[] {
 	return list
-		.filter((invitation) => invitation.expiresAt <= now)
+		.filter((invitation) =>
+			// F2 : un contrat FA se relance AVANT que le lien expire ; B2 : à l'expiration
+			invitation.kind === 'HOST'
+				? invitation.expiresAt.getTime() - now.getTime() <= TASK_DELAYS.hostInvitationReminder
+				: invitation.expiresAt <= now
+		)
 		.map((invitation) => {
 			const isHost = invitation.kind === 'HOST';
+			const expired = invitation.expiresAt <= now;
 			return {
 				id: `${isHost ? 'F2' : 'B2'}:${invitation.id}`,
 				rule: isHost ? 'F2' : 'B2',
-				title: `Relancer l'invitation de ${invitation.name}`,
-				detail: `Lien expiré le ${formatDay(invitation.expiresAt)}, inscription jamais faite`,
-				short: `${invitation.name} · ${isHost ? 'FA' : 'bénévole'}`,
+				title: isHost
+					? `Relancer la signature du contrat de ${invitation.name}`
+					: `Relancer l'invitation de ${invitation.name}`,
+				detail: expired
+					? `Lien expiré le ${formatDay(invitation.expiresAt)}, inscription jamais faite`
+					: `Le lien expire le ${formatDay(invitation.expiresAt)}, contrat pas encore signé`,
+				short: invitation.name,
 				badge: formatDay(invitation.expiresAt),
 				urgency: 'WATCH',
 				audience: { kind: 'ADMIN' },

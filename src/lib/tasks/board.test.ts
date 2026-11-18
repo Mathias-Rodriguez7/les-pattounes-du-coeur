@@ -27,11 +27,18 @@ describe('buildBoard', () => {
 		const board = buildBoard([], 'ADMIN');
 		expect(cards(board)).toEqual(['sos', 'cats', 'applications']);
 		expect(rows(board, 'cats')).toHaveLength(4);
+		expect(rows(board, 'applications')).toEqual([
+			'apply-host-assign',
+			'apply-volunteer',
+			'host-contract',
+			'invitations',
+			'overload'
+		]);
 	});
 
 	it("le tableau d'une bénévole : SOS, ses chats, ses adoptions", () => {
 		const board = buildBoard([], 'VOLUNTEER', { role: 'MANAGER' });
-		expect(cards(board)).toEqual(['sos', 'cats', 'adoptions']);
+		expect(cards(board)).toEqual(['sos', 'cats', 'health', 'adoptions', 'applications']);
 		expect(rows(board, 'cats')).toEqual(['cat-profile']);
 	});
 
@@ -57,15 +64,9 @@ describe('buildBoard', () => {
 		expect(staleSos.urgency).toBeNull();
 	});
 
-	it('les invitations FA et bénévoles sont sur la même ligne', () => {
-		const board = buildBoard(
-			[task({ id: 'f', rule: 'F2' }), task({ id: 'b', rule: 'B2' })],
-			'ADMIN'
-		);
-		const invitations = board
-			.find((card) => card.key === 'applications')
-			?.rows.find((row) => row.key === 'invitations');
-		expect(invitations?.tasks).toHaveLength(2);
+	it('la candidature FA à étudier est dans le tableau de la bénévole', () => {
+		const board = buildBoard([task({ rule: 'F1' })], 'VOLUNTEER', { hideEmpty: true });
+		expect(rows(board, 'applications')).toEqual(['apply-host']);
 	});
 });
 

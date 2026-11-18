@@ -7,6 +7,8 @@ import {
 	tasksOf,
 	volunteerTasks,
 	type TaskCat,
+	type TaskForm,
+	type TaskSos,
 	type TaskSources
 } from './tasks.ts';
 
@@ -24,7 +26,7 @@ const empty = (): TaskSources => ({
 	volunteers: []
 });
 
-// Un chat complet, dans une FA, suivi par Julie : aucune tâche
+// Un chat complet, adulte, stérilisé, identifié, dans une FA, suivi par Julie : aucune tâche
 const cat = (overrides: Partial<TaskCat> = {}): TaskCat => ({
 	id: 'cat-1',
 	name: 'Figue',
@@ -32,10 +34,17 @@ const cat = (overrides: Partial<TaskCat> = {}): TaskCat => ({
 	createdAt: ago(30 * DAY),
 	isVisible: false,
 	publishedAt: null,
+	realName: 'Figue',
+	hasPhoto: true,
+	birthDate: ago(400 * DAY),
 	sex: 'FEMALE',
+	color: 'Tigrée',
+	hairLength: 'SHORT',
 	origin: 'SOS Celleneuve',
 	description: 'Très câline',
 	vaccinate: 'YES',
+	isSterilized: true,
+	isIdentified: true,
 	volunteerIds: ['julie'],
 	hasHome: true,
 	openProposals: [],
@@ -43,10 +52,31 @@ const cat = (overrides: Partial<TaskCat> = {}): TaskCat => ({
 	...overrides
 });
 
+const sos = (overrides: Partial<TaskSos> = {}): TaskSos => ({
+	id: 'sos-1',
+	reportedAt: ago(2 * HOUR),
+	updatedAt: ago(2 * HOUR),
+	status: 'NEW',
+	handledById: null,
+	city: 'Montpellier',
+	catCount: 0,
+	...overrides
+});
+
+const form = (overrides: Partial<TaskForm> = {}): TaskForm => ({
+	id: 'f1',
+	type: 'ADOPTION_SPECIFIC',
+	createdAt: ago(2 * DAY),
+	assignedToId: 'julie',
+	personName: 'Jean D.',
+	catName: 'Figue',
+	...overrides
+});
+
 const rules = (sources: TaskSources) =>
 	buildTasks(sources, NOW).map((t) => `${t.rule}:${t.urgency}`);
 
-describe('formatDuration', () => {
+describe('formatDuration et formatShort', () => {
 	it('en heures sous 2 jours, en jours au-delà', () => {
 		expect(formatDuration(26 * HOUR)).toBe('26 h');
 		expect(formatDuration(3 * DAY)).toBe('3 jours');
@@ -56,17 +86,6 @@ describe('formatDuration', () => {
 });
 
 describe('SOS', () => {
-	const sos = (overrides = {}) => ({
-		id: 'sos-1',
-		reportedAt: ago(2 * HOUR),
-		updatedAt: ago(2 * HOUR),
-		status: 'NEW' as const,
-		handledById: null,
-		city: 'Montpellier',
-		catCount: 0,
-		...overrides
-	});
-
 	it('S1 : à prendre, urgent après 24 h', () => {
 		expect(rules({ ...empty(), sos: [sos()] })).toEqual(['S1:WEEK']);
 		expect(rules({ ...empty(), sos: [sos({ reportedAt: ago(25 * HOUR) })] })).toEqual([
@@ -79,7 +98,6 @@ describe('SOS', () => {
 		const [task] = buildTasks({ ...empty(), sos: [stale] }, NOW);
 		expect(task.rule).toBe('S2');
 		expect(task.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie'] });
-		// Avec un chat créé : plus de tâche
 		expect(rules({ ...empty(), sos: [{ ...stale, catCount: 1 }] })).toEqual([]);
 	});
 });
@@ -92,23 +110,17 @@ describe('Adoptions', () => {
 		volunteerIds: ['julie']
 	});
 
-	it('A1 : essai terminé → urgent ; A2 : fin dans moins de 7 jours', () => {
-		expect(rules({ ...empty(), adoptions: [adoption(ago(3 * DAY))] })).toEqual(['A1:URGENT']);
+	it('A1 : essai terminé → cette semaine ; A2 : fin dans moins de 7 jours', () => {
+		expect(rules({ ...empty(), adoptions: [adoption(ago(3 * DAY))] })).toEqual(['A1:WEEK']);
 		expect(rules({ ...empty(), adoptions: [adoption(ago(-5 * DAY))] })).toEqual(['A2:WATCH']);
 		expect(rules({ ...empty(), adoptions: [adoption(ago(-20 * DAY))] })).toEqual([]);
 	});
 
 	it('A3 : demande assignée, urgente après 5 jours ; pas assignée : pas de tâche', () => {
-		const form = {
-			id: 'f1',
-			type: 'ADOPTION_SPECIFIC' as const,
-			createdAt: ago(6 * DAY),
-			assignedToId: 'julie',
-			personName: 'Jean D.',
-			catName: 'Figue'
-		};
-		expect(rules({ ...empty(), forms: [form] })).toEqual(['A3:URGENT']);
-		expect(rules({ ...empty(), forms: [{ ...form, assignedToId: null }] })).toEqual([]);
+		expect(rules({ ...empty(), forms: [form({ createdAt: ago(6 * DAY) })] })).toEqual([
+			'A3:URGENT'
+		]);
+		expect(rules({ ...empty(), forms: [form({ assignedToId: null })] })).toEqual([]);
 	});
 });
 
@@ -126,11 +138,10 @@ describe('Chats', () => {
 		expect(tasks.every((t) => t.audience.kind === 'ADMIN')).toBe(true);
 	});
 
-	it('C2 : une proposition sans réponse depuis 3 jours', () => {
-		expect(rules({ ...empty(), cats: [cat({ openProposals: [ago(4 * DAY)] })] })).toEqual([
-			'C2:WATCH'
-		]);
-		expect(rules({ ...empty(), cats: [cat({ openProposals: [ago(1 * DAY)] })] })).toEqual([]);
+	it('C2 : « relancer ou annuler » une proposition sans réponse depuis 3 jours', () => {
+		const [task] = buildTasks({ ...empty(), cats: [cat({ openProposals: [ago(4 * DAY)] })] }, NOW);
+		expect(task.title).toBe('Relancer ou annuler les FA contactées pour Figue');
+		expect(rules({ ...empty(), cats: [cat({ openProposals: [ago(DAY)] })] })).toEqual([]);
 	});
 
 	it('C4 : les champs manquants, seulement après 7 jours', () => {
@@ -138,6 +149,24 @@ describe('Chats', () => {
 		const [task] = buildTasks({ ...empty(), cats: [incomplete] }, NOW);
 		expect(task.detail).toBe('Il manque : sexe, origine');
 		expect(rules({ ...empty(), cats: [{ ...incomplete, createdAt: ago(2 * DAY) }] })).toEqual([]);
+	});
+
+	it('C4 : tous les champs, sauf ceux qui ont leur propre tâche (identification, stérilisation)', () => {
+		const bare = cat({
+			realName: null,
+			hasPhoto: false,
+			birthDate: null,
+			sex: 'UNKNOWN',
+			color: null,
+			hairLength: null,
+			origin: null,
+			description: null,
+			vaccinate: null
+		});
+		const c4 = buildTasks({ ...empty(), cats: [bare] }, NOW).find((t) => t.rule === 'C4');
+		expect(c4?.detail).toBe(
+			'Il manque : nom, photo, sexe, date de naissance, couleur, poil, origine, description, vaccination'
+		);
 	});
 
 	it('C6 : visible depuis 6 semaines sans demande, pour admin et communication', () => {
@@ -150,50 +179,76 @@ describe('Chats', () => {
 
 	it('les chats libres, adoptés ou décédés ne donnent pas de tâche', () => {
 		const statuses = ['FREE', 'ADOPTED', 'DEAD'] as const;
-		const cats = statuses.map((status, i) => cat({ id: `c${i}`, status, hasHome: false }));
+		const cats = statuses.map((status, i) =>
+			cat({ id: `c${i}`, status, hasHome: false, isSterilized: false })
+		);
 		expect(rules({ ...empty(), cats })).toEqual([]);
 	});
 });
 
-describe('Invitations et surcharge', () => {
-	it('F2 / B2 : une invitation expirée', () => {
+describe('Santé', () => {
+	it('V2 : un chaton, 3 semaines avant ses 6 mois ; un adulte non stérilisé, tout de suite', () => {
+		const kitten = (days: number) => cat({ isSterilized: false, birthDate: ago(days * DAY) });
+		expect(rules({ ...empty(), cats: [kitten(120)] })).toEqual([]);
+		expect(rules({ ...empty(), cats: [kitten(165)] })).toEqual(['V2:WEEK']);
+		expect(rules({ ...empty(), cats: [kitten(400)] })).toEqual(['V2:WEEK']);
+	});
+
+	it('V4 : identification à partir de 6 semaines', () => {
+		const young = (days: number) => cat({ isIdentified: false, birthDate: ago(days * DAY) });
+		expect(rules({ ...empty(), cats: [young(30)] })).toEqual([]);
+		expect(rules({ ...empty(), cats: [young(50)] })).toEqual(['V4:WEEK']);
+	});
+});
+
+describe('Candidatures', () => {
+	const hostForm = (assignedToId: string | null) =>
+		form({ id: 'h', type: 'HOST', assignedToId, personName: 'Ana P.', catName: null });
+
+	it("F4 : personne n'en est chargée → l'admin la confie", () => {
+		const [task] = buildTasks({ ...empty(), forms: [hostForm(null)] }, NOW);
+		expect(task.rule).toBe('F4');
+		expect(task.audience.kind).toBe('ADMIN');
+	});
+
+	it('F1 : la bénévole en charge étudie la candidature FA', () => {
+		const [task] = buildTasks({ ...empty(), forms: [hostForm('julie')] }, NOW);
+		expect(task.rule).toBe('F1');
+		expect(task.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie'] });
+	});
+
+	it("B1 : la candidature bénévole est pour l'admin", () => {
+		const [task] = buildTasks({ ...empty(), forms: [form({ type: 'VOLUNTEER' })] }, NOW);
+		expect(task.rule).toBe('B1');
+		expect(task.audience.kind).toBe('ADMIN');
+	});
+
+	it('F2 : contrat FA à relancer 7 jours avant expiration ; B2 : invitation bénévole expirée', () => {
 		const invitations = [
-			{ id: 'i1', kind: 'HOST' as const, name: 'Ana P.', expiresAt: ago(DAY) },
-			{ id: 'i2', kind: 'VOLUNTEER' as const, name: 'Léo M.', expiresAt: ago(-DAY) }
+			{ id: 'h1', kind: 'HOST' as const, name: 'Ana P.', expiresAt: ago(-5 * DAY) },
+			{ id: 'h2', kind: 'HOST' as const, name: 'Eva R.', expiresAt: ago(-10 * DAY) },
+			{ id: 'v1', kind: 'VOLUNTEER' as const, name: 'Léo M.', expiresAt: ago(-DAY) },
+			{ id: 'v2', kind: 'VOLUNTEER' as const, name: 'Zoé T.', expiresAt: ago(DAY) }
 		];
-		expect(rules({ ...empty(), invitations })).toEqual(['F2:WATCH']);
+		const ids = buildTasks({ ...empty(), invitations }, NOW).map((t) => t.id);
+		expect(ids.sort()).toEqual(['B2:v2', 'F2:h1']);
 	});
 
 	it('B3 : plus de 20 tâches urgentes pour une bénévole', () => {
-		const adoptions = Array.from({ length: 21 }, (_, i) => ({
-			catId: `cat-${i}`,
-			catName: `Chat ${i}`,
-			trialEndsAt: ago(DAY),
-			volunteerIds: ['julie']
-		}));
-		const volunteers = [{ id: 'julie', name: 'Julie Martin' }];
-		const tasks = buildTasks({ ...empty(), adoptions, volunteers }, NOW);
-		expect(tasks.filter((t) => t.rule === 'B3')).toHaveLength(1);
-		expect(rules({ ...empty(), adoptions: adoptions.slice(1), volunteers })).not.toContain(
-			'B3:WEEK'
+		const forms = Array.from({ length: 21 }, (_, i) =>
+			form({ id: `f-${i}`, createdAt: ago(10 * DAY) })
 		);
+		const volunteers = [{ id: 'julie', name: 'Julie Martin' }];
+		const tasks = buildTasks({ ...empty(), forms, volunteers }, NOW);
+		expect(tasks.filter((t) => t.rule === 'B3')).toHaveLength(1);
+		expect(rules({ ...empty(), forms: forms.slice(1), volunteers })).not.toContain('B3:WEEK');
 	});
 });
 
 describe('qui voit quoi', () => {
 	const sources: TaskSources = {
 		...empty(),
-		sos: [
-			{
-				id: 's',
-				reportedAt: ago(HOUR),
-				updatedAt: ago(HOUR),
-				status: 'NEW',
-				handledById: null,
-				city: null,
-				catCount: 0
-			}
-		],
+		sos: [sos({ id: 's' })],
 		adoptions: [{ catId: 'a', catName: 'A', trialEndsAt: ago(DAY), volunteerIds: ['julie'] }],
 		cats: [
 			cat({ id: 'b', hasHome: false }),

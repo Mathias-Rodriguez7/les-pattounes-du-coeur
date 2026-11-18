@@ -42,8 +42,11 @@ export type TaskRule =
 	| 'C3' // chat sans bénévole
 	| 'C4' // fiche incomplète
 	| 'C6' // chat adoptable sans demande
-	| 'F1' // candidature FA à étudier
-	| 'F2' // invitation FA expirée
+	| 'V2' // stérilisation à prévoir
+	| 'V4' // identification à faire
+	| 'F1' // candidature FA à étudier (la bénévole en charge)
+	| 'F2' // contrat FA à relancer (le lien expire bientôt)
+	| 'F4' // candidature FA à confier à une bénévole
 	| 'B1' // candidature bénévole à étudier
 	| 'B2' // invitation bénévole expirée
 	| 'B3'; // bénévole surchargée
@@ -60,8 +63,11 @@ export const TASK_TAG = {
 	C3: 'Chat',
 	C4: 'Fiche',
 	C6: 'Chat',
+	V2: 'Santé',
+	V4: 'Santé',
 	F1: 'FA',
 	F2: 'FA',
+	F4: 'FA',
 	B1: 'Bénévole',
 	B2: 'Bénévole',
 	B3: 'Bénévole'
@@ -87,15 +93,30 @@ export const TASK_DELAYS = {
 	/** C6 : visible depuis longtemps, sans demande d'adoption */
 	visibleWithoutRequest: 42 * DAY,
 	/** F1, B1 : une candidature non traitée devient urgente */
-	applicationUrgent: 7 * DAY
+	applicationUrgent: 7 * DAY,
+	/** F2 : on relance la signature du contrat FA avant que le lien expire */
+	hostInvitationReminder: 7 * DAY,
+	/** V2 : un chaton se stérilise vers 6 mois ; on prévient 3 semaines avant */
+	sterilizationAge: 182 * DAY,
+	sterilizationNotice: 21 * DAY,
+	/** V4 : un chat s'identifie à partir de 6 semaines */
+	identificationAge: 42 * DAY
 } as const;
 
 /** B3 : au-delà de ce nombre de tâches urgentes, l'admin doit répartir */
 export const TASK_OVERLOAD_THRESHOLD = 20;
 
-/** C4 : les champs qui comptent pour une fiche complète */
+/**
+ * C4 : les champs d'une fiche complète. Tous, SAUF ceux qui ont déjà leur propre tâche
+ * (identification : V4, stérilisation : V2), pour ne pas avoir deux alertes pour la même chose.
+ */
 export const PROFILE_REQUIRED_FIELDS = {
+	name: 'nom',
+	photo: 'photo',
 	sex: 'sexe',
+	birthDate: 'date de naissance',
+	color: 'couleur',
+	hairLength: 'poil',
 	origin: 'origine',
 	description: 'description',
 	vaccinate: 'vaccination'
@@ -116,7 +137,7 @@ export type TaskBoardRow = {
 };
 
 export type TaskBoardCard = {
-	key: 'sos' | 'cats' | 'adoptions' | 'applications';
+	key: 'sos' | 'cats' | 'health' | 'adoptions' | 'applications';
 	title: string;
 	rows: TaskBoardRow[];
 };
@@ -144,9 +165,10 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 			key: 'applications',
 			title: 'Candidatures',
 			rows: [
-				{ key: 'apply-host', label: "Familles d'accueil", rules: ['F1'] },
+				{ key: 'apply-host-assign', label: 'FA à confier', rules: ['F4'] },
 				{ key: 'apply-volunteer', label: 'Bénévoles', rules: ['B1'] },
-				{ key: 'invitations', label: 'Invitations expirées', rules: ['F2', 'B2'] },
+				{ key: 'host-contract', label: 'Contrats FA à relancer', rules: ['F2'] },
+				{ key: 'invitations', label: 'Invitations bénévoles expirées', rules: ['B2'] },
 				{ key: 'overload', label: 'Bénévoles surchargées', rules: ['B3'] }
 			]
 		}
@@ -169,6 +191,14 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 			]
 		},
 		{
+			key: 'health',
+			title: 'Santé',
+			rows: [
+				{ key: 'health-sterilize', label: 'Stérilisation à prévoir', rules: ['V2'] },
+				{ key: 'health-identify', label: 'Identification à faire', rules: ['V4'] }
+			]
+		},
+		{
 			key: 'adoptions',
 			title: 'Adoptions',
 			rows: [
@@ -176,6 +206,11 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 				{ key: 'adoption-due', label: 'À finaliser', rules: ['A1'] },
 				{ key: 'adoption-soon', label: "Fin d'essai proche", rules: ['A2'] }
 			]
+		},
+		{
+			key: 'applications',
+			title: 'Candidatures',
+			rows: [{ key: 'apply-host', label: 'FA à étudier', rules: ['F1'] }]
 		}
 	]
 };
