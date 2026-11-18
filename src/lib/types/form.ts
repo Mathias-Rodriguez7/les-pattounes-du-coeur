@@ -128,6 +128,13 @@ export const formInclude = {
 	assignedTo: {
 		select: { id: true, profil: { select: { firstName: true, lastName: true } } }
 	},
+	// Candidatures bénévole / colab : les admins qui la suivent (elles peuvent être plusieurs)
+	assignees: {
+		orderBy: { createdAt: 'asc' },
+		select: {
+			volunteer: { select: { id: true, profil: { select: { firstName: true, lastName: true } } } }
+		}
+	},
 	cat: {
 		select: {
 			// Le profil complet du chat : le panneau l'affiche pour juger la compatibilité

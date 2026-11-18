@@ -96,13 +96,19 @@ export async function createCat({ request, locals }: { request: Request; locals:
 
 		// 🚨 Créé depuis un SOS (page SOS) : il faut pouvoir traiter ce SOS
 		const sosId = typeof data.sosId === 'string' && data.sosId ? data.sosId : null;
-		let sosVolunteerId: string | null = null;
+		// La bénévole qui traite le SOS et ses renforts : elles deviennent les bénévoles du chat
+		let sosVolunteerIds: string[] = [];
 		if (sosId) {
 			const parsedSosId = z.uuid().safeParse(sosId);
 			if (!parsedSosId.success) return { success: false, error: 'SOS invalide', errors: {} };
 			const check = await sosForNewCat(sosId, locals.user);
 			if (!check.ok) return { success: false, error: check.error, errors: {} };
-			sosVolunteerId = check.sos.handledById;
+			sosVolunteerIds = [
+				...new Set([
+					...(check.sos.handledById ? [check.sos.handledById] : []),
+					...check.sos.helperIds
+				])
+			];
 		}
 
 		// 🔍 Unicité catNumber
@@ -152,8 +158,8 @@ export async function createCat({ request, locals }: { request: Request; locals:
 			description: validatedData.description
 		};
 
-		// Depuis un SOS : le chat garde le lien, le SOS passe « clôturé », et la bénévole qui
-		// le traite devient sa référente. Tout ou rien (une transaction)
+		// Depuis un SOS : le chat garde le lien, le SOS passe « clôturé », et les bénévoles qui
+		// le traitent deviennent ses référentes. Tout ou rien (une transaction)
 		const newCat = sosId
 			? await prisma.$transaction(async (tx) => {
 					const cat = await tx.cat.create({ data: { ...catData, sosId } });
@@ -161,9 +167,9 @@ export async function createCat({ request, locals }: { request: Request; locals:
 						where: { id: sosId },
 						data: { status: 'CLOSED', closedAt: new Date() }
 					});
-					if (sosVolunteerId) {
-						await tx.catVolunteer.create({
-							data: { catId: cat.id, volunteerId: sosVolunteerId }
+					if (sosVolunteerIds.length > 0) {
+						await tx.catVolunteer.createMany({
+							data: sosVolunteerIds.map((volunteerId) => ({ catId: cat.id, volunteerId }))
 						});
 					}
 					return cat;

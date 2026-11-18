@@ -1,6 +1,6 @@
 <script lang="ts">
+	import PeopleChips from '#lib/components/people/PeopleChips.svelte';
 	import FormInProgressButton from '../FormInProgressButton.svelte';
-	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
@@ -14,7 +14,6 @@
 	import { statusColors } from '#lib/constants/forms.ts';
 	import { formatDate } from '#lib/utils/date.ts';
 	import ColabEditFormPanel from './ColabEditFormPanel.svelte';
-	import AssignVolunteerDialog from '../AssignVolunteerDialog.svelte';
 
 	const { form, volunteers = [], isAdmin = false } = $props();
 
@@ -22,10 +21,19 @@
 
 	const colabData = $derived(form.data as CollabFormData);
 
-	const assignedName = $derived(
-		form.assignedTo
-			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
-			: 'Non assigné'
+	// Les admins qui suivent la candidature, et celles qu'on peut ajouter
+	const assignees = $derived(
+		(form.assignees ?? []).map(
+			(a: { volunteer: { id: string; profil: { firstName: string; lastName: string } } }) => ({
+				id: a.volunteer.id,
+				name: `${a.volunteer.profil.firstName} ${a.volunteer.profil.lastName}`
+			})
+		)
+	);
+	const admins = $derived(
+		(volunteers as { id: string; role?: string; profil: { firstName: string; lastName: string } }[])
+			.filter((v) => v.role === 'ADMIN')
+			.map((v) => ({ id: v.id, name: `${v.profil.firstName} ${v.profil.lastName}` }))
 	);
 
 	let editData = $state<FormEditData<CollabFormData> | null>(null);
@@ -78,23 +86,24 @@
 					</div>
 					<div class="flex flex-col justify-center gap-2 text-right text-sm text-muted-foreground">
 						<p>{formatDate(form.createdAt)}</p>
-						{#if form.assignedTo}
-							<p class="text-muted-foreground">
-								Assigné à:
-								<EntityLink kind="volunteer" id={form.assignedToId} class="font-medium">
-									{assignedName || 'N/A'}
-								</EntityLink>
-							</p>
-						{/if}
 						<!-- « Je commence » : la demande passe « en cours de traitement » -->
 						<FormInProgressButton {form} />
-						{#if isAdmin}
-							<AssignVolunteerDialog
-								formId={form.id}
-								currentVolunteerId={form.assignedToId}
-								{volunteers}
+						<!-- Les admins qui suivent la candidature (plusieurs possibles) -->
+						<div class="flex flex-col items-end gap-1">
+							<span class="text-xs">Suivie par</span>
+							<PeopleChips
+								people={assignees}
+								choices={admins}
+								idName="formId"
+								id={form.id}
+								addAction="?/addFormAssignee"
+								removeAction="?/removeFormAssignee"
+								addLabel="Ajouter une admin"
+								canAdd={isAdmin}
+								canRemove={() => isAdmin}
+								empty="Toutes les admins"
 							/>
-						{/if}
+						</div>
 					</div>
 					<Button variant="ghost" size="icon" onclick={startEditing} class="shrink-0">
 						<Pencil class="h-5 w-5" />

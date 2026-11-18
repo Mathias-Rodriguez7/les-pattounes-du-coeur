@@ -27,7 +27,8 @@ import {
 export type TaskAudience =
 	| { kind: 'VOLUNTEERS'; ids: string[] } // les bénévoles concernées (le chat, le SOS, la demande)
 	| { kind: 'ASSO' } // toutes : la première qui la prend
-	| { kind: 'ADMIN' }
+	// L'admin ; `ids` : seulement ces admins (une candidature bénévole qu'elles suivent)
+	| { kind: 'ADMIN'; ids?: string[] }
 	| { kind: 'ADMIN_COMMUNICATION' };
 
 /** Où mène le bouton de la tâche : une fiche, panneau ouvert (?id=…) */
@@ -63,6 +64,8 @@ export type TaskSos = {
 	updatedAt: Date;
 	status: SosStatus;
 	handledById: string | null;
+	/** Les bénévoles en renfort */
+	helperIds?: string[];
 	city: string | null;
 	catCount: number;
 };
@@ -83,6 +86,8 @@ export type TaskForm = {
 	catName: string | null;
 	/** Demande précise : les bénévoles du chat (elles s'en occupent aussi) */
 	catVolunteerIds: string[];
+	/** Candidature bénévole / colab : les admins qui la suivent */
+	assigneeIds?: string[];
 };
 
 export type TaskCat = {
@@ -207,7 +212,10 @@ function sosTasks(list: TaskSos[], now: Date): Task[] {
 				short: `${sos.city ?? 'Lieu inconnu'} · ${formatDay(sos.reportedAt)}`,
 				badge: formatShort(quiet),
 				urgency: 'WEEK',
-				audience: { kind: 'VOLUNTEERS', ids: [sos.handledById] },
+				audience: {
+					kind: 'VOLUNTEERS',
+					ids: [...new Set([sos.handledById, ...(sos.helperIds ?? [])])]
+				},
 				link: { kind: 'sos', id: sos.id },
 				action: 'Ouvrir',
 				since: sos.updatedAt
@@ -310,7 +318,14 @@ function formTasks(list: TaskForm[], now: Date): Task[] {
 						audience: { kind: 'VOLUNTEERS' as const, ids: [form.assignedToId] }
 					}
 				: form.type === 'VOLUNTEER'
-					? { rule: 'B1' as const, what: 'bénévole', audience: { kind: 'ADMIN' as const } }
+					? {
+							rule: 'B1' as const,
+							what: 'bénévole',
+							// Les admins qui la suivent ; personne : toutes les admins
+							audience: form.assigneeIds?.length
+								? { kind: 'ADMIN' as const, ids: form.assigneeIds }
+								: { kind: 'ADMIN' as const }
+						}
 					: null;
 		if (studied) {
 			tasks.push({
@@ -620,9 +635,21 @@ export type TaskViewer = { id: string; role: VolunteerRole };
 const concerns = (task: Task, volunteerId: string) =>
 	task.audience.kind === 'VOLUNTEERS' && task.audience.ids.includes(volunteerId);
 
-/** Les actions d'administration : tout ce qui n'est pas à une bénévole précise */
-export function adminTasks(tasks: Task[]) {
-	return tasks.filter((task) => task.audience.kind !== 'VOLUNTEERS');
+/**
+ * Les actions d'administration : tout ce qui n'est pas à une bénévole précise. Une tâche
+ * réservée à certaines admins (une candidature qu'elles suivent) : seulement pour elles.
+ */
+export function adminTasks(tasks: Task[], adminId?: string) {
+	return tasks.filter(
+		(task) =>
+			task.audience.kind !== 'VOLUNTEERS' &&
+			!(
+				task.audience.kind === 'ADMIN' &&
+				task.audience.ids &&
+				adminId &&
+				!task.audience.ids.includes(adminId)
+			)
+	);
 }
 
 /**

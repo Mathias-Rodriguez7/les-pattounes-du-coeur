@@ -59,6 +59,12 @@ export const assignSosSchema = z.object({
 	volunteerId: z.uuid('Choisissez une bénévole')
 });
 
+/** Ajouter ou retirer une bénévole en renfort sur un SOS (admin) */
+export const sosHelperSchema = z.object({
+	sosId: z.uuid('SOS invalide'),
+	volunteerId: z.uuid('Choisissez une bénévole')
+});
+
 /** Classer sans suite : la raison est obligatoire, la note facultative */
 export const dismissSosSchema = z.object({
 	sosId: z.uuid('SOS invalide'),

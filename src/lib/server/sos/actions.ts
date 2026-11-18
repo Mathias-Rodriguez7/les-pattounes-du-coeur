@@ -9,6 +9,7 @@ import {
 	createSosSchema,
 	dismissSosSchema,
 	linkCatSosSchema,
+	sosHelperSchema,
 	sosIdSchema,
 	updateSosSchema
 } from '#lib/schemas/sos.ts';
@@ -23,12 +24,19 @@ async function readForm(request: Request) {
 const validationError = (error: Parameters<typeof zodFieldErrors>[0]) =>
 	fail(400, { success: false, error: 'Erreur de validation', errors: zodFieldErrors(error) });
 
-/** Le SOS et ses droits, ou une réponse d'erreur prête à renvoyer */
+const sosRightsSelect = {
+	id: true,
+	status: true,
+	handledById: true,
+	helpers: { select: { volunteerId: true } }
+} as const;
+
+/** Le SOS et ce qu'il faut pour ses droits (la responsable, ses renforts) */
 async function loadSos(sosId: string) {
-	return prisma.sos.findUnique({
-		where: { id: sosId },
-		select: { id: true, status: true, handledById: true }
-	});
+	const sos = await prisma.sos.findUnique({ where: { id: sosId }, select: sosRightsSelect });
+	if (!sos) return null;
+	const { helpers, ...rest } = sos;
+	return { ...rest, helperIds: helpers.map((helper) => helper.volunteerId) };
 }
 
 /** Un SOS reçu par téléphone, mail… : celle qui le saisit le traite */
@@ -232,16 +240,52 @@ export async function linkCatSosAction({ request, locals }: RequestEvent) {
  * Renvoie le SOS (avec la bénévole qui le traite) ou un message d'erreur.
  */
 export async function sosForNewCat(sosId: string, user: NonNullable<App.Locals['user']>) {
-	const sos = await prisma.sos.findUnique({
-		where: { id: sosId },
-		select: { id: true, status: true, handledById: true }
-	});
+	const sos = await loadSos(sosId);
 	if (!sos || sos.status === 'DISMISSED') return { ok: false as const, error: 'SOS introuvable' };
 	if (!canHandleSos(user, sos)) {
 		return {
 			ok: false as const,
-			error: 'Seule la bénévole qui traite ce SOS peut créer ses chats'
+			error: 'Seules les bénévoles qui traitent ce SOS peuvent créer ses chats'
 		};
 	}
 	return { ok: true as const, sos };
+}
+
+/** Ajouter une bénévole en renfort sur un SOS (admin) */
+export async function addSosHelperAction({ request, locals }: RequestEvent) {
+	if (!hasAdminRole(locals.user)) {
+		return fail(403, { success: false, error: 'Action réservée à l’admin' });
+	}
+	const parsed = sosHelperSchema.safeParse(await readForm(request));
+	if (!parsed.success) return validationError(parsed.error);
+	const { sosId, volunteerId } = parsed.data;
+
+	const sos = await loadSos(sosId);
+	if (!sos) return fail(404, { success: false, error: 'SOS introuvable' });
+	if (sos.handledById === volunteerId) {
+		return fail(400, { success: false, error: 'Elle traite déjà ce SOS' });
+	}
+	const volunteer = await prisma.volunteer.count({ where: { id: volunteerId } });
+	if (volunteer === 0) return fail(404, { success: false, error: 'Bénévole introuvable' });
+
+	// Déjà en renfort : rien à faire
+	await prisma.sosHelper.upsert({
+		where: { sosId_volunteerId: { sosId, volunteerId } },
+		create: { sosId, volunteerId },
+		update: {}
+	});
+	return { success: true, message: 'Bénévole ajoutée en renfort' };
+}
+
+/** Retirer une bénévole en renfort (admin) */
+export async function removeSosHelperAction({ request, locals }: RequestEvent) {
+	if (!hasAdminRole(locals.user)) {
+		return fail(403, { success: false, error: 'Action réservée à l’admin' });
+	}
+	const parsed = sosHelperSchema.safeParse(await readForm(request));
+	if (!parsed.success) return validationError(parsed.error);
+	const { sosId, volunteerId } = parsed.data;
+
+	await prisma.sosHelper.deleteMany({ where: { sosId, volunteerId } });
+	return { success: true, message: 'Bénévole retirée du SOS' };
 }

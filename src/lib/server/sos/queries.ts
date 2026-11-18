@@ -26,6 +26,14 @@ const sosSelect = {
 	dismissReason: true,
 	dismissNote: true,
 	handledBy: { select: { profil: { select: { firstName: true, lastName: true } } } },
+	// Les bénévoles en renfort
+	helpers: {
+		orderBy: { createdAt: 'asc' as const },
+		select: {
+			volunteerId: true,
+			volunteer: { select: { profil: { select: { firstName: true, lastName: true } } } }
+		}
+	},
 	cats: {
 		select: { id: true, name: true, catNumber: true, status: true },
 		orderBy: { createdAt: 'asc' as const }
@@ -39,17 +47,23 @@ type SosRow = Prisma.SosGetPayload<{ select: typeof sosSelect }>;
  * (retiré ICI, côté serveur : il n'arrive jamais dans le navigateur), et ses droits calculés.
  */
 function toView(sos: SosRow, user: AppUser) {
-	const showReporter = canSeeReporter(user, sos);
-	const { handledBy, ...rest } = sos;
+	const { handledBy, helpers, ...rest } = sos;
+	const rights = { ...rest, helperIds: helpers.map((helper) => helper.volunteerId) };
+	const showReporter = canSeeReporter(user, rights);
 	return {
 		...rest,
+		helperIds: rights.helperIds,
+		helpers: helpers.map((helper) => ({
+			id: helper.volunteerId,
+			name: `${helper.volunteer.profil.firstName} ${helper.volunteer.profil.lastName}`
+		})),
 		reporterLastName: showReporter ? sos.reporterLastName : `${sos.reporterLastName.charAt(0)}.`,
 		reporterPhone: showReporter ? sos.reporterPhone : null,
 		reporterEmail: showReporter ? sos.reporterEmail : null,
 		handledByName: handledBy ? `${handledBy.profil.firstName} ${handledBy.profil.lastName}` : null,
 		canSeeReporter: showReporter,
-		canTake: canTakeSos(user, sos),
-		canHandle: canHandleSos(user, sos)
+		canTake: canTakeSos(user, rights),
+		canHandle: canHandleSos(user, rights)
 	};
 }
 
@@ -85,7 +99,9 @@ export async function linkableSosOptions(user: AppUser) {
 	const rows = await prisma.sos.findMany({
 		where: {
 			status: { in: ['IN_PROGRESS', 'CLOSED'] },
-			...(user.role === 'ADMIN' ? {} : { handledById: user.id })
+			...(user.role === 'ADMIN'
+				? {}
+				: { OR: [{ handledById: user.id }, { helpers: { some: { volunteerId: user.id } } }] })
 		},
 		orderBy: { reportedAt: 'desc' },
 		take: 100,

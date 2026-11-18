@@ -6,7 +6,9 @@ import {
 	updateForm,
 	rejectForm,
 	assignVolunteer,
-	markFormInProgress
+	markFormInProgress,
+	addFormAssignee,
+	removeFormAssignee
 } from '#lib/server/forms/mutations.ts';
 import { createVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { createHost } from '#lib/server/hosts/mutations.ts';
@@ -105,7 +107,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// (toute bénévole peut attribuer une demande libre : voir canAssignForm)
 	const volunteers = await prisma.volunteer.findMany({
 		where: { OR: [{ actif: 'ACTIVE' }, { actif: null }] },
-		select: { id: true, profil: { select: { firstName: true, lastName: true } } },
+		// Le rôle : seules les admins suivent les candidatures bénévole / colab
+		select: { id: true, role: true, profil: { select: { firstName: true, lastName: true } } },
 		orderBy: { profil: { firstName: 'asc' } }
 	});
 
@@ -174,6 +177,18 @@ export const actions: Actions = {
 			console.error('Erreur mise à jour form:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
+	},
+
+	// Candidatures bénévole / colab : les admins qui les suivent
+	addFormAssignee: async ({ request, locals }) => {
+		const result = await addFormAssignee({ request, locals });
+		if (!result.success) return fail(400, result);
+		return result;
+	},
+	removeFormAssignee: async ({ request, locals }) => {
+		const result = await removeFormAssignee({ request, locals });
+		if (!result.success) return fail(400, result);
+		return result;
 	},
 
 	// « Je commence » : la demande passe « en cours de traitement »

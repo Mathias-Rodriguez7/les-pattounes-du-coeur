@@ -23,7 +23,9 @@
 
 	// « Plus tard » : ce qu'elle a mis de côté sort de la liste et des compteurs
 	const now = new Date();
-	const admin = $derived(applySnoozes(adminTasks(data.myTasks), data.mySnoozes, now));
+	const admin = $derived(
+		applySnoozes(adminTasks(data.myTasks, data.user?.id), data.mySnoozes, now)
+	);
 	const mine = $derived(
 		applySnoozes(data.user ? volunteerTasks(data.myTasks, data.user) : [], data.mySnoozes, now)
 	);

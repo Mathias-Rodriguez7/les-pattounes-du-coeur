@@ -55,6 +55,8 @@ model Volunteer {
   assignedForms        Form[] @relation("assignedForms")
   createdInvitations   Invitation[] @relation("createdInvitations")
   taskSnoozes          TaskSnooze[] // les tâches qu'elle a mises de côté (« Plus tard »)
+  sosHelps             SosHelper[] // les SOS où elle est en renfort
+  formAssignments      FormAssignee[] // les candidatures bénévole / colab qu'elle suit (admin)
 }
 
 model Host {
@@ -525,6 +527,9 @@ model Form {
   assignedTo   Volunteer? @relation("assignedForms", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   notes        String? @db.Text
+  // Candidatures bénévole et colab : plusieurs admins peuvent les suivre (les autres types
+  // gardent une seule personne : assignedTo)
+  assignees    FormAssignee[]
   createdAt    DateTime @default(now()) @map("createdAt")
   updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt")
 
@@ -692,6 +697,18 @@ enum FormStatus {
   IN_PROGRESS // en cours de traitement (la personne en charge s'en occupe)
 }
 
+/// Une admin qui suit une candidature bénévole ou colab (elles peuvent être plusieurs)
+model FormAssignee {
+  formId      String    @db.Uuid @map("form_id")
+  form        Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  volunteerId String    @db.Uuid @map("volunteer_id")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("createdAt")
+
+  @@id([formId, volunteerId])
+  @@index([volunteerId])
+}
+
 /// Une tâche mise de côté par UNE personne, jusqu'à une date (« Plus tard »).
 /// Les tâches sont calculées : on retient seulement leur identifiant (« C4:<id du chat> »).
 /// Elle revient à la date choisie, ou plus tôt si elle est devenue plus urgente.
@@ -794,11 +811,26 @@ model Sos {
 
   cats Cat[]
 
+  // Les bénévoles en renfort (ajoutées par l'admin) : mêmes droits que celle qui le traite
+  helpers SosHelper[]
+
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
 
   @@index([status])
   @@index([handledById])
+}
+
+/// Une bénévole en renfort sur un SOS (en plus de celle qui le traite)
+model SosHelper {
+  sosId       String    @db.Uuid @map("sos_id")
+  sos         Sos       @relation(fields: [sosId], references: [id], onDelete: Cascade)
+  volunteerId String    @db.Uuid @map("volunteer_id")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("createdAt")
+
+  @@id([sosId, volunteerId])
+  @@index([volunteerId])
 }
 
 enum SosStatus {

@@ -21,6 +21,13 @@ describe('SOS : droits', () => {
 		expect(canTakeSos(zoe, leaSos)).toBe(false);
 	});
 
+	it('une bénévole en renfort : mêmes droits que celle qui le traite', () => {
+		const shared = { ...leaSos, helperIds: ['zoe'] };
+		expect(canSeeReporter(zoe, shared)).toBe(true);
+		expect(canHandleSos(zoe, shared)).toBe(true);
+		expect(canTakeSos(zoe, shared)).toBe(false);
+	});
+
 	it('traiter : celle qui le traite, ou l’admin', () => {
 		expect(canHandleSos(lea, leaSos)).toBe(true);
 		expect(canHandleSos(zoe, leaSos)).toBe(false);

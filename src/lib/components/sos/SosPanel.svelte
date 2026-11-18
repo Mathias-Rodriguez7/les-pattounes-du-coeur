@@ -8,6 +8,7 @@
 	import SosEditForm from './SosEditForm.svelte';
 	import SosAssignDialog from './SosAssignDialog.svelte';
 	import SosDismissDialog from './SosDismissDialog.svelte';
+	import PeopleChips from '#lib/components/people/PeopleChips.svelte';
 	import { Cat, Hand, Mail, MapPin, Pencil, Phone, Plus, Siren } from '@lucide/svelte';
 	import { SOS_CATEGORY, SOS_DISMISS_REASON, SOS_SOURCE, SOS_STATUS } from '#lib/constants/sos.ts';
 	import { formatDateNum } from '#lib/utils/date.ts';
@@ -78,11 +79,34 @@
 						SOS du {formatDateNum(sos.reportedAt)} · {sos.reporterFirstName}
 						{sos.reporterLastName}
 					</Card.Title>
-					<Card.Description class="mt-1">
-						{SOS_SOURCE[sos.source]} · traité par
-						<span class="font-medium text-foreground">{sos.handledByName ?? 'personne encore'}</span
-						>
-					</Card.Description>
+					<Card.Description class="mt-1">{SOS_SOURCE[sos.source]}</Card.Description>
+					<!-- Qui le traite : la responsable et ses renforts (l'admin ajoute et retire les renforts) -->
+					<div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+						<span class="text-muted-foreground">Traité par</span>
+						{#if sos.handledById}
+							<PeopleChips
+								people={[
+									{
+										id: sos.handledById,
+										name: sos.handledByName ?? '—',
+										tag: sos.helpers.length > 0 ? 'responsable' : undefined,
+										locked: true
+									},
+									...sos.helpers
+								]}
+								choices={volunteers.filter((v) => v.id !== sos.handledById)}
+								idName="sosId"
+								id={sos.id}
+								addAction="?/addSosHelper"
+								removeAction="?/removeSosHelper"
+								addLabel="Ajouter une bénévole"
+								canAdd={isAdmin && sos.status !== 'DISMISSED'}
+								canRemove={() => isAdmin}
+							/>
+						{:else}
+							<span class="font-medium">personne encore</span>
+						{/if}
+					</div>
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2">

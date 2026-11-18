@@ -11,7 +11,11 @@ import {
 } from '#lib/schemas/formShema/volunteerForm.ts';
 import { updateHostSchema, type UpdateHostInput } from '#lib/schemas/formShema/hostForm.ts';
 import { updateColabSchema, type UpdateColabInput } from '#lib/schemas/formShema/colabForm.ts';
-import { canAssignForm, canManageForm } from '#lib/server/permissions/form.ts';
+import {
+	canAssignForm,
+	canManageForm,
+	MULTI_ASSIGNEE_FORM_TYPES
+} from '#lib/server/permissions/form.ts';
 import { z } from 'zod';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
@@ -403,4 +407,62 @@ export async function markFormInProgress({
 	});
 	if (updated.count === 0) return { success: false, error: "Cette demande n'est plus en attente" };
 	return { success: true, message: 'Demande passée « en cours de traitement »' };
+}
+
+// ==========================================
+// Candidatures bénévole / colab : les admins qui les suivent (plusieurs possibles)
+// ==========================================
+const formAssigneeSchema = z.object({
+	formId: z.uuid('Demande invalide'),
+	volunteerId: z.uuid('Choisissez une admin')
+});
+
+/** Ajouter une admin (réservé aux admins ; seulement une admin peut être ajoutée) */
+export async function addFormAssignee({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!hasAdminRole(locals.user)) return { success: false, error: 'Action réservée à l’admin' };
+
+	const parsed = formAssigneeSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) return { success: false, error: 'Données invalides' };
+	const { formId, volunteerId } = parsed.data;
+
+	const [form, volunteer] = await Promise.all([
+		prisma.form.findUnique({ where: { id: formId }, select: { type: true } }),
+		prisma.volunteer.findUnique({ where: { id: volunteerId }, select: { role: true } })
+	]);
+	if (!form || !MULTI_ASSIGNEE_FORM_TYPES.includes(form.type)) {
+		return { success: false, error: 'Demande introuvable' };
+	}
+	if (!volunteer || volunteer.role !== 'ADMIN') {
+		return { success: false, error: 'Seule une admin peut suivre cette candidature' };
+	}
+
+	await prisma.formAssignee.upsert({
+		where: { formId_volunteerId: { formId, volunteerId } },
+		create: { formId, volunteerId },
+		update: {}
+	});
+	return { success: true, message: 'Admin ajoutée' };
+}
+
+/** Retirer une admin (une admin peut retirer n'importe laquelle, elle-même comprise) */
+export async function removeFormAssignee({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!hasAdminRole(locals.user)) return { success: false, error: 'Action réservée à l’admin' };
+
+	const parsed = formAssigneeSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) return { success: false, error: 'Données invalides' };
+
+	await prisma.formAssignee.deleteMany({ where: parsed.data });
+	return { success: true, message: 'Admin retirée' };
 }

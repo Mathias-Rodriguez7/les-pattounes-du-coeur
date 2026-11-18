@@ -100,7 +100,11 @@
 			</div>
 			<div>
 				<p class="text-muted-foreground">Traité par</p>
-				<p>{sos.handledByName ?? '—'}</p>
+				<p>
+					{[sos.handledByName, ...sos.helpers.map((helper) => helper.name)]
+						.filter(Boolean)
+						.join(', ') || '—'}
+				</p>
 			</div>
 		</div>
 		<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">

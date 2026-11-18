@@ -95,6 +95,17 @@ describe('SOS', () => {
 		]);
 	});
 
+	it('S2 : aussi pour les bénévoles en renfort', () => {
+		const stale = sos({
+			status: 'IN_PROGRESS',
+			handledById: 'julie',
+			helperIds: ['paul'],
+			updatedAt: ago(8 * DAY)
+		});
+		const [task] = buildTasks({ ...empty(), sos: [stale] }, NOW);
+		expect(task.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie', 'paul'] });
+	});
+
 	it('S2 : en cours sans chat ni changement depuis 7 jours, pour celle qui le traite', () => {
 		const stale = sos({ status: 'IN_PROGRESS', handledById: 'julie', updatedAt: ago(8 * DAY) });
 		const [task] = buildTasks({ ...empty(), sos: [stale] }, NOW);
@@ -246,6 +257,14 @@ describe('Candidatures', () => {
 		const [task] = buildTasks({ ...empty(), forms: [hostForm('julie')] }, NOW);
 		expect(task.rule).toBe('F1');
 		expect(task.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie'] });
+	});
+
+	it('B1 : la candidature bénévole va aux admins qui la suivent', () => {
+		const followed = form({ type: 'VOLUNTEER', assigneeIds: ['admin-1', 'admin-2'] });
+		const [task] = buildTasks({ ...empty(), forms: [followed] }, NOW);
+		expect(task.audience).toEqual({ kind: 'ADMIN', ids: ['admin-1', 'admin-2'] });
+		expect(adminTasks([task], 'admin-1')).toHaveLength(1);
+		expect(adminTasks([task], 'admin-3')).toHaveLength(0);
 	});
 
 	it("B1 : la candidature bénévole est pour l'admin", () => {

@@ -6,10 +6,16 @@
 
 	let { form, isSelected = false, onclick } = $props();
 
+	// Qui la suit : la personne en charge, ou (candidatures bénévole / colab) les admins
+	type Person = { profil: { firstName: string; lastName: string } };
 	const assignedName = $derived(
 		form.assignedTo
 			? `${form.assignedTo.profil.firstName} ${form.assignedTo.profil.lastName}`
-			: 'Non assigné'
+			: form.assignees?.length
+				? form.assignees
+						.map((a: { volunteer: Person }) => `${a.volunteer.profil.firstName}`)
+						.join(', ')
+				: 'Non assigné'
 	);
 </script>
 

@@ -402,7 +402,10 @@
 
 <NewFreeCatDialog
 	bind:open={newFreeCatOpen}
-	volunteers={data.volunteers}
+	volunteers={data.volunteers.map((v) => ({
+		id: v.id,
+		name: `${v.profil.firstName} ${v.profil.lastName}`
+	}))}
 	veterinarians={data.veterinarians}
 	isAdmin={data.isAdmin}
 	onCreated={(catId) => {

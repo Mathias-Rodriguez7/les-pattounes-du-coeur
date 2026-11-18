@@ -4,6 +4,8 @@ import prisma from '#lib/server/prisma.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { canManageCat } from '#lib/server/permissions/cat.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
+import { z } from 'zod';
+import { sosForNewCat } from '#lib/server/sos/actions.ts';
 import { FREE_CAT_STERILIZATION_REASON } from '#lib/constants/freeCat.ts';
 import {
 	convertFreeCatSchema,
@@ -99,9 +101,27 @@ export async function createFreeCatAction({ request, locals }: RequestEvent) {
 		return fail(403, { success: false, error: 'Non autorisé' });
 	}
 
-	const parsed = createFreeCatSchema.safeParse(await readForm(request));
+	const form = await readForm(request);
+	const parsed = createFreeCatSchema.safeParse(form);
 	if (!parsed.success) return validationError(parsed.error);
 	const data = parsed.data;
+
+	// Créé depuis un SOS : il faut pouvoir traiter ce SOS. Ses bénévoles suivront aussi le chat
+	const rawSosId = typeof form.sosId === 'string' && form.sosId ? form.sosId : null;
+	let sosId: string | null = null;
+	let sosVolunteerIds: string[] = [];
+	if (rawSosId) {
+		if (!z.uuid().safeParse(rawSosId).success) {
+			return fail(400, { success: false, error: 'SOS invalide' });
+		}
+		const check = await sosForNewCat(rawSosId, user);
+		if (!check.ok) return fail(403, { success: false, error: check.error });
+		sosId = rawSosId;
+		sosVolunteerIds = [
+			...(check.sos.handledById ? [check.sos.handledById] : []),
+			...check.sos.helperIds
+		];
+	}
 
 	// Une bénévole crée ses chats libres ; l'admin choisit la bénévole qui l'a attrapé
 	const volunteerId = hasAdminRole(user) ? data.volunteerId : user.id;
@@ -124,28 +144,39 @@ export async function createFreeCatAction({ request, locals }: RequestEvent) {
 	if (taken) return fieldError(taken.field, taken.message);
 
 	try {
-		const cat = await prisma.cat.create({
-			data: {
-				status: 'FREE',
-				// Jamais affiché sur le site public
-				isVisible: false,
-				sex: data.sex,
-				catNumber: data.catNumber ?? null,
-				...identification,
-				isSterilize: true,
-				freeInfo: { create: freeInfoData(data) },
-				cares: {
-					create: {
-						type: 'STERILIZE',
-						date: new Date(data.sterilizedAt),
-						reason: FREE_CAT_STERILIZATION_REASON,
-						veterinarianId: data.veterinarianId ?? null,
-						veterinary: data.veterinarianId ? null : (data.veterinary ?? null)
-					}
+		// La gestionnaire, et les bénévoles du SOS (s'il y en a un)
+		const managers = [...new Set([volunteerId, ...sosVolunteerIds])];
+		const cat = await prisma.$transaction(async (tx) => {
+			if (sosId) {
+				await tx.sos.update({
+					where: { id: sosId },
+					data: { status: 'CLOSED', closedAt: new Date() }
+				});
+			}
+			return tx.cat.create({
+				data: {
+					status: 'FREE',
+					...(sosId && { sos: { connect: { id: sosId } } }),
+					// Jamais affiché sur le site public
+					isVisible: false,
+					sex: data.sex,
+					catNumber: data.catNumber ?? null,
+					...identification,
+					isSterilize: true,
+					freeInfo: { create: freeInfoData(data) },
+					cares: {
+						create: {
+							type: 'STERILIZE',
+							date: new Date(data.sterilizedAt),
+							reason: FREE_CAT_STERILIZATION_REASON,
+							veterinarianId: data.veterinarianId ?? null,
+							veterinary: data.veterinarianId ? null : (data.veterinary ?? null)
+						}
+					},
+					volunteers: { create: managers.map((id) => ({ volunteerId: id })) }
 				},
-				volunteers: { create: { volunteerId } }
-			},
-			select: { id: true }
+				select: { id: true }
+			});
 		});
 		return { success: true, message: 'Chat libre enregistré', catId: cat.id };
 	} catch (error) {

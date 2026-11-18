@@ -5,6 +5,8 @@ import { hasAdminRole, requireUser } from '#lib/server/permissions/roles.ts';
 import { listSos } from '#lib/server/sos/queries.ts';
 import {
 	assignSosAction,
+	addSosHelperAction,
+	removeSosHelperAction,
 	createSosAction,
 	dismissSosAction,
 	reopenSosAction,
@@ -12,6 +14,8 @@ import {
 	updateSosAction
 } from '#lib/server/sos/actions.ts';
 import { createCat } from '#lib/server/cats/mutations.ts';
+import { createFreeCatAction } from '#lib/server/cats/freeCat.ts';
+import { activeVeterinarianOptions } from '#lib/server/veterinarians/queries.ts';
 
 // La page SOS : toutes les bénévoles voient les SOS et peuvent en prendre un en charge.
 // Le contact de la personne qui signale est retiré par listSos quand on n'a pas le droit de le voir
@@ -19,7 +23,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const user = requireUser(locals);
 	const isAdmin = hasAdminRole(user);
 
-	const [sosList, volunteers] = await Promise.all([
+	const [sosList, volunteers, veterinarians] = await Promise.all([
 		listSos(user),
 		// « Confier à » (admin) : les bénévoles actives
 		isAdmin
@@ -28,7 +32,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 					select: { id: true, profil: { select: { firstName: true, lastName: true } } },
 					orderBy: { profil: { firstName: 'asc' } }
 				})
-			: []
+			: [],
+		// « Chat libre » depuis un SOS : le vétérinaire de la stérilisation
+		activeVeterinarianOptions()
 	]);
 
 	return {
@@ -39,15 +45,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 		volunteers: volunteers.map((v) => ({
 			id: v.id,
 			name: `${v.profil.firstName} ${v.profil.lastName}`
-		}))
+		})),
+		veterinarians
 	};
 };
 
 export const actions: Actions = {
 	createSos: createSosAction,
+	// Depuis un SOS : un chat libre (attrapé, stérilisé, relâché)
+	createFreeCat: createFreeCatAction,
 	takeSos: takeSosAction,
 	updateSos: updateSosAction,
 	assignSos: assignSosAction,
+	// Les bénévoles en renfort (admin)
+	addSosHelper: addSosHelperAction,
+	removeSosHelper: removeSosHelperAction,
 	dismissSos: dismissSosAction,
 	reopenSos: reopenSosAction,
 

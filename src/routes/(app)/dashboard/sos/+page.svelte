@@ -13,6 +13,8 @@
 	import SosPanel from '#lib/components/sos/SosPanel.svelte';
 	import SosCreateDialog from '#lib/components/sos/SosCreateDialog.svelte';
 	import NewCatDialog from '#lib/components/cats/NewCatDialog.svelte';
+	import NewCatKindDialog from '#lib/components/cats/free/NewCatKindDialog.svelte';
+	import NewFreeCatDialog from '#lib/components/cats/free/NewFreeCatDialog.svelte';
 	import {
 		SOS_CATEGORY,
 		SOS_CATEGORY_OPTIONS,
@@ -75,11 +77,23 @@
 		return sosList.filter((sos) => {
 			if (statusFilter && sos.status !== statusFilter) return false;
 			if (categoryFilter && sos.category !== categoryFilter) return false;
-			if (handlerFilter === 'ME' && sos.handledById !== data.userId) return false;
+			// « Mes SOS » : ceux que je traite, ou où je suis en renfort
+			if (
+				handlerFilter === 'ME' &&
+				sos.handledById !== data.userId &&
+				!sos.helperIds.includes(data.userId)
+			)
+				return false;
 			if (handlerFilter === 'NONE' && sos.handledById !== null) return false;
 			if (!q) return true;
 			return normalize(
-				[sos.reporterFirstName, sos.reporterLastName, formatAddress(sos), sos.handledByName]
+				[
+					sos.reporterFirstName,
+					sos.reporterLastName,
+					formatAddress(sos),
+					sos.handledByName,
+					...sos.helpers.map((helper) => helper.name)
+				]
 					.filter(Boolean)
 					.join(' ')
 			).includes(q);
@@ -164,6 +178,9 @@
 
 	// ===== « Créer un chat » depuis le SOS choisi =====
 	let newCatOpen = $state(false);
+	// D'abord le type : chat asso (le formulaire habituel) ou chat libre
+	let newCatKindOpen = $state(false);
+	let newFreeCatOpen = $state(false);
 	let newCatSos = $state<SosView | null>(null);
 	const newCatOrigin = $derived.by(() => {
 		const place = newCatSos ? formatAddress(newCatSos) : null;
@@ -172,7 +189,7 @@
 
 	function createCat(sos: SosView) {
 		newCatSos = sos;
-		newCatOpen = true;
+		newCatKindOpen = true;
 	}
 
 	const panelTitle = $derived(
@@ -271,7 +288,9 @@
 													</p>
 													{#if sos.handledByName}
 														<p class="truncate text-xs text-muted-foreground">
-															{sos.handledByName}
+															{sos.handledByName}{sos.helpers.length > 0
+																? ` + ${sos.helpers.length}`
+																: ''}
 														</p>
 													{/if}
 												</Table.Cell>
@@ -323,4 +342,22 @@
 	</div>
 </main>
 
+<NewCatKindDialog
+	bind:open={newCatKindOpen}
+	onChoose={(kind) => {
+		if (kind === 'ASSO') newCatOpen = true;
+		else newFreeCatOpen = true;
+	}}
+/>
+
 <NewCatDialog bind:open={newCatOpen} sosId={newCatSos?.id ?? null} initialOrigin={newCatOrigin} />
+
+<!-- Chat libre : le relâchage part du lieu du SOS ; une bénévole se choisit elle-même -->
+<NewFreeCatDialog
+	bind:open={newFreeCatOpen}
+	volunteers={data.volunteers}
+	veterinarians={data.veterinarians}
+	isAdmin={data.isAdmin}
+	sosId={newCatSos?.id ?? null}
+	initialPlace={newCatSos}
+/>

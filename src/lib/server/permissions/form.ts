@@ -10,10 +10,11 @@ import { hasAdminRole } from '#lib/server/permissions/roles.ts';
  */
 export async function canManageForm(
 	user: AppUser,
-	form: { assignedToId: string | null; catId: string | null }
+	form: { assignedToId: string | null; catId: string | null; assigneeIds?: string[] }
 ): Promise<boolean> {
 	if (hasAdminRole(user)) return true;
 	if (form.assignedToId === user.id) return true;
+	if (form.assigneeIds?.includes(user.id)) return true;
 	return form.catId !== null && (await canManageCat(user, form.catId));
 }
 
@@ -23,7 +24,12 @@ export async function canManageForm(
  */
 export function myFormsWhere(userId: string): Prisma.FormWhereInput {
 	return {
-		OR: [{ assignedToId: userId }, { cat: { volunteers: { some: { volunteerId: userId } } } }]
+		OR: [
+			{ assignedToId: userId },
+			// Candidatures bénévole / colab : les admins qui la suivent
+			{ assignees: { some: { volunteerId: userId } } },
+			{ cat: { volunteers: { some: { volunteerId: userId } } } }
+		]
 	};
 }
 
@@ -55,3 +61,6 @@ export function canAssignForm(
 	const { canReassign, canTake } = assignRights(user, form);
 	return canReassign || (canTake && targetId === user.id);
 }
+
+/** Les candidatures que plusieurs admins peuvent suivre (les autres : une seule personne) */
+export const MULTI_ASSIGNEE_FORM_TYPES: FormType[] = ['VOLUNTEER', 'COLAB'];

@@ -35,6 +35,7 @@ async function loadTaskSources(): Promise<TaskSources> {
 				updatedAt: true,
 				status: true,
 				handledById: true,
+				helpers: { select: { volunteerId: true } },
 				city: true,
 				_count: { select: { cats: true } }
 			}
@@ -65,6 +66,7 @@ async function loadTaskSources(): Promise<TaskSources> {
 				assignedToId: true,
 				email: true,
 				data: true,
+				assignees: { select: { volunteerId: true } },
 				cat: {
 					select: {
 						name: true,
@@ -131,7 +133,11 @@ async function loadTaskSources(): Promise<TaskSources> {
 	]);
 
 	return {
-		sos: sos.map(({ _count, ...row }) => ({ ...row, catCount: _count.cats })),
+		sos: sos.map(({ _count, helpers, ...row }) => ({
+			...row,
+			helperIds: helpers.map((helper) => helper.volunteerId),
+			catCount: _count.cats
+		})),
 		adoptions: adoptions.map((adoption) => ({
 			catId: adoption.catId,
 			catName: catName(adoption.cat),
@@ -147,7 +153,8 @@ async function loadTaskSources(): Promise<TaskSources> {
 				assignedToId: form.assignedToId,
 				personName: shortName(data.firstName, data.lastName, form.email),
 				catName: form.cat ? catName(form.cat) : null,
-				catVolunteerIds: form.cat?.volunteers.map((cv) => cv.volunteerId) ?? []
+				catVolunteerIds: form.cat?.volunteers.map((cv) => cv.volunteerId) ?? [],
+				assigneeIds: form.assignees.map((assignee) => assignee.volunteerId)
 			};
 		}),
 		cats: cats.map((cat) => ({

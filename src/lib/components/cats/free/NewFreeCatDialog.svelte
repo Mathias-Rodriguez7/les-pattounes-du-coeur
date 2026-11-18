@@ -8,7 +8,6 @@
 	import FreeCatFields from './FreeCatFields.svelte';
 	import { emptyFreeCatFields } from './freeCatForm.ts';
 	import type { VeterinarianOption } from '#lib/server/veterinarians/queries.ts';
-	import type { VolunteerBasic } from '#lib/types/volunteer.ts';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { format } from 'date-fns';
@@ -17,7 +16,18 @@
 	// ses infos, le soin de stérilisation et le lien avec la bénévole qui l'a attrapé.
 	interface Props {
 		open?: boolean;
-		volunteers: VolunteerBasic[];
+		volunteers: { id: string; name: string }[];
+		/** Créé depuis un SOS : le chat y est rattaché, le SOS est clôturé */
+		sosId?: string | null;
+		/** Le lieu du SOS : le relâchage part de là (on peut le changer) */
+		initialPlace?: {
+			address: string | null;
+			city: string | null;
+			postalCode: string | null;
+			district: string | null;
+			latitude: number | null;
+			longitude: number | null;
+		} | null;
 		veterinarians: VeterinarianOption[];
 		/** L'admin choisit la bénévole ; une bénévole crée ses propres chats libres */
 		isAdmin: boolean;
@@ -25,7 +35,15 @@
 		onCreated?: (catId: string) => void;
 	}
 
-	let { open = $bindable(false), volunteers, veterinarians, isAdmin, onCreated }: Props = $props();
+	let {
+		open = $bindable(false),
+		volunteers,
+		veterinarians,
+		isAdmin,
+		onCreated,
+		sosId = null,
+		initialPlace = null
+	}: Props = $props();
 
 	let fields = $state(emptyFreeCatFields());
 	let volunteerId = $state('');
@@ -36,14 +54,21 @@
 	let errors = $state<Record<string, string[] | undefined>>({});
 	const error = (key: string) => errors[key]?.[0];
 
-	const volunteerChoices = $derived(
-		volunteers.map((v) => ({ id: v.id, name: `${v.profil.firstName} ${v.profil.lastName}` }))
-	);
-
 	// À chaque ouverture : un formulaire vide
 	$effect(() => {
 		if (!open) return;
-		fields = emptyFreeCatFields();
+		// Depuis un SOS : le lieu du relâchage part du lieu du SOS
+		fields = {
+			...emptyFreeCatFields(),
+			...(initialPlace && {
+				address: initialPlace.address ?? '',
+				city: initialPlace.city ?? '',
+				postalCode: initialPlace.postalCode ?? '',
+				district: initialPlace.district,
+				latitude: initialPlace.latitude,
+				longitude: initialPlace.longitude
+			})
+		};
 		volunteerId = '';
 		sterilizedAt = undefined;
 		vetChoice = '';
@@ -75,7 +100,9 @@
 <Dialog.Root bind:open>
 	<Dialog.Content size="xl" class="max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Nouveau chat libre</Dialog.Title>
+			<Dialog.Title
+				>{sosId ? 'Créer un chat libre depuis ce SOS' : 'Nouveau chat libre'}</Dialog.Title
+			>
 			<Dialog.Description>
 				Un chat attrapé, stérilisé puis relâché sur son lieu de vie. Seuls l'identification, le N°
 				Pattounes (sauf si l'asso paye) et les infos supplémentaires sont facultatifs.
@@ -83,6 +110,10 @@
 		</Dialog.Header>
 
 		<form method="POST" action="?/createFreeCat" use:enhance={handleEnhance} class="grid gap-4">
+			{#if sosId}
+				<!-- Le serveur rattache le chat au SOS, clôture le SOS, et y associe ses bénévoles -->
+				<input type="hidden" name="sosId" value={sosId} />
+			{/if}
 			<FreeCatFields bind:fields {error} disabled={submitting} idPrefix="free-new-">
 				{#snippet manager()}
 					<div class="grid gap-2">
@@ -90,7 +121,7 @@
 							Gestionnaire (qui a attrapé le chat)
 						</span>
 						{#if isAdmin}
-							<VolunteerCombobox volunteers={volunteerChoices} bind:value={volunteerId} />
+							<VolunteerCombobox {volunteers} bind:value={volunteerId} />
 							{#if error('volunteerId')}
 								<p class="text-xs text-destructive">{error('volunteerId')}</p>
 							{/if}
