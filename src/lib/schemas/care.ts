@@ -10,6 +10,14 @@ export const createCareSchema = z.object({
 	type: z.enum(CareType),
 	// Format "AAAA-MM-JJ", celui que renvoie le DatePicker
 	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide'),
+	// Vaccin : la date du rappel (facultative)
+	nextDueDate: z.preprocess(
+		emptyToNull,
+		z
+			.string()
+			.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide')
+			.nullish()
+	),
 
 	// Obligatoire : le motif de la visite
 	reason: z.string().trim().min(1, 'Le motif est obligatoire').max(2000, 'Max 2 000 caractères'),

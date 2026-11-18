@@ -54,6 +54,7 @@ model Volunteer {
   sessions             Session[]
   assignedForms        Form[] @relation("assignedForms")
   createdInvitations   Invitation[] @relation("createdInvitations")
+  taskSnoozes          TaskSnooze[] // les tâches qu'elle a mises de côté (« Plus tard »)
 }
 
 model Host {
@@ -66,6 +67,8 @@ model Host {
   kittyAndKitten        Boolean @default(true)
   kitten                Int?
   isAvailable           Boolean @default(true) @map("is_available")
+  // Depuis quand elle n'est plus disponible (tâche F5 : lui redemander au bout de 3 mois)
+  unavailableSince      DateTime? @map("unavailable_since")
   additionalInformation String? @db.Text
   hasAnimalsAtHome      Boolean @map("has_animals_at_home")
   numberOfCatsAtHome    Int? @map("number_of_cats_at_home")
@@ -244,6 +247,9 @@ model Care {
   // (et les soins saisis avant la liste gardent leur texte)
   veterinarianId String? @db.Uuid @map("veterinarian_id")
   veterinarian   Veterinarian? @relation(fields: [veterinarianId], references: [id], onDelete: SetNull)
+
+  // Vaccin : la date du rappel (tâche V1, 14 jours avant)
+  nextDueDate    DateTime? @db.Date @map("next_due_date")
 
   createdAt   DateTime @default(now()) @map("createdAt")
   updatedAt   DateTime @default(now()) @updatedAt @map("updatedAt")
@@ -683,6 +689,24 @@ enum FormStatus {
   PENDING
   APPROVED
   REJECTED
+  IN_PROGRESS // en cours de traitement (la personne en charge s'en occupe)
+}
+
+/// Une tâche mise de côté par UNE personne, jusqu'à une date (« Plus tard »).
+/// Les tâches sont calculées : on retient seulement leur identifiant (« C4:<id du chat> »).
+/// Elle revient à la date choisie, ou plus tôt si elle est devenue plus urgente.
+model TaskSnooze {
+  id          String    @id @default(uuid()) @db.Uuid
+  volunteerId String    @db.Uuid @map("volunteer_id")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  taskId      String    @map("task_id") @db.VarChar(100)
+  until       DateTime
+  note        String?   @db.VarChar(255)
+  // L'urgence au moment de la mise de côté (URGENT, WEEK, WATCH)
+  urgency     String    @db.VarChar(10)
+  createdAt   DateTime  @default(now()) @map("createdAt")
+
+  @@unique([volunteerId, taskId])
 }
 
 enum SicknessStatus {

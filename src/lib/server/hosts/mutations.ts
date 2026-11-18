@@ -260,10 +260,18 @@ export async function updateHost({ request, locals }: { request: Request; locals
 		const hostData = buildHostData(applyHostRules(validatedData));
 		const profilData = buildProfilData(validatedData);
 
+		// Disponibilité : on retient depuis quand elle ne l'est plus (tâche F5 au bout de 3 mois)
+		const availabilityChange =
+			validatedData.isAvailable === undefined ||
+			validatedData.isAvailable === existingHost.isAvailable
+				? {}
+				: { unavailableSince: validatedData.isAvailable ? null : new Date() };
+
 		const updatedHost = await prisma.host.update({
 			where: { id: hostId },
 			data: {
 				...hostData,
+				...availabilityChange,
 				...(Object.keys(profilData).length > 0 && {
 					profil: { update: profilData }
 				})

@@ -49,6 +49,13 @@
 								<span class="block text-xs text-muted-foreground">Date</span>
 								<span class="text-xs">{formatDateNum(care.date)}</span>
 							</div>
+							<!-- Vaccin : la date du rappel (une tâche prévient 14 jours avant) -->
+							{#if care.nextDueDate}
+								<div>
+									<span class="block text-xs text-muted-foreground">Rappel</span>
+									<span class="text-xs">{formatDateNum(care.nextDueDate)}</span>
+								</div>
+							{/if}
 							<!-- Le vétérinaire de la liste, sinon le nom saisi (« Autre… » ou soin plus ancien) -->
 							{#if care.veterinarian || care.veterinary}
 								<div class="min-w-0">

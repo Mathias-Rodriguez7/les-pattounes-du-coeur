@@ -13,16 +13,21 @@
 	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
 	import { CircleCheck } from '@lucide/svelte';
 	import type { Task } from '#lib/tasks/tasks.ts';
+	import type { SnoozedTask } from '#lib/tasks/snooze.ts';
+	import SnoozedTasks from '#lib/components/tasks/SnoozedTasks.svelte';
 
 	const {
 		volunteer,
 		isAdmin = false,
-		tasks = []
+		tasks = [],
+		snoozed = []
 	}: {
 		volunteer: VolunteerWithRelations | null;
 		isAdmin?: boolean;
 		/** Ce qu'elle a à faire : rangé comme son dashboard (seulement les lignes non vides) */
 		tasks?: Task[];
+		/** Ce qu'elle a mis de côté (« Plus tard ») : visible, sans « Reprendre » (c'est le sien) */
+		snoozed?: SnoozedTask[];
 	} = $props();
 
 	// Sa blacklist active (0 ou 1), chargée par la page Bénévoles
@@ -68,11 +73,13 @@
 						{isAdmin}
 						hideEmpty
 						title="Ses tâches"
+						{snoozed}
 					/>
 				{:else}
 					<p class="flex items-center gap-2 text-sm text-muted-foreground">
 						<CircleCheck class="size-4 text-green-600" /> Aucune tâche en attente
 					</p>
+					<SnoozedTasks {snoozed} />
 				{/if}
 
 				<Separator />

@@ -23,6 +23,9 @@
 	import { buildBoard, countByUrgency } from '#lib/tasks/board.ts';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import type { Task, TaskLink } from '#lib/tasks/tasks.ts';
+	import type { SnoozedTask } from '#lib/tasks/snooze.ts';
+	import TaskSnoozeButton from '#lib/components/tasks/TaskSnoozeButton.svelte';
+	import SnoozedTasks from '#lib/components/tasks/SnoozedTasks.svelte';
 
 	// « À faire » : une carte par sujet, une ligne par sorte de tâche, avec une pastille
 	// colorée selon l'urgence. Un clic sur une ligne la déplie : chaque tâche mène à sa fiche.
@@ -40,6 +43,10 @@
 		hideEmpty?: boolean;
 		/** Dans l'en-tête, après les compteurs (ex : le lien vers le suivi des bénévoles) */
 		headerExtra?: Snippet;
+		/** Les tâches mises de côté (« Plus tard ») : sous les cartes, repliées */
+		snoozed?: SnoozedTask[];
+		/** Ses propres tâches : on peut les mettre de côté, et les reprendre (le dashboard) */
+		canSnooze?: boolean;
 	}
 
 	let {
@@ -49,7 +56,9 @@
 		isAdmin = false,
 		title = 'Mes tâches de bénévole',
 		hideEmpty = false,
-		headerExtra
+		headerExtra,
+		snoozed = [],
+		canSnooze = false
 	}: Props = $props();
 
 	const board = $derived(buildBoard(tasks, kind, { role, hideEmpty }));
@@ -173,11 +182,12 @@
 									class="mb-2 grid max-h-64 gap-0.5 overflow-y-auto"
 								>
 									{#each row.tasks as task (task.id)}
-										<li>
+										<!-- group : le bouton « Plus tard » apparaît au survol (toujours, au toucher) -->
+										<li class="group flex items-center gap-1 rounded-md hover:bg-muted">
 											<a
 												href={taskHref(task.link)}
 												title="{task.title} — {task.detail}"
-												class="flex items-center gap-2 rounded-md px-1 py-1.5 text-xs transition-colors hover:bg-muted"
+												class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1.5 text-xs"
 											>
 												<span
 													class="w-11 shrink-0 rounded-md px-1 py-0.5 text-center font-medium {TASK_URGENCY[
@@ -191,6 +201,13 @@
 												</span>
 												<ArrowRight class="size-3.5 shrink-0 text-muted-foreground" />
 											</a>
+											{#if canSnooze}
+												<span
+													class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100"
+												>
+													<TaskSnoozeButton {task} />
+												</span>
+											{/if}
 										</li>
 									{/each}
 								</ul>
@@ -201,4 +218,6 @@
 			{/each}
 		</div>
 	</div>
+
+	<SnoozedTasks {snoozed} canResume={canSnooze} />
 </section>

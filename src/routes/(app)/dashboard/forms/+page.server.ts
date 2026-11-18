@@ -2,7 +2,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { FormType, FormStatus, type Prisma } from '@prisma/client';
-import { updateForm, rejectForm, assignVolunteer } from '#lib/server/forms/mutations.ts';
+import {
+	updateForm,
+	rejectForm,
+	assignVolunteer,
+	markFormInProgress
+} from '#lib/server/forms/mutations.ts';
 import { createVolunteer } from '#lib/server/volunteers/mutations.ts';
 import { createHost } from '#lib/server/hosts/mutations.ts';
 import { catPickerSelect } from '#lib/types/cat.ts';
@@ -169,6 +174,13 @@ export const actions: Actions = {
 			console.error('Erreur mise à jour form:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
+	},
+
+	// « Je commence » : la demande passe « en cours de traitement »
+	markFormInProgress: async ({ request, locals }) => {
+		const result = await markFormInProgress({ request, locals });
+		if (!result.success) return fail(400, result);
+		return result;
 	},
 
 	rejectForm: async ({ request, locals }) => {

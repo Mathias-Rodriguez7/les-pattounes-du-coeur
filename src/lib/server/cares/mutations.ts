@@ -64,8 +64,17 @@ export async function createCare({
 		};
 	}
 
-	const { catId, type, date, reason, veterinary, veterinarianId, description, sicknessId } =
-		parsed.data;
+	const {
+		catId,
+		type,
+		date,
+		nextDueDate,
+		reason,
+		veterinary,
+		veterinarianId,
+		description,
+		sicknessId
+	} = parsed.data;
 
 	// 3. Droits : admin, ou bénévole associée au chat
 	if (!(await canManageCat(locals.user, catId))) {
@@ -139,6 +148,8 @@ export async function createCare({
 					type,
 					// "2026-11-06" est lu comme minuit UTC : la bonne date en base
 					date: new Date(date),
+					// Le rappel n'a de sens que pour un vaccin
+					nextDueDate: type === 'VACCINE' && nextDueDate ? new Date(nextDueDate) : null,
 					reason,
 					// Un vétérinaire de la liste, OU un nom saisi (« Autre… ») : jamais les deux
 					...(veterinarianId

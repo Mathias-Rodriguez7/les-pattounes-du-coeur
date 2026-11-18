@@ -42,11 +42,13 @@ export type TaskRule =
 	| 'C3' // chat sans bénévole
 	| 'C4' // fiche incomplète
 	| 'C6' // chat adoptable sans demande
+	| 'V1' // rappel de vaccin
 	| 'V2' // stérilisation à prévoir
 	| 'V4' // identification à faire
 	| 'F1' // candidature FA à étudier (la bénévole en charge)
 	| 'F2' // contrat FA à relancer (le lien expire bientôt)
 	| 'F4' // candidature FA à confier à une bénévole
+	| 'F5' // FA indisponible depuis longtemps
 	| 'B1' // candidature bénévole à étudier
 	| 'B2' // invitation bénévole expirée
 	| 'B3'; // bénévole surchargée
@@ -63,11 +65,13 @@ export const TASK_TAG = {
 	C3: 'Chat',
 	C4: 'Fiche',
 	C6: 'Chat',
+	V1: 'Santé',
 	V2: 'Santé',
 	V4: 'Santé',
 	F1: 'FA',
 	F2: 'FA',
 	F4: 'FA',
+	F5: 'FA',
 	B1: 'Bénévole',
 	B2: 'Bénévole',
 	B3: 'Bénévole'
@@ -100,7 +104,11 @@ export const TASK_DELAYS = {
 	sterilizationAge: 182 * DAY,
 	sterilizationNotice: 21 * DAY,
 	/** V4 : un chat s'identifie à partir de 6 semaines */
-	identificationAge: 42 * DAY
+	identificationAge: 42 * DAY,
+	/** V1 : on prévient avant la date de rappel d'un vaccin */
+	vaccineNotice: 14 * DAY,
+	/** F5 : une FA indisponible depuis longtemps : on lui redemande */
+	hostUnavailable: 91 * DAY
 } as const;
 
 /** B3 : au-delà de ce nombre de tâches urgentes, l'admin doit répartir */
@@ -158,7 +166,8 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 				{ key: 'cat-home', label: "Sans famille d'accueil", rules: ['C1'] },
 				{ key: 'cat-proposal', label: 'Propositions sans réponse', rules: ['C2'] },
 				{ key: 'cat-volunteer', label: 'Sans bénévole', rules: ['C3'] },
-				{ key: 'cat-promote', label: 'À mettre en avant', rules: ['C6'] }
+				{ key: 'cat-promote', label: 'À mettre en avant', rules: ['C6'] },
+				{ key: 'host-unavailable', label: 'FA indisponibles depuis 3 mois', rules: ['F5'] }
 			]
 		},
 		{
@@ -194,6 +203,7 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 			key: 'health',
 			title: 'Santé',
 			rows: [
+				{ key: 'health-vaccine', label: 'Rappels de vaccin', rules: ['V1'] },
 				{ key: 'health-sterilize', label: 'Stérilisation à prévoir', rules: ['V2'] },
 				{ key: 'health-identify', label: 'Identification à faire', rules: ['V4'] }
 			]

@@ -27,6 +27,7 @@ export async function persistHost(tx: Prisma.TransactionClient, data: CreateHost
 			type: data.type,
 			actif: data.actif,
 			isAvailable: data.isAvailable,
+			unavailableSince: data.isAvailable ? null : new Date(),
 			space: data.space,
 			homeDescription: data.homeDescription,
 			presence: data.presence,

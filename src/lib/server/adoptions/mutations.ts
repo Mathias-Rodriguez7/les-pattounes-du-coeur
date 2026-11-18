@@ -1,4 +1,5 @@
 import prisma from '#lib/server/prisma.ts';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import type { CancelAdoptionInput, CreateAdoptionInput } from '#lib/schemas/adoption.ts';
 import { CatStatus, FormStatus } from '@prisma/client';
 import { isEmailBlacklisted } from '../accountStatus';
@@ -139,7 +140,7 @@ export async function createAdoption(
 		const otherRequests = await tx.form.findMany({
 			where: {
 				catId: input.catId,
-				status: 'PENDING',
+				status: { in: OPEN_FORM_STATUSES },
 				...(input.formId && { id: { not: input.formId } })
 			},
 			select: { id: true, notes: true, email: true, data: true }

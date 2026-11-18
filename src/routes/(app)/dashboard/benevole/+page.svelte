@@ -32,6 +32,7 @@
 	import { DISTRICT_OPTIONS } from '#lib/utils/districts.ts';
 	import { countByUrgency } from '#lib/tasks/board.ts';
 	import type { Task } from '#lib/tasks/tasks.ts';
+	import { applySnoozes } from '#lib/tasks/snooze.ts';
 	import { page } from '$app/state';
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
@@ -77,8 +78,19 @@
 	});
 
 	// ===== TÂCHES : ce que chaque bénévole a à faire (calculé par le serveur) =====
+	// Ce qu'elle a mis de côté (« Plus tard ») sort de ses compteurs, mais reste dans son panneau
+	const now = new Date();
+	const boards = $derived(
+		Object.fromEntries(
+			Object.entries(data.tasksByVolunteer).map(([id, list]) => [
+				id,
+				applySnoozes(list, data.snoozesByVolunteer[id] ?? [], now)
+			])
+		)
+	);
 	const NO_TASKS: Task[] = [];
-	const tasksOf = (id: string) => data.tasksByVolunteer[id] ?? NO_TASKS;
+	const tasksOf = (id: string) => boards[id]?.active ?? NO_TASKS;
+	const snoozedOf = (id: string) => boards[id]?.snoozed ?? [];
 	const urgentCount = (id: string) => countByUrgency(tasksOf(id)).URGENT;
 
 	// Le dashboard y mène avec ?taches=URGENT : on part de ce filtre, triées par tâches
@@ -427,6 +439,7 @@
 						volunteer={selectedVolunteer}
 						isAdmin={data.isAdmin}
 						tasks={selectedVolunteer ? tasksOf(selectedVolunteer.id) : []}
+						snoozed={selectedVolunteer ? snoozedOf(selectedVolunteer.id) : []}
 					/>
 				{/if}
 			{/snippet}

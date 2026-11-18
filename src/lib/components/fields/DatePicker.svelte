@@ -19,6 +19,13 @@
 		onSelect?: (date: Date) => void;
 		error?: string;
 		label?: string;
+		/** La première date permise (rien : pas de limite) */
+		minValue?: Date;
+		/**
+		 * La dernière date permise. Par défaut aujourd'hui (une date de naissance, un soin passé…) ;
+		 * une date à venir (rappel de vaccin) passe la sienne
+		 */
+		maxValue?: Date;
 	}
 
 	const {
@@ -26,8 +33,15 @@
 		name = 'birthDate',
 		onSelect,
 		error,
-		label = "Date d'anniversaire"
+		label = "Date d'anniversaire",
+		minValue,
+		maxValue
 	}: Props = $props();
+
+	const toCalendarDate = (date: Date) =>
+		new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+	const calendarMin = $derived(minValue ? toCalendarDate(minValue) : undefined);
+	const calendarMax = $derived(maxValue ? toCalendarDate(maxValue) : today(getLocalTimeZone()));
 
 	const id = crypto.getRandomValues(new Uint8Array(4)).reduce((acc, x) => acc + x.toString(16), '');
 
@@ -35,7 +49,7 @@
 
 	// Se recalcule quand `value` change, mais l'utilisateur peut la modifier via le calendrier
 	let calendarValue = $derived<CalendarDateType | undefined>(
-		value ? new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate()) : undefined
+		value ? toCalendarDate(value) : undefined
 	);
 
 	// Valeur envoyée au serveur, au format AAAA-MM-JJ, sans conversion de fuseau horaire
@@ -77,7 +91,8 @@
 				bind:value={calendarValue}
 				captionLayout="dropdown"
 				onValueChange={handleValueChange}
-				maxValue={today(getLocalTimeZone())}
+				minValue={calendarMin}
+				maxValue={calendarMax}
 				locale="fr"
 			/>
 		</Popover.Content>

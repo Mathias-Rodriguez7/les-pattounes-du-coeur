@@ -35,7 +35,7 @@ import { prepareMedia, discardUpload, type MediaData } from '#lib/server/media/m
 import { createAdoptionAction } from '#lib/server/adoptions/actions.ts';
 import { addToBlacklistAction } from '#lib/server/blacklist/actions.ts';
 import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus.ts';
-import { updateForm, rejectForm } from '#lib/server/forms/mutations.ts';
+import { updateForm, rejectForm, markFormInProgress } from '#lib/server/forms/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole, requireUser } from '#lib/server/permissions/roles.ts';
 
@@ -561,6 +561,13 @@ export const actions: Actions = {
 			console.error('Erreur mise à jour demande:', error);
 			return fail(500, { success: false, error: 'Erreur serveur' });
 		}
+	},
+
+	// « Je commence » : la demande passe « en cours de traitement »
+	markFormInProgress: async ({ request, locals }) => {
+		const result = await markFormInProgress({ request, locals });
+		if (!result.success) return fail(400, result);
+		return result;
 	},
 
 	rejectForm: async ({ request, locals }) => {

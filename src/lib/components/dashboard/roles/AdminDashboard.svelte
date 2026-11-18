@@ -8,6 +8,7 @@
 	import { TASK_URGENCY, type TaskBoardKind } from '#lib/constants/tasks.ts';
 	import { countByUrgency, tasksByVolunteer } from '#lib/tasks/board.ts';
 	import { adminTasks, volunteerTasks } from '#lib/tasks/tasks.ts';
+	import { applySnoozes } from '#lib/tasks/snooze.ts';
 	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
 	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 
@@ -20,8 +21,14 @@
 	// Deux vues : les actions d'administration, et ses propres tâches de bénévole
 	let view = $state<TaskBoardKind>('ADMIN');
 
-	const forAdmin = $derived(adminTasks(data.myTasks));
-	const forMe = $derived(data.user ? volunteerTasks(data.myTasks, data.user) : []);
+	// « Plus tard » : ce qu'elle a mis de côté sort de la liste et des compteurs
+	const now = new Date();
+	const admin = $derived(applySnoozes(adminTasks(data.myTasks), data.mySnoozes, now));
+	const mine = $derived(
+		applySnoozes(data.user ? volunteerTasks(data.myTasks, data.user) : [], data.mySnoozes, now)
+	);
+	const forAdmin = $derived(admin.active);
+	const forMe = $derived(mine.active);
 
 	const tabs = $derived([
 		{ kind: 'ADMIN' as const, label: 'Admin', icon: ShieldCheck, tasks: forAdmin },
@@ -81,7 +88,14 @@
 			{/if}
 			{#key view}
 				{#if view === 'ADMIN'}
-					<TaskBoard tasks={forAdmin} kind="ADMIN" isAdmin title="Mes tâches d’admin">
+					<TaskBoard
+						tasks={forAdmin}
+						snoozed={admin.snoozed}
+						canSnooze
+						kind="ADMIN"
+						isAdmin
+						title="Mes tâches d’admin"
+					>
 						{#snippet headerExtra()}
 							{#if lateVolunteers > 0}
 								<a
@@ -99,6 +113,8 @@
 				{:else}
 					<TaskBoard
 						tasks={forMe}
+						snoozed={mine.snoozed}
+						canSnooze
 						kind="VOLUNTEER"
 						role={data.user?.role}
 						isAdmin

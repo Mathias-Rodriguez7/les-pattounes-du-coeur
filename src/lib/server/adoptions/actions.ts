@@ -1,5 +1,6 @@
 // src/lib/server/adoptions/actions.ts
 import { fail } from '@sveltejs/kit';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import prisma from '#lib/server/prisma.ts';
 import { createAdoptionWithContractSchema } from '#lib/schemas/adoption.ts';
 import { createAdoption, BlacklistedAdopterError } from './mutations';
@@ -58,7 +59,7 @@ export async function createAdoptionAction({ request, locals }: Args) {
 			if (!adoptionRequest || !adoptionRequest.type.startsWith('ADOPTION')) {
 				return fail(404, { error: 'Demande introuvable' });
 			}
-			if (adoptionRequest.status !== 'PENDING') {
+			if (!OPEN_FORM_STATUSES.includes(adoptionRequest.status)) {
 				return fail(400, { error: 'Cette demande a déjà été traitée' });
 			}
 			if (!(await canManageForm(user, adoptionRequest))) {

@@ -26,7 +26,7 @@ describe('buildBoard', () => {
 	it('le tableau Admin : SOS, placements, candidatures', () => {
 		const board = buildBoard([], 'ADMIN');
 		expect(cards(board)).toEqual(['sos', 'cats', 'applications']);
-		expect(rows(board, 'cats')).toHaveLength(4);
+		expect(rows(board, 'cats')).toHaveLength(5);
 		expect(rows(board, 'applications')).toEqual([
 			'apply-host-assign',
 			'apply-volunteer',

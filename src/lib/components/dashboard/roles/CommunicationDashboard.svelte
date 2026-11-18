@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
+	import { applySnoozes } from '#lib/tasks/snooze.ts';
 	import QuickCreate from '#lib/components/dashboard/shared/QuickCreate.svelte';
 	import StatsOverview from '#lib/components/dashboard/shared/StatsOverview.svelte';
 	// Les types du load du dashboard : le composant est dans $lib, le load dans routes/
@@ -11,6 +12,9 @@
 	}
 
 	let { data }: Props = $props();
+
+	// « Plus tard » : ce qu'elle a mis de côté sort de la liste et des compteurs
+	const board = $derived(applySnoozes(data.myTasks, data.mySnoozes, new Date()));
 </script>
 
 <section class="flex flex-col gap-6">
@@ -27,7 +31,13 @@
 				<QuickCreate role={data.user.role} />
 			{/if}
 			{#if data.user}
-				<TaskBoard tasks={data.myTasks} kind="VOLUNTEER" role={data.user.role} />
+				<TaskBoard
+					tasks={board.active}
+					snoozed={board.snoozed}
+					canSnooze
+					kind="VOLUNTEER"
+					role={data.user.role}
+				/>
 			{/if}
 		</div>
 

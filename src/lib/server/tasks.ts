@@ -1,4 +1,9 @@
+import { fail, type RequestEvent } from '@sveltejs/kit';
 import prisma from '#lib/server/prisma.ts';
+import type { TaskUrgency } from '#lib/constants/tasks.ts';
+import { MAX_SNOOZE_DAYS, type TaskSnoozeView } from '#lib/tasks/snooze.ts';
+import { resumeTaskSchema, snoozeTaskSchema } from '#lib/schemas/taskSnooze.ts';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import type { AppUser } from '#lib/types/user.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
 import { buildTasks, volunteerTasks, type TaskSources } from '#lib/tasks/tasks.ts';
@@ -21,7 +26,7 @@ const catName = (cat: { name: string | null; catNumber: string | null }) =>
 
 /** Tout ce qu'il faut pour calculer les tâches : des requêtes ciblées, en parallèle */
 async function loadTaskSources(): Promise<TaskSources> {
-	const [sos, adoptions, forms, cats, invitations, volunteers] = await Promise.all([
+	const [sos, adoptions, forms, cats, invitations, volunteers, hosts] = await Promise.all([
 		prisma.sos.findMany({
 			where: { status: { in: ['NEW', 'IN_PROGRESS'] } },
 			select: {
@@ -60,7 +65,13 @@ async function loadTaskSources(): Promise<TaskSources> {
 				assignedToId: true,
 				email: true,
 				data: true,
-				cat: { select: { name: true, catNumber: true } }
+				cat: {
+					select: {
+						name: true,
+						catNumber: true,
+						volunteers: { select: { volunteerId: true } }
+					}
+				}
 			}
 		}),
 		prisma.cat.findMany({
@@ -90,7 +101,16 @@ async function loadTaskSources(): Promise<TaskSources> {
 					where: { status: { in: ['ACTIVE', 'BREAK'] } },
 					select: { type: true, status: true, createdAt: true }
 				},
-				_count: { select: { forms: { where: { status: 'PENDING' } }, media: true } }
+				// Le dernier vaccin (sa date de rappel : tâche V1)
+				cares: {
+					where: { type: 'VACCINE' },
+					orderBy: { date: 'desc' },
+					take: 1,
+					select: { nextDueDate: true }
+				},
+				_count: {
+					select: { forms: { where: { status: { in: OPEN_FORM_STATUSES } } }, media: true }
+				}
 			}
 		}),
 		prisma.invitation.findMany({
@@ -98,6 +118,15 @@ async function loadTaskSources(): Promise<TaskSources> {
 		}),
 		prisma.volunteer.findMany({
 			select: { id: true, profil: { select: { firstName: true, lastName: true } } }
+		}),
+		// Les FA actives qui se sont déclarées indisponibles (tâche F5)
+		prisma.host.findMany({
+			where: { actif: 'ACTIVE', isAvailable: false, unavailableSince: { not: null } },
+			select: {
+				id: true,
+				unavailableSince: true,
+				profil: { select: { firstName: true, lastName: true } }
+			}
 		})
 	]);
 
@@ -117,7 +146,8 @@ async function loadTaskSources(): Promise<TaskSources> {
 				createdAt: form.createdAt,
 				assignedToId: form.assignedToId,
 				personName: shortName(data.firstName, data.lastName, form.email),
-				catName: form.cat ? catName(form.cat) : null
+				catName: form.cat ? catName(form.cat) : null,
+				catVolunteerIds: form.cat?.volunteers.map((cv) => cv.volunteerId) ?? []
 			};
 		}),
 		cats: cats.map((cat) => ({
@@ -139,6 +169,7 @@ async function loadTaskSources(): Promise<TaskSources> {
 			isSterilized: cat.isSterilize || cat.isAlreadySterilized,
 			// Identifié : la case, ou un numéro de puce / tatouage saisi
 			isIdentified: cat.isIdentify || !!cat.chipId || !!cat.tattooId,
+			vaccineDueAt: cat.cares[0]?.nextDueDate ?? null,
 			volunteerIds: cat.volunteers.map((cv) => cv.volunteerId),
 			// Dans une FA : un placement long (actif ou en pause), court ou transfert actif
 			hasHome: cat.placements.some(
@@ -161,6 +192,11 @@ async function loadTaskSources(): Promise<TaskSources> {
 		volunteers: volunteers.map((v) => ({
 			id: v.id,
 			name: `${v.profil.firstName} ${v.profil.lastName}`
+		})),
+		hosts: hosts.map((host) => ({
+			id: host.id,
+			name: shortName(host.profil.firstName, host.profil.lastName),
+			unavailableSince: host.unavailableSince!
 		}))
 	};
 }
@@ -178,4 +214,89 @@ export async function allTasks() {
 export async function tasksFor(user: AppUser) {
 	const tasks = await allTasks();
 	return hasAdminRole(user) ? tasks : volunteerTasks(tasks, user);
+}
+
+// =====================================================================
+// « Plus tard » : les tâches mises de côté (par personne)
+// =====================================================================
+
+const toSnoozeView = (row: {
+	taskId: string;
+	until: Date;
+	note: string | null;
+	urgency: string;
+}): TaskSnoozeView => ({
+	taskId: row.taskId,
+	until: row.until,
+	note: row.note,
+	urgency: (['URGENT', 'WEEK', 'WATCH'].includes(row.urgency)
+		? row.urgency
+		: 'WATCH') as TaskUrgency
+});
+
+/** Ce qu'une personne a mis de côté, et pas encore revenu */
+export async function snoozesOf(volunteerId: string) {
+	const rows = await prisma.taskSnooze.findMany({
+		where: { volunteerId, until: { gt: new Date() } },
+		select: { taskId: true, until: true, note: true, urgency: true }
+	});
+	return rows.map(toSnoozeView);
+}
+
+/** Ce que chaque bénévole a mis de côté (page Bénévoles : son panneau, ses compteurs) */
+export async function snoozesByVolunteer() {
+	const rows = await prisma.taskSnooze.findMany({
+		where: { until: { gt: new Date() } },
+		select: { volunteerId: true, taskId: true, until: true, note: true, urgency: true }
+	});
+	const byVolunteer: Record<string, TaskSnoozeView[]> = {};
+	for (const row of rows) (byVolunteer[row.volunteerId] ??= []).push(toSnoozeView(row));
+	return byVolunteer;
+}
+
+/** Le jour choisi, à minuit (heure de Paris) : la tâche revient ce matin-là */
+function startOfDay(day: string) {
+	return new Date(`${day}T00:00:00+01:00`);
+}
+
+/** Mettre une tâche de côté, pour soi (au plus 3 mois) */
+export async function snoozeTaskAction({ request, locals }: RequestEvent) {
+	const user = locals.user;
+	if (!user) return fail(401, { success: false, error: 'Non connecté' });
+
+	const parsed = snoozeTaskSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) {
+		return fail(400, {
+			success: false,
+			error: parsed.error.issues[0]?.message ?? 'Erreur de validation'
+		});
+	}
+	const { taskId, urgency, quick, until, note } = parsed.data;
+
+	const date = startOfDay((quick ?? until)!);
+	const now = new Date();
+	const max = new Date(now.getTime() + MAX_SNOOZE_DAYS * 24 * 60 * 60 * 1000);
+	if (date <= now) return fail(400, { success: false, error: 'Choisissez une date à venir' });
+	if (date > max) return fail(400, { success: false, error: 'Au plus 3 mois' });
+
+	await prisma.taskSnooze.upsert({
+		where: { volunteerId_taskId: { volunteerId: user.id, taskId } },
+		create: { volunteerId: user.id, taskId, until: date, note: note ?? null, urgency },
+		update: { until: date, note: note ?? null, urgency }
+	});
+	return { success: true, taskId, until: date };
+}
+
+/** La reprendre tout de suite (ou annuler la mise de côté) */
+export async function resumeTaskAction({ request, locals }: RequestEvent) {
+	const user = locals.user;
+	if (!user) return fail(401, { success: false, error: 'Non connecté' });
+
+	const parsed = resumeTaskSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) return fail(400, { success: false, error: 'Tâche invalide' });
+
+	await prisma.taskSnooze.deleteMany({
+		where: { volunteerId: user.id, taskId: parsed.data.taskId }
+	});
+	return { success: true };
 }

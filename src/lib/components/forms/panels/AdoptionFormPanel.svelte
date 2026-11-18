@@ -1,4 +1,6 @@
 <script lang="ts">
+	import FormInProgressButton from '../FormInProgressButton.svelte';
+	import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonProfileView from '#lib/components/person/PersonProfileView.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
@@ -252,9 +254,13 @@
 
 				<!-- Les décisions en bas : la bénévole a tout lu avant d'accepter ou de refuser.
 				     Une demande déjà acceptée ou refusée ne se traite plus -->
-				{#if form.status === 'PENDING'}
+				{#if OPEN_FORM_STATUSES.includes(form.status)}
 					<Separator />
 					{#if canManage}
+						<!-- « Je commence » : la demande passe « en cours de traitement » -->
+						<div class="flex justify-end">
+							<FormInProgressButton {form} canManage />
+						</div>
 						<AdoptionRequestActions
 							{form}
 							hasCat={!!adoptionCatId}

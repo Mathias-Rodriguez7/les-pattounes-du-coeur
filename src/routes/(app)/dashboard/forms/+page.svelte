@@ -10,7 +10,16 @@
 	import { page } from '$app/state';
 	import FormRow from '#lib/components/forms/FormRow.svelte';
 	import FormPanel from '#lib/components/forms/FormPanel.svelte';
-	import { FORM_TYPE_OPTIONS, FORM_STATUS_OPTIONS } from '#lib/constants/forms.js';
+	import {
+		FORM_TYPE_OPTIONS,
+		FORM_STATUS_OPTIONS,
+		OPEN_FORM_STATUSES
+	} from '#lib/constants/forms.js';
+	import type { FormStatus } from '@prisma/client';
+
+	// Le filtre par défaut : les demandes encore à traiter (en attente OU en cours)
+	const OPEN = 'OPEN';
+	const statusOptions = [{ value: OPEN, label: 'À traiter' }, ...FORM_STATUS_OPTIONS];
 	import { fade, fly } from 'svelte/transition';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
 	import { resolve } from '$app/paths';
@@ -47,7 +56,7 @@
 	// svelte-ignore state_referenced_locally
 	let typeFilter = $state(data.filters.type ?? '');
 	// svelte-ignore state_referenced_locally
-	let statusFilter = $state(data.filters.status ?? 'PENDING');
+	let statusFilter = $state<string>(data.filters.status ?? OPEN);
 
 	// ==========================================
 	// Portée : « Mes formulaires » ou « Tous » (admin : tout, les autres : les demandes libres à personne)
@@ -117,7 +126,9 @@
 			filtered = filtered.filter((f) => f.type === typeFilter);
 		}
 
-		if (statusFilter) {
+		if (statusFilter === OPEN) {
+			filtered = filtered.filter((f) => OPEN_FORM_STATUSES.includes(f.status as FormStatus));
+		} else if (statusFilter) {
 			filtered = filtered.filter((f) => f.status === statusFilter);
 		}
 
@@ -166,7 +177,7 @@
 
 	function clearFilters() {
 		typeFilter = '';
-		statusFilter = 'PENDING';
+		statusFilter = OPEN;
 		searchQuery = '';
 	}
 </script>
@@ -215,7 +226,7 @@
 								<SelectField
 									id="form-status-filter"
 									label=""
-									options={FORM_STATUS_OPTIONS}
+									options={statusOptions}
 									bind:value={statusFilter}
 									placeholder="Status"
 									class="w-full sm:w-32"

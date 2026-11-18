@@ -1,7 +1,8 @@
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import { error, redirect } from '@sveltejs/kit';
 import prisma from '#lib/server/prisma.ts';
-import { tasksFor } from '#lib/server/tasks.ts';
+import { resumeTaskAction, snoozeTaskAction, snoozesOf, tasksFor } from '#lib/server/tasks.ts';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -12,16 +13,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const user = locals.user;
 
 		// Les stats ET les tâches, en parallèle
-		const [stats, volunteerStats, myTasks] = await Promise.all([
+		const [stats, volunteerStats, myTasks, mySnoozes] = await Promise.all([
 			getAssociationStats(),
 			getVolunteerStats(user.id),
-			// « À traiter » : ce qu'il y a à faire, calculé à partir des données
-			tasksFor(user)
+			// « À faire » : ce qu'il y a à faire, calculé à partir des données
+			tasksFor(user),
+			// Ce qu'elle a mis de côté (« Plus tard »)
+			snoozesOf(user.id)
 		]);
 
 		return {
 			user,
 			myTasks,
+			mySnoozes,
 			stats,
 			volunteerStats
 		};
@@ -29,6 +33,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 		console.error('Dashboard load error:', err);
 		error(500, 'Erreur lors du chargement du dashboard');
 	}
+};
+
+// « Plus tard » : mettre une tâche de côté pour soi, ou la reprendre
+export const actions: Actions = {
+	snoozeTask: snoozeTaskAction,
+	resumeTask: resumeTaskAction
 };
 
 // ============================================
@@ -72,7 +82,7 @@ async function getAssociationStats() {
 		}),
 		prisma.form.count({
 			where: {
-				status: 'PENDING'
+				status: { in: OPEN_FORM_STATUSES }
 			}
 		})
 	]);
@@ -134,13 +144,11 @@ async function getVolunteerStats(volunteerId: string) {
 			}
 		}),
 
-		// 3️⃣ CANDIDATURES ASSIGNÉES AU BÉNÉVOLE (NON PENDING)
+		// 3️⃣ CANDIDATURES ASSIGNÉES AU BÉNÉVOLE (TRAITÉES : approuvées ou rejetées)
 		prisma.form.count({
 			where: {
 				assignedToId: volunteerId,
-				status: {
-					not: 'PENDING'
-				},
+				status: { in: ['APPROVED', 'REJECTED'] },
 				createdAt: {
 					gte: yearStart
 				}

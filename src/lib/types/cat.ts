@@ -1,5 +1,6 @@
 // src/lib/types/cat.ts
 import type { SosView } from '#lib/server/sos/queries.ts';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import type {
 	Prisma,
 	SexCat,
@@ -47,7 +48,7 @@ export const catFullArgs = {
 		// Les demandes d'adoption en attente pour CE chat (demandes précises) :
 		// la fiche les affiche et permet de les traiter, comme la page Formulaires
 		forms: {
-			where: { status: 'PENDING', type: 'ADOPTION_SPECIFIC' },
+			where: { status: { in: OPEN_FORM_STATUSES }, type: 'ADOPTION_SPECIFIC' },
 			orderBy: { createdAt: 'desc' },
 			include: formInclude
 		},

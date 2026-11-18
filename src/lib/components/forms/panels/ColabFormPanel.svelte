@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FormInProgressButton from '../FormInProgressButton.svelte';
 	import EntityLink from '#lib/components/links/EntityLink.svelte';
 	import PersonContactView from '#lib/components/person/PersonContactView.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
@@ -85,6 +86,8 @@
 								</EntityLink>
 							</p>
 						{/if}
+						<!-- « Je commence » : la demande passe « en cours de traitement » -->
+						<FormInProgressButton {form} />
 						{#if isAdmin}
 							<AssignVolunteerDialog
 								formId={form.id}

@@ -10,7 +10,7 @@ import { pendingVolunteerInvitations } from '#lib/server/invitations/queries.ts'
 import { cancelInvitationAction, resendInvitationAction } from '#lib/server/invitations/actions.ts';
 import { activeBlacklistArgs } from '#lib/types/blacklist.ts';
 import { hasAdminRole, requireAdmin } from '#lib/server/permissions/roles.ts';
-import { allTasks } from '#lib/server/tasks.ts';
+import { allTasks, snoozesByVolunteer } from '#lib/server/tasks.ts';
 import { tasksByVolunteer } from '#lib/tasks/board.ts';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -146,6 +146,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			volunteers,
 			// Ce que chaque bénévole a à faire : colonne « À faire », filtre « Tâches », son panneau
 			tasksByVolunteer: tasksByVolunteer(await allTasks()),
+			// Ce que chacune a mis de côté : hors de ses compteurs, visible dans son panneau
+			snoozesByVolunteer: await snoozesByVolunteer(),
 			// Les candidatures (invitations pas encore acceptées) : affichées dans la liste, filtre « En attente »
 			invitations: await pendingVolunteerInvitations(),
 			stats: {

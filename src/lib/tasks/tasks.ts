@@ -81,6 +81,8 @@ export type TaskForm = {
 	assignedToId: string | null;
 	personName: string;
 	catName: string | null;
+	/** Demande précise : les bénévoles du chat (elles s'en occupent aussi) */
+	catVolunteerIds: string[];
 };
 
 export type TaskCat = {
@@ -103,6 +105,8 @@ export type TaskCat = {
 	/** Stérilisé (par l'asso, ou déjà stérilisé à son arrivée) */
 	isSterilized: boolean;
 	isIdentified: boolean;
+	/** Le dernier vaccin : sa date de rappel, si elle a été notée */
+	vaccineDueAt: Date | null;
 	volunteerIds: string[];
 	/** Dans une FA en ce moment (placement long, court ou transfert actif) */
 	hasHome: boolean;
@@ -119,8 +123,16 @@ export type TaskInvitation = {
 	expiresAt: Date;
 };
 
+/** Une FA active qui s'est déclarée indisponible */
+export type TaskHost = {
+	id: string;
+	name: string;
+	unavailableSince: Date;
+};
+
 export type TaskSources = {
 	sos: TaskSos[];
+	hosts?: TaskHost[];
 	adoptions: TaskAdoption[];
 	forms: TaskForm[];
 	cats: TaskCat[];
@@ -250,8 +262,15 @@ function formTasks(list: TaskForm[], now: Date): Task[] {
 		const waited = now.getTime() - form.createdAt.getTime();
 		const received = `reçue il y a ${formatDuration(waited)}`;
 		const isAdoption = form.type === 'ADOPTION_SPECIFIC' || form.type === 'ADOPTION_FLEXIBLE';
-		// A3 : une demande d'adoption assignée, toujours en attente
-		if (isAdoption && form.assignedToId) {
+		// A3 : une demande d'adoption encore en attente. La demande libre : la bénévole qui l'a ;
+		// la demande précise : elle, et les bénévoles du chat
+		const answerers = [
+			...new Set([
+				...(form.type === 'ADOPTION_SPECIFIC' ? form.catVolunteerIds : []),
+				...(form.assignedToId ? [form.assignedToId] : [])
+			])
+		];
+		if (isAdoption && answerers.length > 0) {
 			tasks.push({
 				id: `A3:${form.id}`,
 				rule: 'A3',
@@ -260,7 +279,7 @@ function formTasks(list: TaskForm[], now: Date): Task[] {
 				short: form.catName ? `${form.personName} · ${form.catName}` : form.personName,
 				badge: formatShort(waited),
 				urgency: waited >= TASK_DELAYS.adoptionRequestUrgent ? 'URGENT' : 'WEEK',
-				audience: { kind: 'VOLUNTEERS', ids: [form.assignedToId] },
+				audience: { kind: 'VOLUNTEERS', ids: answerers },
 				link: { kind: 'form', id: form.id, allForms: false },
 				action: 'Répondre',
 				since: form.createdAt
@@ -436,6 +455,29 @@ function catTasks(list: TaskCat[], now: Date): Task[] {
 			});
 		}
 
+		// V1 : le rappel du dernier vaccin approche (ou est dépassé)
+		if (cat.vaccineDueAt) {
+			const left = cat.vaccineDueAt.getTime() - now.getTime();
+			if (left <= TASK_DELAYS.vaccineNotice) {
+				tasks.push({
+					id: `V1:${cat.id}`,
+					rule: 'V1',
+					title: `Faire le rappel de vaccin de ${cat.name}`,
+					detail:
+						left < 0
+							? `Rappel prévu le ${formatDay(cat.vaccineDueAt)}, déjà passé`
+							: `Rappel prévu le ${formatDay(cat.vaccineDueAt)}`,
+					short: cat.name,
+					badge: formatDay(cat.vaccineDueAt),
+					urgency: 'WEEK',
+					audience: catAudience(cat.volunteerIds),
+					link,
+					action: 'Ouvrir',
+					since: cat.vaccineDueAt
+				});
+			}
+		}
+
 		// L'âge du chat (null : date de naissance inconnue)
 		const born = cat.birthDate ? now.getTime() - cat.birthDate.getTime() : null;
 
@@ -513,6 +555,27 @@ function invitationTasks(list: TaskInvitation[], now: Date): Task[] {
 		});
 }
 
+/** F5 : une FA indisponible depuis longtemps : lui demander si elle l'est de nouveau */
+function hostTasks(list: TaskHost[], now: Date): Task[] {
+	return list
+		.filter(
+			(host) => now.getTime() - host.unavailableSince.getTime() >= TASK_DELAYS.hostUnavailable
+		)
+		.map((host) => ({
+			id: `F5:${host.id}`,
+			rule: 'F5',
+			title: `Demander à ${host.name} si elle est de nouveau disponible`,
+			detail: `Indisponible depuis le ${formatDay(host.unavailableSince)}`,
+			short: host.name,
+			badge: formatShort(now.getTime() - host.unavailableSince.getTime()),
+			urgency: 'WATCH',
+			audience: { kind: 'ADMIN' },
+			link: { kind: 'host', id: host.id },
+			action: 'Ouvrir',
+			since: host.unavailableSince
+		}));
+}
+
 /** B3 : les bénévoles qui ont trop de tâches urgentes */
 function overloadTasks(tasks: Task[], volunteers: TaskSources['volunteers']): Task[] {
 	const urgentCount = new Map<string, number>();
@@ -544,7 +607,8 @@ export function buildTasks(sources: TaskSources, now: Date): Task[] {
 		...adoptionTasks(sources.adoptions, now),
 		...formTasks(sources.forms, now),
 		...catTasks(sources.cats, now),
-		...invitationTasks(sources.invitations, now)
+		...invitationTasks(sources.invitations, now),
+		...hostTasks(sources.hosts ?? [], now)
 	];
 	return [...tasks, ...overloadTasks(tasks, sources.volunteers)];
 }

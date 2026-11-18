@@ -1,4 +1,5 @@
 import prisma from '#lib/server/prisma.ts';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import { FormType } from '@prisma/client';
 import {
 	updateAdoptionFormSchema,
@@ -329,7 +330,7 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 		return { success: false, error: "Vous n'êtes pas autorisée à traiter cette demande" };
 	}
 	// Une demande acceptée l'a été par une adoption : on ne la refuse pas après coup
-	if (form.status !== 'PENDING') {
+	if (!OPEN_FORM_STATUSES.includes(form.status)) {
 		return { success: false, error: 'Cette demande a déjà été traitée' };
 	}
 
@@ -366,4 +367,40 @@ export async function rejectForm({ request, locals }: { request: Request; locals
 			? 'Demande refusée, email envoyé à l’adoptant'
 			: 'Demande refusée, mais l’email n’a pas pu partir : pensez à prévenir l’adoptant'
 	};
+}
+
+// ==========================================
+// « En cours de traitement » : la personne en charge a commencé (la tâche « Répondre » disparaît)
+// ==========================================
+const formIdSchema = z.object({ formId: z.uuid('Demande invalide') });
+
+export async function markFormInProgress({
+	request,
+	locals
+}: {
+	request: Request;
+	locals: App.Locals;
+}) {
+	if (!locals.user) return { success: false, error: 'Non authentifié' };
+
+	const parsed = formIdSchema.safeParse(Object.fromEntries(await request.formData()));
+	if (!parsed.success) return { success: false, error: 'Demande invalide' };
+	const { formId } = parsed.data;
+
+	const form = await prisma.form.findUnique({
+		where: { id: formId },
+		select: { status: true, assignedToId: true, catId: true }
+	});
+	if (!form) return { success: false, error: 'Demande introuvable' };
+	if (!(await canManageForm(locals.user, form))) {
+		return { success: false, error: "Vous n'êtes pas autorisée à traiter cette demande" };
+	}
+
+	// Seulement depuis « En attente » (deux clics en même temps : un seul passe)
+	const updated = await prisma.form.updateMany({
+		where: { id: formId, status: 'PENDING' },
+		data: { status: 'IN_PROGRESS' }
+	});
+	if (updated.count === 0) return { success: false, error: "Cette demande n'est plus en attente" };
+	return { success: true, message: 'Demande passée « en cours de traitement »' };
 }

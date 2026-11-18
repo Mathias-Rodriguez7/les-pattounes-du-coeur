@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
 import { hashPassword, verifyPassword } from '#lib/server/hashing.ts';
@@ -34,7 +35,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 			prisma.catVolunteer.count({
 				where: { volunteerId, cat: { status: { in: ['AVAILABLE', 'SOCIALIZE'] } } }
 			}),
-			prisma.form.count({ where: { assignedToId: volunteerId, status: 'PENDING' } })
+			prisma.form.count({
+				where: { assignedToId: volunteerId, status: { in: OPEN_FORM_STATUSES } }
+			})
 		]);
 
 		return {

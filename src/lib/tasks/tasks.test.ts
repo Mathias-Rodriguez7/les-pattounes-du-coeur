@@ -45,6 +45,7 @@ const cat = (overrides: Partial<TaskCat> = {}): TaskCat => ({
 	vaccinate: 'YES',
 	isSterilized: true,
 	isIdentified: true,
+	vaccineDueAt: null,
 	volunteerIds: ['julie'],
 	hasHome: true,
 	openProposals: [],
@@ -70,6 +71,7 @@ const form = (overrides: Partial<TaskForm> = {}): TaskForm => ({
 	assignedToId: 'julie',
 	personName: 'Jean D.',
 	catName: 'Figue',
+	catVolunteerIds: [],
 	...overrides
 });
 
@@ -198,6 +200,35 @@ describe('Santé', () => {
 		const young = (days: number) => cat({ isIdentified: false, birthDate: ago(days * DAY) });
 		expect(rules({ ...empty(), cats: [young(30)] })).toEqual([]);
 		expect(rules({ ...empty(), cats: [young(50)] })).toEqual(['V4:WEEK']);
+	});
+});
+
+describe('Rappels et FA indisponibles', () => {
+	it('V1 : le rappel du dernier vaccin dans moins de 14 jours (ou passé)', () => {
+		expect(rules({ ...empty(), cats: [cat({ vaccineDueAt: ago(-10 * DAY) })] })).toEqual([
+			'V1:WEEK'
+		]);
+		expect(rules({ ...empty(), cats: [cat({ vaccineDueAt: ago(2 * DAY) })] })).toEqual(['V1:WEEK']);
+		expect(rules({ ...empty(), cats: [cat({ vaccineDueAt: ago(-30 * DAY) })] })).toEqual([]);
+	});
+
+	it("F5 : une FA indisponible depuis 3 mois, pour l'admin", () => {
+		const hosts = [
+			{ id: 'h1', name: 'Ana P.', unavailableSince: ago(100 * DAY) },
+			{ id: 'h2', name: 'Eva R.', unavailableSince: ago(30 * DAY) }
+		];
+		const tasks = buildTasks({ ...empty(), hosts }, NOW);
+		expect(tasks.map((t) => t.id)).toEqual(['F5:h1']);
+		expect(tasks[0].audience.kind).toBe('ADMIN');
+	});
+
+	it('A3 : la demande précise va aussi aux bénévoles du chat ; la libre, à celle qui l’a', () => {
+		const specific = form({ assignedToId: null, catVolunteerIds: ['julie', 'paul'] });
+		const [task] = buildTasks({ ...empty(), forms: [specific] }, NOW);
+		expect(task.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie', 'paul'] });
+		const flexible = form({ type: 'ADOPTION_FLEXIBLE', catVolunteerIds: ['paul'] });
+		const [flex] = buildTasks({ ...empty(), forms: [flexible] }, NOW);
+		expect(flex.audience).toEqual({ kind: 'VOLUNTEERS', ids: ['julie'] });
 	});
 });
 

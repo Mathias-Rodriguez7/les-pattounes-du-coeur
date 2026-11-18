@@ -1,3 +1,4 @@
+import type { FormStatus } from '@prisma/client';
 import { PERSON_SECTION_CONFIG } from '#lib/constants/person.ts';
 
 export const FORM_SECTION_CONFIG = {
@@ -36,14 +37,22 @@ export const FORM_TYPE_OPTIONS = [
 	{ value: 'OTHER', label: 'Autre' }
 ];
 
+/**
+ * Une demande « ouverte » : pas encore approuvée ni rejetée. « En cours de traitement » : la
+ * personne en charge a commencé (la tâche « Répondre » disparaît de son dashboard).
+ */
+export const OPEN_FORM_STATUSES: FormStatus[] = ['PENDING', 'IN_PROGRESS'];
+
 export const FORM_STATUS_OPTIONS = [
 	{ value: 'PENDING', label: 'En attente' },
+	{ value: 'IN_PROGRESS', label: 'En cours de traitement' },
 	{ value: 'APPROVED', label: 'Approuvé' },
 	{ value: 'REJECTED', label: 'Rejeté' }
 ];
 
 export const statusColors: Record<string, { label: string; color: string }> = {
 	PENDING: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+	IN_PROGRESS: { label: 'En cours', color: 'bg-sky-100 text-sky-800' },
 	APPROVED: { label: 'Approuvé', color: 'bg-green-100 text-green-800' },
 	REJECTED: { label: 'Rejeté', color: 'bg-red-100 text-red-800' }
 };

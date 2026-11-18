@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { addDays, addYears } from 'date-fns';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
 	import { Plus, LoaderCircle } from '@lucide/svelte';
@@ -30,6 +31,8 @@
 	let open = $state(false);
 	let type = $state('CONTROL');
 	let date = $state<Date | undefined>(new Date());
+	// Vaccin : la date du rappel (facultative) ; une tâche prévient la bénévole 14 jours avant
+	let nextDueDate = $state<Date | undefined>(undefined);
 	let reason = $state('');
 	// Le vétérinaire : un de la liste (son id), '' (non précisé) ou « Autre… » + le nom saisi
 	let veterinarianChoice = $state('');
@@ -51,6 +54,7 @@
 	function resetForm() {
 		type = 'CONTROL';
 		date = new Date();
+		nextDueDate = undefined;
 		reason = '';
 		veterinarianChoice = '';
 		veterinary = '';
@@ -144,6 +148,29 @@
 				/>
 
 				<DatePicker name="date" label="Date du soin" value={date} onSelect={(d) => (date = d)} />
+
+				{#if type === 'VACCINE'}
+					<!-- Une date à venir : de demain à 3 ans (le rappel d'un vaccin est au plus annuel) -->
+					<div class="grid gap-1">
+						<DatePicker
+							name="nextDueDate"
+							label="Date du rappel (facultatif)"
+							value={nextDueDate}
+							onSelect={(d) => (nextDueDate = d)}
+							minValue={addDays(new Date(), 1)}
+							maxValue={addYears(new Date(), 3)}
+						/>
+						{#if nextDueDate}
+							<button
+								type="button"
+								onclick={() => (nextDueDate = undefined)}
+								class="w-fit text-xs text-muted-foreground underline hover:text-foreground"
+							>
+								Retirer le rappel
+							</button>
+						{/if}
+					</div>
+				{/if}
 			</div>
 
 			<!-- Motif (obligatoire) -->
