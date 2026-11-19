@@ -79,9 +79,10 @@
 	     le footer reste collé en bas de l'écran au lieu de laisser un vide sous lui.
 	     dvh : la hauteur réellement visible sur mobile (barres du navigateur comprises) -->
 	<div class="flex min-h-dvh flex-col">
-		<Navbar />
+		<Navbar adoptableCatsCount={data.adoptableCatsCount} />
 
-		<div class="flex-1">
+		<!-- id : la cible du lien « Aller au contenu » (clavier) -->
+		<div id="contenu" tabindex="-1" class="flex-1 outline-none">
 			{@render children()}
 		</div>
 

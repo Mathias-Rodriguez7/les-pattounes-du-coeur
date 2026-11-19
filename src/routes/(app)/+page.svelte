@@ -3,7 +3,8 @@
 	import CatCard from '#lib/components/cats/CatCard.svelte';
 	import AreaChart from '#lib/components/AreaChart.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
-	import { Plus, Search, Heart, Home, ArrowRight, HeartHandshake } from '@lucide/svelte';
+	import { Plus, Search, Heart, Home, ArrowRight } from '@lucide/svelte';
+	import SupportCat from '#lib/components/support/SupportCat.svelte';
 	import NewsCard from '#lib/components/news/NewsCard.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
@@ -15,7 +16,11 @@
 
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }}>
-		<section class="relative h-[50vh] w-full overflow-hidden">
+		<!-- La vidéo passe SOUS le menu flottant (qui la floute) : la section remonte de la hauteur
+		     du menu (4rem mobile, 4.75rem ordinateur) et grandit d'autant, la partie visible ne change pas -->
+		<section
+			class="relative -mt-16 h-[calc(50vh+4rem)] w-full overflow-hidden md:-mt-[4.75rem] md:h-[calc(50vh+4.75rem)]"
+		>
 			<video
 				autoplay
 				muted
@@ -25,7 +30,8 @@
 				><source src="/videos/cat.mp4" type="video/mp4" /></video
 			>
 
-			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 md:flex">
+			<!-- pt : la carte reste centrée dans la partie visible, sous le menu -->
+			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 pt-[4.75rem] md:flex">
 				<Card.Root class="relative z-10 bg-accent">
 					<Card.Header
 						><Card.Title>Bienvenue sur le site de l'association Les Pattounes du Cœur !</Card.Title
@@ -178,17 +184,6 @@
 		</section>
 	</div>
 
-	<!-- Bouton flottant don -->
-	<a href={resolve('don')} class="fixed top-1/2 right-4 z-50 -translate-y-1/2">
-		<div
-			class="group flex items-center gap-0 overflow-hidden rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition-all duration-300 hover:gap-2 hover:px-4"
-		>
-			<HeartHandshake size={30} />
-			<span
-				class="max-w-0 overflow-hidden text-sm font-semibold whitespace-nowrap transition-all duration-300 group-hover:max-w-xs"
-			>
-				Faire un don
-			</span>
-		</div>
-	</a>
+	<!-- Le chat Leegloo en bas à droite : partenariat SAFTI et don -->
+	<SupportCat />
 </main>

@@ -18,11 +18,17 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			])
 		: [0, 0, 0];
 
+	// Visiteur : le nombre de chats à adopter, affiché dans le menu (« 12 chats attendent… »)
+	const adoptableCatsCount = locals.user
+		? 0
+		: await prisma.cat.count({ where: { isVisible: true, status: 'AVAILABLE' } });
+
 	return {
 		user: locals.user,
 		dueAdoptionsCount,
 		// Les SOS que personne n'a encore pris : la pastille du lien « SOS »
 		newSosCount,
-		catsToPublishCount
+		catsToPublishCount,
+		adoptableCatsCount
 	};
 };
