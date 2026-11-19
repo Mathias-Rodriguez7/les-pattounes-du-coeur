@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { canPublishCats } from '#lib/permissions/publication.ts';
+
+	// Rendre un chat visible : réservé à l'admin et à la communication (le circuit de publication)
+	const mayPublish = $derived(canPublishCats(page.data.user?.role));
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import type { CatEditData } from '#lib/types/cat.ts';
 	import {
@@ -108,6 +113,7 @@
 					size="sm"
 					required
 				/>
+				<!-- Visible sur le site : l'admin et la communication ; les autres proposent le chat -->
 				<SwitchField
 					id="isVisible"
 					name="isVisible"
@@ -116,6 +122,10 @@
 					checkedLabel="✓ Visible"
 					uncheckedLabel="✗ Masqué"
 					onChange={(value) => (editData.isVisible = value)}
+					disabled={!mayPublish}
+					description={mayPublish
+						? undefined
+						: "Proposez le chat à l'adoption depuis sa fiche : la communication valide"}
 				/>
 			</div>
 		</SectionCard>

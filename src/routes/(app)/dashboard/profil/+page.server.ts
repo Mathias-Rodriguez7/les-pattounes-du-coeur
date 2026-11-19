@@ -57,6 +57,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 				actif: volunteer.actif,
 				breakStart: volunteer.breakStart,
 				breakEnd: volunteer.breakEnd,
+				weeklyDigest: volunteer.weeklyDigest,
 				createdAt: volunteer.createdAt
 			},
 			isAuthenticated: true
@@ -293,6 +294,20 @@ export const actions: Actions = {
 			message: result.startsNow ? 'Vous êtes en pause' : 'Pause enregistrée',
 			action: 'setBreak'
 		};
+	},
+
+	// Le récapitulatif du lundi : le recevoir, ou non
+	setWeeklyDigest: async ({ request, locals }) => {
+		if (!locals.user) return fail(401, { success: false, error: 'Non connecté' });
+		const value = (await request.formData()).get('weeklyDigest');
+		if (value !== 'true' && value !== 'false') {
+			return fail(400, { success: false, error: 'Choix invalide' });
+		}
+		await prisma.volunteer.update({
+			where: { id: locals.user.id },
+			data: { weeklyDigest: value === 'true' }
+		});
+		return { success: true };
 	},
 
 	cancelBreak: async ({ locals }) => {

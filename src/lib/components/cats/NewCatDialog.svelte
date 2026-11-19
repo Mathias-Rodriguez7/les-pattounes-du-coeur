@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { canPublishCats } from '#lib/permissions/publication.ts';
 	import { untrack } from 'svelte';
 	import { createCatSchema } from '#lib/schemas/cat.ts';
 	import { getFieldError, flattenErrors } from '#lib/utils/zodErrors.ts';
@@ -43,7 +45,9 @@
 	let sex = $state('UNKNOWN');
 	let birthDate = $state<Date | undefined>(undefined);
 	let status = $state('AVAILABLE');
-	let isVisible = $state(true);
+	// Visible tout de suite : seulement l'admin et la communication (les autres proposent le chat)
+	const mayPublish = $derived(canPublishCats(page.data.user?.role));
+	let isVisible = $state(false);
 
 	// Profil
 	let color = $state('');
@@ -115,7 +119,8 @@
 		sex = 'UNKNOWN';
 		birthDate = undefined;
 		status = 'AVAILABLE';
-		isVisible = true;
+		// Comme avant pour l'admin et la communication (visible) ; masqué pour les autres
+		isVisible = mayPublish;
 
 		color = '';
 		hairLength = '';
@@ -226,16 +231,18 @@
 							disabled={isSubmitting}
 						/>
 
-						<SwitchField
-							id="isVisible"
-							name="isVisible"
-							label="Visibilité"
-							checked={isVisible}
-							checkedLabel="✓ Visible"
-							uncheckedLabel="✗ Masqué"
-							onChange={(value) => (isVisible = value)}
-							disabled={isSubmitting}
-						/>
+						{#if mayPublish}
+							<SwitchField
+								id="isVisible"
+								name="isVisible"
+								label="Visibilité"
+								checked={isVisible}
+								checkedLabel="✓ Visible"
+								uncheckedLabel="✗ Masqué"
+								onChange={(value) => (isVisible = value)}
+								disabled={isSubmitting}
+							/>
+						{/if}
 					</div>
 				</SectionCard>
 

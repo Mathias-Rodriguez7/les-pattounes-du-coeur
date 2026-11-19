@@ -6,13 +6,19 @@
 	import * as Table from '#lib/components/ui/table/index.js';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Switch } from '#lib/components/ui/switch/index.js';
+	import SegmentedTabs from '#lib/components/tabs/SegmentedTabs.svelte';
+	import { Megaphone, Send, UserRound, Users } from '@lucide/svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import { getAgeBadge } from '#lib/utils/age.ts';
 	import NewCatDialog from '#lib/components/cats/NewCatDialog.svelte';
 	import NewCatKindDialog from '#lib/components/cats/free/NewCatKindDialog.svelte';
 	import NewFreeCatDialog from '#lib/components/cats/free/NewFreeCatDialog.svelte';
 	import { catDisplayName } from '#lib/utils/catHelpers.ts';
+	import {
+		canPublishCats,
+		PUBLICATION_STATE,
+		publicationState
+	} from '#lib/permissions/publication.ts';
 	import CatPanel from '#lib/components/cats/CatPanel.svelte';
 	import CatRow from '#lib/components/cats/CatRow.svelte';
 	import { ASSO_CAT_STATUS, CAT_AGE, CAT_SEX } from '#lib/constants/cat.js';
@@ -82,15 +88,76 @@
 
 	// « À finaliser » n'est pas un statut de chat : une valeur à part, ajoutée aux statuts
 	const ADOPTION_DUE = 'ADOPTION_DUE';
-	const statusOptions = [
+	// « Publication à valider » : les chats proposés à l'adoption (admin, communication)
+	const PUBLICATION_DUE = 'PUBLICATION_DUE';
+	const statusOptions = $derived([
 		...ASSO_CAT_STATUS,
-		{ value: ADOPTION_DUE, label: 'Adoption à finaliser' }
-	];
+		{ value: ADOPTION_DUE, label: 'Adoption à finaliser' },
+		...(canPublishCats(data.user?.role)
+			? [{ value: PUBLICATION_DUE, label: 'Publication à valider' }]
+			: [])
+	]);
 
-	// ===== PORTÉE : admin = interrupteur, autres = toujours « mes chats » =====
-	let showAll = $state(false);
-	const effectiveShowAll = $derived(data.isAdmin && showAll);
-	const scopedCats = $derived(effectiveShowAll ? cats : cats.filter((c) => c.isMine));
+	// ===== PORTÉE : les onglets en haut de la liste =====
+	// Admin : « Mes chats » / « Tous » / « Publication » ; manager : « Mes chats » / « Publication »
+	// (où en sont ses demandes : refusées, en attente, publiées ; l'admin peut afficher celles des
+	// autres bénévoles avec les filtres) ; communication : « Mes chats » / « À publier »
+	type View = 'MINE' | 'ALL' | 'PUBLISH' | 'PUBLICATION';
+	let view = $state<View>('MINE');
+	const isCommunication = $derived(data.user?.role === 'COMMUNICATION');
+	const isManager = $derived(data.user?.role === 'MANAGER');
+	const effectiveShowAll = $derived(data.isAdmin && view === 'ALL');
+	const showPublish = $derived(isCommunication && view === 'PUBLISH');
+	const showPublication = $derived((isManager || data.isAdmin) && view === 'PUBLICATION');
+
+	// Filtres de l'onglet « Publication » : l'état, et (admin) les chats des autres bénévoles
+	let pubStateFilter = $state('');
+	const PUB_STATE_OPTIONS = (['REFUSED', 'PENDING', 'PUBLISHED'] as const).map((value) => ({
+		value,
+		label: PUBLICATION_STATE[value].label
+	}));
+	let pubOwnerFilter = $state('');
+	const PUB_OWNER_OPTIONS = [{ value: 'ALL', label: 'Toutes les bénévoles' }];
+
+	// Le plus ancien d'abord : il attend depuis le plus longtemps
+	const toPublish = $derived(
+		cats
+			.filter((c) => !!c.publicationRequestedAt)
+			.sort(
+				(a, b) =>
+					new Date(a.publicationRequestedAt!).getTime() -
+					new Date(b.publicationRequestedAt!).getTime()
+			)
+	);
+
+	// Les demandes de publication : refusées d'abord (à reprendre), puis en attente (la plus
+	// ancienne d'abord), puis publiées. Ses chats, ou ceux de toutes (admin, avec le filtre)
+	const requestedTime = (c: (typeof cats)[number]) =>
+		c.publicationRequestedAt ? new Date(c.publicationRequestedAt).getTime() : 0;
+	const publications = $derived(
+		cats
+			.filter(
+				(c) => publicationState(c) && (c.isMine || (data.isAdmin && pubOwnerFilter === 'ALL'))
+			)
+			.sort(
+				(a, b) =>
+					PUBLICATION_STATE[publicationState(a)!].rank -
+						PUBLICATION_STATE[publicationState(b)!].rank || requestedTime(a) - requestedTime(b)
+			)
+	);
+	const refusedCount = $derived(
+		cats.filter((c) => c.isMine && publicationState(c) === 'REFUSED').length
+	);
+
+	const scopedCats = $derived(
+		showPublish
+			? toPublish
+			: showPublication
+				? publications
+				: effectiveShowAll
+					? cats
+					: cats.filter((c) => c.isMine)
+	);
 	// Les statistiques ne parlent que des chats asso
 	const scopedAssoCats = $derived(scopedCats.filter((c) => kindOf(c) === 'ASSO'));
 
@@ -101,6 +168,8 @@
 		ageFilter = '';
 		searchQuery = '';
 		volunteerFilter = '';
+		pubStateFilter = '';
+		pubOwnerFilter = '';
 	}
 
 	function clearFilters() {
@@ -110,6 +179,8 @@
 		ageFilter = '';
 		searchQuery = '';
 		volunteerFilter = '';
+		pubStateFilter = '';
+		pubOwnerFilter = '';
 	}
 
 	function selectCat(catId: string) {
@@ -139,7 +210,11 @@
 			return;
 		}
 		// L'admin est sur « Mes chats » et ce chat n'en fait pas partie : on passe sur « Tous »
-		if (data.isAdmin && !cat.isMine) showAll = true;
+		if (data.isAdmin && !cat.isMine) view = 'ALL';
+		// Une COMMUNICATION, sur un chat proposé qui n'est pas le sien : « À publier »
+		else if (isCommunication && !cat.isMine && cat.publicationRequestedAt) view = 'PUBLISH';
+		// Sur « À publier » / « Publication », un chat qui n'y est pas : retour sur « Mes chats »
+		else if (view !== 'ALL' && !scopedCats.some((c) => c.id === id)) view = 'MINE';
 		if (!filteredCats.some((c) => c.id === id)) clearFilters();
 		// Un chat libre : on passe sur « Chats libres »
 		kindFilter = kindOf(cat);
@@ -190,9 +265,15 @@
 	const filteredCats = $derived.by(() => {
 		let filtered = scopedCats.filter((c) => kindOf(c) === kindFilter);
 
+		// Onglet « Publication » : on filtre sur l'état de la demande, pas sur le statut
+		if (showPublication) {
+			if (pubStateFilter) filtered = filtered.filter((c) => publicationState(c) === pubStateFilter);
+		}
 		// Le statut n'a de sens que pour les chats asso (un chat libre est toujours « Libre »)
-		if (kindFilter === 'ASSO' && statusFilter === ADOPTION_DUE) {
+		else if (kindFilter === 'ASSO' && statusFilter === ADOPTION_DUE) {
 			filtered = filtered.filter((c) => getAdoptionTone(c) === 'DUE');
+		} else if (kindFilter === 'ASSO' && statusFilter === PUBLICATION_DUE) {
+			filtered = filtered.filter((c) => !!c.publicationRequestedAt);
 		} else if (kindFilter === 'ASSO' && statusFilter) {
 			filtered = filtered.filter((c) => c.status === statusFilter);
 		}
@@ -221,11 +302,66 @@
 	// Inclut le statut : sinon « Aucun chat » s'affichait alors qu'un filtre était actif
 	const hasActiveFilters = $derived(
 		kindFilter !== 'ASSO' ||
-			statusFilter !== '' ||
+			(!showPublication && statusFilter !== '') ||
+			(showPublication && (!!pubStateFilter || !!pubOwnerFilter)) ||
 			!!sexFilter ||
 			!!ageFilter ||
 			!!searchQuery.trim() ||
 			(effectiveShowAll && !!volunteerFilter)
+	);
+
+	// « + Nouveau chat » fait ~140 px : s'il ne tient plus à côté des onglets, on garde le « + »
+	// (mesuré, car la place dépend du nombre d'onglets et de leurs nombres)
+	const NEW_BUTTON_FULL_WIDTH = 150;
+	let headerWidth = $state(0);
+	let tabsWidth = $state(0);
+	const compactNewButton = $derived(
+		headerWidth > 0 && headerWidth - tabsWidth < NEW_BUTTON_FULL_WIDTH
+	);
+
+	// ===== ONGLETS : ils servent aussi de titre (le nombre remplace « Mes chats (4) ») =====
+	// L'onglet ouvert compte la liste filtrée ; l'autre, tout ce qu'il contient
+	const kindCount = (list: typeof cats) => list.filter((c) => kindOf(c) === kindFilter).length;
+	const countFor = (key: View, total: number) => (view === key ? filteredCats.length : total);
+	const libres = $derived(kindFilter === 'FREE' ? ' libres' : '');
+	const mineTab = $derived({
+		key: 'MINE' as View,
+		label: `Mes chats${libres}`,
+		icon: UserRound,
+		count: countFor('MINE', kindCount(cats.filter((c) => c.isMine)))
+	});
+	// Communication : les chats proposés à l'adoption, à publier ou refuser
+	const publishTab = $derived({
+		key: 'PUBLISH' as View,
+		label: 'À publier',
+		icon: Megaphone,
+		count: countFor('PUBLISH', toPublish.length),
+		countClass: 'bg-sky-100 text-sky-800'
+	});
+	// Admin et manager : où en sont les demandes. La pastille montre ce qui demande d'agir :
+	// les demandes à valider (admin), ses demandes refusées (manager)
+	const publicationTab = $derived({
+		key: 'PUBLICATION' as View,
+		label: 'Publication',
+		icon: Send,
+		count: data.isAdmin ? toPublish.length : refusedCount,
+		countClass: data.isAdmin ? 'bg-sky-100 text-sky-800' : PUBLICATION_STATE.REFUSED.badgeClass
+	});
+	const tabs = $derived(
+		data.isAdmin
+			? [
+					mineTab,
+					{
+						key: 'ALL' as View,
+						label: kindFilter === 'FREE' ? 'Tous les libres' : 'Tous',
+						icon: Users,
+						count: countFor('ALL', kindCount(cats))
+					},
+					publicationTab
+				]
+			: isCommunication
+				? [mineTab, publishTab]
+				: [mineTab, publicationTab]
 	);
 </script>
 
@@ -247,30 +383,37 @@
 						<Card.Header
 							class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2"
 						>
-							<div class="flex items-center gap-3">
-								<Card.Title class="text-xl font-bold sm:text-2xl">
-									{effectiveShowAll ? 'Tous les chats' : 'Mes chats'}{kindFilter === 'FREE'
-										? ' libres'
-										: ''}
-									<span class="text-base font-normal text-muted-foreground">
-										({filteredCats.length})
-									</span>
-								</Card.Title>
-								{#if data.isAdmin}
-									<Switch
-										id="scope-toggle"
-										bind:checked={showAll}
-										onCheckedChange={resetView}
-										aria-label="Afficher tous les chats de l'association"
+							<!-- Les onglets font office de titre ; le titre reste pour les lecteurs d'écran -->
+							<Card.Title class="sr-only">Chats</Card.Title>
+							<div
+								class="flex w-full items-center justify-between gap-2"
+								bind:clientWidth={headerWidth}
+							>
+								<div class="min-w-0 overflow-x-auto" bind:clientWidth={tabsWidth}>
+									<SegmentedTabs
+										label="Chats affichés"
+										bind:value={view}
+										onChange={(key) => {
+											// « À publier » et « Publication » ne concernent que les chats asso
+											if (key === 'PUBLISH' || key === 'PUBLICATION') kindFilter = 'ASSO';
+											resetView();
+										}}
+										{tabs}
 									/>
-								{/if}
-							</div>
+								</div>
 
-							<Button class="rounded-2xl" size="sm" onclick={() => (newCatKindOpen = true)}>
-								<Icon name="plus" class="h-4 w-4" />
-								<span class="hidden sm:inline">Nouveau chat</span>
-								<span class="sm:hidden">Ajouter</span>
-							</Button>
+								<!-- Pas la place à côté des onglets : le bouton devient un simple « + » -->
+								<Button
+									class="rounded-2xl"
+									size="sm"
+									aria-label="Nouveau chat"
+									title="Nouveau chat"
+									onclick={() => (newCatKindOpen = true)}
+								>
+									<Icon name="plus" class="h-4 w-4" />
+									{#if !compactNewButton}<span>Nouveau chat</span>{/if}
+								</Button>
+							</div>
 						</Card.Header>
 
 						<Card.Content class="flex min-h-0 flex-1 flex-col gap-3">
@@ -282,22 +425,44 @@
 								onReset={clearFilters}
 							>
 								{#snippet filters()}
-									<SelectField
-										id="cat-filter-kind"
-										label=""
-										options={KIND_OPTIONS}
-										bind:value={kindFilter}
-										class="w-full sm:w-36"
-									/>
-									{#if kindFilter === 'ASSO'}
+									{#if showPublication}
 										<SelectField
-											id="cat-filter-status"
+											id="cat-filter-pub-state"
 											label=""
-											options={statusOptions}
-											bind:value={statusFilter}
-											placeholder="Statut"
+											options={PUB_STATE_OPTIONS}
+											bind:value={pubStateFilter}
+											placeholder="État"
 											class="w-full sm:w-32"
 										/>
+										<!-- Admin : afficher aussi les chats des autres (ex : valider leurs demandes) -->
+										{#if data.isAdmin}
+											<SelectField
+												id="cat-filter-pub-owner"
+												label=""
+												options={PUB_OWNER_OPTIONS}
+												bind:value={pubOwnerFilter}
+												placeholder="Mes chats"
+												class="w-full sm:w-44"
+											/>
+										{/if}
+									{:else}
+										<SelectField
+											id="cat-filter-kind"
+											label=""
+											options={KIND_OPTIONS}
+											bind:value={kindFilter}
+											class="w-full sm:w-36"
+										/>
+										{#if kindFilter === 'ASSO'}
+											<SelectField
+												id="cat-filter-status"
+												label=""
+												options={statusOptions}
+												bind:value={statusFilter}
+												placeholder="Statut"
+												class="w-full sm:w-32"
+											/>
+										{/if}
 									{/if}
 									<SelectField
 										id="cat-filter-sex"
@@ -356,6 +521,7 @@
 												{cat}
 												onclick={() => handleSelectCat(cat.id)}
 												isSelected={selectedCatId === cat.id}
+												publication={showPublication ? publicationState(cat) : null}
 											/>
 										{:else}
 											<Table.Row>

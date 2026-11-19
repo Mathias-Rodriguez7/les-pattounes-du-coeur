@@ -45,6 +45,12 @@ export const variables = defineEnvVars({
 	S3_BUCKET_PUBLIC: { schema: required },
 	S3_BUCKET_PRIVATE: { schema: required },
 
+	// --- Récapitulatif du lundi (tâche planifiée sur le serveur) ---
+	// L'adresse du site, pour les liens des emails (ex : https://lespattounesducoeur.fr)
+	SITE_URL: { schema: optional },
+	// La clé que la tâche planifiée envoie : sans elle, l'envoi est refusé
+	CRON_SECRET: { schema: optional },
+
 	// --- Public (lisible par le navigateur) ---
 	PUBLIC_MEDIA_BASE_URL: { public: true, schema: required }
 });

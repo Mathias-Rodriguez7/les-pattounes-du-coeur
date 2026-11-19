@@ -218,3 +218,80 @@ L'équipe des Pattounes du Cœur`,
 			<p>L'équipe des Pattounes du Cœur</p>`
 	});
 }
+
+const DIGEST_URGENCY = {
+	URGENT: { label: 'Urgent', color: '#b91c1c' },
+	WEEK: { label: 'Cette semaine', color: '#b45309' },
+	WATCH: { label: 'À surveiller', color: '#475569' }
+} as const;
+
+/** Le récapitulatif du lundi : ses tâches, rangées par urgence, chacune avec son lien */
+export async function sendWeeklyDigestEmail({
+	to,
+	firstName,
+	sections,
+	dashboardUrl,
+	profileUrl
+}: {
+	to: string;
+	firstName: string;
+	sections: {
+		title: string;
+		tasks: { title: string; detail: string; urgency: keyof typeof DIGEST_URGENCY; url: string }[];
+	}[];
+	dashboardUrl: string;
+	profileUrl: string;
+}) {
+	const total = sections.reduce((sum, section) => sum + section.tasks.length, 0);
+	const urgent = sections.reduce(
+		(sum, section) => sum + section.tasks.filter((task) => task.urgency === 'URGENT').length,
+		0
+	);
+	const subject =
+		urgent > 0
+			? `Vos tâches de la semaine : ${urgent} urgente${urgent > 1 ? 's' : ''} sur ${total}`
+			: `Vos tâches de la semaine (${total})`;
+
+	const text = `Bonjour ${firstName},
+
+Voici ce qui vous attend cette semaine aux Pattounes du Cœur.
+
+${sections
+	.map(
+		(section) =>
+			`${section.title.toUpperCase()}\n${section.tasks
+				.map(
+					(task) =>
+						`- [${DIGEST_URGENCY[task.urgency].label}] ${task.title} (${task.detail})\n  ${task.url}`
+				)
+				.join('\n')}`
+	)
+	.join('\n\n')}
+
+Tout votre tableau de bord : ${dashboardUrl}
+
+Pour ne plus recevoir ce récapitulatif : ${profileUrl}`;
+
+	const html = `<p>Bonjour ${escapeHtml(firstName)},</p>
+		<p>Voici ce qui vous attend cette semaine aux Pattounes du Cœur.</p>
+		${sections
+			.map(
+				(section) => `<h3 style="margin:20px 0 8px;font-size:16px">${escapeHtml(section.title)}</h3>
+				<table role="presentation" style="border-collapse:collapse;width:100%">
+				${section.tasks
+					.map(
+						(task) => `<tr><td style="padding:8px 0;border-top:1px solid #eee">
+							<span style="font-size:12px;font-weight:bold;color:${DIGEST_URGENCY[task.urgency].color}">${DIGEST_URGENCY[task.urgency].label}</span><br>
+							<a href="${escapeHtml(task.url)}" style="color:#111;font-weight:bold;text-decoration:none">${escapeHtml(task.title)}</a><br>
+							<span style="color:#666;font-size:13px">${escapeHtml(task.detail)}</span>
+						</td></tr>`
+					)
+					.join('')}
+				</table>`
+			)
+			.join('')}
+		<p style="margin-top:24px"><a href="${escapeHtml(dashboardUrl)}" style="display:inline-block;padding:10px 18px;background:#dd6476;color:#ffffff;border-radius:999px;text-decoration:none;font-weight:bold">Ouvrir mon tableau de bord</a></p>
+		<p style="color:#666;font-size:12px">Pour ne plus recevoir ce récapitulatif, décochez-le dans <a href="${escapeHtml(profileUrl)}">votre profil</a>.</p>`;
+
+	await transporter.sendMail({ from: SMTP_FROM, to, subject, text, html });
+}

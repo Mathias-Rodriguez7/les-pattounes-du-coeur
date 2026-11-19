@@ -1,24 +1,15 @@
 import { tick } from 'svelte';
 import { page } from '$app/state';
 import { replaceState } from '$app/navigation';
+import { ENTITY_PARAM } from './entityPages.ts';
 
 // =====================================================================
 // Navigation entre les fiches : un nom cliquable ouvre la page du chat, de la bénévole
 // ou de la FA, AVEC son panneau ouvert. L'élément voulu passe dans l'adresse : ?id=…
 // =====================================================================
 
-export type EntityKind = 'cat' | 'volunteer' | 'host' | 'sos';
-
-/** Le paramètre de l'adresse qui porte l'élément à ouvrir */
-export const ENTITY_PARAM = 'id';
-
-/** La page de chaque sorte de fiche (chemins SK3 : sans « / » au début) */
-export const ENTITY_PAGES = {
-	cat: 'dashboard/chat',
-	volunteer: 'dashboard/benevole',
-	host: 'dashboard/famille_d_accueil',
-	sos: 'dashboard/sos'
-} as const;
+// La page de chaque fiche : dans entityPages.ts (le serveur s'en sert aussi)
+export { ENTITY_PAGES, ENTITY_PARAM, type EntityKind } from './entityPages.ts';
 
 /** L'élément demandé par l'adresse (?id=…), ou null */
 export function linkedId(): string | null {

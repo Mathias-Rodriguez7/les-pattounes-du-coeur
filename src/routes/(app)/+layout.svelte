@@ -14,7 +14,8 @@
 	let mobileMenuOpen = $state(false);
 	// Les pastilles « à faire » de la sidebar (calculées par le layout serveur)
 	const badges = $derived({
-		'dashboard/chat': data.dueAdoptionsCount,
+		// Ses adoptions à finaliser, et les chats à publier (admin, communication)
+		'dashboard/chat': data.dueAdoptionsCount + data.catsToPublishCount,
 		'dashboard/sos': data.newSosCount
 	} as const);
 	const hasBadges = $derived(Object.values(badges).some((count) => count > 0));

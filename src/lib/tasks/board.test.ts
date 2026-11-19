@@ -26,7 +26,7 @@ describe('buildBoard', () => {
 	it('le tableau Admin : SOS, placements, candidatures', () => {
 		const board = buildBoard([], 'ADMIN');
 		expect(cards(board)).toEqual(['sos', 'cats', 'applications']);
-		expect(rows(board, 'cats')).toHaveLength(5);
+		expect(rows(board, 'cats')).toHaveLength(6);
 		expect(rows(board, 'applications')).toEqual([
 			'apply-host-assign',
 			'apply-volunteer',
@@ -39,12 +39,12 @@ describe('buildBoard', () => {
 	it("le tableau d'une bénévole : SOS, ses chats, ses adoptions", () => {
 		const board = buildBoard([], 'VOLUNTEER', { role: 'MANAGER' });
 		expect(cards(board)).toEqual(['sos', 'cats', 'health', 'adoptions', 'applications']);
-		expect(rows(board, 'cats')).toEqual(['cat-profile']);
+		expect(rows(board, 'cats')).toEqual(['cat-profile', 'cat-ready']);
 	});
 
 	it('une bénévole communication a aussi « À mettre en avant »', () => {
 		const board = buildBoard([], 'VOLUNTEER', { role: 'COMMUNICATION' });
-		expect(rows(board, 'cats')).toEqual(['cat-profile', 'cat-promote']);
+		expect(rows(board, 'cats')).toEqual(['cat-profile', 'cat-ready', 'cat-publish', 'cat-promote']);
 	});
 
 	it('hideEmpty : seulement les lignes (et les cartes) qui ont des tâches', () => {

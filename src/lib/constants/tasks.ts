@@ -41,7 +41,9 @@ export type TaskRule =
 	| 'C2' // proposition à des FA sans réponse
 	| 'C3' // chat sans bénévole
 	| 'C4' // fiche incomplète
+	| 'C5' // chat prêt : le proposer à l'adoption
 	| 'C6' // chat adoptable sans demande
+	| 'C7' // publication à valider
 	| 'V1' // rappel de vaccin
 	| 'V2' // stérilisation à prévoir
 	| 'V4' // identification à faire
@@ -64,7 +66,9 @@ export const TASK_TAG = {
 	C2: 'Chat',
 	C3: 'Chat',
 	C4: 'Fiche',
+	C5: 'Chat',
 	C6: 'Chat',
+	C7: 'Publication',
 	V1: 'Santé',
 	V2: 'Santé',
 	V4: 'Santé',
@@ -107,6 +111,10 @@ export const TASK_DELAYS = {
 	identificationAge: 42 * DAY,
 	/** V1 : on prévient avant la date de rappel d'un vaccin */
 	vaccineNotice: 14 * DAY,
+	/** C5 : un chat en gestion depuis ce temps, soins à jour : le proposer à l'adoption */
+	publicationReady: 28 * DAY,
+	/** C5 : un chaton, au moins 8 semaines */
+	kittenPublicationAge: 56 * DAY,
 	/** F5 : une FA indisponible depuis longtemps : on lui redemande */
 	hostUnavailable: 91 * DAY
 } as const;
@@ -167,6 +175,7 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 				{ key: 'cat-proposal', label: 'Propositions sans réponse', rules: ['C2'] },
 				{ key: 'cat-volunteer', label: 'Sans bénévole', rules: ['C3'] },
 				{ key: 'cat-promote', label: 'À mettre en avant', rules: ['C6'] },
+				{ key: 'cat-publish', label: 'Publications à valider', rules: ['C7'] },
 				{ key: 'host-unavailable', label: 'FA indisponibles depuis 3 mois', rules: ['F5'] }
 			]
 		},
@@ -196,6 +205,13 @@ export const TASK_BOARDS: Record<TaskBoardKind, TaskBoardCard[]> = {
 			title: 'Chats',
 			rows: [
 				{ key: 'cat-profile', label: 'Fiches incomplètes', rules: ['C4'] },
+				{ key: 'cat-ready', label: "À proposer à l'adoption", rules: ['C5'] },
+				{
+					key: 'cat-publish',
+					label: 'Publications à valider',
+					rules: ['C7'],
+					onlyRole: 'COMMUNICATION'
+				},
 				{ key: 'cat-promote', label: 'À mettre en avant', rules: ['C6'], onlyRole: 'COMMUNICATION' }
 			]
 		},

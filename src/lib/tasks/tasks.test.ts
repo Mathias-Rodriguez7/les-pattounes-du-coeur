@@ -199,6 +199,45 @@ describe('Chats', () => {
 	});
 });
 
+describe('Publication', () => {
+	// Un chat prêt : soins à jour, en gestion depuis 30 jours, pas encore sur le site
+	const ready = (overrides: Partial<TaskCat> = {}) =>
+		cat({ isDewormed: true, isFivTested: true, isVisible: false, ...overrides });
+
+	it('C5 : soins à jour depuis 4 semaines → le proposer ; sinon rien', () => {
+		expect(rules({ ...empty(), cats: [ready()] })).toEqual(['C5:WATCH']);
+		expect(rules({ ...empty(), cats: [ready({ isFivTested: false })] })).toEqual([]);
+		expect(rules({ ...empty(), cats: [ready({ vaccinate: 'PARTIAL' })] })).toEqual([]);
+		expect(rules({ ...empty(), cats: [ready({ createdAt: ago(10 * DAY) })] })).toEqual([]);
+	});
+
+	it("C5 : un chaton d'au moins 8 semaines", () => {
+		expect(rules({ ...empty(), cats: [ready({ birthDate: ago(40 * DAY) })] })).not.toContain(
+			'C5:WATCH'
+		);
+		expect(rules({ ...empty(), cats: [ready({ birthDate: ago(60 * DAY) })] })).toContain(
+			'C5:WATCH'
+		);
+	});
+
+	it("C7 : proposé → à valider par l'admin et la communication (plus de C5)", () => {
+		const tasks = buildTasks(
+			{ ...empty(), cats: [ready({ publicationRequestedAt: ago(2 * DAY) })] },
+			NOW
+		);
+		expect(tasks.map((t) => t.rule)).toEqual(['C7']);
+		expect(tasks[0].audience.kind).toBe('ADMIN_COMMUNICATION');
+	});
+
+	it('C5 après un refus : le mot de l’équipe', () => {
+		const [task] = buildTasks(
+			{ ...empty(), cats: [ready({ publicationRefusalNote: 'Il manque des photos' })] },
+			NOW
+		);
+		expect(task.detail).toBe('Refusée : Il manque des photos');
+	});
+});
+
 describe('Santé', () => {
 	it('V2 : un chaton, 3 semaines avant ses 6 mois ; un adulte non stérilisé, tout de suite', () => {
 		const kitten = (days: number) => cat({ isSterilized: false, birthDate: ago(days * DAY) });

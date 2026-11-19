@@ -110,6 +110,11 @@ export type TaskCat = {
 	/** Stérilisé (par l'asso, ou déjà stérilisé à son arrivée) */
 	isSterilized: boolean;
 	isIdentified: boolean;
+	isDewormed?: boolean;
+	isFivTested?: boolean;
+	/** Le circuit de publication : proposé le…, refusé le… (avec un mot) */
+	publicationRequestedAt?: Date | null;
+	publicationRefusalNote?: string | null;
 	/** Le dernier vaccin : sa date de rappel, si elle a été notée */
 	vaccineDueAt: Date | null;
 	volunteerIds: string[];
@@ -443,6 +448,53 @@ function catTasks(list: TaskCat[], now: Date): Task[] {
 				link,
 				action: 'Compléter',
 				since: cat.createdAt
+			});
+		}
+
+		// C5 : en gestion depuis un moment, soins à jour, pas encore sur le site : le proposer
+		const kittenOk =
+			!cat.birthDate || now.getTime() - cat.birthDate.getTime() >= TASK_DELAYS.kittenPublicationAge;
+		if (
+			!cat.isVisible &&
+			!cat.publicationRequestedAt &&
+			age >= TASK_DELAYS.publicationReady &&
+			cat.isSterilized &&
+			cat.vaccinate === 'YES' &&
+			cat.isDewormed &&
+			cat.isFivTested &&
+			kittenOk
+		) {
+			tasks.push({
+				id: `C5:${cat.id}`,
+				rule: 'C5',
+				title: `Proposer ${cat.name} à l'adoption ?`,
+				detail: cat.publicationRefusalNote
+					? `Refusée : ${cat.publicationRefusalNote}`
+					: 'Soins à jour, pas encore sur le site',
+				short: cat.name,
+				badge: null,
+				urgency: 'WATCH',
+				audience: catAudience(cat.volunteerIds),
+				link,
+				action: 'Proposer',
+				since: cat.createdAt
+			});
+		}
+
+		// C7 : une bénévole l'a proposé : l'admin ou la communication valide
+		if (cat.publicationRequestedAt && !cat.isVisible) {
+			tasks.push({
+				id: `C7:${cat.id}`,
+				rule: 'C7',
+				title: `Valider la publication de ${cat.name}`,
+				detail: `Proposé le ${formatDay(cat.publicationRequestedAt)}`,
+				short: cat.name,
+				badge: formatShort(now.getTime() - cat.publicationRequestedAt.getTime()),
+				urgency: 'WEEK',
+				audience: { kind: 'ADMIN_COMMUNICATION' },
+				link,
+				action: 'Valider',
+				since: cat.publicationRequestedAt
 			});
 		}
 

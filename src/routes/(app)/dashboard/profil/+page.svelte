@@ -9,6 +9,7 @@
 	import { PASSWORD_RULES } from '#lib/schemas/password.ts';
 	import ProfileHeader from '#lib/components/profile/ProfileHeader.svelte';
 	import ProfileBreakCard from '#lib/components/profile/ProfileBreakCard.svelte';
+	import ProfileDigestCard from '#lib/components/profile/ProfileDigestCard.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import {
@@ -299,6 +300,9 @@
 						error={errorFor('setBreak', 'breakStart') || errorFor('setBreak', 'breakEnd')}
 					/>
 				{/if}
+
+				<!-- NOTIFICATIONS : le récapitulatif du lundi -->
+				<ProfileDigestCard weeklyDigest={data.volunteer.weeklyDigest} />
 
 				<!-- SÉCURITÉ -->
 				<Card.Root class="gap-0 self-start py-0">

@@ -10,6 +10,8 @@ import { z } from 'zod';
 import { deleteFiles } from '#lib/server/storage.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole } from '#lib/server/permissions/roles.ts';
+import { canManageCat } from '#lib/server/permissions/cat.ts';
+import { canPublishCats } from '#lib/permissions/publication.ts';
 
 const CAT_FIELDS = [
 	'name',
@@ -133,6 +135,11 @@ export async function createCat({ request, locals }: { request: Request; locals:
 			}
 		}
 
+		// Visible sur le site : seulement l'admin et la communication (sinon, la bénévole
+		// propose le chat à l'adoption : le circuit de publication)
+		const mayPublish = canPublishCats(locals.user.role);
+		if (!mayPublish) validatedData.isVisible = false;
+
 		const catData = {
 			catNumber: validatedData.catNumber,
 			name: validatedData.name,
@@ -214,10 +221,18 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 
 		const validatedData: UpdateCatInput = result.data;
 
+		// Le droit se vérifie sur CE chat (avant : il suffisait d'avoir un rôle)
+		if (!(await canManageCat(locals.user, catId))) {
+			return { success: false, error: "Vous n'avez pas le droit de modifier ce chat", errors: {} };
+		}
+
 		const existingCat = await prisma.cat.findUnique({ where: { id: catId } });
 		if (!existingCat) {
 			return { success: false, error: 'Chat non trouvé', errors: {} };
 		}
+
+		// Visible sur le site : seulement l'admin et la communication ; les autres ne la changent pas
+		if (!canPublishCats(locals.user.role)) validatedData.isVisible = existingCat.isVisible;
 
 		// On n'entre dans « Libre » (et on n'en sort) que par les actions des chats libres
 		if (

@@ -30,6 +30,7 @@
 	import CatCompatibilityCard from './profile/CatCompatibilityCard.svelte';
 	import CatHealthCard from './profile/CatHealthCard.svelte';
 	import FreeCatCards from './free/FreeCatCards.svelte';
+	import CatPublicationBanner from './panel/CatPublicationBanner.svelte';
 
 	interface Props {
 		cat: CatFull | null;
@@ -125,7 +126,8 @@
 	// ===== DROITS =====
 	// Même règle que le serveur : admin, ou bénévole assigné à ce chat
 	// (maladies, documents, soins, adoption : tout ce qui concerne le chat)
-	const canManageCat = $derived(isAdmin || !!cat?.isMine);
+	// (le load le calcule : une COMMUNICATION peut aussi modifier un chat qu'elle doit publier)
+	const canManageCat = $derived(cat?.canManage ?? (isAdmin || !!cat?.isMine));
 
 	// ===== ADOPTION =====
 	// La section 2 affiche l'adoption à la place des placements si le chat est adopté.
@@ -189,6 +191,9 @@
 					</Card.Content>
 				{:else}
 					<Card.Content class="flex flex-col gap-4 text-sm">
+						<!-- Le circuit de publication : proposer, valider, ou le mot d'un refus -->
+						<CatPublicationBanner {cat} canManage={canManageCat} />
+
 						<Separator />
 
 						<!-- ============================================================ -->

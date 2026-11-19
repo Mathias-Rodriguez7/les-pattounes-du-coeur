@@ -14,12 +14,20 @@
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { getAdoptionTone } from '#lib/utils/adoption.ts';
 	import { ADOPTION_TONE } from '#lib/constants/adoption.ts';
+	import { PUBLICATION_STATE, type PublicationState } from '#lib/permissions/publication.ts';
 
 	const {
 		cat,
 		onclick,
-		isSelected = false
-	}: { cat: CatFull; onclick: () => void; isSelected?: boolean } = $props();
+		isSelected = false,
+		publication = null
+	}: {
+		cat: CatFull;
+		onclick: () => void;
+		isSelected?: boolean;
+		/** Onglet « Publication » : où en est la demande (petit badge sous le nom) */
+		publication?: PublicationState | null;
+	} = $props();
 
 	// $derived : recalculés quand `cat` change (ex : après un rechargement des données)
 	const sexIcon = $derived(getSexIcon(cat.sex));
@@ -62,10 +70,19 @@
 	<!-- Nom, et dessous le N° (et la ville du relâchage pour un chat libre) -->
 	<Table.Cell class="max-w-32 sm:max-w-44" title={tone?.label}>
 		<span class="block truncate font-medium {tone?.textClass ?? ''}">{catDisplayName(cat)}</span>
-		<span class="block truncate text-xs text-muted-foreground">
-			{[cat.catNumber, cat.status === 'FREE' ? cat.freeInfo?.city : null]
-				.filter(Boolean)
-				.join(' · ') || '—'}
+		<span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+			<span class="truncate">
+				{[cat.catNumber, cat.status === 'FREE' ? cat.freeInfo?.city : null]
+					.filter(Boolean)
+					.join(' · ') || '—'}
+			</span>
+			{#if publication}
+				<span
+					class="shrink-0 rounded-md px-1.5 font-medium {PUBLICATION_STATE[publication].badgeClass}"
+				>
+					{PUBLICATION_STATE[publication].label}
+				</span>
+			{/if}
 		</span>
 		{#if tone}
 			<span class="sr-only">({tone.label})</span>

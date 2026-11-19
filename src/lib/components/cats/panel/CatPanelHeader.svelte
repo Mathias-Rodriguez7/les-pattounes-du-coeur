@@ -88,16 +88,14 @@
 	</button>
 
 	<!-- Infos : qui est ce chat, et où en est-il ? -->
-	<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 pr-6 lg:flex-initial">
+	<div class="grid min-w-0 flex-1 content-start gap-2 pt-6 lg:flex-initial">
 		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 			<Card.Title class="text-xl sm:text-2xl">{catDisplayName(cat)}</Card.Title>
 			<span class="text-sm text-muted-foreground">{getAgeBadge(cat.birthDate)}</span>
-			{#if sexIcon}
-				<p class="flex items-center gap-1.5 font-medium">
-					<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
-					{sexIcon.label}
-				</p>
-			{/if}
+			<p class="flex items-center gap-1.5 font-medium" title={sexIcon.label}>
+				<Icon name={sexIcon.icon} class="h-6 w-6 {sexIcon.color}" />
+				<span class="sr-only">{sexIcon.label}</span>
+			</p>
 		</div>
 
 		<p class="text-sm text-muted-foreground">

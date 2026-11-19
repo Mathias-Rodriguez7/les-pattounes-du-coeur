@@ -3,6 +3,7 @@
 	import { ArrowRight, HeartHandshake, ShieldCheck } from '@lucide/svelte';
 	import SectionHeader from '#lib/components/dashboard/SectionHeader.svelte';
 	import TaskBoard from '#lib/components/dashboard/shared/TaskBoard.svelte';
+	import SegmentedTabs from '#lib/components/tabs/SegmentedTabs.svelte';
 	import QuickCreate from '#lib/components/dashboard/shared/QuickCreate.svelte';
 	import StatsOverview from '#lib/components/dashboard/shared/StatsOverview.svelte';
 	import { TASK_URGENCY, type TaskBoardKind } from '#lib/constants/tasks.ts';
@@ -58,28 +59,17 @@
 		</h1>
 
 		<!-- Les deux vues, avec le nombre de tâches de chacune -->
-		<div role="tablist" class="inline-flex gap-1 rounded-2xl border border-border bg-card p-1">
-			{#each tabs as tab (tab.kind)}
-				{@const active = view === tab.kind}
-				<button
-					type="button"
-					role="tab"
-					aria-selected={active}
-					onclick={() => (view = tab.kind)}
-					class="flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition-colors {active
-						? 'bg-primary text-primary-foreground shadow-sm'
-						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-				>
-					<tab.icon class="size-4" />
-					{tab.label}
-					{#if tab.tasks.length > 0}
-						<span class="rounded-md px-1.5 text-xs font-semibold {tabBadge(tab.tasks)}">
-							{tab.tasks.length}
-						</span>
-					{/if}
-				</button>
-			{/each}
-		</div>
+		<SegmentedTabs
+			label="Vue des tâches"
+			bind:value={view}
+			tabs={tabs.map((tab) => ({
+				key: tab.kind,
+				label: tab.label,
+				icon: tab.icon,
+				count: tab.tasks.length,
+				countClass: tabBadge(tab.tasks)
+			}))}
+		/>
 	</header>
 
 	<div class="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">

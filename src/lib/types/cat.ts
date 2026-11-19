@@ -39,6 +39,8 @@ export const catFullArgs = {
 		// La page Chats ne charge que les chats de la bénévole (tous pour l'admin) : le contact
 		// du nourrisseur n'est vu que par l'admin et la bénévole du chat
 		freeInfo: true,
+		// Qui a proposé le chat à l'adoption (le circuit de publication)
+		publicationRequestedBy: { select: { profil: { select: { firstName: true, lastName: true } } } },
 		placements: {
 			include: { host: { include: { profil: true } } }
 		},
@@ -88,6 +90,8 @@ export const catFullArgs = {
 export type CatFull = Omit<Prisma.CatGetPayload<typeof catFullArgs>, 'forms'> & {
 	/** Calculé par le load de la page Chats : la bénévole connectée est-elle associée au chat ? */
 	isMine?: boolean;
+	/** Calculé par le load : peut le modifier (admin, sa bénévole, ou COMMUNICATION qui valide) */
+	canManage?: boolean;
 	/** Les demandes en attente, avec leur éventuelle blacklist (ajoutée par le load) */
 	forms?: FormWithBlacklist[];
 	/** Blacklist active de l'adoptant de la dernière adoption (ajoutée par le load) */

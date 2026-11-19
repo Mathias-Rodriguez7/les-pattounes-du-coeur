@@ -57,6 +57,9 @@ model Volunteer {
   taskSnoozes          TaskSnooze[] // les tâches qu'elle a mises de côté (« Plus tard »)
   sosHelps             SosHelper[] // les SOS où elle est en renfort
   formAssignments      FormAssignee[] // les candidatures bénévole / colab qu'elle suit (admin)
+  publicationRequests  Cat[] @relation("publicationRequests") // les chats qu'elle a proposés à l'adoption
+  // Le récapitulatif de ses tâches, chaque lundi matin (elle peut le désactiver dans son profil)
+  weeklyDigest         Boolean @default(true) @map("weekly_digest")
 }
 
 model Host {
@@ -148,6 +151,14 @@ model Cat {
   tattooId            String? @unique @db.VarChar(50) @map("tattoo_id")
   // Chat libre (statut FREE) : attrapé, stérilisé, relâché. Gardé s'il devient un chat asso
   freeInfo            FreeCatInfo?
+
+  // Publication : la bénévole du chat la demande, l'admin ou une COMMUNICATION la valide
+  // (le chat devient visible et disponible) ou la refuse avec un mot
+  publicationRequestedAt   DateTime? @map("publication_requested_at")
+  publicationRequestedById String?   @db.Uuid @map("publication_requested_by_id")
+  publicationRequestedBy   Volunteer? @relation("publicationRequests", fields: [publicationRequestedById], references: [id], onDelete: SetNull)
+  publicationRefusedAt     DateTime? @map("publication_refused_at")
+  publicationRefusalNote   String?   @map("publication_refusal_note") @db.VarChar(500)
 
   createdAt           DateTime @default(now()) @map("createdAt")
   updatedAt           DateTime @default(now()) @updatedAt @map("updatedAt")

@@ -19,6 +19,12 @@ import { activeVeterinarianOptions } from '#lib/server/veterinarians/queries.ts'
 import { linkableSosOptions, sosViewsByIds } from '#lib/server/sos/queries.ts';
 import { linkCatSosAction } from '#lib/server/sos/actions.ts';
 import {
+	approvePublicationAction,
+	refusePublicationAction,
+	requestPublicationAction
+} from '#lib/server/cats/publication.ts';
+import type { Prisma } from '@prisma/client';
+import {
 	convertFreeCatAction,
 	createFreeCatAction,
 	updateFreeCatAction
@@ -48,7 +54,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const isAdmin = hasAdminRole(user);
 
 		// ✅ ADMIN voit tout, MANAGER/COMMUNICATION voient seulement leurs chats assignés
-		const catsWhere = isAdmin ? {} : { volunteers: { some: { volunteerId } } };
+		// Une COMMUNICATION voit aussi les chats proposés à l'adoption : elle les valide
+		const isCommunication = user.role === 'COMMUNICATION';
+		const catsWhere: Prisma.CatWhereInput = isAdmin
+			? {}
+			: isCommunication
+				? {
+						OR: [
+							{ volunteers: { some: { volunteerId } } },
+							{ publicationRequestedAt: { not: null } }
+						]
+					}
+				: { volunteers: { some: { volunteerId } } };
 
 		const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
@@ -115,7 +132,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 			sos: cat.sosId ? (sosById.get(cat.sosId) ?? null) : null,
 			forms: cat.forms.map((form) => attachBlacklist(form, blacklists)),
 			adopterBlacklist: blacklists.get(adopterEmail(cat)?.trim().toLowerCase() ?? '') ?? null,
-			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId)
+			isMine: cat.volunteers.some((cv) => cv.volunteerId === volunteerId),
+			// Peut le modifier : admin, sa bénévole, ou une COMMUNICATION qui doit valider sa publication
+			canManage:
+				isAdmin ||
+				cat.volunteers.some((cv) => cv.volunteerId === volunteerId) ||
+				(isCommunication && !!cat.publicationRequestedAt)
 		}));
 
 		return {
@@ -144,6 +166,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	// Carte « Signalement » : rattacher le chat à un SOS (ou l'en détacher)
 	linkCatSos: linkCatSosAction,
+
+	// Publication : proposer (bénévole du chat), valider ou refuser (admin, communication)
+	requestPublication: requestPublicationAction,
+	approvePublication: approvePublicationAction,
+	refusePublication: refusePublicationAction,
 
 	// Chats libres : créer, modifier, passer en chat asso
 	createFreeCat: createFreeCatAction,

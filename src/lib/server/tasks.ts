@@ -96,6 +96,10 @@ async function loadTaskSources(): Promise<TaskSources> {
 				isSterilize: true,
 				isAlreadySterilized: true,
 				isIdentify: true,
+				isDeworming: true,
+				isFivTest: true,
+				publicationRequestedAt: true,
+				publicationRefusalNote: true,
 				chipId: true,
 				tattooId: true,
 				volunteers: { select: { volunteerId: true } },
@@ -177,6 +181,10 @@ async function loadTaskSources(): Promise<TaskSources> {
 			// Identifié : la case, ou un numéro de puce / tatouage saisi
 			isIdentified: cat.isIdentify || !!cat.chipId || !!cat.tattooId,
 			vaccineDueAt: cat.cares[0]?.nextDueDate ?? null,
+			isDewormed: cat.isDeworming,
+			isFivTested: cat.isFivTest,
+			publicationRequestedAt: cat.publicationRequestedAt,
+			publicationRefusalNote: cat.publicationRefusalNote,
 			volunteerIds: cat.volunteers.map((cv) => cv.volunteerId),
 			// Dans une FA : un placement long (actif ou en pause), court ou transfert actif
 			hasHome: cat.placements.some(
