@@ -4,24 +4,10 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type { Path } from '$app/types';
-	import type { VolunteerRole } from '@prisma/client';
 	import type { AppUser } from '#lib/types/user.ts';
 	import { VOLUNTEER_ROLE_OPTIONS } from '#lib/constants/volunteer.ts';
-	import {
-		LayoutDashboard,
-		Cat,
-		HouseHeart,
-		Users,
-		LogOut,
-		ChevronLeft,
-		ChevronRight,
-		Newspaper,
-		ClipboardList,
-		FileQuestionMark,
-		Stethoscope,
-		Siren,
-		Ban
-	} from '@lucide/svelte';
+	import { LogOut, ChevronLeft, ChevronRight } from '@lucide/svelte';
+	import { navFor } from '#lib/navigation/dashboardNav.ts';
 
 	type Props = {
 		user: AppUser;
@@ -39,82 +25,11 @@
 	let collapsedState = $state(false);
 	const collapsed = $derived(!mobile && collapsedState);
 
-	type NavItem = {
-		label: string;
-		icon: typeof LayoutDashboard;
-		href: Path;
-		roles: VolunteerRole[];
-	};
-
-	const allItems: NavItem[] = [
-		{
-			label: 'Dashboard',
-			icon: LayoutDashboard,
-			href: 'dashboard',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: 'Chats',
-			icon: Cat,
-			href: 'dashboard/chat',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: 'SOS',
-			icon: Siren,
-			href: 'dashboard/sos',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: "Familles d'accueil",
-			icon: HouseHeart,
-			href: 'dashboard/famille_d_accueil',
-			roles: ['ADMIN']
-		},
-
-		{
-			label: 'Bénévoles',
-			icon: Users,
-			href: 'dashboard/benevole',
-			roles: ['ADMIN']
-		},
-
-		{
-			label: 'News',
-			icon: Newspaper,
-			href: 'dashboard/news',
-			roles: ['ADMIN', 'COMMUNICATION']
-		},
-
-		{
-			label: 'Formulaires',
-			icon: ClipboardList,
-			href: 'dashboard/forms',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: 'Blacklist',
-			icon: Ban,
-			href: 'dashboard/blacklist',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: 'Documents',
-			icon: FileQuestionMark,
-			href: 'dashboard/information',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		},
-		{
-			label: 'Vétérinaires',
-			icon: Stethoscope,
-			href: 'dashboard/veterinaires',
-			roles: ['ADMIN', 'MANAGER', 'COMMUNICATION']
-		}
-	];
+	// La liste des pages est partagée avec la barre d'onglets mobile (navigation/dashboardNav.ts)
 
 	const profileHref: Path = 'dashboard/profil';
 
-	const items = $derived(allItems.filter((item) => item.roles.includes(user.role)));
+	const items = $derived(navFor(user.role));
 	const initials = $derived(`${user.profil.firstName[0]}${user.profil.lastName[0]}`.toUpperCase());
 	const roleLabel = $derived(
 		VOLUNTEER_ROLE_OPTIONS.find((r) => r.value === user.role)?.label ?? user.role
