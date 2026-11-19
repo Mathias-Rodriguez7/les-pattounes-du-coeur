@@ -96,11 +96,10 @@
 					</a>
 
 					<a
-						href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
+						href={resolve('don')}
 						onclick={() => (mobileMenuOpen = false)}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent
+                {page.url.pathname === '/don' ? 'bg-accent font-semibold' : ''}"
 					>
 						<Heart class="h-4 w-4 shrink-0 text-rose-500" />
 						Faire un don
@@ -191,11 +190,7 @@
 	<!-- ================= DESKTOP ================= -->
 	<div class="hidden w-full items-center px-5 md:flex">
 		<!-- Logo -->
-		<a
-			href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
-			target="_blank"
-			rel="noopener noreferrer"
-		>
+		<a href={resolve('don')} title="Faire un don">
 			<img src="/img/hear_paw.png" alt="logo" class="h-15 w-15" />
 		</a>
 
@@ -228,10 +223,8 @@
 					</NavigationMenu.Item>
 
 					<NavigationMenu.Item>
-						<NavigationMenu.Link
-							href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
-							target="_blank"
-							class="rounded-md px-4 text-2xl">Donation</NavigationMenu.Link
+						<NavigationMenu.Link href="/don" class="rounded-md px-4 text-2xl"
+							>Donation</NavigationMenu.Link
 						>
 					</NavigationMenu.Item>
 

@@ -149,12 +149,7 @@
 								<p>Chaque contribution finance directement les soins et les besoins essentiels.</p>
 							</Card.Content>
 							<Card.Footer class="mt-auto flex justify-end p-0">
-								<a
-									href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
-									target="_blank"
-									rel="noopener noreferrer"
-									title="helloasso"
-								>
+								<a href={resolve('don')}>
 									<Button>Faire un don</Button>
 								</a>
 							</Card.Footer>
@@ -184,12 +179,7 @@
 	</div>
 
 	<!-- Bouton flottant don -->
-	<a
-		href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
-		target="_blank"
-		rel="noopener noreferrer"
-		class="fixed top-1/2 right-4 z-50 -translate-y-1/2"
-	>
+	<a href={resolve('don')} class="fixed top-1/2 right-4 z-50 -translate-y-1/2">
 		<div
 			class="group flex items-center gap-0 overflow-hidden rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition-all duration-300 hover:gap-2 hover:px-4"
 		>

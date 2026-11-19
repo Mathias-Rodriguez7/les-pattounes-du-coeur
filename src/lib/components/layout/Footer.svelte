@@ -1,5 +1,6 @@
-<script>
+<script lang="ts">
 	import { resolve } from '$app/paths';
+	import { HELLOASSO_URL, TEAMING_URL } from '#lib/constants/donation.ts';
 </script>
 
 <footer class="w-full border-t border-black/10 bg-accent/70 px-6 py-12 backdrop-blur-lg">
@@ -18,14 +19,32 @@
 			<div class="flex flex-col gap-3">
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Nous suivre</h4>
 				<div class="flex flex-wrap gap-3">
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- sites de dons, pas des routes -->
 					<a
-						href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
+						href={HELLOASSO_URL}
 						target="_blank"
 						rel="noopener noreferrer"
 						class="transition-opacity hover:opacity-80"
 					>
-						<img src="/img/helloasso.png" alt="don" class="h-14 w-auto object-contain" />
+						<img
+							src="/img/helloasso.png"
+							alt="Faire un don sur HelloAsso"
+							class="h-14 w-auto object-contain"
+						/>
 					</a>
+					<a
+						href={TEAMING_URL}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="transition-opacity hover:opacity-80"
+					>
+						<img
+							src="/img/teaming.png"
+							alt="Don mensuel sur Teaming"
+							class="h-14 w-auto object-contain"
+						/>
+					</a>
+					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					<a
 						href="https://www.youtube.com/@lespattounesducoeur"
 						target="_blank"
@@ -65,7 +84,7 @@
 				<h4 class="text-sm font-semibold tracking-wider uppercase">Adoption</h4>
 				<ul class="flex flex-col gap-2 text-sm opacity-70">
 					<li>
-						<a href={resolve('/')} class="transition-opacity hover:opacity-100">Accueil</a>
+						<a href={resolve('')} class="transition-opacity hover:opacity-100">Accueil</a>
 					</li>
 					<li>
 						<a href={resolve('adoptions/chat')} class="transition-opacity hover:opacity-100"
@@ -79,12 +98,7 @@
 					</li>
 
 					<li>
-						<a
-							href="https://www.helloasso.com/associations/les-pattounes-du-coeur/formulaires/1"
-							class="transition-opacity hover:opacity-100"
-						>
-							Donation
-						</a>
+						<a href={resolve('don')} class="transition-opacity hover:opacity-100"> Donation </a>
 					</li>
 				</ul>
 			</nav>
