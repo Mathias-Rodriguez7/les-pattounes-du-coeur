@@ -32,7 +32,10 @@
 
 			<!-- pt : la carte reste centrée dans la partie visible, sous le menu -->
 			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 pt-[4.75rem] md:flex">
-				<Card.Root class="relative z-10 bg-accent">
+				<!-- Même verre dépoli que le menu : on devine la vidéo derrière -->
+				<Card.Root
+					class="relative z-10 border border-accent/40 bg-accent/70 shadow-md backdrop-blur-lg"
+				>
 					<Card.Header
 						><Card.Title>Bienvenue sur le site de l'association Les Pattounes du Cœur !</Card.Title
 						></Card.Header

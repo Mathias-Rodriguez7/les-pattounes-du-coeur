@@ -78,7 +78,8 @@
 	<!-- Le contenu (flex-1) prend toute la place libre : sur une page courte,
 	     le footer reste collé en bas de l'écran au lieu de laisser un vide sous lui.
 	     dvh : la hauteur réellement visible sur mobile (barres du navigateur comprises) -->
-	<div class="flex min-h-dvh flex-col">
+	<!-- pb (mobile) : la barre d'onglets en bas ne cache pas le pied de page -->
+	<div class="flex min-h-dvh flex-col pb-24 md:pb-0">
 		<Navbar adoptableCatsCount={data.adoptableCatsCount} />
 
 		<!-- id : la cible du lien « Aller au contenu » (clavier) -->

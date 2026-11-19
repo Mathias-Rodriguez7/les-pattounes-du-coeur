@@ -73,7 +73,9 @@
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && open && (open = false)} />
 
-<div class="pointer-events-none fixed right-3 bottom-0 z-40 flex flex-col items-end sm:right-6">
+<div
+	class="pointer-events-none fixed right-3 bottom-[4.75rem] z-40 flex flex-col items-end sm:right-6 md:bottom-0"
+>
 	<!-- LA BULLE -->
 	{#if open}
 		<div
