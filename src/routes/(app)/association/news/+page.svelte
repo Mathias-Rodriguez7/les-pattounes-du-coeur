@@ -84,6 +84,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>News – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Les dernières nouvelles de l'association Les Pattounes du Cœur."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }} class="flex justify-center p-4">
 	<div in:fly={{ y: 20, duration: 300 }} class="flex w-full flex-col gap-6 p-8">
 		<h1 class="text-3xl font-bold">News</h1>

@@ -90,11 +90,19 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Formulaire d'adoption – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Remplissez le formulaire d'adoption des Pattounes du Cœur, pour un chat précis ou en général."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="p-8">
 		<Card.Root class="mx-auto w-full max-w-2xl">
 			<Card.Header class="gap-4 text-center">
-				<Card.Title>Trouvez votre futur compagnon</Card.Title>
+				<Card.Title role="heading" aria-level={1}>Trouvez votre futur compagnon</Card.Title>
 				<Card.Description class="space-y-3 text-left leading-relaxed">
 					<p>
 						Vous souhaitez adopter un minou, mais vous ne savez plus où donner de la tête avec tous

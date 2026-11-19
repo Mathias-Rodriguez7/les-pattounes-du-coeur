@@ -384,7 +384,7 @@
 							class="flex shrink-0 flex-row flex-wrap items-center justify-between gap-2"
 						>
 							<!-- Les onglets font office de titre ; le titre reste pour les lecteurs d'écran -->
-							<Card.Title class="sr-only">Chats</Card.Title>
+							<Card.Title class="sr-only" role="heading" aria-level={1}>Chats</Card.Title>
 							<div
 								class="flex w-full items-center justify-between gap-2"
 								bind:clientWidth={headerWidth}
@@ -449,6 +449,7 @@
 										<SelectField
 											id="cat-filter-kind"
 											label=""
+											ariaLabel="Type de chat"
 											options={KIND_OPTIONS}
 											bind:value={kindFilter}
 											class="w-full sm:w-36"

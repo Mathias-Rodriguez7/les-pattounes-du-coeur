@@ -6,6 +6,14 @@
 	import { fade, fly } from 'svelte/transition';
 </script>
 
+<svelte:head>
+	<title>Conseils – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Nos conseils pour bien accueillir et bien vivre avec son chat."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-16">
 		<header class="space-y-6">

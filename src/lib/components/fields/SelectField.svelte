@@ -18,6 +18,8 @@
 		required?: boolean;
 		class?: string;
 		wrapperClass?: string;
+		/** Sans libellé visible (filtres) : le nom lu par les lecteurs d'écran. Par défaut, le placeholder */
+		ariaLabel?: string;
 	};
 
 	let {
@@ -31,11 +33,17 @@
 		size = 'sm',
 		required = false,
 		class: className = '',
-		wrapperClass = ''
+		wrapperClass = '',
+		ariaLabel
 	}: Props = $props();
 
 	const selectedOption = $derived(options.find((o) => o.value === value));
 	const selectedLabel = $derived(selectedOption?.label ?? placeholder);
+	// Pas de libellé visible : le lecteur d'écran annonce « Âge : Adulte » (le filtre ET sa valeur)
+	const fieldName = $derived(ariaLabel ?? placeholder);
+	const triggerAriaLabel = $derived(
+		label ? undefined : selectedOption ? `${fieldName} : ${selectedOption.label}` : fieldName
+	);
 </script>
 
 <div class={wrapperClass}>
@@ -48,7 +56,7 @@
 		</label>
 	{/if}
 	<Select.Root type="single" bind:value {disabled}>
-		<Select.Trigger {id} class={className}>
+		<Select.Trigger {id} class={className} aria-label={triggerAriaLabel}>
 			<!-- min-w-0 + truncate : un libellé trop long finit par « … » au lieu de déborder.
 			     title : le libellé complet au survol -->
 			<span

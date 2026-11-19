@@ -182,7 +182,13 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Formulaires – Les Pattounes du Cœur</title>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Formulaires</h1>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- Bandeau stats : 2 × 2 sur téléphone, 4 sur une ligne à partir de la tablette -->
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-4" />
@@ -228,7 +234,7 @@
 									label=""
 									options={statusOptions}
 									bind:value={statusFilter}
-									placeholder="Status"
+									placeholder="Statut"
 									class="w-full sm:w-32"
 								/>
 							{/snippet}

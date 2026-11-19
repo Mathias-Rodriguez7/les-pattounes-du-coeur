@@ -11,7 +11,13 @@
 	const userRole = $derived(data.user?.role ?? 'MANAGER');
 </script>
 
+<svelte:head>
+	<title>Dashboard – Les Pattounes du Cœur</title>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Dashboard</h1>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-10">
 		<div>
 			{#if userRole === 'ADMIN'}

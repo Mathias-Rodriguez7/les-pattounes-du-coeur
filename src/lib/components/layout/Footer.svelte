@@ -9,7 +9,7 @@
 		<div class="flex flex-col items-center gap-6">
 			<!-- LOGO -->
 			<div class="flex w-80 items-center gap-3">
-				<img src="/img/logo.png" alt="logo" class="h-25 w-25 object-contain" />
+				<img src="/img/logo.png" alt="Les Pattounes du Cœur" class="h-25 w-25 object-contain" />
 				<p class="text-sm leading-relaxed text-wrap opacity-70">
 					Association pour la protection des animaux abandonnés sur Montpellier et ses alentours.
 				</p>
@@ -50,28 +50,44 @@
 						target="_blank"
 						class="transition-opacity hover:opacity-80"
 					>
-						<img src="/img/youtube.png" alt="youtube" class="h-14 w-auto object-contain" />
+						<img
+							src="/img/youtube.png"
+							alt="YouTube des Pattounes du Cœur"
+							class="h-14 w-auto object-contain"
+						/>
 					</a>
 					<a
 						href="https://www.instagram.com/les_pattounes_du_coeur"
 						target="_blank"
 						class="transition-opacity hover:opacity-80"
 					>
-						<img src="/img/instagram.png" alt="instagram" class="h-14 w-auto object-contain" />
+						<img
+							src="/img/instagram.png"
+							alt="Instagram des Pattounes du Cœur"
+							class="h-14 w-auto object-contain"
+						/>
 					</a>
 					<a
 						href="https://www.facebook.com/lespattounesducoeur"
 						target="_blank"
 						class="transition-opacity hover:opacity-80"
 					>
-						<img src="/img/facebook.png" alt="facebook" class="h-14 w-auto object-contain" />
+						<img
+							src="/img/facebook.png"
+							alt="Facebook des Pattounes du Cœur"
+							class="h-14 w-auto object-contain"
+						/>
 					</a>
 					<a
 						href="https://www.tiktok.com/@les.pattounes.du.coeur?_r=1&_t=ZN-97XidE3ShwE"
 						target="_blank"
 						class="transition-opacity hover:opacity-80"
 					>
-						<img src="/img/tiktok.png" alt="tiktok" class="h-14 w-auto object-contain" />
+						<img
+							src="/img/tiktok.png"
+							alt="TikTok des Pattounes du Cœur"
+							class="h-14 w-auto object-contain"
+						/>
 					</a>
 				</div>
 			</div>

@@ -15,6 +15,14 @@
 	];
 </script>
 
+<svelte:head>
+	<title>L'association – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Qui sont Les Pattounes du Cœur : notre histoire, nos missions et nos partenaires à Montpellier."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-4 sm:p-8 lg:p-16">
 		<h1 class="text-2xl font-bold">L'Association</h1>
@@ -84,28 +92,28 @@
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
 						src="/img/association/asso.1.jpg"
-						alt="asso"
+						alt="Deux bénévoles à un stand de collecte de croquettes"
 						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
 						src="/img/association/asso.5.jpg"
-						alt="asso"
+						alt="Un chat gris caché derrière un grillage"
 						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
 						src="/img/association/asso.3.jpg"
-						alt="asso"
+						alt="Deux chatons sur une table, devant une caisse de transport"
 						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
 						src="/img/association/asso.4.jpg"
-						alt="asso"
+						alt="Un chaton tigré allongé sur un lit"
 						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
@@ -178,20 +186,32 @@
 		<section>
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.2.jpg" alt="asso" class="h-full w-full object-cover" />
+					<img
+						src="/img/association/asso.2.jpg"
+						alt="Repas entre bénévoles de l'association"
+						class="h-full w-full object-cover"
+					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.6.jpg" alt="asso" class="h-full w-full object-cover" />
+					<img
+						src="/img/association/asso.6.jpg"
+						alt="Présentation de l'association dans un amphithéâtre"
+						class="h-full w-full object-cover"
+					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
 						src="/img/association/asso.7.jpg"
-						alt="asso"
+						alt="Bénévoles réunies autour d'une table"
 						class="h-full w-full object-cover object-[center_82%]"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
-					<img src="/img/association/asso.8.jpg" alt="asso" class="h-full w-full object-cover" />
+					<img
+						src="/img/association/asso.8.jpg"
+						alt="Le stand des Pattounes du Cœur sous une tente"
+						class="h-full w-full object-cover"
+					/>
 				</div>
 			</div>
 		</section>

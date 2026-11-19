@@ -142,6 +142,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Chats à adopter – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Les chats de l'association Les Pattounes du Cœur qui attendent une famille, à Montpellier et alentours."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }} class="flex justify-center p-4">
 	<div in:fly={{ y: 20, duration: 300 }} class="max-w-10xl flex w-full flex-col gap-6 p-8">
 		<h1 class="text-2xl font-bold">Ils attendent leur famille</h1>
@@ -286,7 +294,7 @@
 				<div
 					class="col-span-full flex flex-col items-center justify-center gap-4 py-20 text-center"
 				>
-					<img src="/img/3.cats.jpg" alt="3.cats" class="h-40" />
+					<img src="/img/3.cats.jpg" alt="" class="h-40" />
 					<h2 class="text-xl font-semibold">Aucun chat trouvé</h2>
 					<p class="text-muted-foreground text-sm">
 						Essayez de modifier ou de réinitialiser vos filtres.

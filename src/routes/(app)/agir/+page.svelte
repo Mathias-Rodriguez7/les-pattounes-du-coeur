@@ -41,7 +41,17 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Agir – Les Pattounes du Cœur</title>
+	<meta
+		name="description"
+		content="Signalez un chat en détresse, devenez famille d'accueil, bénévole ou partenaire des Pattounes du Cœur."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }} class="flex justify-center px-4 py-8">
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Agir pour les chats</h1>
 	<div in:fly={{ y: 20, duration: 300 }} class="mx-auto flex w-full max-w-7xl flex-col gap-6">
 		<!-- 🚨 HERO -->
 		<Card.Root class="overflow-hidden border-destructive/20">

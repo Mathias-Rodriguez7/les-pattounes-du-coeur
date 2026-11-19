@@ -3,7 +3,8 @@
 	import CatCard from '#lib/components/cats/CatCard.svelte';
 	import AreaChart from '#lib/components/AreaChart.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
-	import { Plus, Search, Heart, Home, ArrowRight } from '@lucide/svelte';
+	import { Plus, Search, Heart, Home, ArrowRight, Pause, Play } from '@lucide/svelte';
+	import { onMount } from 'svelte';
 	import SupportCat from '#lib/components/support/SupportCat.svelte';
 	import NewsCard from '#lib/components/news/NewsCard.svelte';
 	import type { PageData } from './$types';
@@ -12,9 +13,26 @@
 	import { cn } from '#lib/utils.js';
 
 	let { data }: { data: PageData } = $props();
+
+	// La vidéo d'accueil tourne en boucle : on doit pouvoir l'arrêter (accessibilité, WCAG 2.2.2).
+	// « Réduire les animations » activé sur l'appareil : elle reste en pause dès le départ.
+	let videoPaused = $state(false);
+	onMount(() => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) videoPaused = true;
+	});
 </script>
 
+<svelte:head>
+	<title>Les Pattounes du Cœur – Protection des chats à Montpellier</title>
+	<meta
+		name="description"
+		content="Association de Montpellier qui secourt, soigne et fait adopter les chats errants et abandonnés. Adoptez, accueillez, soutenez."
+	/>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Les Pattounes du Cœur, association de protection des chats à Montpellier</h1>
 	<div in:fly={{ y: 20, duration: 300 }}>
 		<!-- La vidéo passe SOUS le menu flottant (qui la floute) : la section remonte de la hauteur
 		     du menu (4rem mobile, 4.75rem ordinateur) et grandit d'autant, la partie visible ne change pas -->
@@ -22,6 +40,7 @@
 			class="relative -mt-16 h-[calc(50vh+4rem)] w-full overflow-hidden md:-mt-[4.75rem] md:h-[calc(50vh+4.75rem)]"
 		>
 			<video
+				bind:paused={videoPaused}
 				autoplay
 				muted
 				loop
@@ -29,6 +48,17 @@
 				class="absolute top-1/2 left-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
 				><source src="/videos/cat.mp4" type="video/mp4" /></video
 			>
+
+			<!-- Mettre la vidéo en pause / la relancer -->
+			<button
+				type="button"
+				onclick={() => (videoPaused = !videoPaused)}
+				aria-label={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
+				title={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
+				class="absolute bottom-3 left-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/70 text-foreground shadow-md backdrop-blur transition-colors hover:bg-background/90"
+			>
+				{#if videoPaused}<Play class="size-4" />{:else}<Pause class="size-4" />{/if}
+			</button>
 
 			<!-- pt : la carte reste centrée dans la partie visible, sous le menu -->
 			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 pt-[4.75rem] md:flex">
@@ -149,7 +179,11 @@
 				</div>
 				<div class="flex w-full lg:w-1/4">
 					<Card.Root class="flex w-full flex-col gap-2 overflow-hidden p-0">
-						<img src="/img/cat$.jpg" alt="cats" class="h-80 w-full object-cover object-center" />
+						<img
+							src="/img/cat$.jpg"
+							alt="Un chat gris couché au milieu de billets de banque"
+							class="h-80 w-full object-cover object-center"
+						/>
 						<div class="flex flex-col gap-2 p-4">
 							<Card.Header class="p-0">
 								<Card.Title>100% de vos dons sont utilisés pour eux.</Card.Title>

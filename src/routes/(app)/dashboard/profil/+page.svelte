@@ -148,6 +148,8 @@
 </svelte:head>
 
 <main in:fade={{ duration: 200 }} class="min-h-full px-4 py-6 sm:px-6 lg:py-10">
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Mon profil</h1>
 	<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
 		<ProfileHeader
 			name={`${data.volunteer.firstName} ${data.volunteer.lastName}`}

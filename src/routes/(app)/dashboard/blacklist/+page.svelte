@@ -64,6 +64,8 @@
 </svelte:head>
 
 <main in:fade={{ duration: 200 }}>
+	<!-- Le titre de la page, pour les lecteurs d'écran et les moteurs de recherche -->
+	<h1 class="sr-only">Blacklist</h1>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- Bandeau stats : 3 cartes (2 + 1 sur téléphone) -->
 		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3" />

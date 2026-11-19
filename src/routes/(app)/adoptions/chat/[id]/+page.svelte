@@ -106,11 +106,15 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Demande d'adoption – Les Pattounes du Cœur</title>
+</svelte:head>
+
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="p-8">
 		<Card.Root class="mx-auto w-full max-w-xl">
 			<Card.Header class="gap-4 text-center">
-				<Card.Title>Trouvez votre futur compagnon</Card.Title>
+				<Card.Title role="heading" aria-level={1}>Trouvez votre futur compagnon</Card.Title>
 
 				<Card.Description class="space-y-3 text-left leading-relaxed">
 					<p>

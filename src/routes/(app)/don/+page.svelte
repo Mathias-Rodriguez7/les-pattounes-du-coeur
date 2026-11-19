@@ -61,6 +61,11 @@
 
 <svelte:head>
 	<title>Nous soutenir – Les Pattounes du Cœur</title>
+
+	<meta
+		name="description"
+		content="Soutenez Les Pattounes du Cœur : don sur HelloAsso ou Teaming, ou projet immobilier avec notre partenaire SAFTI."
+	/>
 </svelte:head>
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- HelloAsso, Teaming et mailto : pas des routes -->
@@ -70,7 +75,9 @@
 		<Card.Root class="overflow-hidden">
 			<div class="grid gap-6 px-8 lg:grid-cols-[1.3fr_1fr] lg:px-12">
 				<Card.Header class="flex flex-col justify-center p-0">
-					<Card.Title class="text-2xl font-bold lg:text-3xl">Nous soutenir</Card.Title>
+					<Card.Title role="heading" aria-level={1} class="text-2xl font-bold lg:text-3xl"
+						>Nous soutenir</Card.Title
+					>
 					<Card.Description class="mt-4 text-base leading-relaxed lg:text-lg">
 						100 % de ce que vous nous donnez va aux chats : opérations, stérilisations, nourriture,
 						matériel.
