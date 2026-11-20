@@ -148,6 +148,7 @@
 			open = false;
 		}
 	};
+	import FieldError from './FieldError.svelte';
 </script>
 
 <div class="space-y-2">
@@ -218,7 +219,5 @@
 		</Popover.Content>
 	</Popover.Root>
 
-	{#if error}
-		<p class="mt-1 text-xs text-red-500">{error}</p>
-	{/if}
+	<FieldError {error} />
 </div>

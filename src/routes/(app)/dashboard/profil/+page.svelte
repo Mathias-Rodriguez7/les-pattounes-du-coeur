@@ -9,7 +9,7 @@
 	import { PASSWORD_RULES } from '#lib/schemas/password.ts';
 	import ProfileHeader from '#lib/components/profile/ProfileHeader.svelte';
 	import ProfileBreakCard from '#lib/components/profile/ProfileBreakCard.svelte';
-	import ProfileDigestCard from '#lib/components/profile/ProfileDigestCard.svelte';
+	import WeeklyDigestSwitch from '#lib/components/profile/WeeklyDigestSwitch.svelte';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import {
@@ -276,8 +276,11 @@
 							</div>
 						</div>
 
-						<!-- Bouton : pleine largeur sur téléphone, à droite sur écran plus large -->
-						<div class="flex justify-end pt-6">
+						<!-- Le récapitulatif du lundi à gauche, le bouton à droite (l'un sous l'autre sur téléphone) -->
+						<div
+							class="flex flex-col-reverse gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between"
+						>
+							<WeeklyDigestSwitch weeklyDigest={data.volunteer.weeklyDigest} />
 							<Button type="submit" class="w-full sm:w-auto" disabled={profileIsSubmitting}>
 								{#if profileIsSubmitting}
 									<LoaderCircle class="animate-spin" />
@@ -302,9 +305,6 @@
 						error={errorFor('setBreak', 'breakStart') || errorFor('setBreak', 'breakEnd')}
 					/>
 				{/if}
-
-				<!-- NOTIFICATIONS : le récapitulatif du lundi -->
-				<ProfileDigestCard weeklyDigest={data.volunteer.weeklyDigest} />
 
 				<!-- SÉCURITÉ -->
 				<Card.Root class="gap-0 self-start py-0">

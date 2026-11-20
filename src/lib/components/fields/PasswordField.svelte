@@ -20,6 +20,7 @@
 		required = false,
 		autocomplete = 'current-password'
 	}: Props = $props();
+	import FieldError from './FieldError.svelte';
 </script>
 
 <div class="space-y-2">
@@ -34,7 +35,5 @@
 
 	<PasswordInput {id} {name} {autocomplete} {required} bind:value invalid={!!error} />
 
-	{#if error}
-		<p class="mt-1 text-xs text-red-500">{error}</p>
-	{/if}
+	<FieldError id={id ? `${id}-error` : undefined} {error} />
 </div>

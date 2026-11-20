@@ -6,6 +6,14 @@
 	import NavigationProgress from '#lib/components/feedback/NavigationProgress.svelte';
 	import { Toaster } from 'svelte-sonner';
 	import { desktop } from '#lib/utils/media.svelte.ts';
+	import { beforeNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import {
+		startFormGuard,
+		hasDirtyForms,
+		clearDirtyForms,
+		LEAVE_MESSAGE
+	} from '#lib/forms/formGuard.ts';
 	import '../../app.css';
 
 	const { data, children } = $props();
@@ -16,6 +24,16 @@
 		'dashboard/chat': data.dueAdoptionsCount + data.catsToPublishCount,
 		'dashboard/sos': data.newSosCount
 	} as const);
+
+	// Tous les formulaires : alerte avant de quitter une saisie non enregistrée,
+	// et défilement jusqu'au premier champ en erreur après un envoi (lib/forms/formGuard.ts)
+	onMount(startFormGuard);
+	beforeNavigate((navigation) => {
+		// Fermer l'onglet / recharger : c'est le navigateur qui demande (beforeunload)
+		if (navigation.type === 'leave' || !hasDirtyForms()) return;
+		if (confirm(LEAVE_MESSAGE)) clearDirtyForms();
+		else navigation.cancel();
+	});
 </script>
 
 <svelte:head>

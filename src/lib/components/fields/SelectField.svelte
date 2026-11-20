@@ -1,5 +1,7 @@
 <script lang="ts">
 	import * as Select from '#lib/components/ui/select/index.js';
+	import FieldError from './FieldError.svelte';
+	import { localFieldError } from '#lib/forms/fieldValidation.ts';
 
 	type SelectOption = {
 		value: string;
@@ -25,6 +27,8 @@
 		 * pour savoir quel filtre est réglé. false pour une liste toujours remplie (ex : type de chat)
 		 */
 		showName?: boolean;
+		/** Message d'erreur sous la liste (ex : celui du serveur) */
+		error?: string;
 	};
 
 	let {
@@ -40,8 +44,14 @@
 		class: className = '',
 		wrapperClass = '',
 		ariaLabel,
-		showName = true
+		showName = true,
+		error = ''
 	}: Props = $props();
+
+	// Vérifié quand on quitte le champ (obligatoire vide, email mal écrit) ; l'erreur du serveur passe avant
+	let touched = $state(false);
+	const shownError = $derived(error || (touched ? localFieldError({ value, required }) : ''));
+	const errorId = $derived(id ? `${id}-error` : undefined);
 
 	const selectedOption = $derived(options.find((o) => o.value === value));
 	const fieldNameForDisplay = $derived(ariaLabel ?? placeholder);
@@ -68,8 +78,22 @@
 			{/if}
 		</label>
 	{/if}
-	<Select.Root type="single" bind:value {disabled}>
-		<Select.Trigger {id} class={className} aria-label={triggerAriaLabel}>
+	<!-- Liste obligatoire refermée sans choix : erreur (comme un champ quitté vide) -->
+	<Select.Root
+		type="single"
+		bind:value
+		{disabled}
+		onOpenChange={(open) => {
+			if (!open) touched = true;
+		}}
+	>
+		<Select.Trigger
+			{id}
+			class="{className} {shownError ? 'border-red-500' : ''}"
+			aria-label={triggerAriaLabel}
+			aria-invalid={shownError ? 'true' : undefined}
+			aria-describedby={shownError ? errorId : undefined}
+		>
 			<!-- min-w-0 + truncate : un libellé trop long finit par « … » au lieu de déborder.
 			     title : le libellé complet au survol -->
 			<span
@@ -89,4 +113,5 @@
 	</Select.Root>
 
 	<input type="hidden" {name} {value} />
+	<FieldError id={errorId} error={shownError} />
 </div>

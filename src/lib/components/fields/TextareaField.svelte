@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
+	import FieldError from './FieldError.svelte';
+	import { localFieldError } from '#lib/forms/fieldValidation.ts';
 
 	type Props = {
 		id?: string;
@@ -24,6 +26,11 @@
 		required = false,
 		rows = 3
 	}: Props = $props();
+
+	// Vérifié quand on quitte le champ (obligatoire vide, email mal écrit) ; l'erreur du serveur passe avant
+	let touched = $state(false);
+	const shownError = $derived(error || (touched ? localFieldError({ value, required }) : ''));
+	const errorId = $derived(id ? `${id}-error` : undefined);
 </script>
 
 <div class="space-y-2">
@@ -42,9 +49,10 @@
 		{placeholder}
 		{disabled}
 		{rows}
-		class={error ? 'border-red-500' : ''}
+		onblur={() => (touched = true)}
+		aria-invalid={shownError ? 'true' : undefined}
+		aria-describedby={shownError ? errorId : undefined}
+		class={shownError ? 'border-red-500' : ''}
 	/>
-	{#if error}
-		<p class="mt-1 text-xs text-red-500">{error}</p>
-	{/if}
+	<FieldError id={errorId} error={shownError} />
 </div>

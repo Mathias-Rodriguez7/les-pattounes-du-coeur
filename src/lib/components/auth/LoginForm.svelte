@@ -30,7 +30,9 @@
 	}
 </script>
 
+<!-- data-guard="off" : pas d'alerte « modifications non enregistrées » pour la connexion -->
 <form
+	data-guard="off"
 	method="POST"
 	action="/login"
 	class="grid gap-5"

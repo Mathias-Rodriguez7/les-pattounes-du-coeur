@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Input } from '#lib/components/ui/input/index.js';
+	import FieldError from './FieldError.svelte';
+	import { localFieldError } from '#lib/forms/fieldValidation.ts';
 
 	type Props = {
 		id?: string;
@@ -27,6 +29,11 @@
 		size = 'md'
 	}: Props = $props();
 
+	// Vérifié quand on quitte le champ (obligatoire vide, email mal écrit) ; l'erreur du serveur passe avant
+	let touched = $state(false);
+	const shownError = $derived(error || (touched ? localFieldError({ value, required, type }) : ''));
+	const errorId = $derived(id ? `${id}-error` : undefined);
+
 	const sizeClasses = {
 		sm: 'text-xs h-8',
 		md: 'text-sm h-9',
@@ -52,10 +59,11 @@
 		{placeholder}
 		{disabled}
 		{required}
-		class={`${sizeClasses[size]} ${error ? 'border-red-500' : ''}`}
+		onblur={() => (touched = true)}
+		aria-invalid={shownError ? 'true' : undefined}
+		aria-describedby={shownError ? errorId : undefined}
+		class={`${sizeClasses[size]} ${shownError ? 'border-red-500' : ''}`}
 	/>
 
-	{#if error}
-		<p class="mt-1 text-xs text-red-500">{error}</p>
-	{/if}
+	<FieldError id={errorId} error={shownError} />
 </div>
