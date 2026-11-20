@@ -6,6 +6,7 @@
 	import { getAgeBadge } from '#lib/utils/age.ts';
 	import { truncate } from '#lib/utils/string.ts';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
+	import LoadingImage from '#lib/components/media/LoadingImage.svelte';
 
 	let { cat }: { cat: CatListItem } = $props();
 
@@ -17,13 +18,17 @@
 	const imageStyle = $derived(focalPointStyle(primaryMedia));
 </script>
 
+<!-- pt-0 : la photo touche le haut de la carte (la carte ne le fait seule que pour une <img> directe) -->
 <Card.Root
-	class="flex h-full cursor-pointer flex-col overflow-hidden transition duration-300 hover:scale-105"
+	class="flex h-full cursor-pointer flex-col overflow-hidden pt-0 transition duration-300 hover:scale-105"
 >
-	<img
+	<!-- Squelette gris tant que la photo charge -->
+	<LoadingImage
 		src={imageSrc}
 		alt={cat.name ?? cat.catNumber}
-		class="h-85 w-full object-cover"
+		loading="lazy"
+		wrapperClass="h-85 w-full"
+		class="h-full w-full object-cover"
 		style={imageStyle}
 	/>
 

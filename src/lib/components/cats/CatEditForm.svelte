@@ -51,7 +51,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Le chat a été mis à jour avec succès');
+				toast.success('Chat mis à jour');
 				await update();
 				onSuccess?.();
 			} else if (result.type === 'failure') {

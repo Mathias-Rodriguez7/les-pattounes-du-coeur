@@ -25,7 +25,7 @@
 		validators: zod4Client(colabForm),
 		onResult({ result }) {
 			if (result.type === 'success') {
-				toast.success('Demande envoyée avec succès 🤝');
+				toast.success('Demande envoyée 🤝');
 				form.reset();
 				step = 1;
 			}
@@ -33,7 +33,7 @@
 				// 400 = champs à corriger (affichés sous chaque champ) ; 500 = le serveur n'a pas pu enregistrer
 				toast.error(
 					result.status === 400
-						? 'Veuillez corriger les erreurs du formulaire'
+						? 'Corrigez les champs signalés en rouge'
 						: ((result.data?.message as string) ?? "Une erreur s'est produite")
 				);
 			}
@@ -55,7 +55,7 @@
 				}
 				return next as typeof current;
 			});
-			toast.error('Veuillez corriger les erreurs avant de continuer');
+			toast.error('Corrigez les champs signalés avant de continuer');
 			return false;
 		}
 		return true;

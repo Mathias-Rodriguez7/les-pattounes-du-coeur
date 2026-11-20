@@ -185,7 +185,7 @@ export async function createCat({ request, locals }: { request: Request; locals:
 
 		return {
 			success: true,
-			message: 'Chat créé avec succès',
+			message: 'Chat créé',
 			data: newCat,
 			errors: {}
 		};
@@ -299,7 +299,7 @@ export async function updateCat({ request, locals }: { request: Request; locals:
 
 		return {
 			success: true,
-			message: 'Chat mis à jour avec succès',
+			message: 'Chat mis à jour',
 			data: updatedCat
 		};
 	} catch (error) {

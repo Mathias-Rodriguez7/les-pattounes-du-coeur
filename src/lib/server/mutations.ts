@@ -21,7 +21,7 @@ export async function deleteProfile(profileId: string) {
 
 		return {
 			success: true,
-			message: 'Profil supprimé avec succès',
+			message: 'Profil supprimé',
 			data: { profileId }
 		};
 	} catch (error) {

@@ -34,7 +34,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Bénévole retiré avec succès ✅');
+				toast.success('Bénévole retiré');
 				showDialog = false;
 				if (onSuccess) {
 					onSuccess();

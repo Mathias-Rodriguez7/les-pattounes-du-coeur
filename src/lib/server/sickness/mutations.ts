@@ -113,7 +113,7 @@ export async function createSickness({
 
 		return {
 			success: true,
-			message: 'Maladie ajoutée avec succès',
+			message: 'Maladie ajoutée',
 			sickness,
 			errors: {}
 		};
@@ -199,7 +199,7 @@ export async function updateSickness({
 
 		return {
 			success: true,
-			message: 'Maladie mise à jour avec succès',
+			message: 'Maladie mise à jour',
 			sickness,
 			errors: {}
 		};
@@ -262,7 +262,7 @@ export async function deleteSickness({
 
 		return {
 			success: true,
-			message: 'Maladie supprimée avec succès',
+			message: 'Maladie supprimée',
 			errors: {}
 		};
 	} catch (error) {

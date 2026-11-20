@@ -61,7 +61,7 @@
 
 		if (!result.success) {
 			fieldErrors = flattenErrors(result.error);
-			toast.error('Veuillez corriger les erreurs du formulaire');
+			toast.error('Corrigez les champs signalés en rouge');
 			return false;
 		}
 
@@ -97,14 +97,14 @@
 				if (result.data?.errors) {
 					// Le serveur renvoie { champ: ['message'] } : on garde le 1er message
 					fieldErrors = firstMessages(result.data.errors);
-					toast.error('Erreurs de validation du serveur');
+					toast.error('Certaines informations sont invalides : vérifiez le formulaire');
 				} else {
 					// Ex : « Déposez d'abord la Convention FA dans la page Documents… »
 					toast.error((result.data?.error as string) ?? 'Erreur lors de la création');
 				}
 				await update();
 			} else if (result.type === 'error') {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 				console.error('Erreur:', result.error);
 			}
 

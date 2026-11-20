@@ -46,7 +46,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Bénévole mis à jour avec succès');
+				toast.success('Bénévole mis à jour');
 				await update();
 				onSuccess?.();
 			} else if (result.type === 'failure') {

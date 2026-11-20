@@ -34,7 +34,7 @@
 		validators: zod4Client(hostFormSchema),
 		onResult({ result }) {
 			if (result.type === 'success') {
-				toast.success('Candidature envoyée avec succès 🎉');
+				toast.success('Candidature envoyée 🎉');
 				birthDate = undefined;
 				form.reset();
 				step = 1;
@@ -44,7 +44,7 @@
 				if (result.status === 400) goToFirstStepWithError(get(errors));
 				toast.error(
 					result.status === 400
-						? 'Veuillez corriger les erreurs du formulaire'
+						? 'Corrigez les champs signalés en rouge'
 						: ((result.data?.message as string) ?? "Une erreur s'est produite")
 				);
 			}
@@ -75,7 +75,7 @@
 				}
 				return next as typeof current;
 			});
-			toast.error('Veuillez corriger les erreurs avant de continuer');
+			toast.error('Corrigez les champs signalés avant de continuer');
 			return false;
 		}
 		return true;

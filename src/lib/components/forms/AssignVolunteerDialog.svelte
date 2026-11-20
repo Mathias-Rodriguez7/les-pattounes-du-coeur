@@ -56,7 +56,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success' && result.data?.success) {
-				toast.success('Formulaire assigné avec succès ✅');
+				toast.success('Formulaire assigné');
 				if (onSuccess && result.data.form) {
 					onSuccess(result.data.form);
 				}

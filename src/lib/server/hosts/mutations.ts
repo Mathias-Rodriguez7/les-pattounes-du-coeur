@@ -281,7 +281,7 @@ export async function updateHost({ request, locals }: { request: Request; locals
 
 		return {
 			success: true,
-			message: "Famille d'accueil mise à jour avec succès",
+			message: "Famille d'accueil mise à jour",
 			data: updatedHost
 		};
 	} catch (error) {

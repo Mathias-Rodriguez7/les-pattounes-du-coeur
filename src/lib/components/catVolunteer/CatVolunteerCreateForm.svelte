@@ -53,7 +53,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success' && result.data?.success) {
-				toast.success('Bénévole associé avec succès ✅');
+				toast.success('Bénévole associé');
 				if (onSuccess && result.data.catVolunteer) {
 					onSuccess(result.data.catVolunteer);
 				}

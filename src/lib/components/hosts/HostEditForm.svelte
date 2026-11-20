@@ -51,7 +51,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success("Famille d'accueil mise à jour avec succès");
+				toast.success("Famille d'accueil mise à jour");
 				await update();
 				onSuccess?.();
 			} else if (result.type === 'failure') {

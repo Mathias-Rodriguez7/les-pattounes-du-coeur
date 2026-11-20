@@ -45,7 +45,7 @@ export async function createPlacement(input: CreatePlacementInput) {
 
 		return {
 			success: true,
-			message: 'Placement créé avec succès',
+			message: 'Placement créé',
 			data: placement
 		};
 	} catch (error) {
@@ -124,10 +124,7 @@ export async function createPlacements(input: CreatePlacementsInput) {
 
 	return {
 		success: true,
-		message:
-			results.length > 1
-				? `${results.length} placements créés avec succès`
-				: 'Placement créé avec succès',
+		message: results.length > 1 ? `${results.length} placements créés` : 'Placement créé',
 		data: results
 	};
 }
@@ -173,7 +170,7 @@ export async function updatePlacement(placementId: string, input: UpdatePlacemen
 
 		return {
 			success: true,
-			message: 'Placement mis à jour avec succès',
+			message: 'Placement mis à jour',
 			data: placement
 		};
 	} catch (error) {
@@ -200,7 +197,7 @@ export async function deletePlacement(placementId: string) {
 
 		return {
 			success: true,
-			message: 'Placement supprimé avec succès'
+			message: 'Placement supprimé'
 		};
 	} catch (error) {
 		console.error('❌ ERREUR deletePlacement:', error);

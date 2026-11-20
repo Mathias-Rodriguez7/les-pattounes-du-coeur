@@ -35,7 +35,7 @@
 
 		onResult({ result }) {
 			if (result.type === 'success') {
-				toast.success('Demande envoyée avec succès 🎉');
+				toast.success('Demande envoyée 🎉');
 				// 🆕 Retour à la liste des chats : le toast reste affiché pendant la navigation
 				goto(resolve('adoptions/chat'));
 			}
@@ -44,7 +44,7 @@
 			if (result.type === 'failure') {
 				toast.error(
 					result.status === 400
-						? 'Veuillez corriger les erreurs du formulaire'
+						? 'Corrigez les champs signalés en rouge'
 						: ((result.data?.message as string) ?? "Une erreur s'est produite")
 				);
 			}
@@ -92,7 +92,7 @@
 			return $errors;
 		});
 
-		if (!result.success) toast.error('Veuillez compléter les champs obligatoires');
+		if (!result.success) toast.error('Remplissez les champs obligatoires');
 		return result.success;
 	}
 

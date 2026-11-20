@@ -108,7 +108,7 @@ export async function createNews({ request, locals }: { request: Request; locals
 
 		return {
 			success: true,
-			message: 'News créée avec succès',
+			message: 'News créée',
 			data: newNews,
 			errors: {}
 		};
@@ -243,7 +243,7 @@ export async function updateNews({ request, locals }: { request: Request; locals
 
 		return {
 			success: true,
-			message: 'News mise à jour avec succès',
+			message: 'News mise à jour',
 			data: updatedNews,
 			errors: {}
 		};
@@ -307,7 +307,7 @@ export async function deleteNews({ request, locals }: { request: Request; locals
 
 		return {
 			success: true,
-			message: 'News supprimée avec succès',
+			message: 'News supprimée',
 			errors: {}
 		};
 	} catch (error) {

@@ -75,7 +75,7 @@
 				progress = {};
 				await update({ reset: false });
 			} else {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 				await update();
 			}
 		};

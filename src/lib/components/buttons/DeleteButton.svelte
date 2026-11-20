@@ -41,7 +41,7 @@
 		iconOnly = false,
 		actionName = '?/deleteProfile',
 		fieldName = 'profileId',
-		successMessage = 'Supprimé avec succès ! ✅',
+		successMessage = 'Supprimé',
 		onSuccess
 	}: Props = $props();
 

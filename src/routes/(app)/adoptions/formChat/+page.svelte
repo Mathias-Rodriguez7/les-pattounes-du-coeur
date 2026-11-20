@@ -41,7 +41,7 @@
 		validators: zod4Client(adoptionFormSchema),
 		onResult({ result }) {
 			if (result.type === 'success') {
-				toast.success('Demande envoyée avec succès 🎉');
+				toast.success('Demande envoyée 🎉');
 				birthDate = undefined;
 				form.reset();
 				step = 1;
@@ -52,7 +52,7 @@
 				toast.error(
 					message ??
 						(result.status === 400
-							? 'Veuillez corriger les erreurs du formulaire'
+							? 'Corrigez les champs signalés en rouge'
 							: "Une erreur s'est produite")
 				);
 			}
@@ -76,7 +76,7 @@
 
 		const flat = zodFieldErrors(result.error) as Record<string, string[]>;
 		errors.update(($e) => ({ ...$e, ...flat }));
-		toast.error('Veuillez corriger les erreurs du formulaire');
+		toast.error('Corrigez les champs signalés en rouge');
 		return false;
 	}
 

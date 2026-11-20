@@ -151,7 +151,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur création bénévole:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -164,7 +164,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error("Erreur création famille d'accueil:", error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -175,7 +175,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur mise à jour form:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -205,7 +205,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur refus demande:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -216,7 +216,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur assignation bénévole:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 

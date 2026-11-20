@@ -153,14 +153,14 @@ export const actions: Actions = {
 
 			return {
 				success: true,
-				message: '✅ Email mis à jour avec succès',
+				message: 'Email mis à jour',
 				action: 'updateEmail'
 			};
 		} catch (error) {
 			console.error('Erreur updateEmail:', error);
 			return fail(500, {
 				success: false,
-				error: 'Erreur serveur',
+				error: 'Une erreur est survenue. Réessayez.',
 				action: 'updateEmail'
 			});
 		}
@@ -236,14 +236,14 @@ export const actions: Actions = {
 
 			return {
 				success: true,
-				message: '🔐 Mot de passe mis à jour avec succès',
+				message: 'Mot de passe mis à jour',
 				action: 'updatePassword'
 			};
 		} catch (error) {
 			console.error('Erreur updatePassword:', error);
 			return fail(500, {
 				success: false,
-				error: 'Erreur serveur',
+				error: 'Une erreur est survenue. Réessayez.',
 				action: 'updatePassword'
 			});
 		}

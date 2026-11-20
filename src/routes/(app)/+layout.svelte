@@ -3,6 +3,7 @@
 	import Sidebar from '#lib/components/layout/Sidebar.svelte';
 	import DashboardMobileNav from '#lib/components/layout/DashboardMobileNav.svelte';
 	import Footer from '#lib/components/layout/Footer.svelte';
+	import NavigationProgress from '#lib/components/feedback/NavigationProgress.svelte';
 	import { Toaster } from 'svelte-sonner';
 	import '../../app.css';
 
@@ -19,6 +20,9 @@
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" />
 </svelte:head>
+
+<!-- Une fine barre en haut pendant le chargement d'une page -->
+<NavigationProgress />
 
 {#if data.user}
 	<!-- ================= DASHBOARD ================= -->

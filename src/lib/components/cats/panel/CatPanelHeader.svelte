@@ -48,6 +48,7 @@
 	const sexIcon = $derived(getSexIcon(cat.sex));
 	// Jours restants de l'essai : le badge passe en rouge « À finaliser » à la fin de l'essai
 	const trial = $derived(adoption ? getTrialInfo(adoption) : null);
+	import LoadingImage from '#lib/components/media/LoadingImage.svelte';
 </script>
 
 <Card.Header class="flex flex-wrap items-stretch gap-4 pl-0 sm:gap-6">
@@ -60,10 +61,11 @@
 		aria-label="Gérer les photos de {cat.name ?? 'ce chat'}"
 	>
 		{#if primaryMedia}
-			<img
+			<LoadingImage
 				src={publicMediaUrl(primaryMedia.file.storageKey)}
 				alt={catAltText(cat)}
-				class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 pointer-fine:group-hover:scale-105"
+				wrapperClass="absolute inset-0"
+				class="h-full w-full object-cover transition-transform duration-300 pointer-fine:group-hover:scale-105"
 				style={primaryStyle}
 			/>
 		{:else}

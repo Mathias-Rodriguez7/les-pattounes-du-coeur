@@ -92,7 +92,7 @@
 		}
 	];
 	const ASSOCIATION_LINKS: NavLink[] = [
-		{ href: '/association/info', label: 'Infos', description: 'Qui sommes-nous', icon: Info },
+		{ href: '/association/info', label: 'Infos', description: 'Qui sommes-nous ?', icon: Info },
 		{
 			href: '/association/news',
 			label: 'News',

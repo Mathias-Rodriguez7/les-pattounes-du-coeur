@@ -5,12 +5,9 @@
 	import NewsCatCard from '#lib/components/news/NewsCatCard.svelte';
 	import type { NewsFull } from '#lib/types/news.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
-	import * as Sheet from '#lib/components/ui/sheet/index.ts';
-	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
-	import { Input } from '#lib/components/ui/input/index.ts';
-	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Label } from '#lib/components/ui/label/index.ts';
-	import { Search } from '@lucide/svelte';
+	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import SelectField from '#lib/components/fields/SelectField.svelte';
+	import { NEWS_TYPE_OPTIONS } from '#lib/constants/news.ts';
 	import { fade, fly } from 'svelte/transition';
 
 	type PageData = {
@@ -28,49 +25,23 @@
 		isOpen = true;
 	}
 
-	// -----------------------------
-	// FILTER STATE
-	// -----------------------------
-	let filters = $state({
-		search: '',
-		toggles: {
-			news: false,
-			event: false,
-			history: false,
-			newsCat: false,
-			newsLetter: false
-		}
-	});
+	// ===== FILTRES : le même système que les tableaux du dashboard (valeur '' = pas de filtre) =====
+	let search = $state('');
+	let typeFilter = $state('');
 
 	function resetFilters() {
-		filters.search = '';
-		Object.keys(filters.toggles).forEach((key) => {
-			filters.toggles[key as keyof typeof filters.toggles] = false;
-		});
+		search = '';
+		typeFilter = '';
 	}
 
-	const filterToTypeMap = {
-		news: 'NEWS',
-		event: 'EVENT',
-		history: 'HISTORY',
-		newsCat: 'NEWSCATS',
-		newsLetter: 'NEWSLETTER'
-	} as const;
-
-	let filteredNews = $derived(
-		data.news.filter((news) => {
-			const matchSearch =
-				!filters.search || news.title?.toLowerCase().includes(filters.search.toLowerCase());
-
-			const active = Object.entries(filters.toggles).filter(([, v]) => v);
-
-			const matchToggles =
-				active.length === 0 ||
-				active.some(([key]) => news.type === filterToTypeMap[key as keyof typeof filterToTypeMap]);
-
-			return matchSearch && matchToggles;
-		})
-	);
+	const filteredNews = $derived.by(() => {
+		const query = search.trim().toLowerCase();
+		return data.news.filter(
+			(news) =>
+				(!query || (news.title ?? '').toLowerCase().includes(query)) &&
+				(!typeFilter || news.type === typeFilter)
+		);
+	});
 
 	$effect(() => {
 		if (!data.selectedNewsId) return;
@@ -96,130 +67,62 @@
 	<div in:fly={{ y: 20, duration: 300 }} class="flex w-full flex-col gap-6 p-8">
 		<h1 class="text-3xl font-bold">News</h1>
 
-		<!-- ===================== -->
-		<!-- TOP BAR -->
-		<!-- ===================== -->
-		<div class="flex flex-wrap items-center justify-between gap-4 rounded-4xl bg-card px-6 py-4">
-			<!-- FILTER SHEET -->
-			<Sheet.Root>
-				<Sheet.Trigger>
-					<Button>Filtres</Button>
-				</Sheet.Trigger>
-
-				<Sheet.Content side="left" class="w-95 space-y-8 p-6">
-					<!-- HEADER -->
-					<div class="space-y-1">
-						<h2 class="text-2xl font-bold">Filtres</h2>
-						<p class="text-sm text-muted-foreground">Affinez votre recherche</p>
-					</div>
-
-					<!-- TYPES -->
-					<div class="space-y-4">
-						<h3 class="text-sm font-semibold tracking-wide uppercase opacity-70">Types</h3>
-						<div class="space-y-3">
-							<Label
-								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
-							>
-								<Checkbox
-									checked={filters.toggles.news}
-									onCheckedChange={(checked) => {
-										filters.toggles.news = !!checked;
-									}}
-								/>
-								<div>
-									<p class="text-xs text-muted-foreground">Toutes les news de l'association.</p>
-								</div>
-							</Label>
-
-							<Label
-								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
-							>
-								<Checkbox
-									checked={filters.toggles.newsCat}
-									onCheckedChange={(checked) => {
-										filters.toggles.newsCat = !!checked;
-									}}
-								/>
-								<div>
-									<p class="text-xs text-muted-foreground">
-										Les nouveaux chats qui cherche une famille.
-									</p>
-								</div>
-							</Label>
-
-							<Label
-								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
-							>
-								<Checkbox
-									checked={filters.toggles.newsLetter}
-									onCheckedChange={(checked) => {
-										filters.toggles.newsLetter = !!checked;
-									}}
-								/>
-								<div>
-									<p class="text-xs text-muted-foreground">
-										Toutes les news letter de l'association
-									</p>
-								</div>
-							</Label>
-
-							<Label
-								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
-							>
-								<Checkbox
-									checked={filters.toggles.history}
-									onCheckedChange={(checked) => {
-										filters.toggles.history = !!checked;
-									}}
-								/>
-								<div>
-									<p class="text-xs text-muted-foreground">Toutes les histoires de l'association</p>
-								</div>
-							</Label>
-
-							<Label
-								class="flex items-center gap-3 rounded-4xl border p-3 transition hover:bg-secondary"
-							>
-								<Checkbox
-									checked={filters.toggles.event}
-									onCheckedChange={(checked) => {
-										filters.toggles.event = !!checked;
-									}}
-								/>
-								<div>
-									<p class="text-xs text-muted-foreground">
-										Les évènements organiser par l'association
-									</p>
-								</div>
-							</Label>
-						</div>
-					</div>
-
-					<Button variant="outline" class="h-16 w-full text-xl" onclick={resetFilters}>
-						Réinitialiser les filtres
-					</Button>
-				</Sheet.Content>
-			</Sheet.Root>
-
-			<!-- SEARCH -->
-			<div class="flex items-center gap-2">
-				<Search class="size-4 opacity-60" />
-				<Input bind:value={filters.search} placeholder="Rechercher..." />
-			</div>
+		<!-- Recherche + bouton Filtres : comme dans les tableaux du dashboard -->
+		<div class="rounded-3xl bg-card p-4 shadow-sm">
+			<TableToolbar
+				bind:search
+				searchPlaceholder="Rechercher une news…"
+				searchLabel="Rechercher une news par son titre"
+				onReset={resetFilters}
+				searchClass="w-full sm:ml-auto sm:w-72"
+				activeCount={typeFilter ? 1 : 0}
+			>
+				{#snippet filters()}
+					<SelectField
+						id="news-public-type"
+						label=""
+						options={NEWS_TYPE_OPTIONS}
+						bind:value={typeFilter}
+						placeholder="Type"
+						class="w-full sm:w-44"
+					/>
+				{/snippet}
+			</TableToolbar>
 		</div>
+
+		<p class="-mt-2 text-sm text-muted-foreground" aria-live="polite">
+			{#if search.trim() || typeFilter}
+				{filteredNews.length}
+				{filteredNews.length > 1 ? 'news correspondent' : 'news correspond'} à vos critères
+			{:else}
+				{filteredNews.length} news
+			{/if}
+		</p>
 
 		<!-- ===================== -->
 		<!-- GRID -->
 		<!-- ===================== -->
 		<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each filteredNews as news (news.id)}
-				<button class="text-left" onclick={() => openNews(news)}>
+				<button type="button" class="text-left" onclick={() => openNews(news)}>
 					{#if news.type === 'NEWSCATS'}
 						<NewsCatCard {news} />
 					{:else}
 						<NewsCard {news} />
 					{/if}
 				</button>
+			{:else}
+				<div class="col-span-full flex flex-col items-center gap-3 py-20 text-center">
+					<h2 class="text-xl font-semibold">Aucune news trouvée</h2>
+					<p class="text-sm text-muted-foreground">Essayez un autre mot ou un autre type.</p>
+					<button
+						type="button"
+						onclick={resetFilters}
+						class="text-sm text-primary underline underline-offset-4 transition-opacity hover:opacity-70"
+					>
+						Réinitialiser les filtres
+					</button>
+				</div>
 			{/each}
 		</section>
 

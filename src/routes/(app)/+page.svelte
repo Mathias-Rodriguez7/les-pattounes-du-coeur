@@ -2,7 +2,7 @@
 	import * as Card from '#lib/components/ui/card/index.js';
 	import CatCard from '#lib/components/cats/CatCard.svelte';
 	import AreaChart from '#lib/components/AreaChart.svelte';
-	import { Button } from '#lib/components/ui/button/index.js';
+	import { Button, buttonVariants } from '#lib/components/ui/button/index.js';
 	import { Plus, Search, Heart, Home, ArrowRight, Pause, Play } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import SupportCat from '#lib/components/support/SupportCat.svelte';
@@ -80,6 +80,24 @@
 						><a href={resolve(`association/info`)}><Button>En savoir plus</Button></a></Card.Footer
 					>
 				</Card.Root>
+			</div>
+		</section>
+
+		<!-- Mobile : la carte « Bienvenue » ne tient pas sur la vidéo, elle passe dessous -->
+		<section class="px-4 pt-6 md:hidden">
+			<div
+				class="flex flex-col gap-3 rounded-2xl border border-accent/40 bg-accent/70 p-5 shadow-sm"
+			>
+				<h2 class="text-lg font-semibold">Bienvenue chez Les Pattounes du Cœur !</h2>
+				<p class="text-sm text-muted-foreground">
+					Nous intervenons sur Montpellier et ses alentours auprès des chats errants et abandonnés.
+				</p>
+				<div class="flex flex-wrap gap-2">
+					<a href={resolve('adoptions/chat')} class={buttonVariants()}>Voir les chats à adopter</a>
+					<a href={resolve('association/info')} class={buttonVariants({ variant: 'outline' })}>
+						En savoir plus
+					</a>
+				</div>
 			</div>
 		</section>
 

@@ -46,7 +46,7 @@
 				errors = (result.data?.errors as Record<string, string[] | undefined>) ?? {};
 				toast.error((result.data?.error as string) ?? 'Erreur');
 			} else {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 			}
 		};
 	};

@@ -51,7 +51,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Formulaire bénévole mis à jour avec succès ! ✅');
+				toast.success('Formulaire bénévole mis à jour');
 				if (onSuccess) {
 					onSuccess();
 				}

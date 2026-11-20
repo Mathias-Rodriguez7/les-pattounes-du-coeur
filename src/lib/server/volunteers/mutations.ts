@@ -321,7 +321,7 @@ export async function updateVolunteer({
 
 		return {
 			success: true,
-			message: 'Bénévole mis à jour avec succès',
+			message: 'Bénévole mis à jour',
 			data: updatedVolunteer
 		};
 	} catch (error) {

@@ -24,7 +24,7 @@
 			if (result.type === 'failure') {
 				toast.error(
 					result.status === 400
-						? 'Veuillez corriger les erreurs du formulaire'
+						? 'Corrigez les champs signalés en rouge'
 						: ((result.data?.message as string) ?? "Une erreur s'est produite")
 				);
 			}

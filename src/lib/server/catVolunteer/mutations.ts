@@ -80,7 +80,7 @@ export async function createCatVolunteer({
 
 		return {
 			success: true,
-			message: 'Bénévole associé avec succès',
+			message: 'Bénévole associé',
 			catVolunteer,
 			errors: {}
 		};
@@ -147,7 +147,7 @@ export async function deleteCatVolunteer({
 
 		return {
 			success: true,
-			message: 'Bénévole retiré avec succès',
+			message: 'Bénévole retiré',
 			errors: {}
 		};
 	} catch (error) {

@@ -210,7 +210,7 @@ export async function updateForm({
 
 		return {
 			success: true,
-			message: 'Formulaire mis à jour avec succès',
+			message: 'Formulaire mis à jour',
 			data: updatedForm,
 			error: '',
 			errors: {}
@@ -285,7 +285,7 @@ export async function assignVolunteer({
 		}
 	});
 
-	return { success: true, form: updatedForm, message: 'Bénévole assigné avec succès' };
+	return { success: true, form: updatedForm, message: 'Bénévole assigné' };
 }
 
 // ==========================================

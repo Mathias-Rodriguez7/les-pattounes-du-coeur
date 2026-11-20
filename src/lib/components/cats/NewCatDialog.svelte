@@ -105,7 +105,7 @@
 		if (!result.success) {
 			// Un message par champ : la forme qu'attend getFieldError
 			fieldErrors = flattenErrors(result.error);
-			toast.error('Veuillez corriger les erreurs du formulaire');
+			toast.error('Corrigez les champs signalés en rouge');
 			return false;
 		}
 
@@ -163,7 +163,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Chat créé avec succès');
+				toast.success('Chat créé');
 				open = false;
 				await update();
 			} else if (result.type === 'failure') {
@@ -173,7 +173,7 @@
 				toast.error((result.data?.error as string) || 'Erreur lors de la création');
 				await update({ reset: false });
 			} else if (result.type === 'error') {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 			}
 
 			isSubmitting = false;

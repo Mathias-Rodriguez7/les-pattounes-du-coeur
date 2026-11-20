@@ -20,6 +20,10 @@
 		filters?: Snippet;
 		/** Boutons en plus, à droite de la recherche (facultatif) */
 		actions?: Snippet;
+		/** Taille et place du champ de recherche (par défaut : il prend toute la largeur libre) */
+		searchClass?: string;
+		/** Nombre de filtres actifs : une pastille sur « Filtres » (on voit qu'un filtre joue, même replié) */
+		activeCount?: number;
 	}
 
 	let {
@@ -29,7 +33,9 @@
 		showSearch = true,
 		onReset,
 		filters,
-		actions
+		actions,
+		activeCount = 0,
+		searchClass = 'min-w-40 flex-1'
 	}: Props = $props();
 
 	const uid = $props.id();
@@ -52,11 +58,21 @@
 			>
 				<SlidersHorizontal class="size-4" />
 				Filtres
+				{#if activeCount > 0}
+					<span
+						class="rounded-full px-1.5 text-xs font-bold {open
+							? 'bg-primary-foreground text-primary'
+							: 'bg-primary text-primary-foreground'}"
+					>
+						{activeCount}
+					</span>
+					<span class="sr-only">({activeCount} actif{activeCount > 1 ? 's' : ''})</span>
+				{/if}
 			</Button>
 		{/if}
 
 		{#if showSearch}
-			<div class="relative min-w-40 flex-1">
+			<div class="relative {searchClass}">
 				<Search
 					class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
 				/>

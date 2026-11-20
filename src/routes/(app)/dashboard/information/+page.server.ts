@@ -39,7 +39,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur création document info:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -52,7 +52,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur modification document info:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -65,7 +65,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur suppression document info:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	}
 };

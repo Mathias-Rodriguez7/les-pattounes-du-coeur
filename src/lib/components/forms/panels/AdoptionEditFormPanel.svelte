@@ -52,7 +52,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Formulaire adoption mis à jour avec succès ! ✅');
+				toast.success('Formulaire adoption mis à jour');
 				if (onSuccess) {
 					onSuccess();
 				}

@@ -145,7 +145,7 @@
 
 		if (!result.success) {
 			fieldErrors = flattenErrors(result.error);
-			toast.error('Veuillez corriger les erreurs du formulaire');
+			toast.error('Corrigez les champs signalés en rouge');
 			return false;
 		}
 
@@ -219,7 +219,7 @@
 				progress = {};
 				await update({ reset: false });
 			} else {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 				await update();
 			}
 		};

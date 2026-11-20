@@ -62,7 +62,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success(isEdit ? 'Maladie mise à jour ✅' : 'Maladie ajoutée ✅');
+				toast.success(isEdit ? 'Maladie mise à jour' : 'Maladie ajoutée');
 				open = false;
 				if (onSuccess) onSuccess();
 			} else if (result.type === 'failure') {

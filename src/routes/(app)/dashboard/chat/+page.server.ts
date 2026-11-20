@@ -189,7 +189,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur création chat:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -202,7 +202,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur updateCat:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -213,7 +213,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCat:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -255,7 +255,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur createPlacement:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -298,7 +298,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur updatePlacement:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -331,7 +331,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deletePlacement:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -347,7 +347,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur createSickness:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -360,7 +360,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur updateSickness:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -373,7 +373,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteSickness:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -389,7 +389,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur assignCatVolunteer:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -402,7 +402,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur removeCatVolunteer:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -416,7 +416,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur createCatDocument:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -427,7 +427,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCatDocument:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -513,7 +513,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur createCare:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -524,7 +524,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCare:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -538,7 +538,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur addCatMedia:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -549,7 +549,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur setPrimaryCatMedia:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -560,7 +560,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur updateCatMediaFocalPoint:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -571,7 +571,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur deleteCatMedia:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -586,7 +586,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur mise à jour demande:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 
@@ -604,7 +604,7 @@ export const actions: Actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur refus demande:', error);
-			return fail(500, { success: false, error: 'Erreur serveur' });
+			return fail(500, { success: false, error: 'Une erreur est survenue. Réessayez.' });
 		}
 	},
 

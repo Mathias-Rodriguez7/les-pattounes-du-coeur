@@ -49,7 +49,7 @@
 
 	const handleEnhance: SubmitFunction = ({ cancel }) => {
 		if (selectedHostIds.length === 0) {
-			toast.error("Veuillez sélectionner au moins une famille d'accueil");
+			toast.error("Choisissez au moins une famille d'accueil");
 			cancel(); // ANNULE réellement l'envoi
 			return;
 		}
@@ -58,9 +58,7 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success(
-					count > 1 ? `${count} placements créés avec succès` : 'Placement créé avec succès'
-				);
+				toast.success(count > 1 ? `${count} placements créés` : 'Placement créé');
 				open = false;
 				await update();
 				onSuccess?.();
@@ -68,7 +66,7 @@
 				toast.error((result.data?.error as string) ?? 'Erreur lors de la création du placement');
 				await update({ reset: false });
 			} else if (result.type === 'error') {
-				toast.error('Erreur serveur');
+				toast.error('Une erreur est survenue. Réessayez.');
 			}
 
 			isSubmitting = false;
