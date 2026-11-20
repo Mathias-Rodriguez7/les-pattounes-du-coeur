@@ -3,6 +3,7 @@
 	import type { PageData } from '../../../../routes/(app)/dashboard/$types';
 	import { getGradientStyle } from '#lib/utils/iconThemes.ts';
 	import { Separator } from '#lib/components/ui/separator/index.js';
+	import MonthBars from '#lib/components/charts/MonthBars.svelte';
 
 	interface Props {
 		data: PageData;
@@ -14,12 +15,6 @@
 
 	const now = new Date();
 	const year = now.getFullYear();
-	// « janvier », « février »… pour les bulles des barres
-	const monthName = (index: number) =>
-		new Date(year, index, 1).toLocaleDateString('fr-FR', { month: 'long' });
-
-	const MONTH_INITIALS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-
 	// Une ligne « ce mois-ci / cette année » avec ses barres mois par mois
 	const series = $derived([
 		{
@@ -51,7 +46,6 @@
 
 <section class="flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
 	{#each series as item (item.id)}
-		{@const max = Math.max(1, ...item.data.byMonth)}
 		<div class="flex flex-col gap-3 px-5 py-4">
 			<div class="flex items-center gap-3">
 				<div
@@ -74,30 +68,16 @@
 				</p>
 			</div>
 
-			<!-- Mois par mois, de janvier à aujourd'hui : le mois en cours est plus foncé -->
-			<div>
-				<ul class="flex h-10 items-end gap-1" aria-label="{item.label} par mois en {year}">
-					{#each item.data.byMonth as count, index (index)}
-						<li
-							class="flex h-full flex-1 items-end"
-							title="{monthName(index)} : {count}"
-							aria-label="{monthName(index)} : {count}"
-						>
-							<span
-								class="block w-full rounded-t-sm {index === item.data.byMonth.length - 1
-									? item.current
-									: item.bar}"
-								style="height: {count === 0 ? 2 : Math.max(8, (count / max) * 100)}%"
-							></span>
-						</li>
-					{/each}
-				</ul>
-				<div class="mt-1 flex gap-1 text-[11px] text-muted-foreground" aria-hidden="true">
-					{#each MONTH_INITIALS.slice(0, item.data.byMonth.length) as initial, index (index)}
-						<span class="flex-1 text-center">{initial}</span>
-					{/each}
-				</div>
-			</div>
+			<MonthBars
+				series={[
+					{
+						label: item.label,
+						byMonth: item.data.byMonth,
+						barClass: item.bar,
+						currentClass: item.current
+					}
+				]}
+			/>
 		</div>
 		<Separator />
 	{/each}

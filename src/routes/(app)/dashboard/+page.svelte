@@ -2,13 +2,26 @@
 	import AdminDashboard from '#lib/components/dashboard/roles/AdminDashboard.svelte';
 	import ManagerDashboard from '#lib/components/dashboard/roles/ManagerDashboard.svelte';
 	import CommunicationDashboard from '#lib/components/dashboard/roles/CommunicationDashboard.svelte';
-	import Radial from '#lib/components/charts/Radial.svelte';
+	import MyStats from '#lib/components/dashboard/shared/MyStats.svelte';
 	import type { PageData } from './$types';
+	import type { TaskBoardKind } from '#lib/constants/tasks.ts';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
 
 	const userRole = $derived(data.user?.role ?? 'MANAGER');
+
+	// L'admin bascule entre sa vue admin et sa vue bénévole : ses tâches ET ses stats suivent
+	let adminView = $state<TaskBoardKind>('ADMIN');
+	const statsView = $derived(
+		userRole === 'ADMIN'
+			? adminView === 'ADMIN'
+				? 'ADMIN'
+				: 'VOLUNTEER'
+			: userRole === 'COMMUNICATION'
+				? 'COMMUNICATION'
+				: 'VOLUNTEER'
+	);
 </script>
 
 <svelte:head>
@@ -21,7 +34,7 @@
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-10">
 		<div>
 			{#if userRole === 'ADMIN'}
-				<AdminDashboard {data} />
+				<AdminDashboard {data} bind:view={adminView} />
 			{:else if userRole === 'COMMUNICATION'}
 				<CommunicationDashboard {data} />
 			{:else}
@@ -31,45 +44,7 @@
 
 		<section class="flex flex-col gap-4">
 			<h2 class="text-xl font-bold">Mes stats</h2>
-			<div class="rounded-2xl border border-border bg-card p-6">
-				<div class="flex items-stretch gap-4">
-					<div class="flex flex-1 items-center justify-center">
-						<Radial
-							title="Chats en gestion"
-							description="Sous votre responsabilité"
-							volunteerValue={data.volunteerStats.catsManaged.volunteerValue}
-							totalValue={data.volunteerStats.catsManaged.totalValue}
-							unit="Chats"
-							volunteerColor="hsl(210 100% 50%)"
-							otherColor="hsl(var(--muted))"
-						/>
-					</div>
-					<div class="w-px bg-border"></div>
-					<div class="flex flex-1 items-center justify-center">
-						<Radial
-							title="Adoptions {new Date().getFullYear()}"
-							description="Succès réalisés cette année"
-							volunteerValue={data.volunteerStats.adoptionsThisYear.volunteerValue}
-							totalValue={data.volunteerStats.adoptionsThisYear.totalValue}
-							unit="Adoptions"
-							volunteerColor="hsl(var(--primary))"
-							otherColor="hsl(var(--muted))"
-						/>
-					</div>
-					<div class="w-px bg-border"></div>
-					<div class="flex flex-1 items-center justify-center">
-						<Radial
-							title="Candidatures traitées"
-							description="Dossiers finalisés"
-							volunteerValue={data.volunteerStats.applicationsProcessed.volunteerValue}
-							totalValue={data.volunteerStats.applicationsProcessed.totalValue}
-							unit="Dossiers"
-							volunteerColor="hsl(38 92% 50%)"
-							otherColor="hsl(var(--muted))"
-						/>
-					</div>
-				</div>
-			</div>
+			<MyStats stats={data.myStats} view={statsView} />
 		</section>
 	</div>
 </main>

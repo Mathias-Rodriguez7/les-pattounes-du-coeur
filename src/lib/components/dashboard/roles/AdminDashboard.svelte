@@ -15,12 +15,12 @@
 
 	interface Props {
 		data: PageData;
+		/** Deux vues : les actions d'administration, et ses propres tâches de bénévole.
+		 *  Partagée avec la page : « Mes stats » suit le même interrupteur. */
+		view?: TaskBoardKind;
 	}
 
-	let { data }: Props = $props();
-
-	// Deux vues : les actions d'administration, et ses propres tâches de bénévole
-	let view = $state<TaskBoardKind>('ADMIN');
+	let { data, view = $bindable('ADMIN') }: Props = $props();
 
 	// « Plus tard » : ce qu'elle a mis de côté sort de la liste et des compteurs
 	const now = new Date();
