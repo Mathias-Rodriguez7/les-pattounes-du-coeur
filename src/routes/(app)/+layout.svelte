@@ -5,6 +5,7 @@
 	import Footer from '#lib/components/layout/Footer.svelte';
 	import NavigationProgress from '#lib/components/feedback/NavigationProgress.svelte';
 	import { Toaster } from 'svelte-sonner';
+	import { desktop } from '#lib/utils/media.svelte.ts';
 	import '../../app.css';
 
 	const { data, children } = $props();
@@ -59,4 +60,6 @@
 	</div>
 {/if}
 
-<Toaster />
+<!-- Téléphone et tablette : messages en haut, pour ne pas passer sous la barre d'onglets
+     ni sur le chat Leegloo de l'accueil (en bas) -->
+<Toaster position={desktop.current ? 'bottom-right' : 'top-center'} />

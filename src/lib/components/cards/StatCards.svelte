@@ -21,25 +21,21 @@
 		 * Tailwind ne génère que les classes qu'il lit telles quelles dans le code.
 		 */
 		class?: string;
-		/** La 1ʳᵉ carte (le total) prend toute la largeur sur téléphone : utile avec 5 cartes (1 + 2 + 2) */
-		featureFirst?: boolean;
 	}
 
-	let {
-		cards,
-		class: columns = 'grid-cols-2 sm:grid-cols-4',
-		featureFirst = false
-	}: Props = $props();
+	let { cards, class: columns = 'grid-cols-2 sm:grid-cols-4' }: Props = $props();
 </script>
 
 <!-- Cartes compactes, sur une ligne : icône, puis le chiffre et son libellé.
      Avant, chaque carte faisait deux fois cette hauteur et la liste commençait plus bas. -->
-<section class="grid gap-3 {columns}">
-	{#each cards as card, i (card.label)}
+<!-- Téléphone : une seule ligne qui défile sur le côté (la liste commence tout de suite) ;
+     à partir de 640 px : la grille habituelle -->
+<section
+	class="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0 {columns}"
+>
+	{#each cards as card (card.label)}
 		<Card.Root
-			class="flex-row items-center gap-3 px-3 py-3 sm:px-4 {featureFirst && i === 0
-				? 'col-span-2 sm:col-span-1'
-				: ''}"
+			class="min-w-40 shrink-0 snap-start flex-row items-center gap-3 px-3 py-3 sm:min-w-0 sm:px-4"
 		>
 			<Icon
 				name={card.icon}

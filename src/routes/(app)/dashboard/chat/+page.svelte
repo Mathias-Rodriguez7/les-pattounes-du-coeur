@@ -372,7 +372,7 @@
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- ================= STATS ================= -->
-		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" featureFirst />
+		<StatCards cards={statCards} class="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5" />
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<ListDetailLayout bind:open={mobilePanelOpen} title={selectedCatName}>

@@ -206,7 +206,7 @@
 	<h1 class="sr-only">SOS</h1>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- ================= STATS ================= -->
-		<StatCards cards={statCards} class="grid-cols-2 xl:grid-cols-4" featureFirst />
+		<StatCards cards={statCards} class="grid-cols-2 xl:grid-cols-4" />
 
 		<!-- ================= LISTE + DÉTAIL ================= -->
 		<ListDetailLayout bind:open={mobilePanelOpen} title={panelTitle}>
