@@ -24,13 +24,21 @@ export interface DashboardNavItem {
 	href: Path;
 	roles: VolunteerRole[];
 	section?: DashboardSection;
+	/** Un onglet du bas qu'on retrouve AUSSI dans « Plus », dans cette rubrique */
+	alsoInMore?: DashboardSection;
 }
 
 const ALL: VolunteerRole[] = ['ADMIN', 'MANAGER', 'COMMUNICATION'];
 
 export const DASHBOARD_NAV: DashboardNavItem[] = [
 	{ label: 'Dashboard', icon: LayoutDashboard, href: 'dashboard', roles: ALL },
-	{ label: 'Chats', icon: Cat, href: 'dashboard/chat', roles: ALL },
+	{
+		label: 'Chats',
+		icon: Cat,
+		href: 'dashboard/chat',
+		roles: ALL,
+		alsoInMore: 'Suivi'
+	},
 	{ label: 'SOS', icon: Siren, href: 'dashboard/sos', roles: ALL },
 	{
 		label: "Familles d'accueil",

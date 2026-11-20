@@ -140,7 +140,7 @@
 					},
 					{
 						id: 'invitations',
-						label: 'Invitations en attente',
+						label: 'Candidature en attente',
 						value: admin.invitations,
 						icon: MailPlus,
 						tone: 'bg-amber-100 text-amber-700',

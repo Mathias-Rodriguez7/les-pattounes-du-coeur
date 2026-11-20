@@ -43,9 +43,11 @@
 	const [leftTabs, rightTabs] = $derived([tabs.slice(0, 2), tabs.slice(2)]);
 	const SECTIONS: DashboardSection[] = ['Suivi', 'Communication', 'Ressources'];
 	const sections = $derived(
-		SECTIONS.map((title) => ({ title, items: items.filter((i) => i.section === title) })).filter(
-			(s) => s.items.length > 0
-		)
+		SECTIONS.map((title) => ({
+			title,
+			// Les pages de la rubrique, et les onglets du bas qu'on y retrouve aussi (Chats)
+			items: items.filter((i) => i.section === title || i.alsoInMore === title)
+		})).filter((s) => s.items.length > 0)
 	);
 
 	const initials = $derived(`${user.profil.firstName[0]}${user.profil.lastName[0]}`.toUpperCase());
@@ -62,7 +64,8 @@
 			: path === target || path.startsWith(`${target}/`);
 	}
 	const moreActive = $derived(
-		sections.some((s) => s.items.some((i) => isActive(i.href))) || isActive('dashboard/profil')
+		// Un onglet du bas (Chats) allume son onglet, pas « Plus »
+		items.some((i) => i.section && isActive(i.href)) || isActive('dashboard/profil')
 	);
 
 	// LE DEMI-CERCLE : les actions se répartissent sur un arc au-dessus du « + »
