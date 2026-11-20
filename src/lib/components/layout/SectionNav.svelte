@@ -1,5 +1,11 @@
+<script module lang="ts">
+	/** À mettre sur chaque rubrique : la place de l'en-tête (téléphone) et de la barre au-dessus */
+	export const SECTION_SCROLL_MARGIN = 'scroll-mt-28 lg:scroll-mt-16';
+</script>
+
 <script lang="ts">
-	// La barre d'ancres de la fiche d'un chat : collée en haut du panneau pendant qu'on défile.
+	// La barre d'ancres d'une fiche (chat, FA, bénévole) : collée en haut du panneau pendant qu'on défile.
+	// Le panneau doit être en overflow-clip (pas hidden), sinon elle ne reste pas collée.
 	// Un clic descend jusqu'à la rubrique ; en défilant, la pastille de la rubrique visible s'allume.
 
 	interface Section {
@@ -43,7 +49,7 @@
 <!-- Collée en haut : sous la barre du panneau sur téléphone (3,25 rem), tout en haut sur ordinateur -->
 <nav
 	aria-label="Rubriques de la fiche"
-	class="sticky top-13 z-10 -mx-6 bg-card/95 px-6 py-2 backdrop-blur lg:top-0"
+	class="sticky top-13 z-10 -mx-6 bg-card/95 px-6 backdrop-blur lg:top-0"
 >
 	<ul class="flex gap-1.5 overflow-x-auto">
 		{#each sections as section (section.id)}

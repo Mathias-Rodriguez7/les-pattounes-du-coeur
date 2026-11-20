@@ -151,9 +151,7 @@
 	const isFree = $derived(cat?.status === 'FREE');
 
 	// La barre d'ancres : les rubriques de la fiche (un chat libre en a moins)
-	import CatSectionNav from './CatSectionNav.svelte';
-	// La place de l'en-tête (téléphone) et de la barre d'ancres au-dessus d'une rubrique atteinte
-	const SCROLL_MARGIN = 'scroll-mt-28 lg:scroll-mt-16';
+	import SectionNav, { SECTION_SCROLL_MARGIN as SCROLL_MARGIN } from '../layout/SectionNav.svelte';
 	const ASSO_SECTIONS = [
 		{ id: 'cat-suivi', label: 'Suivi' },
 		{ id: 'cat-profil', label: 'Profil' },
@@ -199,7 +197,7 @@
 
 				{#if isFree}
 					<Card.Content class="flex flex-col gap-4 text-sm">
-						<CatSectionNav sections={FREE_SECTIONS} />
+						<SectionNav sections={FREE_SECTIONS} />
 						<section id="cat-suivi" class="grid gap-4 {SCROLL_MARGIN}">
 							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 							<FreeCatCards {cat} canManage={canManageCat} {isAdmin} />
@@ -217,7 +215,7 @@
 					<Card.Content class="flex flex-col gap-4 text-sm">
 						<Separator />
 						<!-- La barre d'ancres : aller directement à une rubrique -->
-						<CatSectionNav sections={ASSO_SECTIONS} />
+						<SectionNav sections={ASSO_SECTIONS} />
 
 						<!-- Le circuit de publication : proposer, valider, ou le mot d'un refus -->
 						<CatPublicationBanner {cat} canManage={canManageCat} />

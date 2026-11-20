@@ -11,6 +11,16 @@
 	import HostProfile from './panel/HostProfile.svelte';
 	import HostDescriptions from './panel/HostDescriptions.svelte';
 	import HostPlacementHistory from './panel/HostPlacementHistory.svelte';
+	import SectionNav, { SECTION_SCROLL_MARGIN } from '#lib/components/layout/SectionNav.svelte';
+
+	// La barre d'ancres : aller directement à une rubrique de la fiche
+	const SECTIONS = [
+		{ id: 'fa-identite', label: 'Identité' },
+		{ id: 'fa-placements', label: 'Placements' },
+		{ id: 'fa-profil', label: 'Logement' },
+		{ id: 'fa-descriptions', label: 'Descriptions' },
+		{ id: 'fa-historique', label: 'Historique' }
+	];
 
 	const { host, isAdmin = false }: { host: HostFull | null; isAdmin?: boolean } = $props();
 
@@ -38,21 +48,24 @@
 </script>
 
 {#if host}
-	<Card.Root class="flex h-full flex-col">
+	<!-- overflow-clip (et pas hidden) : la barre d'ancres peut rester collée en haut -->
+	<Card.Root class="flex h-full flex-col overflow-clip">
 		{#if !isEditing}
 			<HostPanelHeader {host} {isAdmin} onEdit={startEditing} />
 
 			<Card.Content class="space-y-6">
 				<Separator />
-				<HostIdentity {host} />
+				<SectionNav sections={SECTIONS} />
 				<Separator />
-				<HostPlacements {host} />
+				<div id="fa-identite" class={SECTION_SCROLL_MARGIN}><HostIdentity {host} /></div>
 				<Separator />
-				<HostProfile {host} />
+				<div id="fa-placements" class={SECTION_SCROLL_MARGIN}><HostPlacements {host} /></div>
 				<Separator />
-				<HostDescriptions {host} />
+				<div id="fa-profil" class={SECTION_SCROLL_MARGIN}><HostProfile {host} /></div>
 				<Separator />
-				<HostPlacementHistory {host} />
+				<div id="fa-descriptions" class={SECTION_SCROLL_MARGIN}><HostDescriptions {host} /></div>
+				<Separator />
+				<div id="fa-historique" class={SECTION_SCROLL_MARGIN}><HostPlacementHistory {host} /></div>
 			</Card.Content>
 		{:else}
 			<Card.Content class="space-y-6">

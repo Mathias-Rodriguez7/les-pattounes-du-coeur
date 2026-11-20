@@ -15,6 +15,15 @@
 	import type { Task } from '#lib/tasks/tasks.ts';
 	import type { SnoozedTask } from '#lib/tasks/snooze.ts';
 	import SnoozedTasks from '#lib/components/tasks/SnoozedTasks.svelte';
+	import SectionNav, { SECTION_SCROLL_MARGIN } from '#lib/components/layout/SectionNav.svelte';
+
+	// La barre d'ancres : aller directement à une rubrique de la fiche
+	const SECTIONS = [
+		{ id: 'benevole-taches', label: 'Tâches' },
+		{ id: 'benevole-identite', label: 'Identité' },
+		{ id: 'benevole-chats', label: 'Chats & formulaires' },
+		{ id: 'benevole-historique', label: 'Historique' }
+	];
 
 	const {
 		volunteer,
@@ -57,37 +66,47 @@
 
 {#if volunteer}
 	<!-- @container : les classes @md:, @3xl:… à l'intérieur se basent sur la largeur du panneau -->
-	<Card.Root class="@container flex h-full flex-col">
+	<!-- overflow-clip (et pas hidden) : la barre d'ancres peut rester collée en haut -->
+	<Card.Root class="@container flex h-full flex-col overflow-clip">
 		{#if !isEditing}
 			<VolunteerPanelHeader {volunteer} {isAdmin} onEdit={startEditing} />
 
 			<Card.Content class="grid grid-cols-1 gap-6">
 				<Separator />
+				<SectionNav sections={SECTIONS} />
+				<Separator />
 
 				<!-- Ses tâches : ce qui l'attend, en premier (un clic ouvre la fiche concernée) -->
-				{#if tasks.length > 0}
-					<TaskBoard
-						{tasks}
-						kind="VOLUNTEER"
-						role={volunteer.role}
-						{isAdmin}
-						hideEmpty
-						title="Ses tâches"
-						{snoozed}
-					/>
-				{:else}
-					<p class="flex items-center gap-2 text-sm text-muted-foreground">
-						<CircleCheck class="size-4 text-green-600" /> Aucune tâche en attente
-					</p>
-					<SnoozedTasks {snoozed} />
-				{/if}
+				<div id="benevole-taches" class={SECTION_SCROLL_MARGIN}>
+					{#if tasks.length > 0}
+						<TaskBoard
+							{tasks}
+							kind="VOLUNTEER"
+							role={volunteer.role}
+							{isAdmin}
+							hideEmpty
+							title="Ses tâches"
+							{snoozed}
+						/>
+					{:else}
+						<p class="flex items-center gap-2 text-sm text-muted-foreground">
+							<CircleCheck class="size-4 text-green-600" /> Aucune tâche en attente
+						</p>
+						<SnoozedTasks {snoozed} />
+					{/if}
+				</div>
 
 				<Separator />
-				<VolunteerIdentity {volunteer} />
+				<div id="benevole-identite" class={SECTION_SCROLL_MARGIN}>
+					<VolunteerIdentity {volunteer} />
+				</div>
 				<Separator />
 
 				<!-- Chats + formulaires : côte à côte en grand (2/3 + 1/3), empilés sinon -->
-				<div class="grid grid-cols-1 gap-4 @3xl:grid-cols-3">
+				<div
+					id="benevole-chats"
+					class="grid grid-cols-1 gap-4 @3xl:grid-cols-3 {SECTION_SCROLL_MARGIN}"
+				>
 					<div class="min-w-0 @3xl:col-span-2">
 						<!-- {#key} : un autre bénévole = un tableau neuf, sa pagination repart de la page 1 -->
 						{#key volunteer.id}
@@ -98,7 +117,9 @@
 				</div>
 
 				<!-- Les chats adoptés et ceux qu'elle ne suit plus -->
-				<VolunteerCatHistory {volunteer} />
+				<div id="benevole-historique" class={SECTION_SCROLL_MARGIN}>
+					<VolunteerCatHistory {volunteer} />
+				</div>
 			</Card.Content>
 		{:else}
 			<Card.Content class="grid grid-cols-1 gap-6">

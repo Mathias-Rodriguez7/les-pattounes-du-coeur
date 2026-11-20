@@ -1,5 +1,4 @@
 import type { Actions, PageServerLoad } from './$types';
-import { OPEN_FORM_STATUSES } from '#lib/constants/forms.ts';
 import { error, redirect } from '@sveltejs/kit';
 import prisma from '#lib/server/prisma.ts';
 import { resumeTaskAction, snoozeTaskAction, snoozesOf, tasksFor } from '#lib/server/tasks.ts';
@@ -46,54 +45,55 @@ export const actions: Actions = {
 // ============================================
 
 async function getAssociationStats() {
-	const currentYear = new Date().getFullYear();
-	const yearStart = new Date(currentYear, 0, 1);
+	const now = new Date();
+	const yearStart = new Date(now.getFullYear(), 0, 1);
 
-	const [
-		adoptionsThisYear,
-		catsInManagement,
-		activeHostFamilies,
-		activeVolunteers,
-		pendingApplications
-	] = await Promise.all([
-		prisma.adoption.count({
-			where: {
-				createdAt: {
-					gte: yearStart
-				}
-			}
+	// Un chat en FA : un placement en cours (actif ou en pause) ; une simple proposition ne compte pas
+	const inHomePlacement = {
+		type: { not: 'PROPOSAL' as const },
+		status: { in: ['ACTIVE' as const, 'BREAK' as const] }
+	};
+
+	const [adoptions, catsIn, catsInHost, hostsWithCat, availableHosts] = await Promise.all([
+		// Les adoptions de l'année (une adoption annulée, chat revenu, ne compte pas)
+		prisma.adoption.findMany({
+			where: { createdAt: { gte: yearStart }, status: { not: 'CANCELLED' } },
+			select: { createdAt: true }
 		}),
+		// Les chats entrés à l'association cette année (les chats libres n'en font pas partie)
+		prisma.cat.findMany({
+			where: { createdAt: { gte: yearStart }, status: { not: 'FREE' } },
+			select: { createdAt: true }
+		}),
+		// Les chats en FA en ce moment (un chat en transfert dans deux FA compte une fois)
 		prisma.cat.count({
 			where: {
-				status: {
-					notIn: ['ADOPTED', 'FREE']
-				}
+				status: { in: ['AVAILABLE', 'SOCIALIZE'] },
+				placements: { some: inHomePlacement }
 			}
 		}),
+		// Les FA actives qui accueillent au moins un chat
+		prisma.host.count({ where: { actif: 'ACTIVE', placements: { some: inHomePlacement } } }),
+		// Les FA actives, disponibles, sans aucun chat : là où un chat peut aller
 		prisma.host.count({
-			where: {
-				actif: 'ACTIVE'
-			}
-		}),
-		prisma.volunteer.count({
-			where: {
-				actif: 'ACTIVE'
-			}
-		}),
-		prisma.form.count({
-			where: {
-				status: { in: OPEN_FORM_STATUSES }
-			}
+			where: { actif: 'ACTIVE', isAvailable: true, placements: { none: inHomePlacement } }
 		})
 	]);
 
 	return {
-		totalYearAdoptions: adoptionsThisYear,
-		totalCatsInManagement: catsInManagement,
-		totalActiveHosts: activeHostFamilies,
-		totalActiveVolunteers: activeVolunteers,
-		pendingApplications
+		adoptions: monthlySeries(adoptions, now),
+		catsIn: monthlySeries(catsIn, now),
+		catsInHost,
+		hostsWithCat,
+		availableHosts
 	};
+}
+
+/** Le nombre par mois, de janvier au mois en cours, + le mois en cours et le total de l'année */
+function monthlySeries(rows: { createdAt: Date }[], now: Date) {
+	const byMonth = Array.from({ length: now.getMonth() + 1 }, () => 0);
+	for (const row of rows) byMonth[row.createdAt.getMonth()]++;
+	return { byMonth, month: byMonth[now.getMonth()], year: rows.length };
 }
 
 // ============================================

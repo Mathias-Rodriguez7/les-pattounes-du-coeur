@@ -6,6 +6,7 @@
 	import { TASK_URGENCY } from '#lib/constants/tasks.ts';
 	import { publicMediaUrl } from '#lib/media/urls.ts';
 	import { catDisplayName } from '#lib/utils/catHelpers.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	// Le panneau de droite quand aucun chat n'est choisi : au lieu d'un grand vide,
 	// ses tâches sur des chats (les plus urgentes) et les derniers chats modifiés.
@@ -38,11 +39,12 @@
 </script>
 
 <Card.Root class="h-full gap-0 py-0">
-	<Card.Header class="border-b px-5 py-4">
+	<Card.Header class="px-5 py-4">
 		<Card.Title class="text-base font-semibold">Vue d'ensemble</Card.Title>
 		<p class="text-sm text-muted-foreground">
 			Choisissez un chat dans la liste, ou commencez par ce qui attend.
 		</p>
+		<Separator />
 	</Card.Header>
 
 	<Card.Content class="flex flex-col gap-6 px-5 py-5">
@@ -122,10 +124,5 @@
 				</ul>
 			</section>
 		{/if}
-
-		<Button variant="outline" class="self-start rounded-2xl" onclick={onCreate}>
-			<Plus class="size-4" />
-			Nouveau chat
-		</Button>
 	</Card.Content>
 </Card.Root>
