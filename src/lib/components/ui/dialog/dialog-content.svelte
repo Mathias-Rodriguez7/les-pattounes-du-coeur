@@ -51,10 +51,22 @@
 			// Responsive size system
 			sizes[size],
 
+			// Téléphone (< 640 px) : la fenêtre devient un panneau qui monte du bas, pleine largeur.
+			// Les champs restent au-dessus du clavier, les boutons (sticky) à portée de pouce.
+			// max-sm: passe après les classes de la page (ex : max-h-[90dvh]), donc il les remplace
+			'max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-t-3xl max-sm:rounded-b-none max-sm:pt-8',
+			'max-sm:data-open:zoom-in-100 max-sm:data-open:slide-in-from-bottom-1/2 max-sm:data-closed:zoom-out-100 max-sm:data-closed:slide-out-to-bottom-1/2',
+
 			className
 		)}
 		{...restProps}
 	>
+		<!-- Téléphone : la petite poignée du panneau (décorative) -->
+		<span
+			aria-hidden="true"
+			class="pointer-events-none absolute top-2.5 left-1/2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-muted-foreground/30 sm:hidden"
+		></span>
+
 		{@render children?.()}
 
 		{#if showCloseButton}
@@ -62,7 +74,7 @@
 				{#snippet child({ props })}
 					<Button variant="ghost" class="absolute top-4 right-4" size="icon-sm" {...props}>
 						<XIcon />
-						<span class="sr-only">Close</span>
+						<span class="sr-only">Fermer</span>
 					</Button>
 				{/snippet}
 			</DialogPrimitive.Close>
