@@ -432,7 +432,7 @@
 											options={PUB_STATE_OPTIONS}
 											bind:value={pubStateFilter}
 											placeholder="État"
-											class="w-full sm:w-32"
+											class="w-full sm:w-44"
 										/>
 										<!-- Admin : afficher aussi les chats des autres (ex : valider leurs demandes) -->
 										{#if data.isAdmin}
@@ -442,6 +442,7 @@
 												options={PUB_OWNER_OPTIONS}
 												bind:value={pubOwnerFilter}
 												placeholder="Mes chats"
+												ariaLabel="Chats"
 												class="w-full sm:w-44"
 											/>
 										{/if}
@@ -450,6 +451,7 @@
 											id="cat-filter-kind"
 											label=""
 											ariaLabel="Type de chat"
+											showName={false}
 											options={KIND_OPTIONS}
 											bind:value={kindFilter}
 											class="w-full sm:w-36"
@@ -461,7 +463,7 @@
 												options={statusOptions}
 												bind:value={statusFilter}
 												placeholder="Statut"
-												class="w-full sm:w-32"
+												class="w-full sm:w-44"
 											/>
 										{/if}
 									{/if}
@@ -471,7 +473,7 @@
 										options={CAT_SEX}
 										bind:value={sexFilter}
 										placeholder="Sexe"
-										class="w-full sm:w-32"
+										class="w-full sm:w-44"
 									/>
 									<SelectField
 										id="cat-filter-age"
@@ -479,7 +481,7 @@
 										options={CAT_AGE}
 										bind:value={ageFilter}
 										placeholder="Âge"
-										class="w-full sm:w-32"
+										class="w-full sm:w-44"
 									/>
 									<!-- Admin sur « Tous les chats » : retrouver les chats que personne ne suit -->
 									{#if effectiveShowAll}
@@ -489,7 +491,7 @@
 											options={VOLUNTEER_FILTER_OPTIONS}
 											bind:value={volunteerFilter}
 											placeholder="Bénévole"
-											class="w-full sm:w-36"
+											class="w-full sm:w-48"
 										/>
 									{/if}
 								{/snippet}

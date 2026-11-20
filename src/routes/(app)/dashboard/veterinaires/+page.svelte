@@ -105,7 +105,7 @@
 										options={VETERINARIAN_CATEGORY_OPTIONS}
 										bind:value={categoryFilter}
 										placeholder="Catégorie"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									{#if data.isAdmin}
 										<SelectField
@@ -114,7 +114,7 @@
 											options={LIST_OPTIONS}
 											bind:value={listFilter}
 											placeholder="Liste"
-											class="w-full sm:w-36"
+											class="w-full sm:w-48"
 										/>
 									{/if}
 								{/snippet}

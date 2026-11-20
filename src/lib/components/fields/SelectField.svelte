@@ -20,6 +20,11 @@
 		wrapperClass?: string;
 		/** Sans libellé visible (filtres) : le nom lu par les lecteurs d'écran. Par défaut, le placeholder */
 		ariaLabel?: string;
+		/**
+		 * Sans libellé visible : affiche le nom du filtre devant la valeur (« Âge : Adulte »),
+		 * pour savoir quel filtre est réglé. false pour une liste toujours remplie (ex : type de chat)
+		 */
+		showName?: boolean;
 	};
 
 	let {
@@ -34,11 +39,19 @@
 		required = false,
 		class: className = '',
 		wrapperClass = '',
-		ariaLabel
+		ariaLabel,
+		showName = true
 	}: Props = $props();
 
 	const selectedOption = $derived(options.find((o) => o.value === value));
-	const selectedLabel = $derived(selectedOption?.label ?? placeholder);
+	const fieldNameForDisplay = $derived(ariaLabel ?? placeholder);
+	const selectedLabel = $derived(
+		!selectedOption
+			? placeholder
+			: !label && showName
+				? `${fieldNameForDisplay} : ${selectedOption.label}`
+				: selectedOption.label
+	);
 	// Pas de libellé visible : le lecteur d'écran annonce « Âge : Adulte » (le filtre ET sa valeur)
 	const fieldName = $derived(ariaLabel ?? placeholder);
 	const triggerAriaLabel = $derived(

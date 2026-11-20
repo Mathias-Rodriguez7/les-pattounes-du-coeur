@@ -237,7 +237,7 @@
 										options={STATUS_OPTIONS}
 										bind:value={statusFilter}
 										placeholder="Statut"
-										class="w-full sm:w-32"
+										class="w-full sm:w-44"
 									/>
 									<SelectField
 										id="sos-filter-category"
@@ -245,7 +245,7 @@
 										options={SOS_CATEGORY_OPTIONS}
 										bind:value={categoryFilter}
 										placeholder="Catégorie"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="sos-filter-handler"
@@ -253,7 +253,7 @@
 										options={HANDLER_OPTIONS}
 										bind:value={handlerFilter}
 										placeholder="Pris en charge"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 								{/snippet}
 							</TableToolbar>

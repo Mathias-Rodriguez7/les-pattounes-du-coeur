@@ -32,24 +32,28 @@
 	}: Props = $props();
 </script>
 
-<section class="grid gap-3 sm:gap-4 {columns}">
+<!-- Cartes compactes, sur une ligne : icône, puis le chiffre et son libellé.
+     Avant, chaque carte faisait deux fois cette hauteur et la liste commençait plus bas. -->
+<section class="grid gap-3 {columns}">
 	{#each cards as card, i (card.label)}
-		<Card.Root class="gap-2 py-4 {featureFirst && i === 0 ? 'col-span-2 sm:col-span-1' : ''}">
-			<Card.Header class="flex flex-row items-start justify-between gap-2 px-4">
-				<Card.Title class="text-xs font-medium text-muted-foreground sm:text-sm">
+		<Card.Root
+			class="flex-row items-center gap-3 px-3 py-3 sm:px-4 {featureFirst && i === 0
+				? 'col-span-2 sm:col-span-1'
+				: ''}"
+		>
+			<Icon
+				name={card.icon}
+				withWrapper={true}
+				wrapperClass="flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-md sm:size-10"
+				style="background: {getGradientStyle(card.theme)}"
+				iconClass="size-4 sm:size-5"
+			/>
+			<div class="min-w-0">
+				<p class="text-xl leading-tight font-bold sm:text-2xl">{card.value}</p>
+				<p class="truncate text-xs text-muted-foreground sm:text-sm" title={card.label}>
 					{card.label}
-				</Card.Title>
-				<Icon
-					name={card.icon}
-					withWrapper={true}
-					wrapperClass="flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-lg sm:size-10 sm:rounded-2xl"
-					style="background: {getGradientStyle(card.theme)}"
-					iconClass="size-4 sm:size-5"
-				/>
-			</Card.Header>
-			<Card.Content class="px-4">
-				<p class="text-xl font-bold sm:text-2xl">{card.value}</p>
-			</Card.Content>
+				</p>
+			</div>
 		</Card.Root>
 	{/each}
 </section>

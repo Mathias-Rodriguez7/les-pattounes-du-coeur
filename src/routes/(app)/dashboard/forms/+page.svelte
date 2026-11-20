@@ -235,7 +235,7 @@
 									options={statusOptions}
 									bind:value={statusFilter}
 									placeholder="Statut"
-									class="w-full sm:w-32"
+									class="w-full sm:w-44"
 								/>
 							{/snippet}
 						</TableToolbar>

@@ -242,7 +242,7 @@
 										options={HOST_TYPE_OPTIONS}
 										bind:value={typeFilter}
 										placeholder="Type"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="host-filter-status"
@@ -250,7 +250,7 @@
 										options={statusOptions}
 										bind:value={actifFilter}
 										placeholder="Statut"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="host-filter-heal"
@@ -258,7 +258,7 @@
 										options={HOST_HEAL_OPTIONS}
 										bind:value={healFilter}
 										placeholder="Soins"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="host-filter-socialize"
@@ -266,7 +266,7 @@
 										options={HOST_SOCIALIZE_OPTIONS}
 										bind:value={socializeFilter}
 										placeholder="Sociabilisation"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="host-filter-baby"
@@ -274,7 +274,7 @@
 										options={HOST_BABY_FEEDING_OPTIONS}
 										bind:value={babyFilter}
 										placeholder="Biberonnage"
-										class="w-full sm:w-36"
+										class="w-full sm:w-48"
 									/>
 									<SelectField
 										id="host-blacklist-filter"

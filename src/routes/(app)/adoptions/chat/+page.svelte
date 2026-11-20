@@ -125,7 +125,7 @@
 						options={SEX_OPTIONS}
 						bind:value={sexFilter}
 						placeholder="Sexe"
-						class="w-full sm:w-32"
+						class="w-full sm:w-44"
 					/>
 					{#each COMPAT as item (item.key)}
 						<Button
