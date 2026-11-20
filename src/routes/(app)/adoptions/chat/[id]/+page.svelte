@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AdoptionRecap, { type RecapBlock } from '#lib/components/adoptions/AdoptionRecap.svelte';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { ChevronRight, ChevronLeft } from '@lucide/svelte';
@@ -104,6 +105,34 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
+
+	// ===== RÉCAPITULATIF AVANT ENVOI (dernière étape) =====
+	const optionLabel = (options: readonly { value: string; label: string }[], value: unknown) =>
+		options.find((o) => o.value === value)?.label ?? (value ? String(value) : '');
+	const frenchDate = (value: unknown) =>
+		value ? new Date(String(value)).toLocaleDateString('fr-FR') : '';
+	const recapBlocks = $derived<RecapBlock[]>([
+		{
+			title: 'Vous',
+			step: 1,
+			rows: [
+				{ label: 'Nom', value: `${$formData.firstName ?? ''} ${$formData.lastName ?? ''}`.trim() },
+				{ label: 'Né(e) le', value: frenchDate($formData.birthDate) },
+				{ label: 'Email', value: $formData.email },
+				{ label: 'Téléphone', value: $formData.phone },
+				{
+					label: 'Adresse',
+					value: [
+						$formData.address,
+						[$formData.postalCode, $formData.city].filter(Boolean).join(' ')
+					]
+						.filter(Boolean)
+						.join(', ')
+				},
+				{ label: 'Quartier', value: optionLabel(DISTRICT_OPTIONS, $formData.district) }
+			]
+		}
+	]);
 </script>
 
 <svelte:head>
@@ -264,6 +293,7 @@
 
 					<!-- 🏠 STEP 2 -->
 					<div class:hidden={step !== 2} class="space-y-4">
+						{#if step === 2}<AdoptionRecap blocks={recapBlocks} onEdit={(n) => (step = n)} />{/if}
 						<SectionCard
 							icon={FORM_SECTION_CONFIG.home.icon}
 							title={FORM_SECTION_CONFIG.home.label}

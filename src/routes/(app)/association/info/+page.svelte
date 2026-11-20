@@ -92,28 +92,32 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.1.jpg"
+						src="/img/association/asso.1.webp"
+						loading="lazy"
 						alt="Deux bénévoles à un stand de collecte de croquettes"
 						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.5.jpg"
+						src="/img/association/asso.5.webp"
+						loading="lazy"
 						alt="Un chat gris caché derrière un grillage"
 						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.3.jpg"
+						src="/img/association/asso.3.webp"
+						loading="lazy"
 						alt="Deux chatons sur une table, devant une caisse de transport"
 						class="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.4.jpg"
+						src="/img/association/asso.4.webp"
+						loading="lazy"
 						alt="Un chaton tigré allongé sur un lit"
 						class="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
 					/>
@@ -188,28 +192,32 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.2.jpg"
+						src="/img/association/asso.2.webp"
+						loading="lazy"
 						alt="Repas entre bénévoles de l'association"
 						class="h-full w-full object-cover"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.6.jpg"
+						src="/img/association/asso.6.webp"
+						loading="lazy"
 						alt="Présentation de l'association dans un amphithéâtre"
 						class="h-full w-full object-cover"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.7.jpg"
+						src="/img/association/asso.7.webp"
+						loading="lazy"
 						alt="Bénévoles réunies autour d'une table"
 						class="h-full w-full object-cover object-[center_82%]"
 					/>
 				</div>
 				<div class="aspect-4/3 overflow-hidden rounded-2xl">
 					<img
-						src="/img/association/asso.8.jpg"
+						src="/img/association/asso.8.webp"
+						loading="lazy"
 						alt="Le stand des Pattounes du Cœur sous une tente"
 						class="h-full w-full object-cover"
 					/>

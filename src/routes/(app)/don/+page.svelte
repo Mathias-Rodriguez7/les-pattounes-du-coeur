@@ -13,14 +13,14 @@
 			name: 'HelloAsso',
 			text: 'Un don unique ou tous les mois, du montant de votre choix, par carte bancaire.',
 			href: HELLOASSO_URL,
-			logo: '/img/helloasso.png',
+			logo: '/img/helloasso.webp',
 			cta: 'Donner sur HelloAsso'
 		},
 		{
 			name: 'Teaming',
 			text: 'Rejoignez notre groupe : 1 € par mois, sans engagement. Petit pour vous, précieux pour nous : vos dons réguliers nous permettent de prévoir les soins.',
 			href: TEAMING_URL,
-			logo: '/img/teaming.png',
+			logo: '/img/teaming.webp',
 			cta: 'Rejoindre sur Teaming'
 		}
 	];
@@ -84,7 +84,7 @@
 					</Card.Description>
 				</Card.Header>
 				<img
-					src="/img/cat$.jpg"
+					src="/img/cat$.webp"
 					alt="Chats de l'association"
 					class="h-56 w-full rounded-2xl object-cover lg:h-64"
 				/>

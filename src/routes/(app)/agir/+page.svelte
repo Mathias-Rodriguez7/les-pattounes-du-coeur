@@ -120,7 +120,7 @@
 				<!-- IMAGE -->
 				<div class="flex items-center justify-center p-6">
 					<img
-						src="/img/cats/cats.help.jpg"
+						src="/img/cats/cats.help.webp"
 						alt="Chat secouru"
 						class="h-full w-full rounded-2xl object-contain"
 					/>

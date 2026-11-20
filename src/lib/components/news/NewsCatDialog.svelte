@@ -18,7 +18,7 @@
 	<div class="flex justify-between">
 		<div class="flex items-center gap-4">
 			<div class="flex justify-center overflow-hidden rounded-2xl">
-				<img src="/img/news/cat.news.png" alt="logo news cat" class="object-fit size-32" />
+				<img src="/img/news/cat.news.webp" alt="logo news cat" class="object-fit size-32" />
 			</div>
 
 			<div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AdoptionRecap, { type RecapBlock } from '#lib/components/adoptions/AdoptionRecap.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { ChevronRight, ChevronLeft, LoaderCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -88,6 +89,45 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
+
+	// ===== RÉCAPITULATIF AVANT ENVOI (dernière étape) =====
+	const optionLabel = (options: readonly { value: string; label: string }[], value: unknown) =>
+		options.find((o) => o.value === value)?.label ?? (value ? String(value) : '');
+	const frenchDate = (value: unknown) =>
+		value ? new Date(String(value)).toLocaleDateString('fr-FR') : '';
+	const recapBlocks = $derived<RecapBlock[]>([
+		{
+			title: 'Vous',
+			step: 1,
+			rows: [
+				{ label: 'Nom', value: `${$formData.firstName ?? ''} ${$formData.lastName ?? ''}`.trim() },
+				{ label: 'Né(e) le', value: frenchDate($formData.birthDate) },
+				{ label: 'Email', value: $formData.email },
+				{ label: 'Téléphone', value: $formData.phone },
+				{
+					label: 'Adresse',
+					value: [
+						$formData.address,
+						[$formData.postalCode, $formData.city].filter(Boolean).join(' ')
+					]
+						.filter(Boolean)
+						.join(', ')
+				},
+				{ label: 'Quartier', value: optionLabel(DISTRICT_OPTIONS, $formData.district) }
+			]
+		},
+		{
+			title: 'Le chat que vous cherchez',
+			step: 2,
+			rows: [
+				{ label: 'Âge', value: optionLabel(ADOPTION_AGE_OPTIONS, $formData.catAge) },
+				{ label: 'Sexe', value: optionLabel(ADOPTION_SEX_OPTIONS, $formData.catSex) },
+				{ label: 'Poil', value: optionLabel(ADOPTION_FUR_OPTIONS, $formData.furLength) },
+				{ label: 'Couleur', value: $formData.color },
+				{ label: 'Caractère', value: $formData.temperament }
+			]
+		}
+	]);
 </script>
 
 <svelte:head>
@@ -322,6 +362,7 @@
 
 					<!-- 🏠 STEP 3 : FOYER -->
 					<div class:hidden={step !== 3} class="space-y-4">
+						{#if step === 3}<AdoptionRecap blocks={recapBlocks} onEdit={(n) => (step = n)} />{/if}
 						<SectionCard
 							icon={FORM_SECTION_CONFIG.home.icon}
 							title={FORM_SECTION_CONFIG.home.label}

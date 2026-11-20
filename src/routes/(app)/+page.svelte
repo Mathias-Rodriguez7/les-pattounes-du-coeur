@@ -14,11 +14,18 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// La vidéo d'accueil tourne en boucle : on doit pouvoir l'arrêter (accessibilité, WCAG 2.2.2).
-	// « Réduire les animations » activé sur l'appareil : elle reste en pause dès le départ.
+	// La vidéo d'accueil (1 Mo, 720p) tourne en boucle : on doit pouvoir l'arrêter (WCAG 2.2.2).
+	// Elle n'est chargée que sur un écran large, sans « économie de données » ni « réduire les
+	// animations » : sinon, l'image fixe (40 Ko) suffit. Au chargement, c'est toujours l'image.
 	let videoPaused = $state(false);
+	let showVideo = $state(false);
 	onMount(() => {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) videoPaused = true;
+		const wide = window.matchMedia('(min-width: 768px)').matches;
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const saveData =
+			(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ===
+			true;
+		showVideo = wide && !reduceMotion && !saveData;
 	});
 </script>
 
@@ -39,26 +46,38 @@
 		<section
 			class="relative -mt-16 h-[calc(50vh+4rem)] w-full overflow-hidden md:-mt-[4.75rem] md:h-[calc(50vh+4.75rem)]"
 		>
-			<video
-				bind:paused={videoPaused}
-				autoplay
-				muted
-				loop
-				playsinline
-				class="absolute top-1/2 left-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
-				><source src="/videos/cat.mp4" type="video/mp4" /></video
-			>
+			<!-- L'image fixe : tout de suite affichée, et seule sur téléphone -->
+			<img
+				src="/img/hero-poster.webp"
+				alt=""
+				fetchpriority="high"
+				class="absolute inset-0 h-full w-full object-cover"
+			/>
+			{#if showVideo}
+				<video
+					bind:paused={videoPaused}
+					autoplay
+					muted
+					loop
+					playsinline
+					poster="/img/hero-poster.webp"
+					class="absolute top-1/2 left-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+					><source src="/videos/cat-hero.mp4" type="video/mp4" /></video
+				>
+			{/if}
 
-			<!-- Mettre la vidéo en pause / la relancer -->
-			<button
-				type="button"
-				onclick={() => (videoPaused = !videoPaused)}
-				aria-label={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
-				title={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
-				class="absolute bottom-3 left-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/70 text-foreground shadow-md backdrop-blur transition-colors hover:bg-background/90"
-			>
-				{#if videoPaused}<Play class="size-4" />{:else}<Pause class="size-4" />{/if}
-			</button>
+			<!-- Mettre la vidéo en pause / la relancer (seulement quand elle est là) -->
+			{#if showVideo}
+				<button
+					type="button"
+					onclick={() => (videoPaused = !videoPaused)}
+					aria-label={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
+					title={videoPaused ? 'Lire la vidéo' : 'Mettre la vidéo en pause'}
+					class="absolute bottom-3 left-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/70 text-foreground shadow-md backdrop-blur transition-colors hover:bg-background/90"
+				>
+					{#if videoPaused}<Play class="size-4" />{:else}<Pause class="size-4" />{/if}
+				</button>
+			{/if}
 
 			<!-- pt : la carte reste centrée dans la partie visible, sous le menu -->
 			<div class="relative z-10 hidden h-full max-w-sm items-center px-10 pt-[4.75rem] md:flex">
@@ -198,7 +217,7 @@
 				<div class="flex w-full lg:w-1/4">
 					<Card.Root class="flex w-full flex-col gap-2 overflow-hidden p-0">
 						<img
-							src="/img/cat$.jpg"
+							src="/img/cat$.webp"
 							alt="Un chat gris couché au milieu de billets de banque"
 							class="h-80 w-full object-cover object-center"
 						/>

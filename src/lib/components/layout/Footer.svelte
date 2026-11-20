@@ -28,7 +28,7 @@
 						class="transition-opacity hover:opacity-80"
 					>
 						<img
-							src="/img/helloasso.png"
+							src="/img/helloasso.webp"
 							alt="Faire un don sur HelloAsso"
 							class="h-14 w-auto object-contain"
 						/>
@@ -40,7 +40,7 @@
 						class="transition-opacity hover:opacity-80"
 					>
 						<img
-							src="/img/teaming.png"
+							src="/img/teaming.webp"
 							alt="Don mensuel sur Teaming"
 							class="h-14 w-auto object-contain"
 						/>

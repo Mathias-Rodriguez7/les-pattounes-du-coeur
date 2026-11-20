@@ -290,7 +290,7 @@
 			class="absolute top-1/2 right-6 -translate-y-1/2 transition-transform duration-300 hover:scale-110 hover:-rotate-6 focus-visible:scale-110 focus-visible:-rotate-6"
 		>
 			<img
-				src="/img/cat-sleeping.png"
+				src="/img/cat-sleeping.webp"
 				alt=""
 				class="w-auto transition-all duration-300 {scrolled ? 'h-9' : 'h-12'}"
 			/>
@@ -443,7 +443,7 @@
 							}}
 							class="flex items-center justify-center gap-3 rounded-2xl border border-dashed border-accent p-3 text-sm text-muted-foreground transition-colors hover:bg-accent/50"
 						>
-							<img src="/img/cat-sleeping.png" alt="" class="h-10 w-auto" />
+							<img src="/img/cat-sleeping.webp" alt="" class="h-10 w-auto" />
 						</button>
 					</div>
 				</Sheet.Content>
