@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
@@ -20,6 +22,7 @@
 		publicationState
 	} from '#lib/permissions/publication.ts';
 	import CatPanel from '#lib/components/cats/CatPanel.svelte';
+	import CatOverviewPanel from '#lib/components/cats/CatOverviewPanel.svelte';
 	import CatRow from '#lib/components/cats/CatRow.svelte';
 	import { ASSO_CAT_STATUS, CAT_AGE, CAT_SEX } from '#lib/constants/cat.js';
 	import { fade, fly } from 'svelte/transition';
@@ -67,7 +70,7 @@
 	// ===== TYPE : chats asso (par défaut) ou chats libres =====
 	// Les chats libres ne se mélangent pas aux autres : leur fiche, leurs infos sont différentes
 	type CatKind = 'ASSO' | 'FREE';
-	let kindFilter = $state<string>('ASSO');
+	let kindFilter = $state<string>(urlFilter('type', 'ASSO'));
 	const KIND_OPTIONS = [
 		{ value: 'ASSO', label: 'Chats asso' },
 		{ value: 'FREE', label: 'Chats libres' }
@@ -75,12 +78,12 @@
 	const kindOf = (cat: { status: string }): CatKind => (cat.status === 'FREE' ? 'FREE' : 'ASSO');
 
 	// ===== FILTRES (valeur '' = pas de filtre) =====
-	let statusFilter = $state('');
-	let sexFilter = $state('');
-	let ageFilter = $state('');
+	let statusFilter = $state(urlFilter('statut'));
+	let sexFilter = $state(urlFilter('sexe'));
+	let ageFilter = $state(urlFilter('age'));
 	let searchQuery = $state('');
 	// Admin, sur « Tous les chats » : avec ou sans bénévole associée
-	let volunteerFilter = $state('');
+	let volunteerFilter = $state(urlFilter('benevole'));
 	const VOLUNTEER_FILTER_OPTIONS = [
 		{ value: 'WITH', label: 'Avec bénévole' },
 		{ value: 'NONE', label: 'Sans bénévole' }
@@ -363,6 +366,80 @@
 				? [mineTab, publishTab]
 				: [mineTab, publicationTab]
 	);
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(
+		() => ({
+			type: kindFilter,
+			statut: statusFilter,
+			sexe: sexFilter,
+			age: ageFilter,
+			benevole: volunteerFilter,
+			etat: pubStateFilter,
+			qui: pubOwnerFilter
+		}),
+		{ type: 'ASSO' }
+	);
+	const chips = $derived(
+		filterChips([
+			...(showPublication
+				? []
+				: [
+						{
+							name: 'Type',
+							value: kindFilter === 'FREE' ? kindFilter : '',
+							options: KIND_OPTIONS,
+							clear: () => (kindFilter = 'ASSO')
+						},
+						{
+							name: 'Statut',
+							value: kindFilter === 'ASSO' ? statusFilter : '',
+							options: statusOptions,
+							clear: () => (statusFilter = '')
+						}
+					]),
+			{ name: 'Sexe', value: sexFilter, options: CAT_SEX, clear: () => (sexFilter = '') },
+			{ name: 'Âge', value: ageFilter, options: CAT_AGE, clear: () => (ageFilter = '') },
+			...(effectiveShowAll
+				? [
+						{
+							name: 'Bénévole',
+							value: volunteerFilter,
+							options: VOLUNTEER_FILTER_OPTIONS,
+							clear: () => (volunteerFilter = '')
+						}
+					]
+				: []),
+			...(showPublication
+				? [
+						{
+							name: 'État',
+							value: pubStateFilter,
+							options: PUB_STATE_OPTIONS,
+							clear: () => (pubStateFilter = '')
+						}
+					]
+				: []),
+			...(showPublication
+				? [
+						{
+							name: 'Chats',
+							value: pubOwnerFilter,
+							options: PUB_OWNER_OPTIONS,
+							clear: () => (pubOwnerFilter = '')
+						}
+					]
+				: [])
+		])
+	);
+
+	// Le panneau vide : les 5 derniers chats modifiés de la liste affichée
+	const recentCats = $derived(
+		[...scopedCats]
+			.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+			.slice(0, 5)
+	);
 </script>
 
 <svelte:head>
@@ -423,6 +500,7 @@
 								searchPlaceholder="Nom ou numéro…"
 								searchLabel="Chercher un chat par nom ou numéro"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									{#if showPublication}
@@ -548,14 +626,27 @@
 			{/snippet}
 
 			{#snippet detail()}
-				<CatPanel
-					cat={selectedCat}
-					hosts={data.hosts}
-					volunteers={data.volunteers}
-					veterinarians={data.veterinarians}
-					linkableSos={data.linkableSos}
-					isAdmin={data.isAdmin}
-				/>
+				{#if !selectedCat}
+					<!-- Aucun chat choisi : ses tâches et les derniers chats modifiés -->
+					<CatOverviewPanel
+						tasks={data.catTasks}
+						{recentCats}
+						onSelect={(id) => {
+							openFromLink(id);
+							rememberSelection(id);
+						}}
+						onCreate={() => (newCatKindOpen = true)}
+					/>
+				{:else}
+					<CatPanel
+						cat={selectedCat}
+						hosts={data.hosts}
+						volunteers={data.volunteers}
+						veterinarians={data.veterinarians}
+						linkableSos={data.linkableSos}
+						isAdmin={data.isAdmin}
+					/>
+				{/if}
 			{/snippet}
 		</ListDetailLayout>
 	</div>

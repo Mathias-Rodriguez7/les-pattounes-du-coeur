@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import { fade, fly } from 'svelte/transition';
 	import { untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -53,9 +55,9 @@
 		{ value: 'NONE', label: 'Par personne' }
 	];
 
-	let statusFilter = $state('NEW');
-	let categoryFilter = $state('');
-	let handlerFilter = $state('');
+	let statusFilter = $state(urlFilter('statut', 'NEW'));
+	let categoryFilter = $state(urlFilter('categorie'));
+	let handlerFilter = $state(urlFilter('pris'));
 	let searchQuery = $state('');
 
 	function clearFilters() {
@@ -195,6 +197,35 @@
 	const panelTitle = $derived(
 		selected ? `SOS · ${selected.reporterFirstName} ${selected.reporterLastName}` : 'Détail du SOS'
 	);
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(
+		() => ({ statut: statusFilter, categorie: categoryFilter, pris: handlerFilter }),
+		{ statut: 'NEW' }
+	);
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Statut',
+				value: statusFilter,
+				options: STATUS_OPTIONS,
+				clear: () => (statusFilter = '')
+			},
+			{
+				name: 'Catégorie',
+				value: categoryFilter,
+				options: SOS_CATEGORY_OPTIONS,
+				clear: () => (categoryFilter = '')
+			},
+			{
+				name: 'Pris en charge',
+				value: handlerFilter,
+				options: HANDLER_OPTIONS,
+				clear: () => (handlerFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -229,6 +260,7 @@
 								searchPlaceholder="Chercher un SOS…"
 								searchLabel="Chercher un SOS par nom, lieu ou bénévole"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									<SelectField

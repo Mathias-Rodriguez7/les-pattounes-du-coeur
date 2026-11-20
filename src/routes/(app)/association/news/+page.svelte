@@ -6,6 +6,7 @@
 	import type { NewsFull } from '#lib/types/news.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import { NEWS_TYPE_OPTIONS } from '#lib/constants/news.ts';
 	import { fade, fly } from 'svelte/transition';
@@ -54,6 +55,17 @@
 		}
 	});
 	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Type',
+				value: typeFilter,
+				options: NEWS_TYPE_OPTIONS,
+				clear: () => (typeFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -76,7 +88,7 @@
 				searchLabel="Rechercher une news par son titre"
 				onReset={resetFilters}
 				searchClass="w-full sm:ml-auto sm:w-72"
-				activeCount={typeFilter ? 1 : 0}
+				{chips}
 			>
 				{#snippet filters()}
 					<SelectField

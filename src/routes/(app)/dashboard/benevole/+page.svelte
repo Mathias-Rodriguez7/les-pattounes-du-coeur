@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
@@ -67,9 +69,9 @@
 	let mobilePanelOpen = $state(false);
 
 	let searchQuery = $state('');
-	let actifFilter = $state('ACTIVE');
-	let blacklistFilter = $state('');
-	let roleFilter = $state('');
+	let actifFilter = $state(urlFilter('statut', 'ACTIVE'));
+	let blacklistFilter = $state(urlFilter('blacklist'));
+	let roleFilter = $state(urlFilter('role'));
 	let newVolunteerOpen = $state(false);
 
 	// « Créer » depuis le dashboard (?nouveau=1) : le formulaire s'ouvre tout de suite
@@ -98,7 +100,7 @@
 	let tasksFilter = $state(initialTasksFilter);
 	let sortBy = $state(initialTasksFilter ? 'TASKS' : 'RECENT');
 	// Le lieu : un quartier de Montpellier, ou « Autres villes »
-	let placeFilter = $state('');
+	let placeFilter = $state(urlFilter('lieu'));
 	const placeOptions = [
 		...DISTRICT_OPTIONS,
 		{ value: OUTSIDE_MONTPELLIER, label: 'Autres villes' }
@@ -244,6 +246,48 @@
 		{ icon: 'cat', theme: 'cats', title: 'Chats suivis' },
 		{ icon: 'clipboard', theme: 'pending', title: 'Formulaires assignés' }
 	];
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(
+		() => ({
+			statut: actifFilter,
+			role: roleFilter,
+			taches: tasksFilter,
+			lieu: placeFilter,
+			blacklist: blacklistFilter
+		}),
+		{ statut: 'ACTIVE' }
+	);
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Statut',
+				value: actifFilter,
+				options: statusOptions,
+				clear: () => (actifFilter = '')
+			},
+			{
+				name: 'Rôle',
+				value: roleFilter,
+				options: VOLUNTEER_ROLE_OPTIONS,
+				clear: () => (roleFilter = '')
+			},
+			{
+				name: 'Tâches',
+				value: tasksFilter,
+				options: VOLUNTEER_TASKS_FILTER_OPTIONS,
+				clear: () => (tasksFilter = '')
+			},
+			{ name: 'Lieu', value: placeFilter, options: placeOptions, clear: () => (placeFilter = '') },
+			{
+				name: 'Blacklist',
+				value: blacklistFilter,
+				options: BLACKLIST_FILTER_OPTIONS,
+				clear: () => (blacklistFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -286,6 +330,7 @@
 								searchPlaceholder="Chercher un bénévole…"
 								searchLabel="Chercher un bénévole par nom"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									<SelectField

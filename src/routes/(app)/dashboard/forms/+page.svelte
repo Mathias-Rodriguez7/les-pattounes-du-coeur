@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
@@ -51,12 +53,9 @@
 	// ==========================================
 	// Filtres Select (valeur '' = pas de filtre)
 	// ==========================================
-	// Valeurs de DÉPART lues dans l'URL, puis l'utilisatrice les change librement :
-	// on veut volontairement une copie, pas un lien qui suivrait `data`
-	// svelte-ignore state_referenced_locally
-	let typeFilter = $state(data.filters.type ?? '');
-	// svelte-ignore state_referenced_locally
-	let statusFilter = $state<string>(data.filters.status ?? OPEN);
+	// Valeurs de DÉPART lues dans l'adresse, puis gardées à jour dedans (syncFiltersToUrl)
+	let typeFilter = $state(urlFilter('type'));
+	let statusFilter = $state<string>(urlFilter('status', OPEN));
 
 	// ==========================================
 	// Portée : « Mes formulaires » ou « Tous » (admin : tout, les autres : les demandes libres à personne)
@@ -180,6 +179,26 @@
 		statusFilter = OPEN;
 		searchQuery = '';
 	}
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(() => ({ type: typeFilter, status: statusFilter }), { status: OPEN });
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Type',
+				value: typeFilter,
+				options: FORM_TYPE_OPTIONS,
+				clear: () => (typeFilter = '')
+			},
+			{
+				name: 'Statut',
+				value: statusFilter,
+				options: statusOptions,
+				clear: () => (statusFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -216,6 +235,7 @@
 							searchPlaceholder="Chercher un formulaire…"
 							searchLabel="Chercher un formulaire par e-mail"
 							onReset={clearFilters}
+							{chips}
 						>
 							{#snippet filters()}
 								<!-- Type -->

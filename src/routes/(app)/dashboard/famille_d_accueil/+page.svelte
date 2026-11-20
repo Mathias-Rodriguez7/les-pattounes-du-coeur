@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import { desktop } from '#lib/utils/media.svelte.ts';
 	import StatCards from '#lib/components/cards/StatCards.svelte';
@@ -70,12 +72,12 @@
 	});
 
 	// Filtres
-	let typeFilter = $state('');
-	let actifFilter = $state('ACTIVE');
-	let blacklistFilter = $state('');
-	let healFilter = $state('');
-	let socializeFilter = $state('');
-	let babyFilter = $state('');
+	let typeFilter = $state(urlFilter('type'));
+	let actifFilter = $state(urlFilter('statut', 'ACTIVE'));
+	let blacklistFilter = $state(urlFilter('blacklist'));
+	let healFilter = $state(urlFilter('soins'));
+	let socializeFilter = $state(urlFilter('sociabilisation'));
+	let babyFilter = $state(urlFilter('biberonnage'));
 	let searchQuery = $state('');
 
 	// Le filtre « Statut » propose aussi « En attente de validation » : les candidatures seules
@@ -193,6 +195,60 @@
 
 		return filtered;
 	});
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(
+		() => ({
+			type: typeFilter,
+			statut: actifFilter,
+			soins: healFilter,
+			sociabilisation: socializeFilter,
+			biberonnage: babyFilter,
+			blacklist: blacklistFilter
+		}),
+		{ statut: 'ACTIVE' }
+	);
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Type',
+				value: typeFilter,
+				options: HOST_TYPE_OPTIONS,
+				clear: () => (typeFilter = '')
+			},
+			{
+				name: 'Statut',
+				value: actifFilter,
+				options: statusOptions,
+				clear: () => (actifFilter = '')
+			},
+			{
+				name: 'Soins',
+				value: healFilter,
+				options: HOST_HEAL_OPTIONS,
+				clear: () => (healFilter = '')
+			},
+			{
+				name: 'Sociabilisation',
+				value: socializeFilter,
+				options: HOST_SOCIALIZE_OPTIONS,
+				clear: () => (socializeFilter = '')
+			},
+			{
+				name: 'Biberonnage',
+				value: babyFilter,
+				options: HOST_BABY_FEEDING_OPTIONS,
+				clear: () => (babyFilter = '')
+			},
+			{
+				name: 'Blacklist',
+				value: blacklistFilter,
+				options: BLACKLIST_FILTER_OPTIONS,
+				clear: () => (blacklistFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -234,6 +290,7 @@
 								searchPlaceholder="Rechercher une FA…"
 								searchLabel="Chercher une famille d'accueil"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									<SelectField

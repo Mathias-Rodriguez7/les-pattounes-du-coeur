@@ -149,6 +149,24 @@
 	// ===== CHAT LIBRE =====
 	// Attrapé, stérilisé, relâché : sa fiche se limite à ses infos, ses soins et ses documents
 	const isFree = $derived(cat?.status === 'FREE');
+
+	// La barre d'ancres : les rubriques de la fiche (un chat libre en a moins)
+	import CatSectionNav from './CatSectionNav.svelte';
+	// La place de l'en-tête (téléphone) et de la barre d'ancres au-dessus d'une rubrique atteinte
+	const SCROLL_MARGIN = 'scroll-mt-28 lg:scroll-mt-16';
+	const ASSO_SECTIONS = [
+		{ id: 'cat-suivi', label: 'Suivi' },
+		{ id: 'cat-profil', label: 'Profil' },
+		{ id: 'cat-maladies', label: 'Maladies' },
+		{ id: 'cat-documents', label: 'Documents' },
+		{ id: 'cat-soins', label: 'Soins' },
+		{ id: 'cat-historique', label: 'Historique' }
+	];
+	const FREE_SECTIONS = [
+		{ id: 'cat-suivi', label: 'Suivi' },
+		{ id: 'cat-soins', label: 'Soins' },
+		{ id: 'cat-documents', label: 'Documents' }
+	];
 </script>
 
 {#if cat}
@@ -161,7 +179,9 @@
 			onClose={() => (openRequestId = null)}
 		/>
 	{:else}
-		<Card.Root class={!isEditing && !editingImage ? 'overflow-hidden pt-0' : ''}>
+		<!-- overflow-clip (et pas hidden) : la photo garde ses coins arrondis, et la barre d'ancres
+		     peut rester collée en haut pendant qu'on défile -->
+		<Card.Root class={!isEditing && !editingImage ? 'overflow-clip pt-0' : ''}>
 			{#if !isEditing && !editingImage}
 				<!-- ============================================================ -->
 				<!-- 1. EN-TÊTE : qui est ce chat ?                                 -->
@@ -179,18 +199,26 @@
 
 				{#if isFree}
 					<Card.Content class="flex flex-col gap-4 text-sm">
-						<Separator />
-						<section class="grid gap-4">
+						<CatSectionNav sections={FREE_SECTIONS} />
+						<section id="cat-suivi" class="grid gap-4 {SCROLL_MARGIN}">
 							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 							<FreeCatCards {cat} canManage={canManageCat} {isAdmin} />
 						</section>
 						<Separator />
-						<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						<div id="cat-soins" class={SCROLL_MARGIN}>
+							<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						</div>
 						<Separator />
-						<CatDocuments {cat} canManage={canManageCat} />
+						<div id="cat-documents" class={SCROLL_MARGIN}>
+							<CatDocuments {cat} canManage={canManageCat} />
+						</div>
 					</Card.Content>
 				{:else}
 					<Card.Content class="flex flex-col gap-4 text-sm">
+						<Separator />
+						<!-- La barre d'ancres : aller directement à une rubrique -->
+						<CatSectionNav sections={ASSO_SECTIONS} />
+
 						<!-- Le circuit de publication : proposer, valider, ou le mot d'un refus -->
 						<CatPublicationBanner {cat} canManage={canManageCat} />
 
@@ -199,7 +227,7 @@
 						<!-- ============================================================ -->
 						<!-- 2. QUI S'EN OCCUPE : bénévoles + placements (ou adoption)      -->
 						<!-- ============================================================ -->
-						<section class="grid gap-4">
+						<section id="cat-suivi" class="grid gap-4 {SCROLL_MARGIN}">
 							<!-- Bénévoles référents (toujours affichés, même après adoption) -->
 							<CatVolunteers {cat} volunteers={volunteers ?? []} {isAdmin} />
 
@@ -228,64 +256,66 @@
 						<!-- ============================================================ -->
 						<!-- 3. PROFIL DU CHAT : comment est-il ?                           -->
 						<!-- ============================================================ -->
-						<SectionCard title="Profil du chat" variant="plain">
-							{#snippet action()}
-								<Button
-									variant="ghost"
-									size="icon"
-									onclick={startEditing}
-									aria-label="Modifier le chat"
-								>
-									<Pencil class="h-5 w-5" />
-								</Button>
-							{/snippet}
-							<div class="grid gap-4">
-								<!-- PC : 1 + 1 + 2 | Tablette : 2 colonnes | Mobile : 1 -->
-								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-									<SectionCard
-										icon={CAT_SECTION_CONFIG.profile.icon}
-										title={CAT_SECTION_CONFIG.profile.label}
-										color={CAT_SECTION_CONFIG.profile.color}
-										class="lg:col-span-1"
+						<div id="cat-profil" class={SCROLL_MARGIN}>
+							<SectionCard title="Profil du chat" variant="plain">
+								{#snippet action()}
+									<Button
+										variant="ghost"
+										size="icon"
+										onclick={startEditing}
+										aria-label="Modifier le chat"
 									>
-										<div class="ml-6 space-y-1">
-											<div class="flex items-center justify-between gap-2">
-												<span class="text-muted-foreground">Âge</span>
-												<span>{formatAge(cat.birthDate)}</span>
+										<Pencil class="h-5 w-5" />
+									</Button>
+								{/snippet}
+								<div class="grid gap-4">
+									<!-- PC : 1 + 1 + 2 | Tablette : 2 colonnes | Mobile : 1 -->
+									<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+										<SectionCard
+											icon={CAT_SECTION_CONFIG.profile.icon}
+											title={CAT_SECTION_CONFIG.profile.label}
+											color={CAT_SECTION_CONFIG.profile.color}
+											class="lg:col-span-1"
+										>
+											<div class="ml-6 space-y-1">
+												<div class="flex items-center justify-between gap-2">
+													<span class="text-muted-foreground">Âge</span>
+													<span>{formatAge(cat.birthDate)}</span>
+												</div>
+												<div class="flex items-center justify-between gap-2">
+													<span class="text-muted-foreground">Couleur</span>
+													<span>{cat.color ?? '—'}</span>
+												</div>
+												<div class="flex items-center justify-between gap-2">
+													<span class="text-muted-foreground">Poil</span>
+													<span>{getLabel(hairLabel, cat.hairLength)}</span>
+												</div>
+												<div class="flex items-center justify-between gap-2">
+													<span class="text-muted-foreground">Origine</span>
+													<span>{cat.origin ?? '—'}</span>
+												</div>
 											</div>
-											<div class="flex items-center justify-between gap-2">
-												<span class="text-muted-foreground">Couleur</span>
-												<span>{cat.color ?? '—'}</span>
-											</div>
-											<div class="flex items-center justify-between gap-2">
-												<span class="text-muted-foreground">Poil</span>
-												<span>{getLabel(hairLabel, cat.hairLength)}</span>
-											</div>
-											<div class="flex items-center justify-between gap-2">
-												<span class="text-muted-foreground">Origine</span>
-												<span>{cat.origin ?? '—'}</span>
-											</div>
-										</div>
-									</SectionCard>
+										</SectionCard>
 
-									<!-- Les mêmes cartes que le panneau d'une demande d'adoption -->
-									<CatCompatibilityCard {cat} class="lg:col-span-1" />
-									<CatHealthCard {cat} class="sm:col-span-2" />
+										<!-- Les mêmes cartes que le panneau d'une demande d'adoption -->
+										<CatCompatibilityCard {cat} class="lg:col-span-1" />
+										<CatHealthCard {cat} class="sm:col-span-2" />
+									</div>
+
+									{#if cat.description}
+										<SectionCard
+											icon={CAT_SECTION_CONFIG.description.icon}
+											title={CAT_SECTION_CONFIG.description.label}
+											color={CAT_SECTION_CONFIG.description.color}
+										>
+											<p class="ml-6 text-xs whitespace-pre-line text-muted-foreground">
+												{cat.description}
+											</p>
+										</SectionCard>
+									{/if}
 								</div>
-
-								{#if cat.description}
-									<SectionCard
-										icon={CAT_SECTION_CONFIG.description.icon}
-										title={CAT_SECTION_CONFIG.description.label}
-										color={CAT_SECTION_CONFIG.description.color}
-									>
-										<p class="ml-6 text-xs whitespace-pre-line text-muted-foreground">
-											{cat.description}
-										</p>
-									</SectionCard>
-								{/if}
-							</div>
-						</SectionCard>
+							</SectionCard>
+						</div>
 
 						<Separator />
 
@@ -293,7 +323,9 @@
 						<!-- 4. MALADIES                                                   -->
 						<!-- ============================================================ -->
 						<!-- Même règle que les documents et les soins : admin, ou bénévole associée au chat -->
-						<CatSicknesses {cat} canManage={canManageCat} />
+						<div id="cat-maladies" class={SCROLL_MARGIN}>
+							<CatSicknesses {cat} canManage={canManageCat} />
+						</div>
 
 						<Separator />
 
@@ -301,7 +333,9 @@
 						<!-- 5. DOCUMENTS                                                  -->
 						<!-- ============================================================ -->
 						<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-						<CatDocuments {cat} canManage={canManageCat} />
+						<div id="cat-documents" class={SCROLL_MARGIN}>
+							<CatDocuments {cat} canManage={canManageCat} />
+						</div>
 
 						<Separator />
 
@@ -309,14 +343,18 @@
 						<!-- 6. SOINS VÉTÉRINAIRES                                         -->
 						<!-- ============================================================ -->
 						<!-- Même règle que les maladies : admin, ou bénévole associée au chat -->
-						<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						<div id="cat-soins" class={SCROLL_MARGIN}>
+							<CatCares {cat} canManage={canManageCat} {veterinarians} />
+						</div>
 
 						<Separator />
 
 						<!-- ============================================================ -->
 						<!-- 7. HISTORIQUE                                                 -->
 						<!-- ============================================================ -->
-						<CatPlacementHistory {cat} />
+						<div id="cat-historique" class={SCROLL_MARGIN}>
+							<CatPlacementHistory {cat} />
+						</div>
 					</Card.Content>
 				{/if}
 			{:else if editingImage}

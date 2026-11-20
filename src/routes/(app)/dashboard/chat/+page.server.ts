@@ -1,6 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '#lib/server/prisma.ts';
+import { tasksFor, snoozesOf } from '#lib/server/tasks.ts';
+import { adminTasks, volunteerTasks, type Task } from '#lib/tasks/tasks.ts';
+import { applySnoozes } from '#lib/tasks/snooze.ts';
+import { sortTasks } from '#lib/tasks/board.ts';
 import { createCat, updateCat, deleteCat } from '#lib/server/cats/mutations.ts';
 import {
 	createPlacements,
@@ -44,6 +48,21 @@ import { attachBlacklist, findActiveBlacklists } from '#lib/server/accountStatus
 import { updateForm, rejectForm, markFormInProgress } from '#lib/server/forms/mutations.ts';
 import { zodFieldErrors } from '#lib/utils/zodErrors.ts';
 import { hasAdminRole, requireUser } from '#lib/server/permissions/roles.ts';
+
+/** Ses tâches qui mènent à un chat (sans celles mises de côté), les plus urgentes d'abord */
+async function catTasksFor(user: Parameters<typeof tasksFor>[0]): Promise<Task[]> {
+	const [tasks, snoozes] = await Promise.all([tasksFor(user), snoozesOf(user.id)]);
+	// L'admin reçoit TOUTES les tâches : on garde les siennes (admin + bénévole), comme le dashboard
+	const mine = hasAdminRole(user)
+		? [
+				...new Map(
+					[...adminTasks(tasks, user.id), ...volunteerTasks(tasks, user)].map((t) => [t.id, t])
+				).values()
+			]
+		: tasks;
+	const { active } = applySnoozes(mine, snoozes, new Date());
+	return sortTasks(active.filter((task) => task.link.kind === 'cat')).slice(0, 6);
+}
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Tous les rôles ont accès à la page : il suffit d'être connectée
@@ -155,7 +174,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 			veterinarians: await activeVeterinarianOptions(),
 			// « Rattacher à un SOS » (carte Signalement d'un chat sans SOS)
 			linkableSos: await linkableSosOptions(user),
-			isAdmin
+			isAdmin,
+			// Le panneau vide (aucun chat choisi) : ses tâches sur des chats, les plus urgentes d'abord
+			catTasks: await catTasksFor(user)
 		};
 	} catch (error) {
 		console.error('Erreur lors du chargement des chats:', error);

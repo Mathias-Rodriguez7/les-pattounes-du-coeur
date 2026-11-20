@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import { fade, fly } from 'svelte/transition';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
@@ -26,8 +28,8 @@
 		{ value: 'REMOVED', label: 'Retirés' }
 	];
 
-	let categoryFilter = $state('');
-	let listFilter = $state('ACTIVE');
+	let categoryFilter = $state(urlFilter('categorie'));
+	let listFilter = $state(urlFilter('liste', 'ACTIVE'));
 	let searchQuery = $state('');
 
 	function clearFilters() {
@@ -65,6 +67,21 @@
 		selectedId = id;
 		if (!desktop.current) mobilePanelOpen = true;
 	}
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(() => ({ categorie: categoryFilter, liste: listFilter }), { liste: 'ACTIVE' });
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Catégorie',
+				value: categoryFilter,
+				options: VETERINARIAN_CATEGORY_OPTIONS,
+				clear: () => (categoryFilter = '')
+			},
+			{ name: 'Liste', value: listFilter, options: LIST_OPTIONS, clear: () => (listFilter = '') }
+		])
+	);
 </script>
 
 <svelte:head>
@@ -97,6 +114,7 @@
 								searchPlaceholder="Clinique, spécialité, ville…"
 								searchLabel="Chercher un vétérinaire"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									<SelectField

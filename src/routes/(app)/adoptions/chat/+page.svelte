@@ -6,6 +6,7 @@
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import TableToolbar from '#lib/components/tables/TableToolbar.svelte';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import SelectField from '#lib/components/fields/SelectField.svelte';
 	import CatCard from '#lib/components/cats/CatCard.svelte';
 	import CatDialog from '#lib/components/cats/CatDialog.svelte';
@@ -87,6 +88,18 @@
 		}
 	});
 	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+
+	// Les filtres actifs en puces sous la recherche (« Âge : Junior × »)
+	const chips = $derived([
+		...filterChips([
+			{ name: 'Âge', value: ageFilter, options: CAT_AGE, clear: () => (ageFilter = '') },
+			{ name: 'Sexe', value: sexFilter, options: SEX_OPTIONS, clear: () => (sexFilter = '') }
+		]),
+		...COMPAT.filter((item) => compat[item.key]).map((item) => ({
+			label: item.label,
+			clear: () => (compat[item.key] = false)
+		}))
+	]);
 </script>
 
 <svelte:head>
@@ -109,7 +122,7 @@
 				searchLabel="Rechercher un chat par son nom"
 				onReset={resetFilters}
 				searchClass="w-full sm:ml-auto sm:w-72"
-				{activeCount}
+				{chips}
 			>
 				{#snippet filters()}
 					<SelectField

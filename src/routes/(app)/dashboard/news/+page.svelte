@@ -1,5 +1,7 @@
 <!-- app/dashboard/news/+page.svelte -->
 <script lang="ts">
+	import { urlFilter, syncFiltersToUrl } from '#lib/navigation/urlFilters.svelte.ts';
+	import { filterChips } from '#lib/tables/filterChips.ts';
 	import { afterNavigate } from '$app/navigation';
 	import { takeNewParam } from '#lib/navigation/entityLink.ts';
 	import ListDetailLayout from '#lib/components/layout/ListDetailLayout.svelte';
@@ -37,7 +39,7 @@
 	let newsCatsOpen = $state(false);
 
 	// ===== FILTRES =====
-	let typeFilter = $state('');
+	let typeFilter = $state(urlFilter('type'));
 	let searchQuery = $state('');
 
 	function handleSelectNews(newsId: string) {
@@ -79,6 +81,20 @@
 		typeFilter = '';
 		searchQuery = '';
 	}
+
+	// ===== FILTRES DANS L'ADRESSE ET PUCES DES FILTRES ACTIFS =====
+	// Un rechargement garde les filtres, et le lien d'une liste filtrée peut s'envoyer
+	syncFiltersToUrl(() => ({ type: typeFilter }), {});
+	const chips = $derived(
+		filterChips([
+			{
+				name: 'Type',
+				value: typeFilter,
+				options: NEWS_TYPE_OPTIONS,
+				clear: () => (typeFilter = '')
+			}
+		])
+	);
 </script>
 
 <svelte:head>
@@ -150,6 +166,7 @@
 								searchPlaceholder="Chercher un titre ou un chat…"
 								searchLabel="Chercher une news par titre ou par chat"
 								onReset={clearFilters}
+								{chips}
 							>
 								{#snippet filters()}
 									<SelectField
