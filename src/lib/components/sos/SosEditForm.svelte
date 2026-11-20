@@ -74,9 +74,11 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/updateSos" use:enhance={handleEnhance} class="grid gap-4">
+	<RequiredLegend />
 	<input type="hidden" name="sosId" value={sos.id} />
 
 	<!-- La personne qui signale, et la date du SOS -->

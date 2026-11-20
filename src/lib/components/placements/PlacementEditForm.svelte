@@ -90,6 +90,7 @@
 		open = false;
 		onSuccess?.();
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -105,6 +106,7 @@
 			<Dialog.Title>Placement de {catLabel}</Dialog.Title>
 			<Dialog.Description>Chez {hostName}</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/updatePlacement" use:enhance={handleEnhance} class="space-y-4">
 			<!-- Seul l'id voyage : le chat et la FA d'un placement ne changent pas -->

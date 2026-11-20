@@ -42,6 +42,7 @@
 		form && 'errors' in form ? (form.errors as Record<string, string[] | undefined>) : undefined
 	);
 	const fieldError = (field: string) => errors?.[field]?.[0] ?? '';
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <svelte:head>
@@ -155,6 +156,7 @@
 				};
 			}}
 		>
+			<RequiredLegend />
 			<input type="hidden" name="documentId" value={data.charter.id} />
 
 			<Card.Root class="gap-6">

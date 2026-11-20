@@ -69,9 +69,11 @@
 	function prevStep() {
 		if (step > 1) step--;
 	}
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/colab" use:enhance class="space-y-8">
+	<RequiredLegend />
 	<!-- STEP 1: INFORMATIONS -->
 	<div class:hidden={step !== 1} class="space-y-6">
 		<div class="space-y-2">

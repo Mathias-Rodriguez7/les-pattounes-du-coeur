@@ -69,9 +69,11 @@
 		isDeleting = false;
 		onSuccess?.();
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/updateCat" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<RequiredLegend />
 	<input type="hidden" name="catId" value={catId} />
 
 	<div class="flex items-center justify-between gap-2">

@@ -68,6 +68,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -87,6 +88,7 @@
 				sur votre adresse. La raison reste interne, dans les notes de la demande.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/rejectForm" use:enhance={handleEnhance} class="grid gap-4">
 			<input type="hidden" name="formId" value={formId} />

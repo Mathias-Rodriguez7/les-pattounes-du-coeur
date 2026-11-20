@@ -83,6 +83,7 @@
 		open = false;
 		if (onSuccess) onSuccess();
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -105,6 +106,7 @@
 		<Dialog.Header>
 			<Dialog.Title>{isEdit ? 'Modifier' : 'Ajouter'} une maladie</Dialog.Title>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

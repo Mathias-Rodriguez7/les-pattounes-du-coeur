@@ -68,6 +68,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -103,6 +104,7 @@
 				compte bénévole ou famille d'accueil, ce compte est désactivé jusqu'à la levée.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/addToBlacklist" use:enhance={handleEnhance} class="grid gap-4">
 			{#if knownEmail}

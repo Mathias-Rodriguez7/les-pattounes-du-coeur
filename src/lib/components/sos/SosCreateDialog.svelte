@@ -78,6 +78,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -94,6 +95,7 @@
 				envoyés depuis le site arrivent tout seuls.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/createSos" use:enhance={handleEnhance} class="grid gap-4">
 			<div class="grid gap-4 sm:grid-cols-2">
@@ -179,7 +181,10 @@
 				error={error('description')}
 			/>
 
-			<div class="flex justify-end gap-2">
+			<!-- Collé en bas : toujours visible, même en faisant défiler -->
+			<div
+				class="sticky bottom-0 z-10 -mx-6 -mb-6 flex justify-end gap-2 border-t bg-popover/95 px-6 py-4 backdrop-blur"
+			>
 				<Button
 					type="button"
 					variant="outline"

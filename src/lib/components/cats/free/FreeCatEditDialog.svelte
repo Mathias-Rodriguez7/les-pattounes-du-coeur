@@ -50,6 +50,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -66,6 +67,7 @@
 				La date et le vétérinaire de la stérilisation sont dans les soins du chat.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/updateFreeCat" use:enhance={handleEnhance} class="grid gap-4">
 			<input type="hidden" name="catId" value={cat.id} />

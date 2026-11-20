@@ -108,6 +108,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- src/lib/components/cats/CareCreateDialog.svelte -->
@@ -127,6 +128,7 @@
 				connectées pourront les ouvrir.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

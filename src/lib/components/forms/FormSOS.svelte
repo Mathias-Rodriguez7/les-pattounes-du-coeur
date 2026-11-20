@@ -32,9 +32,11 @@
 	});
 
 	const { form: formData, enhance, errors, delayed } = form;
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/sos" use:enhance class="space-y-6">
+	<RequiredLegend />
 	<!-- Anti-spam : invisible et hors du parcours clavier pour les humains, les robots le remplissent.
 	     style (et non une classe) : ce champ ne doit JAMAIS redevenir visible -->
 	<div

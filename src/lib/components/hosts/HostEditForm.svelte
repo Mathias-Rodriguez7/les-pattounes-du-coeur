@@ -78,9 +78,11 @@
 	};
 
 	const showBreakDateRange = $derived(editData.actif === 'BREAK');
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/updateHost" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<RequiredLegend />
 	<input type="hidden" name="hostId" value={hostId} />
 
 	<div class="flex items-center justify-between gap-2">

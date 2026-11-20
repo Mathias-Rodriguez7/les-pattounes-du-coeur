@@ -41,6 +41,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -54,6 +55,7 @@
 				>Aucun chat ne sera créé. Vous pourrez le rouvrir si besoin.</Dialog.Description
 			>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 		<form method="POST" action="?/dismissSos" use:enhance={handleEnhance} class="grid gap-4">
 			<input type="hidden" name="sosId" value={sosId} />
 			<SelectField

@@ -120,9 +120,11 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/update" class="flex flex-col gap-6" use:enhance={handleEnhance}>
+	<RequiredLegend />
 	<input type="hidden" name="newsId" value={newsId} />
 
 	<!-- ===== RÉSUMÉ ===== -->

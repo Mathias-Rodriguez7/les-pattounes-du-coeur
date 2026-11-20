@@ -71,9 +71,11 @@
 		editData.breakStartDate = dates.start;
 		editData.breakEndDate = dates.end;
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <form method="POST" action="?/updateVolunteer" use:enhance={handleUpdateEnhance} class="space-y-6">
+	<RequiredLegend />
 	<!-- EN-TÊTE -->
 	<div class="flex items-center justify-between gap-2">
 		<h2 class="min-w-0 truncate text-lg font-semibold">

@@ -73,6 +73,7 @@
 			onSuccess();
 		}
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 {#if editData && editData.data}
@@ -82,6 +83,7 @@
 		use:enhance={handleUpdateEnhance}
 		class="@container space-y-6"
 	>
+		<RequiredLegend />
 		<!-- 🔑 HIDDEN INPUTS -->
 		<input type="hidden" name="formId" value={formId} />
 

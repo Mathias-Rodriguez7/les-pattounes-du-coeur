@@ -109,6 +109,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -125,6 +126,7 @@
 				Document privé : seules les bénévoles connectées pourront l'ouvrir.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

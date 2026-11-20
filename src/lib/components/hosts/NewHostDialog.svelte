@@ -134,6 +134,7 @@
 		open = false;
 		onCancel?.();
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- Template -->
@@ -150,6 +151,7 @@
 				Convention FA : la famille d'accueil sera créée à ce moment-là.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/createHost" use:enhance={handleEnhance} class="space-y-6">
 			<!-- SECTION 1 : PC 4 colonnes (comme avant) | Tablette 2 | Mobile 1 -->
@@ -266,7 +268,7 @@
 
 			<Separator />
 
-			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
+			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} sticky />
 		</form>
 	</Dialog.Content>
 </Dialog.Root>

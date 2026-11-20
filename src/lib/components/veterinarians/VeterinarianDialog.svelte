@@ -77,6 +77,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -101,6 +102,7 @@
 				Seul le nom de la clinique est obligatoire. La catégorie dit quand l'utiliser.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

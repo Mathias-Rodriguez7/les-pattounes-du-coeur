@@ -88,6 +88,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- src/lib/components/infoDocuments/InfoDocumentEditDialog.svelte -->
@@ -112,6 +113,7 @@
 			<Dialog.Title>Modifier le document</Dialog.Title>
 			<Dialog.Description>{doc.title}</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

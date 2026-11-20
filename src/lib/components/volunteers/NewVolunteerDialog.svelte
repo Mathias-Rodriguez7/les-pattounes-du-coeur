@@ -118,6 +118,7 @@
 		}
 		resetForm();
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- Template -->
@@ -135,6 +136,7 @@
 				son compte sera créé à ce moment-là.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="px-4 pb-2 sm:px-6" />
 
 		<Separator />
 

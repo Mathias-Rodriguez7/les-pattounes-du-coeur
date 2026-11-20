@@ -75,6 +75,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- src/lib/components/news/NewCreateDialog.svelte -->
@@ -85,6 +86,7 @@
 			<Dialog.Title>Nouvelle news</Dialog.Title>
 			<Dialog.Description>Elle sera visible sur la page publique des news.</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/create" class="flex flex-col gap-4" use:enhance={handleEnhance}>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

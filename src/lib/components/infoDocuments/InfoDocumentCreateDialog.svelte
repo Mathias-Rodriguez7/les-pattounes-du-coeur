@@ -78,6 +78,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <!-- src/lib/components/infoDocuments/InfoDocumentCreateDialog.svelte -->
@@ -94,6 +95,7 @@
 			<Dialog.Title>Ajouter un document</Dialog.Title>
 			<Dialog.Description>Il sera visible par toutes les bénévoles connectées.</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form
 			method="POST"

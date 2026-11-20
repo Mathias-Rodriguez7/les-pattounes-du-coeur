@@ -47,6 +47,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Button size="sm" variant="outline" onclick={() => (open = true)}>
@@ -63,6 +64,7 @@
 				visibles sur sa fiche.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/convertFreeCat" use:enhance={handleEnhance} class="grid gap-4">
 			<input type="hidden" name="catId" value={cat.id} />

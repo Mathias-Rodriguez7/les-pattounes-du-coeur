@@ -229,6 +229,7 @@
 		onCancel?.();
 		open = false;
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -240,6 +241,7 @@
 				joignez le contrat signé.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/createAdoption" use:enhance={handleEnhance} class="space-y-6">
 			<input type="hidden" name="catId" value={catId} />
@@ -332,7 +334,7 @@
 				error={getFieldError(fieldErrors, 'media') ?? getFieldError(fieldErrors, 'mediaStorageKey')}
 			/>
 
-			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} />
+			<SaveCancelButtons onCancel={handleCancelClick} isSaving={isSubmitting} sticky />
 		</form>
 	</Dialog.Content>
 </Dialog.Root>

@@ -80,6 +80,7 @@
 			}
 		};
 	};
+	import RequiredLegend from '#lib/components/fields/RequiredLegend.svelte';
 </script>
 
 <Dialog.Root bind:open>
@@ -104,6 +105,7 @@
 				lui trouver une famille d'accueil.
 			</Dialog.Description>
 		</Dialog.Header>
+		<RequiredLegend class="-mt-3" />
 
 		<form method="POST" action="?/cancelAdoption" use:enhance={handleEnhance} class="grid gap-4">
 			<input type="hidden" name="adoptionId" value={adoptionId} />
