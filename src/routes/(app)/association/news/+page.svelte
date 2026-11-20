@@ -53,6 +53,7 @@
 			isOpen = true;
 		}
 	});
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 </script>
 
 <svelte:head>
@@ -65,7 +66,7 @@
 
 <main in:fade={{ duration: 200 }} class="flex justify-center p-4">
 	<div in:fly={{ y: 20, duration: 300 }} class="flex w-full flex-col gap-6 p-8">
-		<h1 class="text-3xl font-bold">News</h1>
+		<PageHeader title="News" />
 
 		<!-- Recherche + bouton Filtres : comme dans les tableaux du dashboard -->
 		<div class="rounded-3xl bg-card p-4 shadow-sm">

@@ -13,6 +13,7 @@
 		{ src: '/img/partners/safti/safti-3.jpg', alt: 'Partenariat Safti, image 3' },
 		{ src: '/img/partners/safti/safti-4.jpg', alt: 'Partenariat Safti, image 4' }
 	];
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 </script>
 
 <svelte:head>
@@ -25,7 +26,7 @@
 
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-4 sm:p-8 lg:p-16">
-		<h1 class="text-2xl font-bold">L'Association</h1>
+		<PageHeader title="L'association" />
 		<section>
 			<div class="flex flex-col gap-6 lg:flex-row">
 				<div class="flex-1">

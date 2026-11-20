@@ -97,6 +97,7 @@
 		selectedId = next.id;
 		document.getElementById(`doc-${next.id}`)?.focus();
 	}
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 </script>
 
 <svelte:head>
@@ -135,20 +136,17 @@
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-10">
 		<!-- ===== EN-TÊTE ===== -->
-		<header class="flex flex-wrap items-start justify-between gap-3">
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
-					Documents d'information
-					<span class="text-base font-normal text-muted-foreground">· {data.documents.length}</span>
-				</h1>
-				<p class="mt-1 text-sm text-muted-foreground sm:text-base">
-					Guides, procédures et modèles utiles dans vos missions.
-				</p>
-			</div>
-			{#if data.isAdmin}
-				<InfoDocumentCreateDialog />
-			{/if}
-		</header>
+		<PageHeader
+			title="Documents d'information"
+			count={data.documents.length}
+			subtitle="Guides, procédures et modèles utiles dans vos missions."
+		>
+			{#snippet actions()}
+				{#if data.isAdmin}
+					<InfoDocumentCreateDialog />
+				{/if}
+			{/snippet}
+		</PageHeader>
 
 		{#if data.documents.length === 0}
 			<!-- ===== AUCUN DOCUMENT ===== -->

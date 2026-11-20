@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { HELLOASSO_URL, TEAMING_URL } from '#lib/constants/donation.ts';
+	import SocialIcon from '#lib/components/icons/SocialIcon.svelte';
 </script>
 
 <footer class="w-full border-t border-black/10 bg-accent/70 px-6 py-12 backdrop-blur-lg">
@@ -48,46 +49,42 @@
 					<a
 						href="https://www.youtube.com/@lespattounesducoeur"
 						target="_blank"
-						class="transition-opacity hover:opacity-80"
+						rel="noopener noreferrer"
+						aria-label="YouTube des Pattounes du Cœur"
+						class="flex size-14 items-center justify-center rounded-full text-white shadow-sm transition-opacity hover:opacity-80"
+						style="background: #FF0000"
 					>
-						<img
-							src="/img/youtube.png"
-							alt="YouTube des Pattounes du Cœur"
-							class="h-14 w-auto object-contain"
-						/>
+						<SocialIcon network="youtube" class="size-7" />
 					</a>
 					<a
 						href="https://www.instagram.com/les_pattounes_du_coeur"
 						target="_blank"
-						class="transition-opacity hover:opacity-80"
+						rel="noopener noreferrer"
+						aria-label="Instagram des Pattounes du Cœur"
+						class="flex size-14 items-center justify-center rounded-full text-white shadow-sm transition-opacity hover:opacity-80"
+						style="background: #FF0069"
 					>
-						<img
-							src="/img/instagram.png"
-							alt="Instagram des Pattounes du Cœur"
-							class="h-14 w-auto object-contain"
-						/>
+						<SocialIcon network="instagram" class="size-7" />
 					</a>
 					<a
 						href="https://www.facebook.com/lespattounesducoeur"
 						target="_blank"
-						class="transition-opacity hover:opacity-80"
+						rel="noopener noreferrer"
+						aria-label="Facebook des Pattounes du Cœur"
+						class="flex size-14 items-center justify-center rounded-full text-white shadow-sm transition-opacity hover:opacity-80"
+						style="background: #0866FF"
 					>
-						<img
-							src="/img/facebook.png"
-							alt="Facebook des Pattounes du Cœur"
-							class="h-14 w-auto object-contain"
-						/>
+						<SocialIcon network="facebook" class="size-7" />
 					</a>
 					<a
 						href="https://www.tiktok.com/@les.pattounes.du.coeur?_r=1&_t=ZN-97XidE3ShwE"
 						target="_blank"
-						class="transition-opacity hover:opacity-80"
+						rel="noopener noreferrer"
+						aria-label="TikTok des Pattounes du Cœur"
+						class="flex size-14 items-center justify-center rounded-full text-white shadow-sm transition-opacity hover:opacity-80"
+						style="background: #000000"
 					>
-						<img
-							src="/img/tiktok.png"
-							alt="TikTok des Pattounes du Cœur"
-							class="h-14 w-auto object-contain"
-						/>
+						<SocialIcon network="tiktok" class="size-7" />
 					</a>
 				</div>
 			</div>

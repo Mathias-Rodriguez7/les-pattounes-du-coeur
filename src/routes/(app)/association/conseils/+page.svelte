@@ -4,6 +4,7 @@
 	import { FileText, PawPrint, AlertTriangle } from '@lucide/svelte';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { fade, fly } from 'svelte/transition';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 </script>
 
 <svelte:head>
@@ -16,10 +17,10 @@
 
 <main in:fade={{ duration: 200 }}>
 	<div in:fly={{ y: 20, duration: 300 }} class="flex flex-col gap-6 p-16">
-		<header class="space-y-6">
-			<h1 class="text-2xl font-semibold">Conseils</h1>
-			<p class="text-muted-foreground">Tous les guides essentiels pour accompagner votre chat.</p>
-		</header>
+		<PageHeader
+			title="Conseils"
+			subtitle="Tous les guides essentiels pour accompagner votre chat."
+		/>
 
 		<!-- GRID 3 COL -->
 		<div class="grid gap-6 md:grid-cols-2">

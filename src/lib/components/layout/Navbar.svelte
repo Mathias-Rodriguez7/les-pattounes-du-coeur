@@ -149,7 +149,7 @@
 	);
 
 	const triggerClass = (active: boolean) =>
-		`h-10 rounded-full px-4 text-base font-lg ${
+		`h-10 rounded-full px-4 text-lg font-medium ${
 			active ? 'bg-primary/10 text-primary hover:bg-primary/15 focus:bg-primary/15' : ''
 		}`;
 </script>
